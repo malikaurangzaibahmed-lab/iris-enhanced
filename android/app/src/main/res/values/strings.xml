@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IRIS</string>
+    
+    <!-- Widget strings -->
+    <string name="widget_description">IRIS: Live Class Status</string>
+    <string name="widget_system_idle">System Idle</string>
+    <string name="widget_no_class">No active class</string>
+</resources>

@@ -1,0 +1,3092 @@
+[
+  {
+    "page": 1,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP26-BCS-1-A (50)",
+          "CS Mr. Fayez Afzaal\nProgramming Fundamentals\nC1.2 (48)",
+          "",
+          "CVE Engr. M Hamza Ijaz\nFunctional English\nC2.2 (48)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Mr. Muhammad Qadeer\nApplications of Information and Communication\nTechnology (Lab)\nCLab-1",
+          null
+        ],
+        [
+          "SP26-BCS-1-B (50)",
+          "CVE Engr. M Hamza Ijaz\nFunctional English\nC2.5 (77)",
+          "",
+          "CS Mr. Fayez Afzaal\nProgramming Fundamentals\nC2.5 (77)",
+          null,
+          "",
+          "CVE Engr. Ali Raza\nCivics and Community\nEngagement (1 hr)\nC1.4 (77)"
+        ],
+        [
+          "FA25-BCS-2-A (50)",
+          "CS Ms. Anam Khan\nObject Oriented Programming (Lab)\nCLab-4",
+          null,
+          "SE Dr. Aniqa Rehman\nDiscrete Structures\nC4 (77)",
+          null,
+          "",
+          "CS Ms. Anam Khan\nObject Oriented Programming\nC5 (77)"
+        ],
+        [
+          "FA25-BCS-2-B (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA25-BCS-2-C (50)",
+          "",
+          "",
+          "CS Mr. Hamza Arif\nObject Oriented Programming\nB7 (70)",
+          null,
+          "",
+          "MT Dr. Shaheen Akhtar\nDiscrete Structures\nC2.5 (77)"
+        ],
+        [
+          "FA25-BCS-2-D (50)",
+          "ME Zafar Farooq\nApplied Physics (Lab)\nPhysics Lab",
+          null,
+          "SE Mr. Sunil Ashraf\nDiscrete Structures\nD7 (72)",
+          null,
+          "CS Ms. Sana Farooq\nSoftware Engineering\nC1.2 (48)",
+          ""
+        ],
+        [
+          "FA25-BCS-2-E (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP25-BCS-3-A (54)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP25-BCS-3-B (51)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP25-BCS-3-C (57)",
+          "CS Ms. Asma Iqbal\nSoftware Engineering\nB7 (70)",
+          "",
+          "CS Mr. Syed Nasir Mehdi\nDatabase Systems\nB14 (100)",
+          null,
+          "EE Dr. Atif Mehmood\nFundamentals of Digital Logic\nDesign (1 hr)\nB14 (100)",
+          "MT Dr. Hameed Ullah\nCalculus and Analytic\nGeometry\nC1.1 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 2,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA24-BCS-4-A (57)",
+          "",
+          "CS Ms. Azka Riaz\nInformation Security (1 hr)\nC2.4 (77)",
+          "CS Ms. Asma Iqbal\nComputer Networks (1 hr)\nC5 (77)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "MT Dr. Rida\nMultivariable Calculus\nC5 (77)",
+          ""
+        ],
+        [
+          "FA24-BCS-4-B (57)",
+          "",
+          "MT Dr. Rida\nMultivariable Calculus\nB12 (70)",
+          "",
+          null,
+          "CS Ms. Mahnoor Fatima\nInformation Security (Lab)\nCLab-12",
+          null
+        ],
+        [
+          "FA24-BCS-4-C (57)",
+          "",
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (Lab)\nCLab-9",
+          "MT Dr. Asma\nMultivariable Calculus\nC1 (77)",
+          null,
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security (Lab)\nCLab-5",
+          null
+        ],
+        [
+          "FA24-BCS-4-D (57)",
+          "MT Dr. Asma\nMultivariable Calculus\nC4 (77)",
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security (Lab)\nCLab-1",
+          null,
+          null,
+          "SE Mr. Muhammad Usman Nasir\nComputer Networks (1 hr)\nB13 (70)",
+          ""
+        ],
+        [
+          "FA24-BCS-4-E (57)",
+          "",
+          "SE Mr. Muhammad Usman Nasir\nComputer Networks (Lab)\nCLab-11",
+          null,
+          null,
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (1 hr)\nC2.4 (77)",
+          ""
+        ],
+        [
+          "FA24-BCS-4-F (57)",
+          "",
+          "",
+          "CS Mr. Manzar Abbas\nArtificial Intelligence (1 hr)\nB13 (70)",
+          null,
+          "CS Ms. Azka Riaz\nInformation Security (Lab)\nCLab-4",
+          null
+        ],
+        [
+          "SP24-BCS-5-A (56)",
+          "CS Ms. Sameen Fatima\nOperating Systems (Lab)\nCLab-10",
+          null,
+          "CS Mr. Imran Shahzad\nWeb Technologies (1 hr)\nA2.1 (63)",
+          null,
+          "MT Ms. Nosheen Ramzan\nStatistics and Probability\nTheory\nC4 (77)",
+          "CS Mr. Mubashar Raza\nComputer Organization and\nAssembly Language (1 hr)\nD9 (72)"
+        ],
+        [
+          "SP24-BCS-5-B (55)",
+          "CS Mr. M. Arslan Sarwar\nWeb Technologies (Lab)\nCLab-6",
+          null,
+          "MT Ms. Nosheen Ramzan\nStatistics and Probability\nTheory\nC1.4 (77)",
+          null,
+          "",
+          "CE Ms. Amna Bashir\nComputer Organization and\nAssembly Language (1 hr)\nD4 (66)"
+        ],
+        [
+          "SP24-BCS-5-C (55)",
+          "CS Dr. Zeeshan Raza\nDesign and Analysis of\nAlgorithms\nC1 (77)",
+          "CS Mr. Mubashar Raza\nComputer Organization and Assembly Language\n(Lab)\nCLab-2",
+          null,
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA23-BCS-6-A (63)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 3,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA23-BCS-6-B (61)",
+          "",
+          "CS Mr. Ahmad Shaf\nAdvanced Web Technologies\n(1 hr)\nC1 (77)",
+          "CS Dr. Inaam ul Haq\nAdvance Database Systems (1\nhr)\nC2.4 (77)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Mr. Muhammad Ali Shahid\nMachine Learning\nFundamentals (1 hr)\nD4 (66)",
+          ""
+        ],
+        [
+          "FA23-BCS-6-C (63)",
+          "",
+          "MT Ms. Zoya\nLinear Algebra\nC1.4 (77)",
+          "CS Mr. Ahmad Shaf\nAdvanced Web Technologies\n(1 hr)\nC1.3 (77)",
+          null,
+          "CS Ms. Raheela Shahzadi\nMachine Learning Fundamentals (Lab)\nCLab-6",
+          null
+        ],
+        [
+          "FA23-BCS-6-D (56)",
+          "",
+          "CS Ms. Aqsa Tehseen\nAdvance Database Systems (1\nhr)\nC4 (77)",
+          "CS Mr. Gohar Liaqat\nMachine Learning\nFundamentals (1 hr)\nD8 (72)",
+          null,
+          "MT Ms. Zoya\nLinear Algebra\nC1 (77)",
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nAdvanced Web Technologies\n(1 hr)\nB7 (70)"
+        ],
+        [
+          "FA23-BCS-6-E (55)",
+          "CS Mr. Syed Anwaar Mehdi\nAdvance Database Systems (1\nhr)\nC5 (77)",
+          "CS Ms. Raheela Shahzadi\nMachine Learning Fundamentals (Lab)\nCLab-3",
+          null,
+          null,
+          "CS Ms. Samra Firdous Sabir\nAdvanced Web Technologies\n(1 hr)\nC1.1 (77)",
+          "MT Ms. Zoya\nLinear Algebra\nC2.4 (77)"
+        ],
+        [
+          "FA23-BCS-6-F (57)",
+          "",
+          "CS Ms. Samra Firdous Sabir\nAdvanced Web Technologies\n(1 hr)\nC1.1 (77)",
+          "MT Dr. Naeem\nLinear Algebra\nB3 (100)",
+          null,
+          "CS Mr. Syed Anwaar Mehdi\nAdvance Database Systems (Lab)\nCLab-10",
+          null
+        ],
+        [
+          "SP23-BCS-7-A (58)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP23-BCS-7-B (46)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP23-BCS-7-C (61)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BCS-8-A (58)",
+          "",
+          "",
+          "",
+          null,
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nE-Commerce and Digital\nMarketing (1 hr)\nB12 (70)",
+          "CS Ms. Sidra Iqbal\nIntroduction to Psychology\nD7 (72)"
+        ],
+        [
+          "FA22-BCS-8-B (54)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 4,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA22-BCS-8-C (52)",
+          "",
+          "",
+          "",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "FA22-BCS-8-D (52)",
+          "",
+          "",
+          "",
+          null,
+          "VS Mr. Hafeez Iqbal\nHuman Resource Management\nC2.2 (48)",
+          "CS Mr. Gohar Liaqat\nIntroduction to Psychology\nC2.2 (48)"
+        ],
+        [
+          "SP26-BSE-1-A (50)",
+          "",
+          "",
+          "SE Ms. Wajiha Farooq\nFunctional English\nD6 (72)",
+          null,
+          "CS Mr. Hamza Arif\nApplications of Information and Communication\nTechnology (Lab)\nCLab-8",
+          null
+        ],
+        [
+          "FA25-BSE-2-A (50)",
+          "CS Mr. Bilal Shabir Qaisar\nDiscrete Structures\nD8 (72)",
+          "SE Ms. Abida Kausar\nObject Oriented Programming (Lab)\nCLab-12",
+          null,
+          null,
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran -\nI (Fehm-e-Quran-I)\nD1 (72)",
+          "EE Mr. Shahzada Sufiyan\nApplied Physics (1 hr)\nD3 (63)"
+        ],
+        [
+          "FA25-BSE-2-B (50)",
+          "CS Mr. Muhammad Khadim Hussain\nObject Oriented Programming\nD7 (72)",
+          "CS Mr. Bilal Shabir Qaisar\nDiscrete Structures\nD3 (63)",
+          "",
+          null,
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran -\nI (Fehm-e-Quran-I)\nD1 (72)",
+          ""
+        ],
+        [
+          "SP25-BSE-3-A (56)",
+          "EE Dr. Saqlain\nFundamentals of Digital Logic\nDesign (1 hr)\nD2 (63)",
+          "",
+          "SE Ms. Afia Afzaal\nDatabase Systems\nB12 (70)",
+          null,
+          "MT Dr. Shaheen Akhtar\nCalculus and Analytic\nGeometry\nC2.5 (77)",
+          "SE Ms. Abida Kausar\nSoftware Engineering\nC1.3 (77)"
+        ],
+        [
+          "SP25-BSE-3-B (56)",
+          "SE Ms. Abida Kausar\nSoftware Engineering\nD6 (72)",
+          "",
+          "SE Dr. Muhammad Shoaib\nData Structures\nC1.1 (77)",
+          null,
+          "SE Ms. Afia Afzaal\nDatabase Systems (Lab)\nCLab-9",
+          null
+        ],
+        [
+          "FA24-BSE-4-A (49)",
+          "",
+          "CS Ms. Sana Farooq\nSoftware Requirement\nEngineering\nC5 (77)",
+          "CS Ms. Mahnoor Fatima\nInformation Security (1 hr)\nD9 (72)",
+          null,
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (Lab)\nCLab-2",
+          null
+        ],
+        [
+          "FA24-BSE-4-B (55)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BSE-4-C (42)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 5,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP24-BSE-5-A (43)",
+          "SE Ms. Shaheen Kausar\nOperating Systems (1 hr)\nD4 (66)",
+          "MT Dr. Misbah Arshad\nMultivariable Calculus\nD1 (72)",
+          "SE Ms. Hafsa Saleem\nSoftware Design and\nArchitecture\nD4 (66)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (Lab)\nCLab-3",
+          null
+        ],
+        [
+          "SP24-BSE-5-B (35)",
+          "",
+          "",
+          "",
+          null,
+          "MT Dr. Misbah Arshad\nMultivariable Calculus\nD3 (63)",
+          "SE Ms. Shaheen Kausar\nOperating Systems (1 hr)\nD1 (72)"
+        ],
+        [
+          "FA23-BSE-6-A (61)",
+          "SE Ms. Hafsa Saleem\nSoftware Construction and Development (Lab)\nCLab-5",
+          null,
+          "SE Ms. Fatima Khan\nSoftware Quality Engineering\n(1 hr)\nD2 (63)",
+          null,
+          "",
+          "SE Ms. Hafsa Saleem\nSoftware Construction and\nDevelopment (1 hr)\nB14 (100)"
+        ],
+        [
+          "FA23-BSE-6-B (62)",
+          "SE Ms. Kanwal Fatima\nDesign and Analysis of\nAlgorithms\nD3 (63)",
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nAdvanced Web Technologies\n(1 hr)\nB14 (100)",
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing (1\nhr)\nD1 (72)",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP23-BSE-7-A (59)",
+          "",
+          "SE Ms. Shaheen Kausar\nBusiness Process Engineering\nD2 (63)",
+          "CS Mr. Muhammad Qadeer\nSoftware Project Management\nD3 (63)",
+          null,
+          "CS Ms. Sameen Fatima\nPrinciples of Operating Systems (Lab)\nCLab-7",
+          null
+        ],
+        [
+          "FA22-BSE-8-A (53)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BSE-8-B (43)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP26-PCS-1-A (5)",
+          "",
+          "",
+          "",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC2.3 (48)",
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC4 (77)"
+        ],
+        [
+          "FA25-PCS-2-A (5)",
+          "",
+          "",
+          "",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC2.3 (48)",
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC4 (77)"
+        ],
+        [
+          "SP26-RCS-1-A (40)",
+          "",
+          "",
+          "",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC2.3 (48)",
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC4 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 6,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA25-RCS-2-A (40)",
+          "",
+          "",
+          "",
+          "Fehm Ul Quran/Prayer Break",
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC2.3 (48)",
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC4 (77)"
+        ],
+        [
+          "SP25-RCS-3-A (40)",
+          "",
+          "",
+          "",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC2.3 (48)",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 7,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP26-BCS-1-A (50)",
+          "",
+          "",
+          "",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "SP26-BCS-1-B (50)",
+          "",
+          "",
+          "SE Ms. Afia Afzaal\nApplications of Information\nand Communication\nTechnology (Lab)\nCLab-10",
+          null,
+          "SE Ms. Afia Afzaal\nApplications of Information\nand Communication\nTechnology (Lab)\nCLab-10",
+          "CS Mr. Hamza Arif\nApplications of Information\nand Communication\nTechnology (1 hr)\nD4 (66)"
+        ],
+        [
+          "FA25-BCS-2-A (50)",
+          "EE Maham Fatima\nApplied Physics (1 hr)\nC1.2 (48)",
+          "CS Ms. Anam Khan\nObject Oriented Programming\nC2.2 (48)",
+          "EE Maham Fatima\nApplied Physics (Lab)\nPhysics Lab",
+          null,
+          "EE Maham Fatima\nApplied Physics (Lab)\nPhysics Lab",
+          ""
+        ],
+        [
+          "FA25-BCS-2-B (50)",
+          "",
+          "SE Mr. Usman Ali\nObject Oriented Programming (Lab)\nCLab-12",
+          null,
+          null,
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nC1.2 (48)",
+          "SE Dr. Aniqa Rehman\nDiscrete Structures\nC4 (77)"
+        ],
+        [
+          "FA25-BCS-2-C (50)",
+          "ME M Naveed\nApplied Physics (Lab)\nPhysics Lab",
+          null,
+          "SE Dr. Aniqa Rehman\nSoftware Engineering\nC4 (77)",
+          null,
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nC1.2 (48)",
+          ""
+        ],
+        [
+          "FA25-BCS-2-D (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA25-BCS-2-E (50)",
+          "EE Mr. Shahzada Sufiyan\nApplied Physics (1 hr)\nC2.3 (48)",
+          "CS Ms. Huma Nisar\nSoftware Engineering\nB7 (70)",
+          "",
+          null,
+          "",
+          "SE Mr. Sunil Ashraf\nDiscrete Structures\nD7 (72)"
+        ],
+        [
+          "SP25-BCS-3-A (54)",
+          "CS Ms. Asma Iqbal\nSoftware Engineering\nC1.1 (77)",
+          "CS Ms. Sidra Iqbal\nData Structures\nB14 (100)",
+          "CS Mr. Tariq Rafiq\nDatabase Systems\nC2.4 (77)",
+          null,
+          "",
+          "EE Mr. Khalid Majeed\nFundamentals of Digital Logic\nDesign (1 hr)\nC1.1 (77)"
+        ],
+        [
+          "SP25-BCS-3-B (51)",
+          "EE Mr. Khalid Majeed\nFundamentals of Digital Logic\nDesign (1 hr)\nB12 (70)",
+          "CS Mr. Tariq Rafiq\nDatabase Systems\nC2.4 (77)",
+          "MT Dr. Sabir Ali Shahzad\nCalculus and Analytic\nGeometry\nB3 (100)",
+          null,
+          "",
+          "CS Ms. Asma Iqbal\nSoftware Engineering\nC1.2 (48)"
+        ],
+        [
+          "SP25-BCS-3-C (57)",
+          "",
+          "",
+          "CS Ms. Asma Iqbal\nSoftware Engineering\nD4 (66)",
+          null,
+          "CS Mr. Tariq Rafiq\nDatabase Systems (Lab)\nCLab-6",
+          null
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 8,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA24-BCS-4-A (57)",
+          "CS Mr. Muhammad Khadim Hussain\nArtificial Intelligence (1 hr)\nD8 (72)",
+          "CS Mr. Muhammad Khadim Hussain\nArtificial Intelligence (Lab)\nCLab-2",
+          null,
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          "MT Dr. Rida\nMultivariable Calculus\nB3 (100)"
+        ],
+        [
+          "FA24-BCS-4-B (57)",
+          "",
+          "CS Ms. Mahnoor Fatima\nInformation Security (1 hr)\nD8 (72)",
+          "SE Ms. Kanwal Fatima\nArtificial Intelligence (1 hr)\nD9 (72)",
+          null,
+          "SE Mr. Sunil Ashraf\nComputer Networks (1 hr)\nD9 (72)",
+          ""
+        ],
+        [
+          "FA24-BCS-4-C (57)",
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC1 (77)",
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (Lab)\nCLab-4",
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (1 hr)\nC1.4 (77)",
+          null,
+          "SE Mr. Muhammad Usman Nasir\nComputer Networks (Lab)\nCLab-2",
+          null
+        ],
+        [
+          "FA24-BCS-4-D (57)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-E (57)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-F (57)",
+          "CS Ms. Sameen Fatima\nComputer Networks (Lab)\nNetworking Lab",
+          null,
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC1 (77)",
+          null,
+          "CS Mr. Manzar Abbas\nArtificial Intelligence (1 hr)\nD1 (72)",
+          ""
+        ],
+        [
+          "SP24-BCS-5-A (56)",
+          "CS Mr. Ali Sher Kashif\nMobile Application\nDevelopment (1 hr)\nC1.3 (77)",
+          "CS Mr. Imran Shahzad\nWeb Technologies (Lab)\nCLab-6",
+          null,
+          null,
+          "CS Dr. Zafar Iqbal Roy\nOperating Systems (1 hr)\nC2.4 (77)",
+          ""
+        ],
+        [
+          "SP24-BCS-5-B (55)",
+          "CS Mr. Imran Shahzad\nMobile Application\nDevelopment (1 hr)\nB7 (70)",
+          "MT Ms. Nosheen Ramzan\nStatistics and Probability\nTheory\nB13 (70)",
+          "",
+          null,
+          "CS Mr. M. Arslan Sarwar\nWeb Technologies (1 hr)\nC1.4 (77)",
+          "CE Ms. Amna Bashir\nComputer Organization and\nAssembly Language (1 hr)\nD3 (63)"
+        ],
+        [
+          "SP24-BCS-5-C (55)",
+          "CS Ms. Huma Nisar\nOperating Systems (1 hr)\nC4 (77)",
+          "CS Mr. M. Arslan Sarwar\nMobile Application\nDevelopment (1 hr)\nC4 (77)",
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (1 hr)\nC1.3 (77)",
+          null,
+          "CS Mr. Muhammad Aamir\nWeb Technologies (Lab)\nCLab-5",
+          null
+        ],
+        [
+          "FA23-BCS-6-A (63)",
+          "CS Mr. Bilal Shabir Qaisar\nMachine Learning\nFundamentals (1 hr)\nD9 (72)",
+          "CS Dr. Yawar Abbas Abid\nTheory of Automata\nC1 (77)",
+          "CS Ms. Sana Farooq\nAdvance Database Systems (1\nhr)\nB12 (70)",
+          null,
+          "CS Mr. Bilal Shabir Qaisar\nMachine Learning\nFundamentals (Lab)\nC2.3 (48)",
+          "MT Dr. Najma\nLinear Algebra\nC1 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 9,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA23-BCS-6-B (61)",
+          "CS Mr. Muhammad Ali Shahid\nMachine Learning Fundamentals (Lab)\nCLab-7",
+          null,
+          "MT Dr. Naeem\nLinear Algebra\nC5 (77)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Dr. Yawar Abbas Abid\nTheory of Automata\nC5 (77)",
+          "CS Mr. Muhammad Ali Shahid\nMachine Learning\nFundamentals (1 hr)\nD2 (63)"
+        ],
+        [
+          "FA23-BCS-6-C (63)",
+          "CS Ms. Raheela Shahzadi\nMachine Learning\nFundamentals (1 hr)\nC5 (77)",
+          "CS Mr. Husnain Raza\nTheory of Automata\nD2 (63)",
+          "MT Ms. Zoya\nLinear Algebra\nC2.5 (77)",
+          null,
+          "SE Mr. Khuram Nisar\nAdvanced Web Technologies (Lab)\nCLab-11",
+          null
+        ],
+        [
+          "FA23-BCS-6-D (56)",
+          "CS Mr. Husnain Raza\nTheory of Automata\nD3 (63)",
+          "CS Ms. Aqsa Tehseen\nAdvance Database Systems (1\nhr)\nC1.1 (77)",
+          "",
+          null,
+          "CS Ms. Samra Firdous Sabir\nAdvanced Web Technologies (Lab)\nCLab-4",
+          null
+        ],
+        [
+          "FA23-BCS-6-E (55)",
+          "MT Ms. Zoya\nLinear Algebra\nC2.4 (77)",
+          "CS Ms. Raheela Shahzadi\nMachine Learning\nFundamentals (1 hr)\nC5 (77)",
+          "CS Mr. Syed Anwaar Mehdi\nAdvance Database Systems (1\nhr)\nB7 (70)",
+          null,
+          "CS Mr. Husnain Raza\nTheory of Automata\nC1.1 (77)",
+          ""
+        ],
+        [
+          "FA23-BCS-6-F (57)",
+          "",
+          "CS Mr. Syed Anwaar Mehdi\nAdvance Database Systems (1\nhr)\nC1.4 (77)",
+          "CS Mr. Husnain Raza\nTheory of Automata\nD8 (72)",
+          null,
+          "CS Ms. Raheela Shahzadi\nMachine Learning\nFundamentals (1 hr)\nB14 (100)",
+          "MT Dr. Naeem\nLinear Algebra\nB14 (100)"
+        ],
+        [
+          "SP23-BCS-7-A (58)",
+          "SE Dr. Muhammad Shoaib\nMachine Learning\nC2.5 (77)",
+          "CS Mr. Ghias ul Din Bulbun\nCompiler Construction (Lab)\nCLab-11",
+          null,
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP23-BCS-7-B (46)",
+          "",
+          "CS Mr. Syed Nasir Mehdi\nCompiler Construction (1 hr)\nC1.2 (48)",
+          "SE Ms. Nusra Rehman\nHuman Resource Management\nC2.2 (48)",
+          null,
+          "CS Mr. Syed Nasir Mehdi\nCompiler Construction (Lab)\nCLab-1",
+          null
+        ],
+        [
+          "SP23-BCS-7-C (61)",
+          "SE Ms. Nusra Rehman\nHuman Resource Management\nW4 (81)",
+          "",
+          "CS Mr. Bilal Shabir Qaisar\nMachine Learning\nD6 (72)",
+          null,
+          "SE Ms. Wajiha Farooq\nHuman Computer Interaction\n(1 hr)\nB12 (70)",
+          ""
+        ],
+        [
+          "FA22-BCS-8-A (58)",
+          "",
+          "",
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nE-Commerce and Digital\nMarketing (Lab)\nCLab-7",
+          null,
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nE-Commerce and Digital\nMarketing (Lab)\nCLab-7",
+          "MS Mr. M. Shoaib Bajwa\nHuman Resource Management\nD9 (72)"
+        ],
+        [
+          "FA22-BCS-8-B (54)",
+          "",
+          "",
+          "",
+          null,
+          "VS Dr. Noor ul Ain\nHuman Resource Management\nW1 (73)",
+          "CS Ms. Sidra Iqbal\nIntroduction to Psychology\nW2 (81)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 10,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA22-BCS-8-C (52)",
+          "SE Ms. Fatima Khan\nE-Commerce and Digital\nMarketing (1 hr)\nD1 (72)",
+          "CS Mr. Gohar Liaqat\nIntroduction to Psychology\nW3 (73)",
+          "VS Dr. Noor ul Ain\nHuman Resource Management\nW2 (81)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "FA22-BCS-8-D (52)",
+          "",
+          "CS Mr. Manzar Abbas\nE-Commerce and Digital Marketing (Lab)\nCLab-3",
+          null,
+          null,
+          "",
+          "CS Mr. Manzar Abbas\nE-Commerce and Digital\nMarketing (1 hr)\nB7 (70)"
+        ],
+        [
+          "SP26-BSE-1-A (50)",
+          "",
+          "SE Ms. Wajiha Farooq\nFunctional English\nD4 (66)",
+          "CS Mr. Hamza Arif\nApplications of Information\nand Communication\nTechnology (1 hr)\nC1.2 (48)",
+          null,
+          "EE Asad Ali khan\nPre-Calculus I (For Only\nPre-Medical Students)\nD4 (66)",
+          ""
+        ],
+        [
+          "FA25-BSE-2-A (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA25-BSE-2-B (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP25-BSE-3-A (56)",
+          "SE Ms. Afia Afzaal\nDatabase Systems (Lab)\nCLab-9",
+          null,
+          "MT Dr. Shaheen Akhtar\nCalculus and Analytic\nGeometry\nB14 (100)",
+          null,
+          "EE Mr. Kashif\nFundamentals of Digital Logic Design (Lab)\nDLD Lab",
+          null
+        ],
+        [
+          "SP25-BSE-3-B (56)",
+          "SE Ms. Abida Kausar\nSoftware Engineering\nD2 (63)",
+          "EE Mr. Kashif\nFundamentals of Digital Logic Design (Lab)\nDLD Lab",
+          null,
+          null,
+          "",
+          "SE Ms. Afia Afzaal\nDatabase Systems\nD8 (72)"
+        ],
+        [
+          "FA24-BSE-4-A (49)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BSE-4-B (55)",
+          "",
+          "",
+          "CS Ms. Azka Riaz\nInformation Security (1 hr)\nA2.1 (63)",
+          null,
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (1 hr)\nD6 (72)",
+          ""
+        ],
+        [
+          "FA24-BSE-4-C (42)",
+          "CS Ms. Rimsha Naheed\nArtificial Intelligence (Lab)\nCLab-1",
+          null,
+          "",
+          null,
+          "CS Ms. Sana Farooq\nSoftware Requirement\nEngineering\nC1.3 (77)",
+          "CS Ms. Huma Nisar\nArtificial Intelligence (1 hr)\nC2.4 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 11,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP24-BSE-5-A (43)",
+          "",
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (1 hr)\nC1.3 (77)",
+          "MT Dr. Misbah Arshad\nMultivariable Calculus\nD3 (63)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Mr. Mubashar Raza\nComputer Organization and\nAssembly Language (1 hr)\nD2 (63)",
+          ""
+        ],
+        [
+          "SP24-BSE-5-B (35)",
+          "SE Ms. Shaheen Kausar\nOperating Systems (Lab)\nCLab-10",
+          null,
+          "SE Ms. Shaheen Kausar\nOperating Systems (1 hr)\nD1 (72)",
+          null,
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (Lab)\nNetworking Lab",
+          null
+        ],
+        [
+          "FA23-BSE-6-A (61)",
+          "SE Ms. Kanwal Fatima\nDesign and Analysis of\nAlgorithms\nD6 (72)",
+          "MT Dr. M Raza\nLinear Algebra\nD9 (72)",
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing (1 hr)\nD2 (63)",
+          null,
+          "SE Ms. Hafsa Saleem\nSoftware Construction and\nDevelopment (1 hr)\nD3 (63)",
+          ""
+        ],
+        [
+          "FA23-BSE-6-B (62)",
+          "SE Mr. Hafiz Muhammad Mudasar Khan\nAdvanced Web Technologies (Lab)\nCLab-5",
+          null,
+          "",
+          null,
+          "SE Ms. Kanwal Fatima\nDesign and Analysis of\nAlgorithms\nB3 (100)",
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing (1 hr)\nD1 (72)"
+        ],
+        [
+          "SP23-BSE-7-A (59)",
+          "",
+          "CS Mr. Muhammad Qadeer\nSoftware Project Management\nD3 (63)",
+          "CS Mr. Gohar Liaqat\nIntroduction to Psychology\nD7 (72)",
+          null,
+          "CS Ms. Sameen Fatima\nPrinciples of Operating\nSystems\nB7 (70)",
+          "CS Dr. Zeeshan Raza\nMachine Learning\nC1.3 (77)"
+        ],
+        [
+          "FA22-BSE-8-A (53)",
+          "CS Mr. Muhammad Qadeer\nHuman Resource Management\nW3 (73)",
+          "MS Dr. Rahib Ali\nFundamentals of Marketing\nD1 (72)",
+          "CS Dr. Muhammad Farhan\nDesign Patterns (1 hr)\nC1.1 (77)",
+          null,
+          "CS Mr. Muhammad Khadim Hussain\nDesign Patterns (Lab)\nCLab-9",
+          null
+        ],
+        [
+          "FA22-BSE-8-B (43)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP26-PCS-1-A (5)",
+          "",
+          "",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC1.5 (35)",
+          null,
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC1 (77)",
+          ""
+        ],
+        [
+          "FA25-PCS-2-A (5)",
+          "",
+          "",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC1.5 (35)",
+          null,
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC1 (77)",
+          ""
+        ],
+        [
+          "SP26-RCS-1-A (40)",
+          "",
+          "",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC1.5 (35)",
+          null,
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC1 (77)",
+          "CS Dr. Zafar Iqbal Roy\nAdvanced Operating System\nC5 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 12,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA25-RCS-2-A (40)",
+          "",
+          "",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC1.5 (35)",
+          "Fehm Ul Quran/Prayer Break",
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC1 (77)",
+          "CS Dr. Zafar Iqbal Roy\nAdvanced Operating System\nC5 (77)"
+        ],
+        [
+          "SP25-RCS-3-A (40)",
+          "",
+          "",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC1.5 (35)",
+          null,
+          "",
+          "CS Dr. Zafar Iqbal Roy\nAdvanced Operating System\nC5 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 13,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP26-BCS-1-A (50)",
+          "CVE Engr. M Yousaf Mushtaq\nCivics and Community\nEngagement (1 hr)\nC1.3 (77)",
+          "",
+          "CS Mr. Husnain Raza\nApplications of Information\nand Communication\nTechnology (1 hr)\nD6 (72)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Mr. Fayez Afzaal\nProgramming Fundamentals (Lab)\nCLab-10",
+          null
+        ],
+        [
+          "SP26-BCS-1-B (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA25-BCS-2-A (50)",
+          "",
+          "CS Ms. Raheela Shahzadi\nSoftware Engineering\nB14 (100)",
+          "SE Dr. Aniqa Rehman\nDiscrete Structures\nC1 (77)",
+          null,
+          "MT. Ms. Sana Nasir\nPre Calculus-II (Pre-Medical\nStudents only)\nW4 (81)",
+          ""
+        ],
+        [
+          "FA25-BCS-2-B (50)",
+          "CS Mr. Bilal Shabir Qaisar\nSoftware Engineering\nD9 (72)",
+          "",
+          "ME Hassan Iqbal\nApplied Physics (1 hr)\nD2 (63)",
+          null,
+          "SE Dr. Aniqa Rehman\nDiscrete Structures\nB7 (70)",
+          "SE Mr. Usman Ali\nObject Oriented Programming\nC1 (77)"
+        ],
+        [
+          "FA25-BCS-2-C (50)",
+          "",
+          "CS Mr. Hamza Arif\nObject Oriented Programming (Lab)\nCLab-3",
+          null,
+          null,
+          "ME Hassan Iqbal\nApplied Physics (1 hr)\nA1.3 (63)",
+          "CS Mr. Hamza Arif\nObject Oriented Programming\nC1.2 (48)"
+        ],
+        [
+          "FA25-BCS-2-D (50)",
+          "ME Muzammil Hussain\nApplied Physics (1 hr)\nC4 (77)",
+          "CS Ms. Anam Khan\nObject Oriented Programming\nA1.2 (63)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nB7 (70)",
+          null,
+          "",
+          "SE Mr. Sunil Ashraf\nDiscrete Structures\nD1 (72)"
+        ],
+        [
+          "FA25-BCS-2-E (50)",
+          "EE Mr. Shahzada Sufiyan\nApplied Physics (1 hr)\nW4 (81)",
+          "SE Mr. Usman Ali\nObject Oriented Programming\nA1.1 (63)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nB7 (70)",
+          null,
+          "SE Mr. Sunil Ashraf\nDiscrete Structures\nD6 (72)",
+          ""
+        ],
+        [
+          "SP25-BCS-3-A (54)",
+          "",
+          "EE Mr. Asim\nFundamentals of Digital Logic Design (Lab)\nDLD Lab",
+          null,
+          null,
+          "CS Ms. Sidra Iqbal\nData Structures (Lab)\nCLab-8",
+          null
+        ],
+        [
+          "SP25-BCS-3-B (51)",
+          "SE Mr. Shehzad Ali\nData Structures\nD3 (63)",
+          "EE Mr. Khalid Majeed\nFundamentals of Digital Logic\nDesign (1 hr)\nB12 (70)",
+          "CS Mr. Tariq Rafiq\nDatabase Systems\nC5 (77)",
+          null,
+          "CS Mr. Tariq Rafiq\nDatabase Systems (Lab)\nCLab-6",
+          null
+        ],
+        [
+          "SP25-BCS-3-C (57)",
+          "CS Mr. Ali Sher Kashif\nData Structures\nC1.4 (77)",
+          "MT Dr. Hameed Ullah\nCalculus and Analytic\nGeometry\nC4 (77)",
+          "",
+          null,
+          "EE Mr. Asim\nFundamentals of Digital Logic Design (Lab)\nDLD Lab",
+          null
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 14,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA24-BCS-4-A (57)",
+          "CS Ms. Asma Iqbal\nComputer Networks (Lab)\nNetworking Lab",
+          null,
+          "CS Ms. Asma Iqbal\nComputer Networks (1 hr)\nW2 (81)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Ms. Azka Riaz\nInformation Security (Lab)\nCLab-5",
+          null
+        ],
+        [
+          "FA24-BCS-4-B (57)",
+          "",
+          "SE Ms. Kanwal Fatima\nArtificial Intelligence (Lab)\nCLab-1",
+          null,
+          null,
+          "MT Dr. Rida\nMultivariable Calculus\nC4 (77)",
+          "SE Ms. Kanwal Fatima\nArtificial Intelligence (1 hr)\nB13 (70)"
+        ],
+        [
+          "FA24-BCS-4-C (57)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-D (57)",
+          "MT Dr. Asma\nMultivariable Calculus\nC1 (77)",
+          "",
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC4 (77)",
+          null,
+          "SE Mr. Muhammad Usman Nasir\nComputer Networks (Lab)\nCLab-7",
+          null
+        ],
+        [
+          "FA24-BCS-4-E (57)",
+          "",
+          "SE Mr. Muhammad Usman Nasir\nComputer Networks (1 hr)\nD9 (72)",
+          "",
+          null,
+          "MT Dr. Asma\nMultivariable Calculus\nC1.3 (77)",
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC1.1 (77)"
+        ],
+        [
+          "FA24-BCS-4-F (57)",
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC5 (77)",
+          "MT Dr. Misbah Arshad\nMultivariable Calculus\nD1 (72)",
+          "",
+          null,
+          "",
+          "CS Ms. Sameen Fatima\nComputer Networks (1 hr)\nB3 (100)"
+        ],
+        [
+          "SP24-BCS-5-A (56)",
+          "CS Mr. Mubashar Raza\nComputer Organization and Assembly Language\n(Lab)\nCLab-8",
+          null,
+          "",
+          null,
+          "MT Ms. Nosheen Ramzan\nStatistics and Probability\nTheory\nB3 (100)",
+          "CS Mr. Mubashar Raza\nComputer Organization and\nAssembly Language (1 hr)\nD6 (72)"
+        ],
+        [
+          "SP24-BCS-5-B (55)",
+          "CS Dr. Zeeshan Raza\nDesign and Analysis of\nAlgorithms\nB7 (70)",
+          "",
+          "CS Ms. Huma Nisar\nOperating Systems (1 hr)\nB12 (70)",
+          null,
+          "CE Ms. Amna Bashir\nComputer Organization and Assembly Language\n(Lab)\nCLab-12",
+          null
+        ],
+        [
+          "SP24-BCS-5-C (55)",
+          "CS Ms. Huma Nisar\nOperating Systems (Lab)\nCLab-10",
+          null,
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (1 hr)\nC2.5 (77)",
+          null,
+          "CS Ms. Huma Nisar\nOperating Systems (1 hr)\nC2.5 (77)",
+          "MT Ms. Nosheen Ramzan\nStatistics and Probability\nTheory\nC5 (77)"
+        ],
+        [
+          "FA23-BCS-6-A (63)",
+          "SE Mr. Khuram Nisar\nAdvanced Web Technologies (Lab)\nCLab-12",
+          null,
+          "CS Mr. Ahmad Shaf\nAdvanced Web Technologies\n(1 hr)\nC1.1 (77)",
+          null,
+          "CS Dr. Yawar Abbas Abid\nTheory of Automata\nC5 (77)",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 15,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA23-BCS-6-B (61)",
+          "",
+          "CS Dr. Yawar Abbas Abid\nTheory of Automata\nC1 (77)",
+          "MT Dr. Naeem\nLinear Algebra\nB14 (100)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Mr. Syed Anwaar Mehdi\nAdvance Database Systems (Lab)\nCLab-4",
+          null
+        ],
+        [
+          "FA23-BCS-6-C (63)",
+          "CS Ms. Raheela Shahzadi\nMachine Learning\nFundamentals (1 hr)\nB14 (100)",
+          "CS Mr. Ahmad Shaf\nAdvanced Web Technologies\n(1 hr)\nC1.1 (77)",
+          "CS Ms. Aqsa Tehseen\nAdvance Database Systems (1\nhr)\nB13 (70)",
+          null,
+          "",
+          "CS Mr. Husnain Raza\nTheory of Automata\nC2.4 (77)"
+        ],
+        [
+          "FA23-BCS-6-D (56)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA23-BCS-6-E (55)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA23-BCS-6-F (57)",
+          "CS Ms. Samra Firdous Sabir\nAdvanced Web Technologies (Lab)\nCLab-4",
+          null,
+          "",
+          null,
+          "CS Ms. Anam Khan\nMachine Learning Fundamentals (Lab)\nCLab-9",
+          null
+        ],
+        [
+          "SP23-BCS-7-A (58)",
+          "",
+          "CS Ms. Rimsha Naheed\nHuman Computer Interaction\n(1 hr)\nC2.5 (77)",
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security\nC2.4 (77)",
+          null,
+          "CS Prof. Dr. Nazir Ahmad Zafar\nCompiler Construction (1 hr)\nD2 (63)",
+          "CS Prof. Dr. Nazir Ahmad Zafar\nCompiler Construction (1 hr)\nD2 (63)"
+        ],
+        [
+          "SP23-BCS-7-B (46)",
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security\nC2.4 (77)",
+          "",
+          "CS Mr. Syed Nasir Mehdi\nCompiler Construction (1 hr)\nC1.3 (77)",
+          null,
+          "CS Ms. Rimsha Naheed\nHuman Computer Interaction\n(1 hr)\nC2.4 (77)",
+          ""
+        ],
+        [
+          "SP23-BCS-7-C (61)",
+          "SE Ms. Wajiha Farooq\nHuman Computer Interaction\n(1 hr)\nD1 (72)",
+          "CS Mr. Syed Nasir Mehdi\nCompiler Construction (1 hr)\nA3 (63)",
+          "CS Mr. Bilal Shabir Qaisar\nMachine Learning\nD4 (66)",
+          null,
+          "SE Ms. Wajiha Farooq\nHuman Computer Interaction (Lab)\nCLab-3",
+          null
+        ],
+        [
+          "FA22-BCS-8-A (58)",
+          "",
+          "CS Ms. Sidra Iqbal\nIntroduction to Psychology\nD7 (72)",
+          "",
+          null,
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nE-Commerce and Digital\nMarketing (1 hr)\nC1.4 (77)",
+          "MS Mr. M. Shoaib Bajwa\nHuman Resource Management\nB12 (70)"
+        ],
+        [
+          "FA22-BCS-8-B (54)",
+          "",
+          "",
+          "CS Mr. Manzar Abbas\nE-Commerce and Digital\nMarketing (1 hr)\nW4 (81)",
+          null,
+          "",
+          "VS Dr. Noor ul Ain\nHuman Resource Management\nC2.5 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 16,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA22-BCS-8-C (52)",
+          "",
+          "CS Mr. Muhammad Aamir\nE-Commerce and Digital Marketing (Lab)\nCLab-5",
+          null,
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "VS Dr. Noor ul Ain\nHuman Resource Management\nC1.2 (48)",
+          ""
+        ],
+        [
+          "FA22-BCS-8-D (52)",
+          "",
+          "CS Mr. Gohar Liaqat\nIntroduction to Psychology\nC2.4 (77)",
+          "",
+          null,
+          "VS Mr. Hafeez Iqbal\nHuman Resource Management\nB13 (70)",
+          "CS Mr. Manzar Abbas\nE-Commerce and Digital\nMarketing (1 hr)\nA3 (63)"
+        ],
+        [
+          "SP26-BSE-1-A (50)",
+          "SE Dr. Javed Ferzund\nProgramming Fundamentals\nC2.5 (77)",
+          "CS Mr. Fayez Afzaal\nProgramming Fundamentals (Lab)\nCLab-6",
+          null,
+          null,
+          "CVE Engr. Ali Raza\nCivics and Community\nEngagement (1 hr)\nD9 (72)",
+          ""
+        ],
+        [
+          "FA25-BSE-2-A (50)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nD8 (72)",
+          "EE Mr. Shahzada Sufiyan\nApplied Physics (Lab)\nPhysics Lab",
+          null,
+          null,
+          "CS Mr. Bilal Shabir Qaisar\nDiscrete Structures\nA1.2 (63)",
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nSoftware Engineering\nC2.2 (48)"
+        ],
+        [
+          "FA25-BSE-2-B (50)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nD8 (72)",
+          "CS Mr. Muhammad Khadim Hussain\nObject Oriented Programming\nD8 (72)",
+          "EE Dr. Hafiz Muhammad Zeeshan\nYousaf\nApplied Physics (1 hr)\nA1.3 (63)",
+          null,
+          "CE Mr. Ahsan Maqsood\nApplied Physics (Lab)\nPhysics Lab",
+          null
+        ],
+        [
+          "SP25-BSE-3-A (56)",
+          "EE Dr. Saqlain\nFundamentals of Digital Logic\nDesign (1 hr)\nD6 (72)",
+          "CS Mr. Ali Sher Kashif\nData Structures\nC5 (77)",
+          "SE Ms. Afia Afzaal\nDatabase Systems\nW3 (73)",
+          null,
+          "CS Mr. Ali Sher Kashif\nData Structures (Lab)\nCLab-11",
+          null
+        ],
+        [
+          "SP25-BSE-3-B (56)",
+          "MT Dr. Amar Rauf\nCalculus and Analytic\nGeometry\nD4 (66)",
+          "SE Dr. Muhammad Shoaib\nData Structures\nC1.4 (77)",
+          "",
+          null,
+          "EE Mr. Khalid Majeed\nFundamentals of Digital Logic\nDesign (1 hr)\nD4 (66)",
+          "SE Ms. Afia Afzaal\nDatabase Systems\nD9 (72)"
+        ],
+        [
+          "FA24-BSE-4-A (49)",
+          "",
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (1 hr)\nD2 (63)",
+          "SE Mr. Syed Ameer Ahmed Gillani\nComputer Networks (1 hr)\nD3 (63)",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BSE-4-B (55)",
+          "SE Mr. Syed Ameer Ahmed Gillani\nComputer Networks (1 hr)\nD7 (72)",
+          "CS Ms. Azka Riaz\nInformation Security (Lab)\nCLab-7",
+          null,
+          null,
+          "CS Ms. Sana Farooq\nSoftware Requirement\nEngineering\nB14 (100)",
+          ""
+        ],
+        [
+          "FA24-BSE-4-C (42)",
+          "CS Mr. Ghias ul Din Bulbun\nComputer Networks (1 hr)\nB13 (70)",
+          "SE Ms. Nusra Rehman\nInformation Security (Lab)\nCLab-2",
+          null,
+          null,
+          "SE Ms. Nusra Rehman\nInformation Security (1 hr)\nB12 (70)",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 17,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP24-BSE-5-A (43)",
+          "SE Ms. Shaheen Kausar\nOperating Systems (Lab)\nCLab-11",
+          null,
+          "SE Mr. Muhammad Yousaf\nMobile Application\nDevelopment (1 hr)\nD8 (72)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "SE Ms. Hafsa Saleem\nSoftware Design and\nArchitecture\nD1 (72)",
+          ""
+        ],
+        [
+          "SP24-BSE-5-B (35)",
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (1 hr)\nC1.1 (77)",
+          "SE Mr. Muhammad Yousaf\nMobile Application\nDevelopment (1 hr)\nD6 (72)",
+          "CS Mr. Muhammad Ali Shahid\nComputer Organization and\nAssembly Language (1 hr)\nD1 (72)",
+          null,
+          "CS Mr. Muhammad Ali Shahid\nComputer Organization and Assembly Language\n(Lab)\nCLab-2",
+          null
+        ],
+        [
+          "FA23-BSE-6-A (61)",
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing\n(Lab)\nCLab-1",
+          "",
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing\n(Lab)\nCLab-4",
+          null,
+          "SE Mr. Khuram Nisar\nAdvanced Web Technologies\n(1 hr)\nD7 (72)",
+          ""
+        ],
+        [
+          "FA23-BSE-6-B (62)",
+          "MT Dr. M Raza\nLinear Algebra\nD2 (63)",
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nAdvanced Web Technologies\n(1 hr)\nC1.3 (77)",
+          "SE Ms. Fatima Khan\nSoftware Quality Engineering\n(1 hr)\nD7 (72)",
+          null,
+          "",
+          "SE Ms. Hafsa Saleem\nSoftware Construction and\nDevelopment (1 hr)\nD7 (72)"
+        ],
+        [
+          "SP23-BSE-7-A (59)",
+          "",
+          "CS Ms. Sameen Fatima\nPrinciples of Operating\nSystems\nB13 (70)",
+          "CS Mr. Gohar Liaqat\nIntroduction to Psychology\nW1 (73)",
+          null,
+          "CS Dr. Zeeshan Raza\nMachine Learning\nC1.1 (77)",
+          "SE Ms. Shaheen Kausar\nBusiness Process Engineering\nD4 (66)"
+        ],
+        [
+          "FA22-BSE-8-A (53)",
+          "",
+          "CS Mr. Muhammad Qadeer\nHuman Resource Management\nW3 (73)",
+          "MS Dr. Rahib Ali\nFundamentals of Marketing\nD9 (72)",
+          null,
+          "",
+          "CS Dr. Muhammad Farhan\nDesign Patterns (1 hr)\nC1.4 (77)"
+        ],
+        [
+          "FA22-BSE-8-B (43)",
+          "",
+          "CS Dr. Muhammad Farhan\nDesign Patterns (1 hr)\nC1.2 (48)",
+          "",
+          null,
+          "CS Mr. Muhammad Qadeer\nHuman Resource Management\nC2.2 (48)",
+          "MS Dr. Rahib Ali\nFundamentals of Marketing\nC2.3 (48)"
+        ],
+        [
+          "SP26-PCS-1-A (5)",
+          "",
+          "",
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC2 (36)",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC1 (77)",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC4 (77)"
+        ],
+        [
+          "FA25-PCS-2-A (5)",
+          "EE Mr. Molana Muhammad Yasin\nHoly Quran- II (Fehm-e-Quran-II)\nB10 (40)",
+          null,
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC2 (36)",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC1 (77)",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC4 (77)"
+        ],
+        [
+          "SP26-RCS-1-A (40)",
+          "",
+          "",
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC2 (36)",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC1 (77)",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC4 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 18,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA25-RCS-2-A (40)",
+          "",
+          "",
+          "SE Dr. Javed Ferzund\nAdvanced Programing\nLanguages (1 hr)\nC2 (36)",
+          "Fehm Ul Quran/Prayer Break",
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC1 (77)",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC4 (77)"
+        ],
+        [
+          "SP25-RCS-3-A (40)",
+          "",
+          "",
+          "",
+          null,
+          "CS Dr. Muhammad Farhan\nQuantum Machine Learning\nC1 (77)",
+          "CS Dr. Inaam ul Haq\nAdvanced Data Mining\nC4 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 19,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP26-BCS-1-A (50)",
+          "",
+          "CS Mr. Fayez Afzaal\nProgramming Fundamentals\nA2.2 (63)",
+          "",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "EE Dr. Abuzar Baqir\nPre-Calculus I (For Only\nPre-Medical Students)\nB7 (70)",
+          "CVE Engr. M Yousaf Mushtaq\nCivics and Community\nEngagement (1 hr)\nB12 (70)"
+        ],
+        [
+          "SP26-BCS-1-B (50)",
+          "CVE Engr. Ali Raza\nCivics and Community\nEngagement (1 hr)\nA2.2 (63)",
+          "CS Mr. Hamza Arif\nApplications of Information\nand Communication\nTechnology (1 hr)\nD8 (72)",
+          "",
+          null,
+          "EE Dr. Abuzar Baqir\nPre-Calculus I (For Only\nPre-Medical Students)\nB7 (70)",
+          "CVE Engr. M Hamza Ijaz\nFunctional English\nC1.3 (77)"
+        ],
+        [
+          "FA25-BCS-2-A (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA25-BCS-2-B (50)",
+          "CS Mr. Bilal Shabir Qaisar\nSoftware Engineering\nD3 (63)",
+          "",
+          "SE Mr. Usman Ali\nObject Oriented Programming\nW1 (73)",
+          null,
+          "ME Hassan Iqbal\nApplied Physics (1 hr)\nD6 (72)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nC1.2 (48)"
+        ],
+        [
+          "FA25-BCS-2-C (50)",
+          "",
+          "SE Dr. Aniqa Rehman\nSoftware Engineering\nC5 (77)",
+          "ME Hassan Iqbal\nApplied Physics (1 hr)\nW2 (81)",
+          null,
+          "MT Dr. Shaheen Akhtar\nDiscrete Structures\nC1.1 (77)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nC1.2 (48)"
+        ],
+        [
+          "FA25-BCS-2-D (50)",
+          "CS Ms. Sana Farooq\nSoftware Engineering\nC1.2 (48)",
+          "ME Muzammil Hussain\nApplied Physics (1 hr)\nB12 (70)",
+          "",
+          null,
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nB14 (100)",
+          "CS Ms. Anam Khan\nObject Oriented Programming\nC2.2 (48)"
+        ],
+        [
+          "FA25-BCS-2-E (50)",
+          "SE Mr. Usman Ali\nObject Oriented Programming\nC2.2 (48)",
+          "CE Mr. Ahsan Maqsood\nApplied Physics (Lab)\nPhysics Lab",
+          null,
+          null,
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nB14 (100)",
+          "CS Ms. Huma Nisar\nSoftware Engineering\nC1.4 (77)"
+        ],
+        [
+          "SP25-BCS-3-A (54)",
+          "",
+          "CS Mr. Tariq Rafiq\nDatabase Systems\nC2.4 (77)",
+          "MT Dr. Sabir Ali Shahzad\nCalculus and Analytic\nGeometry\nC5 (77)",
+          null,
+          "CS Mr. Tariq Rafiq\nDatabase Systems (Lab)\nCLab-6",
+          null
+        ],
+        [
+          "SP25-BCS-3-B (51)",
+          "SE Mr. Shehzad Ali\nData Structures\nD1 (72)",
+          "EE Mr. Asim\nFundamentals of Digital Logic Design (Lab)\nDLD Lab",
+          null,
+          null,
+          "SE Mr. Shehzad Ali\nData Structures (Lab)\nCLab-12",
+          null
+        ],
+        [
+          "SP25-BCS-3-C (57)",
+          "CS Mr. Ali Sher Kashif\nData Structures\nD6 (72)",
+          "EE Dr. Atif Mehmood\nFundamentals of Digital Logic\nDesign (1 hr)\nW2 (81)",
+          "CS Mr. Syed Nasir Mehdi\nDatabase Systems\nC1 (77)",
+          null,
+          "CS Ms. Aqsa Tehseen\nData Structures (Lab)\nCLab-1",
+          null
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 20,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA24-BCS-4-A (57)",
+          "",
+          "",
+          "",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-B (57)",
+          "SE Mr. Sunil Ashraf\nComputer Networks (1 hr)\nD2 (63)",
+          "",
+          "CS Ms. Mahnoor Fatima\nInformation Security (1 hr)\nD9 (72)",
+          null,
+          "SE Mr. Sunil Ashraf\nComputer Networks (Lab)\nNetworking Lab",
+          null
+        ],
+        [
+          "FA24-BCS-4-C (57)",
+          "MT Dr. Asma\nMultivariable Calculus\nC1 (77)",
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC1.4 (77)",
+          "CS Mr. Ghias ul Din Bulbun\nComputer Networks (1 hr)\nD4 (66)",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-D (57)",
+          "",
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (1 hr)\nB7 (70)",
+          "",
+          null,
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC1.4 (77)",
+          ""
+        ],
+        [
+          "FA24-BCS-4-E (57)",
+          "SE Ms. Nusra Rehman\nInformation Security (Lab)\nCLab-9",
+          null,
+          "MT Dr. Asma\nMultivariable Calculus\nB7 (70)",
+          null,
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (Lab)\nCLab-2",
+          null
+        ],
+        [
+          "FA24-BCS-4-F (57)",
+          "CS Mr. Manzar Abbas\nArtificial Intelligence (Lab)\nCLab-2",
+          null,
+          "MT Dr. Misbah Arshad\nMultivariable Calculus\nW4 (81)",
+          null,
+          "",
+          "CS Ms. Sameen Fatima\nComputer Networks (1 hr)\nW4 (81)"
+        ],
+        [
+          "SP24-BCS-5-A (56)",
+          "CS Mr. Imran Shahzad\nWeb Technologies (1 hr)\nB7 (70)",
+          "CS Dr. Zafar Iqbal Roy\nOperating Systems (1 hr)\nC4 (77)",
+          "SE Ms. Kanwal Fatima\nDesign and Analysis of\nAlgorithms\nB13 (70)",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP24-BCS-5-B (55)",
+          "CS Ms. Huma Nisar\nOperating Systems (Lab)\nCLab-10",
+          null,
+          "CS Mr. Imran Shahzad\nMobile Application\nDevelopment (1 hr)\nB14 (100)",
+          null,
+          "CS Mr. M. Arslan Sarwar\nWeb Technologies (1 hr)\nC5 (77)",
+          ""
+        ],
+        [
+          "SP24-BCS-5-C (55)",
+          "",
+          "MT Ms. Nosheen Ramzan\nStatistics and Probability\nTheory\nD2 (63)",
+          "CS Mr. M. Arslan Sarwar\nMobile Application\nDevelopment (1 hr)\nC1.3 (77)",
+          null,
+          "CS Mr. Mubashar Raza\nComputer Organization and\nAssembly Language (1 hr)\nD4 (66)",
+          "CS Dr. Zeeshan Raza\nDesign and Analysis of\nAlgorithms\nC4 (77)"
+        ],
+        [
+          "FA23-BCS-6-A (63)",
+          "",
+          "CS Mr. Ahmad Shaf\nAdvanced Web Technologies\n(1 hr)\nC1.1 (77)",
+          "CS Mr. Bilal Shabir Qaisar\nMachine Learning\nFundamentals (Lab)\nCLab-1",
+          null,
+          "CS Mr. Bilal Shabir Qaisar\nMachine Learning\nFundamentals (1 hr)\nD3 (63)",
+          "CS Ms. Sana Farooq\nAdvance Database Systems (1\nhr)\nC1 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 21,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA23-BCS-6-B (61)",
+          "CS Dr. Inaam ul Haq\nAdvance Database Systems (1\nhr)\nC1.4 (77)",
+          "",
+          "CS Mr. Ahmad Shaf\nAdvanced Web Technologies\n(1 hr)\nC4 (77)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "SE Mr. Khuram Nisar\nAdvanced Web Technologies (Lab)\nCLab-4",
+          null
+        ],
+        [
+          "FA23-BCS-6-C (63)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA23-BCS-6-D (56)",
+          "CS Ms. Aqsa Tehseen\nAdvance Database Systems (Lab)\nCLab-1",
+          null,
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nAdvanced Web Technologies\n(1 hr)\nD8 (72)",
+          null,
+          "CS Mr. Gohar Liaqat\nMachine Learning\nFundamentals (1 hr)\nD7 (72)",
+          ""
+        ],
+        [
+          "FA23-BCS-6-E (55)",
+          "CS Ms. Raheela Shahzadi\nMachine Learning\nFundamentals (1 hr)\nB3 (100)",
+          "CS Mr. Syed Anwaar Mehdi\nAdvance Database Systems (Lab)\nCLab-4",
+          null,
+          null,
+          "CS Mr. Husnain Raza\nTheory of Automata\nA3 (63)",
+          ""
+        ],
+        [
+          "FA23-BCS-6-F (57)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP23-BCS-7-A (58)",
+          "",
+          "",
+          "CS Mr. Muhammad Qadeer\nHuman Resource Management\nC2.4 (77)",
+          null,
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security\nC2.5 (77)",
+          "SE Dr. Muhammad Shoaib\nMachine Learning\nB13 (70)"
+        ],
+        [
+          "SP23-BCS-7-B (46)",
+          "CS Ms. Rimsha Naheed\nHuman Computer Interaction\n(1 hr)\nC5 (77)",
+          "",
+          "SE Dr. Muhammad Shoaib\nMachine Learning\nC1.1 (77)",
+          null,
+          "CS Ms. Rimsha Naheed\nHuman Computer Interaction (Lab)\nCLab-3",
+          null
+        ],
+        [
+          "SP23-BCS-7-C (61)",
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security\nC1.3 (77)",
+          "",
+          "SE Ms. Nusra Rehman\nHuman Resource Management\nA3 (63)",
+          null,
+          "CS Mr. Syed Nasir Mehdi\nCompiler Construction (Lab)\nCLab-8",
+          null
+        ],
+        [
+          "FA22-BCS-8-A (58)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BCS-8-B (54)",
+          "",
+          "CS Mr. Muhammad Aamir\nE-Commerce and Digital Marketing (Lab)\nCLab-5",
+          null,
+          null,
+          "CS Ms. Sidra Iqbal\nIntroduction to Psychology\nC2.3 (48)",
+          "CS Mr. Manzar Abbas\nE-Commerce and Digital\nMarketing (1 hr)\nD1 (72)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 22,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA22-BCS-8-C (52)",
+          "",
+          "",
+          "",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "SE Ms. Fatima Khan\nE-Commerce and Digital\nMarketing (1 hr)\nD1 (72)",
+          "CS Mr. Gohar Liaqat\nIntroduction to Psychology\nD3 (63)"
+        ],
+        [
+          "FA22-BCS-8-D (52)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP26-BSE-1-A (50)",
+          "",
+          "CVE Engr. Ali Raza\nCivics and Community\nEngagement (1 hr)\nB14 (100)",
+          "EE Asad Ali khan\nPre-Calculus I (For Only\nPre-Medical Students)\nB12 (70)",
+          null,
+          "CS Mr. Hamza Arif\nApplications of Information\nand Communication\nTechnology (1 hr)\nC1.2 (48)",
+          "SE Dr. Javed Ferzund\nProgramming Fundamentals\nC1.1 (77)"
+        ],
+        [
+          "FA25-BSE-2-A (50)",
+          "SE Mr. Hafiz Muhammad Mudasar\nKhan\nSoftware Engineering\nC4 (77)",
+          "EE Mr. Shahzada Sufiyan\nApplied Physics (1 hr)\nD7 (72)",
+          "",
+          null,
+          "SE Ms. Abida Kausar\nObject Oriented Programming\nB3 (100)",
+          ""
+        ],
+        [
+          "FA25-BSE-2-B (50)",
+          "SE Mr. Fahad Ameen\nSoftware Engineering\nD7 (72)",
+          "CS Mr. Bilal Shabir Qaisar\nDiscrete Structures\nD3 (63)",
+          "EE Dr. Hafiz Muhammad Zeeshan\nYousaf\nApplied Physics (1 hr)\nC1.2 (48)",
+          null,
+          "SE Mr. Usman Ali\nObject Oriented Programming (Lab)\nCLab-9",
+          null
+        ],
+        [
+          "SP25-BSE-3-A (56)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP25-BSE-3-B (56)",
+          "MT Dr. Amar Rauf\nCalculus and Analytic\nGeometry\nC2.5 (77)",
+          "SE Mr. Shehzad Ali\nData Structures (Lab)\nCLab-3",
+          null,
+          null,
+          "",
+          "EE Mr. Khalid Majeed\nFundamentals of Digital Logic\nDesign (1 hr)\nD7 (72)"
+        ],
+        [
+          "FA24-BSE-4-A (49)",
+          "SE Mr. Syed Ameer Ahmed Gillani\nComputer Networks (1 hr)\nD8 (72)",
+          "SE Ms. Wajiha Farooq\nComputer Networks (Lab)\nNetworking Lab",
+          null,
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BSE-4-B (55)",
+          "",
+          "CS Ms. Azka Riaz\nInformation Security (1 hr)\nB13 (70)",
+          "SE Mr. Syed Ameer Ahmed Gillani\nComputer Networks (1 hr)\nD1 (72)",
+          null,
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (Lab)\nCLab-7",
+          null
+        ],
+        [
+          "FA24-BSE-4-C (42)",
+          "CS Mr. Ghias ul Din Bulbun\nComputer Networks (1 hr)\nB14 (100)",
+          "CS Ms. Sana Farooq\nSoftware Requirement\nEngineering\nC1.2 (48)",
+          "",
+          null,
+          "SE Ms. Nusra Rehman\nInformation Security (1 hr)\nC4 (77)",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 23,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP24-BSE-5-A (43)",
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (1 hr)\nC1.1 (77)",
+          "SE Mr. Muhammad Yousaf\nMobile Application Development (Lab)\nCLab-7",
+          null,
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          "CS Mr. Mubashar Raza\nComputer Organization and\nAssembly Language (1 hr)\nD2 (63)"
+        ],
+        [
+          "SP24-BSE-5-B (35)",
+          "",
+          "CS Ms. Syda Fatima Usman\nWeb Technologies (1 hr)\nC2.5 (77)",
+          "CS Mr. Muhammad Ali Shahid\nComputer Organization and\nAssembly Language (1 hr)\nD2 (63)",
+          null,
+          "MT Dr. Misbah Arshad\nMultivariable Calculus\nD8 (72)",
+          "SE Ms. Hafza Mehreen\nSoftware Design and\nArchitecture\nD6 (72)"
+        ],
+        [
+          "FA23-BSE-6-A (61)",
+          "SE Ms. Fatima Khan\nSoftware Quality Engineering\n(1 hr)\nD4 (66)",
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing (1 hr)\nD1 (72)",
+          "MT Dr. M Raza\nLinear Algebra\nD6 (72)",
+          null,
+          "SE Ms. Kanwal Fatima\nDesign and Analysis of\nAlgorithms\nD2 (63)",
+          ""
+        ],
+        [
+          "FA23-BSE-6-B (62)",
+          "MT Dr. M Raza\nLinear Algebra\nD9 (72)",
+          "SE Ms. Hafsa Saleem\nSoftware Construction and\nDevelopment (1 hr)\nD9 (72)",
+          "SE Ms. Fatima Khan\nSoftware Quality Engineering\n(1 hr)\nD7 (72)",
+          null,
+          "SE Ms. Hafsa Saleem\nSoftware Construction and Development (Lab)\nCLab-5",
+          null
+        ],
+        [
+          "SP23-BSE-7-A (59)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BSE-8-A (53)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BSE-8-B (43)",
+          "CS Mr. Muhammad Khadim Hussain\nDesign Patterns (Lab)\nCLab-11",
+          null,
+          "CS Dr. Muhammad Farhan\nDesign Patterns (1 hr)\nC2.2 (48)",
+          null,
+          "CS Mr. Muhammad Qadeer\nHuman Resource Management\nC1.3 (77)",
+          "MS Dr. Rahib Ali\nFundamentals of Marketing\nB14 (100)"
+        ],
+        [
+          "SP26-PCS-1-A (5)",
+          "",
+          "SE Dr. Javed Ferzund\nAdvanced Programing Languages (Lab)\nCLab-6",
+          null,
+          null,
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC2.4 (77)",
+          ""
+        ],
+        [
+          "FA25-PCS-2-A (5)",
+          "",
+          "SE Dr. Javed Ferzund\nAdvanced Programing Languages (Lab)\nCLab-6",
+          null,
+          null,
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC2.4 (77)",
+          ""
+        ],
+        [
+          "SP26-RCS-1-A (40)",
+          "",
+          "SE Dr. Javed Ferzund\nAdvanced Programing Languages (Lab)\nCLab-6",
+          null,
+          null,
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC2.4 (77)",
+          "CS Dr. Zafar Iqbal Roy\nAdvanced Operating System\nC5 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 24,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA25-RCS-2-A (40)",
+          "",
+          "SE Dr. Javed Ferzund\nAdvanced Programing Languages (Lab)\nCLab-6",
+          null,
+          "Fehm Ul Quran/Prayer Break",
+          "CS Prof. Dr. Nazir Ahmad Zafar\nAdvanced Formal Methods\nC2.4 (77)",
+          "CS Dr. Zafar Iqbal Roy\nAdvanced Operating System\nC5 (77)"
+        ],
+        [
+          "SP25-RCS-3-A (40)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          "CS Dr. Zafar Iqbal Roy\nAdvanced Operating System\nC5 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 25,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP26-BCS-1-A (50)",
+          "EE Dr. Abuzar Baqir\nPre-Calculus I (For Only\nPre-Medical Students)\nC2.4 (77)",
+          "CVE Engr. M Hamza Ijaz\nFunctional English\nC5 (77)",
+          "CS Mr. Husnain Raza\nApplications of Information\nand Communication\nTechnology (1 hr)\nD9 (72)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "SP26-BCS-1-B (50)",
+          "EE Dr. Abuzar Baqir\nPre-Calculus I (For Only\nPre-Medical Students)\nC2.4 (77)",
+          "CS Mr. Fayez Afzaal\nProgramming Fundamentals\nC2.5 (77)",
+          "",
+          null,
+          "CS Mr. Fayez Afzaal\nProgramming Fundamentals (Lab)\nCLab-10",
+          null
+        ],
+        [
+          "FA25-BCS-2-A (50)",
+          "EE Maham Fatima\nApplied Physics (1 hr)\nC2.3 (48)",
+          "MT. Ms. Sana Nasir\nPre Calculus-II (Pre-Medical\nStudents only)\nW4 (81)",
+          "CS Ms. Raheela Shahzadi\nSoftware Engineering\nB12 (70)",
+          null,
+          "EE Mr. Molana Muhammad Yasin\nUnderstanding of Holy Quran - I (Fehm-e-Quran-I)\nC1.2 (48)",
+          null
+        ],
+        [
+          "FA25-BCS-2-B (50)",
+          "",
+          "ME M Naveed\nApplied Physics (Lab)\nPhysics Lab",
+          null,
+          null,
+          "EE Mr. Molana Muhammad Yasin\nUnderstanding of Holy Quran - I (Fehm-e-Quran-I)\nC1.2 (48)",
+          null
+        ],
+        [
+          "FA25-BCS-2-C (50)",
+          "EE Mr. Molana Muhammad Yasin\nUnderstanding of Holy Quran - I (Fehm-e-Quran-I)\nA2.2 (63)",
+          null,
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA25-BCS-2-D (50)",
+          "EE Mr. Molana Muhammad Yasin\nUnderstanding of Holy Quran - I (Fehm-e-Quran-I)\nA2.2 (63)",
+          null,
+          "CS Ms. Anam Khan\nObject Oriented Programming\n(Lab)\nCLab-11",
+          null,
+          "CS Ms. Anam Khan\nObject Oriented Programming\n(Lab)\nCLab-11",
+          ""
+        ],
+        [
+          "FA25-BCS-2-E (50)",
+          "SE Mr. Usman Ali\nObject Oriented Programming (Lab)\nCLab-2",
+          null,
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nB13 (70)",
+          null,
+          "",
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nC1 (77)"
+        ],
+        [
+          "SP25-BCS-3-A (54)",
+          "CS Ms. Asma Iqbal\nSoftware Engineering\nC1 (77)",
+          "EE Mr. Khalid Majeed\nFundamentals of Digital Logic\nDesign (1 hr)\nB12 (70)",
+          "CS Ms. Sidra Iqbal\nData Structures\nC1.1 (77)",
+          null,
+          "MT Dr. Sabir Ali Shahzad\nCalculus and Analytic\nGeometry\nC1.1 (77)",
+          ""
+        ],
+        [
+          "SP25-BCS-3-B (51)",
+          "",
+          "",
+          "MT Dr. Sabir Ali Shahzad\nCalculus and Analytic\nGeometry\nC1.2 (48)",
+          null,
+          "CS Ms. Asma Iqbal\nSoftware Engineering\nC2.4 (77)",
+          ""
+        ],
+        [
+          "SP25-BCS-3-C (57)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 26,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA24-BCS-4-A (57)",
+          "",
+          "CS Mr. Muhammad Khadim Hussain\nArtificial Intelligence (1 hr)\nD1 (72)",
+          "CS Ms. Azka Riaz\nInformation Security (1 hr)\nC5 (77)",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-B (57)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-C (57)",
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (1 hr)\nC1.1 (77)",
+          "CS Mr. Ghias ul Din Bulbun\nComputer Networks (1 hr)\nD2 (63)",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-D (57)",
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (1 hr)\nB12 (70)",
+          "SE Mr. Muhammad Usman Nasir\nComputer Networks (1 hr)\nD3 (63)",
+          "",
+          null,
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (Lab)\nCLab-2",
+          null
+        ],
+        [
+          "FA24-BCS-4-E (57)",
+          "CS Mr. Muhammad Umar\nInformation Security (1 hr)\nC1.3 (77)",
+          "CS Ms. Rimsha Rafiq\nArtificial Intelligence (1 hr)\nC4 (77)",
+          "SE Mr. Muhammad Usman Nasir\nComputer Networks (1 hr)\nD1 (72)",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BCS-4-F (57)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP24-BCS-5-A (56)",
+          "",
+          "CS Mr. Ali Sher Kashif\nMobile Application\nDevelopment (1 hr)\nC1.1 (77)",
+          "SE Ms. Kanwal Fatima\nDesign and Analysis of\nAlgorithms\nD3 (63)",
+          null,
+          "CS Mr. Ali Sher Kashif\nMobile Application Development (Lab)\nCLab-6",
+          null
+        ],
+        [
+          "SP24-BCS-5-B (55)",
+          "CS Mr. Imran Shahzad\nMobile Application Development (Lab)\nCLab-12",
+          null,
+          "CS Dr. Zeeshan Raza\nDesign and Analysis of\nAlgorithms\nC2.5 (77)",
+          null,
+          "CS Ms. Huma Nisar\nOperating Systems (1 hr)\nB13 (70)",
+          ""
+        ],
+        [
+          "SP24-BCS-5-C (55)",
+          "CS Mr. Mubashar Raza\nComputer Organization and\nAssembly Language (1 hr)\nD9 (72)",
+          "CS Mr. M. Arslan Sarwar\nMobile Application Development (Lab)\nCLab-7",
+          null,
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA23-BCS-6-A (63)",
+          "CS Ms. Sana Farooq\nAdvance Database Systems (Lab)\nCLab-6",
+          null,
+          "MT Dr. Najma\nLinear Algebra\nC1.4 (77)",
+          null,
+          "",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 27,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA23-BCS-6-B (61)",
+          "",
+          "",
+          "",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "FA23-BCS-6-C (63)",
+          "",
+          "CS Ms. Aqsa Tehseen\nAdvance Database Systems (Lab)\nCLab-4",
+          null,
+          null,
+          "CS Ms. Aqsa Tehseen\nAdvance Database Systems (1\nhr)\nC1 (77)",
+          ""
+        ],
+        [
+          "FA23-BCS-6-D (56)",
+          "CS Mr. Husnain Raza\nTheory of Automata\nC1.4 (77)",
+          "",
+          "CS Mr. Gohar Liaqat\nMachine Learning\nFundamentals (Lab)\nCLab-6",
+          null,
+          "MT Ms. Zoya\nLinear Algebra\nC5 (77)",
+          "CS Mr. Gohar Liaqat\nMachine Learning\nFundamentals (Lab)\nCLab-3"
+        ],
+        [
+          "FA23-BCS-6-E (55)",
+          "CS Ms. Samra Firdous Sabir\nAdvanced Web Technologies (Lab)\nCLab-11",
+          null,
+          "CS Ms. Samra Firdous Sabir\nAdvanced Web Technologies\n(1 hr)\nC2.4 (77)",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA23-BCS-6-F (57)",
+          "CS Ms. Raheela Shahzadi\nMachine Learning\nFundamentals (1 hr)\nC4 (77)",
+          "",
+          "CS Mr. Syed Anwaar Mehdi\nAdvance Database Systems (1\nhr)\nB7 (70)",
+          null,
+          "CS Mr. Husnain Raza\nTheory of Automata\nB12 (70)",
+          "CS Ms. Samra Firdous Sabir\nAdvanced Web Technologies\n(1 hr)\nC5 (77)"
+        ],
+        [
+          "SP23-BCS-7-A (58)",
+          "CS Ms. Rimsha Naheed\nHuman Computer Interaction (Lab)\nCLab-3",
+          null,
+          "CS Ms. Rimsha Naheed\nHuman Computer Interaction\n(1 hr)\nC4 (77)",
+          null,
+          "CS Mr. Muhammad Qadeer\nHuman Resource Management\nB14 (100)",
+          ""
+        ],
+        [
+          "SP23-BCS-7-B (46)",
+          "SE Dr. Muhammad Shoaib\nMachine Learning\nB13 (70)",
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security\nC1.3 (77)",
+          "",
+          null,
+          "SE Ms. Nusra Rehman\nHuman Resource Management\nC1.4 (77)",
+          ""
+        ],
+        [
+          "SP23-BCS-7-C (61)",
+          "CS Mr. Muhammad Ahmad Farid\nInformation Security\nC2.5 (77)",
+          "CS Mr. Syed Nasir Mehdi\nCompiler Construction (1 hr)\nW2 (81)",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BCS-8-A (58)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BCS-8-B (54)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 28,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA22-BCS-8-C (52)",
+          "",
+          "",
+          "",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "",
+          ""
+        ],
+        [
+          "FA22-BCS-8-D (52)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP26-BSE-1-A (50)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA25-BSE-2-A (50)",
+          "SE Ms. Abida Kausar\nObject Oriented Programming\nD6 (72)",
+          "",
+          "",
+          null,
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nD9 (72)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nD6 (72)"
+        ],
+        [
+          "FA25-BSE-2-B (50)",
+          "",
+          "",
+          "SE Mr. Fahad Ameen\nSoftware Engineering\nD6 (72)",
+          null,
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nD9 (72)",
+          "MT. Ms. Sana Nasir\nPre-Calculus II (For Only\nPre-Medical Students)\nD6 (72)"
+        ],
+        [
+          "SP25-BSE-3-A (56)",
+          "CS Mr. Ali Sher Kashif\nData Structures\nC5 (77)",
+          "",
+          "SE Ms. Abida Kausar\nSoftware Engineering\nB3 (100)",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP25-BSE-3-B (56)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA24-BSE-4-A (49)",
+          "CS Ms. Mahnoor Fatima\nInformation Security (Lab)\nCLab-5",
+          null,
+          "CS Ms. Mahnoor Fatima\nInformation Security (1 hr)\nC1 (77)",
+          null,
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (1 hr)\nD8 (72)",
+          "CS Ms. Sana Farooq\nSoftware Requirement\nEngineering\nB3 (100)"
+        ],
+        [
+          "FA24-BSE-4-B (55)",
+          "SE Mr. Sunil Ashraf\nComputer Networks (Lab)\nNetworking Lab",
+          null,
+          "",
+          null,
+          "CS Ms. Sana Farooq\nSoftware Requirement\nEngineering\nC2.5 (77)",
+          "SE Mr. Fahad Ameen\nArtificial Intelligence (1 hr)\nD8 (72)"
+        ],
+        [
+          "FA24-BSE-4-C (42)",
+          "CS Ms. Huma Nisar\nArtificial Intelligence (1 hr)\nC1.2 (48)",
+          "",
+          "SE Ms. Wajiha Farooq\nComputer Networks (Lab)\nNetworking Lab",
+          null,
+          "SE Ms. Wajiha Farooq\nComputer Networks (Lab)\nNetworking Lab",
+          ""
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 29,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "SP24-BSE-5-A (43)",
+          "SE Ms. Shaheen Kausar\nOperating Systems (1 hr)\nD1 (72)",
+          "SE Mr. Muhammad Yousaf\nMobile Application\nDevelopment (1 hr)\nD6 (72)",
+          "CS Mr. Muhammad Ali Shahid\nComputer Organization and\nAssembly Language (Lab)\nCLab-3",
+          "kaerB\nreyarP/naruQ\nlU\nmheF",
+          "CS Mr. Muhammad Ali Shahid\nComputer Organization and\nAssembly Language (Lab)\nCLab-3",
+          ""
+        ],
+        [
+          "SP24-BSE-5-B (35)",
+          "SE Mr. Muhammad Yousaf\nMobile Application\nDevelopment (1 hr)\nD7 (72)",
+          "SE Ms. Hafza Mehreen\nSoftware Design and\nArchitecture\nD4 (66)",
+          "",
+          null,
+          "SE Mr. Muhammad Yousaf\nMobile Application Development (Lab)\nCLab-8",
+          null
+        ],
+        [
+          "FA23-BSE-6-A (61)",
+          "SE Mr. Khuram Nisar\nAdvanced Web Technologies\n(1 hr)\nD8 (72)",
+          "SE Mr. Khuram Nisar\nAdvanced Web Technologies (Lab)\nCLab-9",
+          null,
+          null,
+          "SE Ms. Fatima Khan\nSoftware Quality Engineering (Lab)\nCLab-1",
+          null
+        ],
+        [
+          "FA23-BSE-6-B (62)",
+          "SE Ms. Fatima Khan\nSoftware Quality Engineering (Lab)\nCLab-1",
+          null,
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing\n(Lab)\nCLab-5",
+          null,
+          "SE Ms. Hafza Mehreen\nAutomated Software Testing\n(Lab)\nCLab-5",
+          ""
+        ],
+        [
+          "SP23-BSE-7-A (59)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BSE-8-A (53)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "FA22-BSE-8-B (43)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP26-PCS-1-A (5)",
+          "",
+          "",
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nB13 (70)",
+          null,
+          "",
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nC1 (77)"
+        ],
+        [
+          "FA25-PCS-2-A (5)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ],
+        [
+          "SP26-RCS-1-A (40)",
+          "",
+          "",
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nB13 (70)",
+          null,
+          "",
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nC1 (77)"
+        ]
+      ]
+    ]
+  },
+  {
+    "page": 30,
+    "tables": [
+      [
+        [
+          "CUI Sahiwal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "",
+          "1\n8:30 - 9:55",
+          "2\n9:55 - 11:20",
+          "3\n11:20 - 12:45",
+          "Break\n12:45 - 1:40",
+          "4\n1:40 - 3:05",
+          "5\n3:05 - 4:30"
+        ],
+        [
+          "FA25-RCS-2-A (40)",
+          "",
+          "",
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nB13 (70)",
+          "Fehm Ul Quran/Prayer Break",
+          "",
+          "MS Dr. Hafiz M Arshad\nUnderstanding of Holy Quran - I\n(Fehm-e-Quran-I)\nC1 (77)"
+        ],
+        [
+          "SP25-RCS-3-A (40)",
+          "",
+          "",
+          "",
+          null,
+          "",
+          ""
+        ]
+      ]
+    ]
+  }
+]

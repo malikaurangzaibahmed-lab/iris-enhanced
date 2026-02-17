@@ -1,0 +1,1481 @@
+
+
+--- PAGE 1 ---
+CUI Sahiwal
+CS Mr. Fayez Afzaal CVE Engr. M Hamza Ijaz CS Mr. Muhammad Qadeer
+Applications of Information and Communication
+Programming Fundamentals Functional English
+Technology (Lab)
+C1.2 (48) C2.2 (48) CLab-1
+CVE Engr. M Hamza Ijaz CS Mr. Fayez Afzaal CVE Engr. Ali Raza
+Civics and Community
+Functional English Programming Fundamentals
+Engagement (1 hr)
+C2.5 (77) C2.5 (77) C1.4 (77)
+CS Ms. Anam Khan SE Dr. Aniqa Rehman CS Ms. Anam Khan
+Object Oriented Programming (Lab) Discrete Structures Object Oriented Programming
+CLab-4 C4 (77) C5 (77)
+CS Mr. Hamza Arif MT Dr. Shaheen Akhtar
+Object Oriented Programming Discrete Structures
+B7 (70) C2.5 (77)
+ME Zafar Farooq SE Mr. Sunil Ashraf CS Ms. Sana Farooq
+Applied Physics (Lab) Discrete Structures Software Engineering
+Physics Lab D7 (72) C1.2 (48)
+CS Ms. Asma Iqbal CS Mr. Syed Nasir Mehdi EE Dr. Atif Mehmood MT Dr. Hameed Ullah
+Fundamentals of Digital Logic Calculus and Analytic
+Software Engineering Database Systems
+Design (1 hr) Geometry
+B7 (70) B14 (100) B14 (100) C1.1 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+Timetable SP26 COMSATS University Islamabad,Sahiwal
+Monday
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP26-BCS-1-A (50)
+SP26-BCS-1-B (50)
+FA25-BCS-2-A (50)
+FA25-BCS-2-B (50)
+FA25-BCS-2-C (50)
+FA25-BCS-2-D (50)
+FA25-BCS-2-E (50)
+SP25-BCS-3-A (54)
+SP25-BCS-3-B (51)
+SP25-BCS-3-C (57)
+
+
+--- PAGE 2 ---
+CUI Sahiwal
+CS Ms. Azka Riaz CS Ms. Asma Iqbal MT Dr. Rida
+Information Security (1 hr) Computer Networks (1 hr) Multivariable Calculus
+C2.4 (77) C5 (77) C5 (77)
+MT Dr. Rida CS Ms. Mahnoor Fatima
+Multivariable Calculus Information Security (Lab)
+B12 (70) CLab-12
+CS Ms. Rimsha Rafiq MT Dr. Asma CS Mr. Muhammad Ahmad Farid
+Artificial Intelligence (Lab) Multivariable Calculus Information Security (Lab)
+CLab-9 C1 (77) CLab-5
+MT Dr. Asma CS Mr. Muhammad Ahmad Farid SE Mr. Muhammad Usman Nasir
+Multivariable Calculus Information Security (Lab) Computer Networks (1 hr)
+C4 (77) CLab-1 B13 (70)
+SE Mr. Muhammad Usman Nasir CS Ms. Rimsha Rafiq
+Computer Networks (Lab) Artificial Intelligence (1 hr)
+CLab-11 C2.4 (77)
+CS Mr. Manzar Abbas CS Ms. Azka Riaz
+Artificial Intelligence (1 hr) Information Security (Lab)
+B13 (70) CLab-4
+CS Ms. Sameen Fatima CS Mr. Imran Shahzad MT Ms. Nosheen Ramzan CS Mr. Mubashar Raza
+Statistics and Probability Computer Organization and
+Operating Systems (Lab) Web Technologies (1 hr)
+Theory Assembly Language (1 hr)
+CLab-10 A2.1 (63) C4 (77) D9 (72)
+CS Mr. M. Arslan Sarwar MT Ms. Nosheen Ramzan CE Ms. Amna Bashir
+Statistics and Probability Computer Organization and
+Web Technologies (Lab)
+Theory Assembly Language (1 hr)
+CLab-6 C1.4 (77) D4 (66)
+CS Dr. Zeeshan Raza CS Mr. Mubashar Raza
+Design and Analysis of Computer Organization and Assembly Language
+Algorithms (Lab)
+C1 (77) CLab-2
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA24-BCS-4-A (57)
+FA24-BCS-4-B (57)
+FA24-BCS-4-C (57)
+FA24-BCS-4-D (57)
+FA24-BCS-4-E (57)
+FA24-BCS-4-F (57)
+SP24-BCS-5-A (56)
+SP24-BCS-5-B (55)
+SP24-BCS-5-C (55)
+FA23-BCS-6-A (63)
+
+
+--- PAGE 3 ---
+CUI Sahiwal
+CS Mr. Ahmad Shaf CS Dr. Inaam ul Haq CS Mr. Muhammad Ali Shahid
+Advanced Web Technologies Advance Database Systems (1 Machine Learning
+(1 hr) hr) Fundamentals (1 hr)
+C1 (77) C2.4 (77) D4 (66)
+MT Ms. Zoya CS Mr. Ahmad Shaf CS Ms. Raheela Shahzadi
+Advanced Web Technologies
+Linear Algebra Machine Learning Fundamentals (Lab)
+(1 hr)
+C1.4 (77) C1.3 (77) CLab-6
+CS Ms. Aqsa Tehseen CS Mr. Gohar Liaqat MT Ms. Zoya SE Mr. Hafiz Muhammad Mudasar
+Khan
+Advance Database Systems (1 Machine Learning Advanced Web Technologies
+Linear Algebra
+hr) Fundamentals (1 hr) (1 hr)
+C4 (77) D8 (72) C1 (77) B7 (70)
+CS Mr. Syed Anwaar Mehdi CS Ms. Raheela Shahzadi CS Ms. Samra Firdous Sabir MT Ms. Zoya
+Advance Database Systems (1 Advanced Web Technologies
+Machine Learning Fundamentals (Lab) Linear Algebra
+hr) (1 hr)
+C5 (77) CLab-3 C1.1 (77) C2.4 (77)
+CS Ms. Samra Firdous Sabir MT Dr. Naeem CS Mr. Syed Anwaar Mehdi
+Advanced Web Technologies
+Linear Algebra Advance Database Systems (Lab)
+(1 hr)
+C1.1 (77) B3 (100) CLab-10
+SE Mr. Hafiz Muhammad Mudasar CS Ms. Sidra Iqbal
+Khan
+E-Commerce and Digital
+Introduction to Psychology
+Marketing (1 hr)
+B12 (70) D7 (72)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA23-BCS-6-B (61)
+FA23-BCS-6-C (63)
+FA23-BCS-6-D (56)
+FA23-BCS-6-E (55)
+FA23-BCS-6-F (57)
+SP23-BCS-7-A (58)
+SP23-BCS-7-B (46)
+SP23-BCS-7-C (61)
+FA22-BCS-8-A (58)
+FA22-BCS-8-B (54)
+
+
+--- PAGE 4 ---
+CUI Sahiwal
+VS Mr. Hafeez Iqbal CS Mr. Gohar Liaqat
+Human Resource Management Introduction to Psychology
+C2.2 (48) C2.2 (48)
+SE Ms. Wajiha Farooq CS Mr. Hamza Arif
+Applications of Information and Communication
+Functional English
+Technology (Lab)
+D6 (72) CLab-8
+CS Mr. Bilal Shabir Qaisar SE Ms. Abida Kausar MS Dr. Hafiz M Arshad EE Mr. Shahzada Sufiyan
+Understanding of Holy Quran -
+Discrete Structures Object Oriented Programming (Lab) Applied Physics (1 hr)
+I (Fehm-e-Quran-I)
+D8 (72) CLab-12 D1 (72) D3 (63)
+CS Mr. Muhammad Khadim Hussain CS Mr. Bilal Shabir Qaisar MS Dr. Hafiz M Arshad
+Understanding of Holy Quran -
+Object Oriented Programming Discrete Structures
+I (Fehm-e-Quran-I)
+D7 (72) D3 (63) D1 (72)
+EE Dr. Saqlain SE Ms. Afia Afzaal MT Dr. Shaheen Akhtar SE Ms. Abida Kausar
+Fundamentals of Digital Logic Calculus and Analytic
+Database Systems Software Engineering
+Design (1 hr) Geometry
+D2 (63) B12 (70) C2.5 (77) C1.3 (77)
+SE Ms. Abida Kausar SE Dr. Muhammad Shoaib SE Ms. Afia Afzaal
+Software Engineering Data Structures Database Systems (Lab)
+D6 (72) C1.1 (77) CLab-9
+CS Ms. Sana Farooq CS Ms. Mahnoor Fatima SE Mr. Fahad Ameen
+Software Requirement
+Information Security (1 hr) Artificial Intelligence (Lab)
+Engineering
+C5 (77) D9 (72) CLab-2
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA22-BCS-8-C (52)
+FA22-BCS-8-D (52)
+SP26-BSE-1-A (50)
+FA25-BSE-2-A (50)
+FA25-BSE-2-B (50)
+SP25-BSE-3-A (56)
+SP25-BSE-3-B (56)
+FA24-BSE-4-A (49)
+FA24-BSE-4-B (55)
+FA24-BSE-4-C (42)
+
+
+--- PAGE 5 ---
+CUI Sahiwal
+SE Ms. Shaheen Kausar MT Dr. Misbah Arshad SE Ms. Hafsa Saleem CS Ms. Syda Fatima Usman
+Software Design and
+Operating Systems (1 hr) Multivariable Calculus Web Technologies (Lab)
+Architecture
+D4 (66) D1 (72) D4 (66) CLab-3
+MT Dr. Misbah Arshad SE Ms. Shaheen Kausar
+Multivariable Calculus Operating Systems (1 hr)
+D3 (63) D1 (72)
+SE Ms. Hafsa Saleem SE Ms. Fatima Khan SE Ms. Hafsa Saleem
+Software Quality Engineering Software Construction and
+Software Construction and Development (Lab)
+(1 hr) Development (1 hr)
+CLab-5 D2 (63) B14 (100)
+SE Ms. Kanwal Fatima SE Mr. Hafiz Muhammad Mudasar SE Ms. Hafza Mehreen
+Khan
+Design and Analysis of Advanced Web Technologies Automated Software Testing (1
+Algorithms (1 hr) hr)
+D3 (63) B14 (100) D1 (72)
+SE Ms. Shaheen Kausar CS Mr. Muhammad Qadeer CS Ms. Sameen Fatima
+Business Process Engineering Software Project Management Principles of Operating Systems (Lab)
+D2 (63) D3 (63) CLab-7
+CS Dr. Muhammad Farhan SE Dr. Javed Ferzund
+Advanced Programing
+Quantum Machine Learning
+Languages (1 hr)
+C2.3 (48) C4 (77)
+CS Dr. Muhammad Farhan SE Dr. Javed Ferzund
+Advanced Programing
+Quantum Machine Learning
+Languages (1 hr)
+C2.3 (48) C4 (77)
+CS Dr. Muhammad Farhan SE Dr. Javed Ferzund
+Advanced Programing
+Quantum Machine Learning
+Languages (1 hr)
+C2.3 (48) C4 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP24-BSE-5-A (43)
+SP24-BSE-5-B (35)
+FA23-BSE-6-A (61)
+FA23-BSE-6-B (62)
+SP23-BSE-7-A (59)
+FA22-BSE-8-A (53)
+FA22-BSE-8-B (43)
+SP26-PCS-1-A (5)
+FA25-PCS-2-A (5)
+SP26-RCS-1-A (40)
+
+
+--- PAGE 6 ---
+CUI Sahiwal
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+CS Dr. Muhammad Farhan SE Dr. Javed Ferzund
+Advanced Programing
+FA25-RCS-2-A (40) Quantum Machine Learning
+Languages (1 hr)
+C2.3 (48) C4 (77)
+Fehm Ul Quran/Prayer Break
+CS Dr. Muhammad Farhan
+SP25-RCS-3-A (40) Quantum Machine Learning
+C2.3 (48)
+Timetable generated:04/02/2026 aSc Timetables
+
+
+--- PAGE 7 ---
+CUI Sahiwal
+SE Ms. Afia Afzaal SE Ms. Afia Afzaal CS Mr. Hamza Arif
+Applications of Information Applications of Information Applications of Information
+and Communication and Communication and Communication
+Technology (Lab) Technology (Lab) Technology (1 hr)
+CLab-10 CLab-10 D4 (66)
+EE Maham Fatima CS Ms. Anam Khan EE Maham Fatima EE Maham Fatima
+Applied Physics (1 hr) Object Oriented Programming Applied Physics (Lab) Applied Physics (Lab)
+C1.2 (48) C2.2 (48) Physics Lab Physics Lab
+SE Mr. Usman Ali MT. Ms. Sana Nasir SE Dr. Aniqa Rehman
+Pre-Calculus II (For Only
+Object Oriented Programming (Lab) Discrete Structures
+Pre-Medical Students)
+CLab-12 C1.2 (48) C4 (77)
+ME M Naveed SE Dr. Aniqa Rehman MT. Ms. Sana Nasir
+Pre-Calculus II (For Only
+Applied Physics (Lab) Software Engineering
+Pre-Medical Students)
+Physics Lab C4 (77) C1.2 (48)
+EE Mr. Shahzada Sufiyan CS Ms. Huma Nisar SE Mr. Sunil Ashraf
+Applied Physics (1 hr) Software Engineering Discrete Structures
+C2.3 (48) B7 (70) D7 (72)
+CS Ms. Asma Iqbal CS Ms. Sidra Iqbal CS Mr. Tariq Rafiq EE Mr. Khalid Majeed
+Fundamentals of Digital Logic
+Software Engineering Data Structures Database Systems
+Design (1 hr)
+C1.1 (77) B14 (100) C2.4 (77) C1.1 (77)
+EE Mr. Khalid Majeed CS Mr. Tariq Rafiq MT Dr. Sabir Ali Shahzad CS Ms. Asma Iqbal
+Fundamentals of Digital Logic Calculus and Analytic
+Database Systems Software Engineering
+Design (1 hr) Geometry
+B12 (70) C2.4 (77) B3 (100) C1.2 (48)
+CS Ms. Asma Iqbal CS Mr. Tariq Rafiq
+Software Engineering Database Systems (Lab)
+D4 (66) CLab-6
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+Timetable SP26 COMSATS University Islamabad,Sahiwal
+Tuesday
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP26-BCS-1-A (50)
+SP26-BCS-1-B (50)
+FA25-BCS-2-A (50)
+FA25-BCS-2-B (50)
+FA25-BCS-2-C (50)
+FA25-BCS-2-D (50)
+FA25-BCS-2-E (50)
+SP25-BCS-3-A (54)
+SP25-BCS-3-B (51)
+SP25-BCS-3-C (57)
+
+
+--- PAGE 8 ---
+CUI Sahiwal
+CS Mr. Muhammad Khadim Hussain CS Mr. Muhammad Khadim Hussain MT Dr. Rida
+Artificial Intelligence (1 hr) Artificial Intelligence (Lab) Multivariable Calculus
+D8 (72) CLab-2 B3 (100)
+CS Ms. Mahnoor Fatima SE Ms. Kanwal Fatima SE Mr. Sunil Ashraf
+Information Security (1 hr) Artificial Intelligence (1 hr) Computer Networks (1 hr)
+D8 (72) D9 (72) D9 (72)
+CS Mr. Muhammad Umar CS Ms. Rimsha Rafiq SE Mr. Fahad Ameen SE Mr. Muhammad Usman Nasir
+Information Security (1 hr) Artificial Intelligence (Lab) Artificial Intelligence (1 hr) Computer Networks (Lab)
+C1 (77) CLab-4 C1.4 (77) CLab-2
+CS Ms. Sameen Fatima CS Mr. Muhammad Umar CS Mr. Manzar Abbas
+Computer Networks (Lab) Information Security (1 hr) Artificial Intelligence (1 hr)
+Networking Lab C1 (77) D1 (72)
+CS Mr. Ali Sher Kashif CS Mr. Imran Shahzad CS Dr. Zafar Iqbal Roy
+Mobile Application
+Web Technologies (Lab) Operating Systems (1 hr)
+Development (1 hr)
+C1.3 (77) CLab-6 C2.4 (77)
+CS Mr. Imran Shahzad MT Ms. Nosheen Ramzan CS Mr. M. Arslan Sarwar CE Ms. Amna Bashir
+Mobile Application Statistics and Probability Computer Organization and
+Web Technologies (1 hr)
+Development (1 hr) Theory Assembly Language (1 hr)
+B7 (70) B13 (70) C1.4 (77) D3 (63)
+CS Ms. Huma Nisar CS Mr. M. Arslan Sarwar CS Ms. Syda Fatima Usman CS Mr. Muhammad Aamir
+Mobile Application
+Operating Systems (1 hr) Web Technologies (1 hr) Web Technologies (Lab)
+Development (1 hr)
+C4 (77) C4 (77) C1.3 (77) CLab-5
+CS Mr. Bilal Shabir Qaisar CS Dr. Yawar Abbas Abid CS Ms. Sana Farooq CS Mr. Bilal Shabir Qaisar MT Dr. Najma
+Machine Learning Advance Database Systems (1 Machine Learning
+Theory of Automata Linear Algebra
+Fundamentals (1 hr) hr) Fundamentals (Lab)
+D9 (72) C1 (77) B12 (70) C2.3 (48) C1 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA24-BCS-4-A (57)
+FA24-BCS-4-B (57)
+FA24-BCS-4-C (57)
+FA24-BCS-4-D (57)
+FA24-BCS-4-E (57)
+FA24-BCS-4-F (57)
+SP24-BCS-5-A (56)
+SP24-BCS-5-B (55)
+SP24-BCS-5-C (55)
+FA23-BCS-6-A (63)
+
+
+--- PAGE 9 ---
+CUI Sahiwal
+CS Mr. Muhammad Ali Shahid MT Dr. Naeem CS Dr. Yawar Abbas Abid CS Mr. Muhammad Ali Shahid
+Machine Learning
+Machine Learning Fundamentals (Lab) Linear Algebra Theory of Automata
+Fundamentals (1 hr)
+CLab-7 C5 (77) C5 (77) D2 (63)
+CS Ms. Raheela Shahzadi CS Mr. Husnain Raza MT Ms. Zoya SE Mr. Khuram Nisar
+Machine Learning
+Theory of Automata Linear Algebra Advanced Web Technologies (Lab)
+Fundamentals (1 hr)
+C5 (77) D2 (63) C2.5 (77) CLab-11
+CS Mr. Husnain Raza CS Ms. Aqsa Tehseen CS Ms. Samra Firdous Sabir
+Advance Database Systems (1
+Theory of Automata Advanced Web Technologies (Lab)
+hr)
+D3 (63) C1.1 (77) CLab-4
+MT Ms. Zoya CS Ms. Raheela Shahzadi CS Mr. Syed Anwaar Mehdi CS Mr. Husnain Raza
+Machine Learning Advance Database Systems (1
+Linear Algebra Theory of Automata
+Fundamentals (1 hr) hr)
+C2.4 (77) C5 (77) B7 (70) C1.1 (77)
+CS Mr. Syed Anwaar Mehdi CS Mr. Husnain Raza CS Ms. Raheela Shahzadi MT Dr. Naeem
+Advance Database Systems (1 Machine Learning
+Theory of Automata Linear Algebra
+hr) Fundamentals (1 hr)
+C1.4 (77) D8 (72) B14 (100) B14 (100)
+SE Dr. Muhammad Shoaib CS Mr. Ghias ul Din Bulbun
+Machine Learning Compiler Construction (Lab)
+C2.5 (77) CLab-11
+CS Mr. Syed Nasir Mehdi SE Ms. Nusra Rehman CS Mr. Syed Nasir Mehdi
+Compiler Construction (1 hr) Human Resource Management Compiler Construction (Lab)
+C1.2 (48) C2.2 (48) CLab-1
+SE Ms. Nusra Rehman CS Mr. Bilal Shabir Qaisar SE Ms. Wajiha Farooq
+Human Computer Interaction
+Human Resource Management Machine Learning
+(1 hr)
+W4 (81) D6 (72) B12 (70)
+SE Mr. Hafiz Muhammad Mudasar SE Mr. Hafiz Muhammad Mudasar MS Mr. M. Shoaib Bajwa
+Khan Khan
+E-Commerce and Digital E-Commerce and Digital
+Human Resource Management
+Marketing (Lab) Marketing (Lab)
+CLab-7 CLab-7 D9 (72)
+VS Dr. Noor ul Ain CS Ms. Sidra Iqbal
+Human Resource Management Introduction to Psychology
+W1 (73) W2 (81)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA23-BCS-6-B (61)
+FA23-BCS-6-C (63)
+FA23-BCS-6-D (56)
+FA23-BCS-6-E (55)
+FA23-BCS-6-F (57)
+SP23-BCS-7-A (58)
+SP23-BCS-7-B (46)
+SP23-BCS-7-C (61)
+FA22-BCS-8-A (58)
+FA22-BCS-8-B (54)
+
+
+--- PAGE 10 ---
+CUI Sahiwal
+SE Ms. Fatima Khan CS Mr. Gohar Liaqat VS Dr. Noor ul Ain
+E-Commerce and Digital
+Introduction to Psychology Human Resource Management
+Marketing (1 hr)
+D1 (72) W3 (73) W2 (81)
+CS Mr. Manzar Abbas CS Mr. Manzar Abbas
+E-Commerce and Digital
+E-Commerce and Digital Marketing (Lab)
+Marketing (1 hr)
+CLab-3 B7 (70)
+SE Ms. Wajiha Farooq CS Mr. Hamza Arif EE Asad Ali khan
+Applications of Information
+Pre-Calculus I (For Only
+Functional English and Communication
+Pre-Medical Students)
+Technology (1 hr)
+D4 (66) C1.2 (48) D4 (66)
+SE Ms. Afia Afzaal MT Dr. Shaheen Akhtar EE Mr. Kashif
+Calculus and Analytic
+Database Systems (Lab) Fundamentals of Digital Logic Design (Lab)
+Geometry
+CLab-9 B14 (100) DLD Lab
+SE Ms. Abida Kausar EE Mr. Kashif SE Ms. Afia Afzaal
+Software Engineering Fundamentals of Digital Logic Design (Lab) Database Systems
+D2 (63) DLD Lab D8 (72)
+CS Ms. Azka Riaz SE Mr. Fahad Ameen
+Information Security (1 hr) Artificial Intelligence (1 hr)
+A2.1 (63) D6 (72)
+CS Ms. Rimsha Naheed CS Ms. Sana Farooq CS Ms. Huma Nisar
+Software Requirement
+Artificial Intelligence (Lab) Artificial Intelligence (1 hr)
+Engineering
+CLab-1 C1.3 (77) C2.4 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA22-BCS-8-C (52)
+FA22-BCS-8-D (52)
+SP26-BSE-1-A (50)
+FA25-BSE-2-A (50)
+FA25-BSE-2-B (50)
+SP25-BSE-3-A (56)
+SP25-BSE-3-B (56)
+FA24-BSE-4-A (49)
+FA24-BSE-4-B (55)
+FA24-BSE-4-C (42)
+
+
+--- PAGE 11 ---
+CUI Sahiwal
+CS Ms. Syda Fatima Usman MT Dr. Misbah Arshad CS Mr. Mubashar Raza
+Computer Organization and
+Web Technologies (1 hr) Multivariable Calculus
+Assembly Language (1 hr)
+C1.3 (77) D3 (63) D2 (63)
+SE Ms. Shaheen Kausar SE Ms. Shaheen Kausar CS Ms. Syda Fatima Usman
+Operating Systems (Lab) Operating Systems (1 hr) Web Technologies (Lab)
+CLab-10 D1 (72) Networking Lab
+SE Ms. Kanwal Fatima MT Dr. M Raza SE Ms. Hafza Mehreen SE Ms. Hafsa Saleem
+Design and Analysis of Software Construction and
+Linear Algebra Automated Software Testing (1 hr)
+Algorithms Development (1 hr)
+D6 (72) D9 (72) D2 (63) D3 (63)
+SE Mr. Hafiz Muhammad Mudasar Khan SE Ms. Kanwal Fatima SE Ms. Hafza Mehreen
+Design and Analysis of
+Advanced Web Technologies (Lab) Automated Software Testing (1 hr)
+Algorithms
+CLab-5 B3 (100) D1 (72)
+CS Mr. Muhammad Qadeer CS Mr. Gohar Liaqat CS Ms. Sameen Fatima CS Dr. Zeeshan Raza
+Principles of Operating
+Software Project Management Introduction to Psychology Machine Learning
+Systems
+D3 (63) D7 (72) B7 (70) C1.3 (77)
+CS Mr. Muhammad Qadeer MS Dr. Rahib Ali CS Dr. Muhammad Farhan CS Mr. Muhammad Khadim Hussain
+Human Resource Management Fundamentals of Marketing Design Patterns (1 hr) Design Patterns (Lab)
+W3 (73) D1 (72) C1.1 (77) CLab-9
+CS Dr. Inaam ul Haq CS Prof. Dr. Nazir Ahmad Zafar
+Advanced Data Mining Advanced Formal Methods
+C1.5 (35) C1 (77)
+CS Dr. Inaam ul Haq CS Prof. Dr. Nazir Ahmad Zafar
+Advanced Data Mining Advanced Formal Methods
+C1.5 (35) C1 (77)
+CS Dr. Inaam ul Haq CS Prof. Dr. Nazir Ahmad Zafar CS Dr. Zafar Iqbal Roy
+Advanced Data Mining Advanced Formal Methods Advanced Operating System
+C1.5 (35) C1 (77) C5 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP24-BSE-5-A (43)
+SP24-BSE-5-B (35)
+FA23-BSE-6-A (61)
+FA23-BSE-6-B (62)
+SP23-BSE-7-A (59)
+FA22-BSE-8-A (53)
+FA22-BSE-8-B (43)
+SP26-PCS-1-A (5)
+FA25-PCS-2-A (5)
+SP26-RCS-1-A (40)
+
+
+--- PAGE 12 ---
+CUI Sahiwal
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+CS Dr. Inaam ul Haq CS Prof. Dr. Nazir Ahmad Zafar CS Dr. Zafar Iqbal Roy
+FA25-RCS-2-A (40) Advanced Data Mining Advanced Formal Methods Advanced Operating System
+C1.5 (35) C1 (77) C5 (77)
+Fehm Ul Quran/Prayer Break
+CS Dr. Inaam ul Haq CS Dr. Zafar Iqbal Roy
+SP25-RCS-3-A (40) Advanced Data Mining Advanced Operating System
+C1.5 (35) C5 (77)
+Timetable generated:04/02/2026 aSc Timetables
+
+
+--- PAGE 13 ---
+CUI Sahiwal
+CVE Engr. M Yousaf Mushtaq CS Mr. Husnain Raza CS Mr. Fayez Afzaal
+Applications of Information
+Civics and Community
+and Communication Programming Fundamentals (Lab)
+Engagement (1 hr)
+Technology (1 hr)
+C1.3 (77) D6 (72) CLab-10
+CS Ms. Raheela Shahzadi SE Dr. Aniqa Rehman MT. Ms. Sana Nasir
+Pre Calculus-II (Pre-Medical
+Software Engineering Discrete Structures
+Students only)
+B14 (100) C1 (77) W4 (81)
+CS Mr. Bilal Shabir Qaisar ME Hassan Iqbal SE Dr. Aniqa Rehman SE Mr. Usman Ali
+Software Engineering Applied Physics (1 hr) Discrete Structures Object Oriented Programming
+D9 (72) D2 (63) B7 (70) C1 (77)
+CS Mr. Hamza Arif ME Hassan Iqbal CS Mr. Hamza Arif
+Object Oriented Programming (Lab) Applied Physics (1 hr) Object Oriented Programming
+CLab-3 A1.3 (63) C1.2 (48)
+ME Muzammil Hussain CS Ms. Anam Khan MT. Ms. Sana Nasir SE Mr. Sunil Ashraf
+Pre-Calculus II (For Only
+Applied Physics (1 hr) Object Oriented Programming Discrete Structures
+Pre-Medical Students)
+C4 (77) A1.2 (63) B7 (70) D1 (72)
+EE Mr. Shahzada Sufiyan SE Mr. Usman Ali MT. Ms. Sana Nasir SE Mr. Sunil Ashraf
+Pre-Calculus II (For Only
+Applied Physics (1 hr) Object Oriented Programming Discrete Structures
+Pre-Medical Students)
+W4 (81) A1.1 (63) B7 (70) D6 (72)
+EE Mr. Asim CS Ms. Sidra Iqbal
+Fundamentals of Digital Logic Design (Lab) Data Structures (Lab)
+DLD Lab CLab-8
+SE Mr. Shehzad Ali EE Mr. Khalid Majeed CS Mr. Tariq Rafiq CS Mr. Tariq Rafiq
+Fundamentals of Digital Logic
+Data Structures Database Systems Database Systems (Lab)
+Design (1 hr)
+D3 (63) B12 (70) C5 (77) CLab-6
+CS Mr. Ali Sher Kashif MT Dr. Hameed Ullah EE Mr. Asim
+Calculus and Analytic
+Data Structures Fundamentals of Digital Logic Design (Lab)
+Geometry
+C1.4 (77) C4 (77) DLD Lab
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+Timetable SP26 COMSATS University Islamabad,Sahiwal
+Wednesday
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP26-BCS-1-A (50)
+SP26-BCS-1-B (50)
+FA25-BCS-2-A (50)
+FA25-BCS-2-B (50)
+FA25-BCS-2-C (50)
+FA25-BCS-2-D (50)
+FA25-BCS-2-E (50)
+SP25-BCS-3-A (54)
+SP25-BCS-3-B (51)
+SP25-BCS-3-C (57)
+
+
+--- PAGE 14 ---
+CUI Sahiwal
+CS Ms. Asma Iqbal CS Ms. Asma Iqbal CS Ms. Azka Riaz
+Computer Networks (Lab) Computer Networks (1 hr) Information Security (Lab)
+Networking Lab W2 (81) CLab-5
+SE Ms. Kanwal Fatima MT Dr. Rida SE Ms. Kanwal Fatima
+Artificial Intelligence (Lab) Multivariable Calculus Artificial Intelligence (1 hr)
+CLab-1 C4 (77) B13 (70)
+MT Dr. Asma CS Mr. Muhammad Umar SE Mr. Muhammad Usman Nasir
+Multivariable Calculus Information Security (1 hr) Computer Networks (Lab)
+C1 (77) C4 (77) CLab-7
+SE Mr. Muhammad Usman Nasir MT Dr. Asma CS Mr. Muhammad Umar
+Computer Networks (1 hr) Multivariable Calculus Information Security (1 hr)
+D9 (72) C1.3 (77) C1.1 (77)
+CS Mr. Muhammad Umar MT Dr. Misbah Arshad CS Ms. Sameen Fatima
+Information Security (1 hr) Multivariable Calculus Computer Networks (1 hr)
+C5 (77) D1 (72) B3 (100)
+CS Mr. Mubashar Raza MT Ms. Nosheen Ramzan CS Mr. Mubashar Raza
+Computer Organization and Assembly Language Statistics and Probability Computer Organization and
+(Lab) Theory Assembly Language (1 hr)
+CLab-8 B3 (100) D6 (72)
+CS Dr. Zeeshan Raza CS Ms. Huma Nisar CE Ms. Amna Bashir
+Design and Analysis of Computer Organization and Assembly Language
+Operating Systems (1 hr)
+Algorithms (Lab)
+B7 (70) B12 (70) CLab-12
+CS Ms. Huma Nisar CS Ms. Syda Fatima Usman CS Ms. Huma Nisar MT Ms. Nosheen Ramzan
+Statistics and Probability
+Operating Systems (Lab) Web Technologies (1 hr) Operating Systems (1 hr)
+Theory
+CLab-10 C2.5 (77) C2.5 (77) C5 (77)
+SE Mr. Khuram Nisar CS Mr. Ahmad Shaf CS Dr. Yawar Abbas Abid
+Advanced Web Technologies
+Advanced Web Technologies (Lab) Theory of Automata
+(1 hr)
+CLab-12 C1.1 (77) C5 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA24-BCS-4-A (57)
+FA24-BCS-4-B (57)
+FA24-BCS-4-C (57)
+FA24-BCS-4-D (57)
+FA24-BCS-4-E (57)
+FA24-BCS-4-F (57)
+SP24-BCS-5-A (56)
+SP24-BCS-5-B (55)
+SP24-BCS-5-C (55)
+FA23-BCS-6-A (63)
+
+
+--- PAGE 15 ---
+CUI Sahiwal
+CS Dr. Yawar Abbas Abid MT Dr. Naeem CS Mr. Syed Anwaar Mehdi
+Theory of Automata Linear Algebra Advance Database Systems (Lab)
+C1 (77) B14 (100) CLab-4
+CS Ms. Raheela Shahzadi CS Mr. Ahmad Shaf CS Ms. Aqsa Tehseen CS Mr. Husnain Raza
+Machine Learning Advanced Web Technologies Advance Database Systems (1
+Theory of Automata
+Fundamentals (1 hr) (1 hr) hr)
+B14 (100) C1.1 (77) B13 (70) C2.4 (77)
+CS Ms. Samra Firdous Sabir CS Ms. Anam Khan
+Advanced Web Technologies (Lab) Machine Learning Fundamentals (Lab)
+CLab-4 CLab-9
+CS Ms. Rimsha Naheed CS Mr. Muhammad Ahmad Farid CS Prof. Dr. Nazir Ahmad Zafar CS Prof. Dr. Nazir Ahmad Zafar
+Human Computer Interaction
+Information Security Compiler Construction (1 hr) Compiler Construction (1 hr)
+(1 hr)
+C2.5 (77) C2.4 (77) D2 (63) D2 (63)
+CS Mr. Muhammad Ahmad Farid CS Mr. Syed Nasir Mehdi CS Ms. Rimsha Naheed
+Human Computer Interaction
+Information Security Compiler Construction (1 hr)
+(1 hr)
+C2.4 (77) C1.3 (77) C2.4 (77)
+SE Ms. Wajiha Farooq CS Mr. Syed Nasir Mehdi CS Mr. Bilal Shabir Qaisar SE Ms. Wajiha Farooq
+Human Computer Interaction
+Compiler Construction (1 hr) Machine Learning Human Computer Interaction (Lab)
+(1 hr)
+D1 (72) A3 (63) D4 (66) CLab-3
+CS Ms. Sidra Iqbal SE Mr. Hafiz Muhammad Mudasar MS Mr. M. Shoaib Bajwa
+Khan
+E-Commerce and Digital
+Introduction to Psychology Human Resource Management
+Marketing (1 hr)
+D7 (72) C1.4 (77) B12 (70)
+CS Mr. Manzar Abbas VS Dr. Noor ul Ain
+E-Commerce and Digital
+Human Resource Management
+Marketing (1 hr)
+W4 (81) C2.5 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA23-BCS-6-B (61)
+FA23-BCS-6-C (63)
+FA23-BCS-6-D (56)
+FA23-BCS-6-E (55)
+FA23-BCS-6-F (57)
+SP23-BCS-7-A (58)
+SP23-BCS-7-B (46)
+SP23-BCS-7-C (61)
+FA22-BCS-8-A (58)
+FA22-BCS-8-B (54)
+
+
+--- PAGE 16 ---
+CUI Sahiwal
+CS Mr. Muhammad Aamir VS Dr. Noor ul Ain
+E-Commerce and Digital Marketing (Lab) Human Resource Management
+CLab-5 C1.2 (48)
+CS Mr. Gohar Liaqat VS Mr. Hafeez Iqbal CS Mr. Manzar Abbas
+E-Commerce and Digital
+Introduction to Psychology Human Resource Management
+Marketing (1 hr)
+C2.4 (77) B13 (70) A3 (63)
+SE Dr. Javed Ferzund CS Mr. Fayez Afzaal CVE Engr. Ali Raza
+Civics and Community
+Programming Fundamentals Programming Fundamentals (Lab)
+Engagement (1 hr)
+C2.5 (77) CLab-6 D9 (72)
+MT. Ms. Sana Nasir EE Mr. Shahzada Sufiyan CS Mr. Bilal Shabir Qaisar SE Mr. Hafiz Muhammad Mudasar
+Khan
+Pre-Calculus II (For Only
+Applied Physics (Lab) Discrete Structures Software Engineering
+Pre-Medical Students)
+D8 (72) Physics Lab A1.2 (63) C2.2 (48)
+MT. Ms. Sana Nasir CS Mr. Muhammad Khadim Hussain EE Dr. Hafiz Muhammad Zeeshan CE Mr. Ahsan Maqsood
+Yousaf
+Pre-Calculus II (For Only
+Object Oriented Programming Applied Physics (1 hr) Applied Physics (Lab)
+Pre-Medical Students)
+D8 (72) D8 (72) A1.3 (63) Physics Lab
+EE Dr. Saqlain CS Mr. Ali Sher Kashif SE Ms. Afia Afzaal CS Mr. Ali Sher Kashif
+Fundamentals of Digital Logic
+Data Structures Database Systems Data Structures (Lab)
+Design (1 hr)
+D6 (72) C5 (77) W3 (73) CLab-11
+MT Dr. Amar Rauf SE Dr. Muhammad Shoaib EE Mr. Khalid Majeed SE Ms. Afia Afzaal
+Calculus and Analytic Fundamentals of Digital Logic
+Data Structures Database Systems
+Geometry Design (1 hr)
+D4 (66) C1.4 (77) D4 (66) D9 (72)
+SE Mr. Fahad Ameen SE Mr. Syed Ameer Ahmed Gillani
+Artificial Intelligence (1 hr) Computer Networks (1 hr)
+D2 (63) D3 (63)
+SE Mr. Syed Ameer Ahmed Gillani CS Ms. Azka Riaz CS Ms. Sana Farooq
+Software Requirement
+Computer Networks (1 hr) Information Security (Lab)
+Engineering
+D7 (72) CLab-7 B14 (100)
+CS Mr. Ghias ul Din Bulbun SE Ms. Nusra Rehman SE Ms. Nusra Rehman
+Computer Networks (1 hr) Information Security (Lab) Information Security (1 hr)
+B13 (70) CLab-2 B12 (70)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA22-BCS-8-C (52)
+FA22-BCS-8-D (52)
+SP26-BSE-1-A (50)
+FA25-BSE-2-A (50)
+FA25-BSE-2-B (50)
+SP25-BSE-3-A (56)
+SP25-BSE-3-B (56)
+FA24-BSE-4-A (49)
+FA24-BSE-4-B (55)
+FA24-BSE-4-C (42)
+
+
+--- PAGE 17 ---
+CUI Sahiwal
+SE Ms. Shaheen Kausar SE Mr. Muhammad Yousaf SE Ms. Hafsa Saleem
+Mobile Application Software Design and
+Operating Systems (Lab)
+Development (1 hr) Architecture
+CLab-11 D8 (72) D1 (72)
+CS Ms. Syda Fatima Usman SE Mr. Muhammad Yousaf CS Mr. Muhammad Ali Shahid CS Mr. Muhammad Ali Shahid
+Mobile Application Computer Organization and Computer Organization and Assembly Language
+Web Technologies (1 hr)
+Development (1 hr) Assembly Language (1 hr) (Lab)
+C1.1 (77) D6 (72) D1 (72) CLab-2
+SE Ms. Hafza Mehreen SE Ms. Hafza Mehreen SE Mr. Khuram Nisar
+Automated Software Testing Automated Software Testing Advanced Web Technologies
+(Lab) (Lab) (1 hr)
+CLab-1 CLab-4 D7 (72)
+MT Dr. M Raza SE Mr. Hafiz Muhammad Mudasar SE Ms. Fatima Khan SE Ms. Hafsa Saleem
+Khan
+Advanced Web Technologies Software Quality Engineering Software Construction and
+Linear Algebra
+(1 hr) (1 hr) Development (1 hr)
+D2 (63) C1.3 (77) D7 (72) D7 (72)
+CS Ms. Sameen Fatima CS Mr. Gohar Liaqat CS Dr. Zeeshan Raza SE Ms. Shaheen Kausar
+Principles of Operating
+Introduction to Psychology Machine Learning Business Process Engineering
+Systems
+B13 (70) W1 (73) C1.1 (77) D4 (66)
+CS Mr. Muhammad Qadeer MS Dr. Rahib Ali CS Dr. Muhammad Farhan
+Human Resource Management Fundamentals of Marketing Design Patterns (1 hr)
+W3 (73) D9 (72) C1.4 (77)
+CS Dr. Muhammad Farhan CS Mr. Muhammad Qadeer MS Dr. Rahib Ali
+Design Patterns (1 hr) Human Resource Management Fundamentals of Marketing
+C1.2 (48) C2.2 (48) C2.3 (48)
+SE Dr. Javed Ferzund CS Dr. Muhammad Farhan CS Dr. Inaam ul Haq
+Advanced Programing
+Quantum Machine Learning Advanced Data Mining
+Languages (1 hr)
+C2 (36) C1 (77) C4 (77)
+EE Mr. Molana Muhammad Yasin SE Dr. Javed Ferzund CS Dr. Muhammad Farhan CS Dr. Inaam ul Haq
+Advanced Programing
+Holy Quran- II (Fehm-e-Quran-II) Quantum Machine Learning Advanced Data Mining
+Languages (1 hr)
+B10 (40) C2 (36) C1 (77) C4 (77)
+SE Dr. Javed Ferzund CS Dr. Muhammad Farhan CS Dr. Inaam ul Haq
+Advanced Programing
+Quantum Machine Learning Advanced Data Mining
+Languages (1 hr)
+C2 (36) C1 (77) C4 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP24-BSE-5-A (43)
+SP24-BSE-5-B (35)
+FA23-BSE-6-A (61)
+FA23-BSE-6-B (62)
+SP23-BSE-7-A (59)
+FA22-BSE-8-A (53)
+FA22-BSE-8-B (43)
+SP26-PCS-1-A (5)
+FA25-PCS-2-A (5)
+SP26-RCS-1-A (40)
+
+
+--- PAGE 18 ---
+CUI Sahiwal
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SE Dr. Javed Ferzund CS Dr. Muhammad Farhan CS Dr. Inaam ul Haq
+Advanced Programing
+FA25-RCS-2-A (40) Quantum Machine Learning Advanced Data Mining
+Languages (1 hr)
+C2 (36) C1 (77) C4 (77)
+Fehm Ul Quran/Prayer Break
+CS Dr. Muhammad Farhan CS Dr. Inaam ul Haq
+SP25-RCS-3-A (40) Quantum Machine Learning Advanced Data Mining
+C1 (77) C4 (77)
+Timetable generated:04/02/2026 aSc Timetables
+
+
+--- PAGE 19 ---
+CUI Sahiwal
+CS Mr. Fayez Afzaal EE Dr. Abuzar Baqir CVE Engr. M Yousaf Mushtaq
+Pre-Calculus I (For Only Civics and Community
+Programming Fundamentals
+Pre-Medical Students) Engagement (1 hr)
+A2.2 (63) B7 (70) B12 (70)
+CVE Engr. Ali Raza CS Mr. Hamza Arif EE Dr. Abuzar Baqir CVE Engr. M Hamza Ijaz
+Applications of Information
+Civics and Community Pre-Calculus I (For Only
+and Communication Functional English
+Engagement (1 hr) Pre-Medical Students)
+Technology (1 hr)
+A2.2 (63) D8 (72) B7 (70) C1.3 (77)
+CS Mr. Bilal Shabir Qaisar SE Mr. Usman Ali ME Hassan Iqbal MT. Ms. Sana Nasir
+Pre-Calculus II (For Only
+Software Engineering Object Oriented Programming Applied Physics (1 hr)
+Pre-Medical Students)
+D3 (63) W1 (73) D6 (72) C1.2 (48)
+SE Dr. Aniqa Rehman ME Hassan Iqbal MT Dr. Shaheen Akhtar MT. Ms. Sana Nasir
+Pre-Calculus II (For Only
+Software Engineering Applied Physics (1 hr) Discrete Structures
+Pre-Medical Students)
+C5 (77) W2 (81) C1.1 (77) C1.2 (48)
+CS Ms. Sana Farooq ME Muzammil Hussain MT. Ms. Sana Nasir CS Ms. Anam Khan
+Pre-Calculus II (For Only
+Software Engineering Applied Physics (1 hr) Object Oriented Programming
+Pre-Medical Students)
+C1.2 (48) B12 (70) B14 (100) C2.2 (48)
+SE Mr. Usman Ali CE Mr. Ahsan Maqsood MT. Ms. Sana Nasir CS Ms. Huma Nisar
+Pre-Calculus II (For Only
+Object Oriented Programming Applied Physics (Lab) Software Engineering
+Pre-Medical Students)
+C2.2 (48) Physics Lab B14 (100) C1.4 (77)
+CS Mr. Tariq Rafiq MT Dr. Sabir Ali Shahzad CS Mr. Tariq Rafiq
+Calculus and Analytic
+Database Systems Database Systems (Lab)
+Geometry
+C2.4 (77) C5 (77) CLab-6
+SE Mr. Shehzad Ali EE Mr. Asim SE Mr. Shehzad Ali
+Data Structures Fundamentals of Digital Logic Design (Lab) Data Structures (Lab)
+D1 (72) DLD Lab CLab-12
+CS Mr. Ali Sher Kashif EE Dr. Atif Mehmood CS Mr. Syed Nasir Mehdi CS Ms. Aqsa Tehseen
+Fundamentals of Digital Logic
+Data Structures Database Systems Data Structures (Lab)
+Design (1 hr)
+D6 (72) W2 (81) C1 (77) CLab-1
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+Timetable SP26 COMSATS University Islamabad,Sahiwal
+Thursday
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP26-BCS-1-A (50)
+SP26-BCS-1-B (50)
+FA25-BCS-2-A (50)
+FA25-BCS-2-B (50)
+FA25-BCS-2-C (50)
+FA25-BCS-2-D (50)
+FA25-BCS-2-E (50)
+SP25-BCS-3-A (54)
+SP25-BCS-3-B (51)
+SP25-BCS-3-C (57)
+
+
+--- PAGE 20 ---
+CUI Sahiwal
+SE Mr. Sunil Ashraf CS Ms. Mahnoor Fatima SE Mr. Sunil Ashraf
+Computer Networks (1 hr) Information Security (1 hr) Computer Networks (Lab)
+D2 (63) D9 (72) Networking Lab
+MT Dr. Asma CS Mr. Muhammad Umar CS Mr. Ghias ul Din Bulbun
+Multivariable Calculus Information Security (1 hr) Computer Networks (1 hr)
+C1 (77) C1.4 (77) D4 (66)
+CS Ms. Rimsha Rafiq CS Mr. Muhammad Umar
+Artificial Intelligence (1 hr) Information Security (1 hr)
+B7 (70) C1.4 (77)
+SE Ms. Nusra Rehman MT Dr. Asma CS Ms. Rimsha Rafiq
+Information Security (Lab) Multivariable Calculus Artificial Intelligence (Lab)
+CLab-9 B7 (70) CLab-2
+CS Mr. Manzar Abbas MT Dr. Misbah Arshad CS Ms. Sameen Fatima
+Artificial Intelligence (Lab) Multivariable Calculus Computer Networks (1 hr)
+CLab-2 W4 (81) W4 (81)
+CS Mr. Imran Shahzad CS Dr. Zafar Iqbal Roy SE Ms. Kanwal Fatima
+Design and Analysis of
+Web Technologies (1 hr) Operating Systems (1 hr)
+Algorithms
+B7 (70) C4 (77) B13 (70)
+CS Ms. Huma Nisar CS Mr. Imran Shahzad CS Mr. M. Arslan Sarwar
+Mobile Application
+Operating Systems (Lab) Web Technologies (1 hr)
+Development (1 hr)
+CLab-10 B14 (100) C5 (77)
+MT Ms. Nosheen Ramzan CS Mr. M. Arslan Sarwar CS Mr. Mubashar Raza CS Dr. Zeeshan Raza
+Statistics and Probability Mobile Application Computer Organization and Design and Analysis of
+Theory Development (1 hr) Assembly Language (1 hr) Algorithms
+D2 (63) C1.3 (77) D4 (66) C4 (77)
+CS Mr. Ahmad Shaf CS Mr. Bilal Shabir Qaisar CS Mr. Bilal Shabir Qaisar CS Ms. Sana Farooq
+Advanced Web Technologies Machine Learning Machine Learning Advance Database Systems (1
+(1 hr) Fundamentals (Lab) Fundamentals (1 hr) hr)
+C1.1 (77) CLab-1 D3 (63) C1 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA24-BCS-4-A (57)
+FA24-BCS-4-B (57)
+FA24-BCS-4-C (57)
+FA24-BCS-4-D (57)
+FA24-BCS-4-E (57)
+FA24-BCS-4-F (57)
+SP24-BCS-5-A (56)
+SP24-BCS-5-B (55)
+SP24-BCS-5-C (55)
+FA23-BCS-6-A (63)
+
+
+--- PAGE 21 ---
+CUI Sahiwal
+CS Dr. Inaam ul Haq CS Mr. Ahmad Shaf SE Mr. Khuram Nisar
+Advance Database Systems (1 Advanced Web Technologies
+Advanced Web Technologies (Lab)
+hr) (1 hr)
+C1.4 (77) C4 (77) CLab-4
+CS Ms. Aqsa Tehseen SE Mr. Hafiz Muhammad Mudasar CS Mr. Gohar Liaqat
+Khan
+Advanced Web Technologies Machine Learning
+Advance Database Systems (Lab)
+(1 hr) Fundamentals (1 hr)
+CLab-1 D8 (72) D7 (72)
+CS Ms. Raheela Shahzadi CS Mr. Syed Anwaar Mehdi CS Mr. Husnain Raza
+Machine Learning
+Advance Database Systems (Lab) Theory of Automata
+Fundamentals (1 hr)
+B3 (100) CLab-4 A3 (63)
+CS Mr. Muhammad Qadeer CS Mr. Muhammad Ahmad Farid SE Dr. Muhammad Shoaib
+Human Resource Management Information Security Machine Learning
+C2.4 (77) C2.5 (77) B13 (70)
+CS Ms. Rimsha Naheed SE Dr. Muhammad Shoaib CS Ms. Rimsha Naheed
+Human Computer Interaction
+Machine Learning Human Computer Interaction (Lab)
+(1 hr)
+C5 (77) C1.1 (77) CLab-3
+CS Mr. Muhammad Ahmad Farid SE Ms. Nusra Rehman CS Mr. Syed Nasir Mehdi
+Information Security Human Resource Management Compiler Construction (Lab)
+C1.3 (77) A3 (63) CLab-8
+CS Mr. Muhammad Aamir CS Ms. Sidra Iqbal CS Mr. Manzar Abbas
+E-Commerce and Digital
+E-Commerce and Digital Marketing (Lab) Introduction to Psychology
+Marketing (1 hr)
+CLab-5 C2.3 (48) D1 (72)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA23-BCS-6-B (61)
+FA23-BCS-6-C (63)
+FA23-BCS-6-D (56)
+FA23-BCS-6-E (55)
+FA23-BCS-6-F (57)
+SP23-BCS-7-A (58)
+SP23-BCS-7-B (46)
+SP23-BCS-7-C (61)
+FA22-BCS-8-A (58)
+FA22-BCS-8-B (54)
+
+
+--- PAGE 22 ---
+CUI Sahiwal
+SE Ms. Fatima Khan CS Mr. Gohar Liaqat
+E-Commerce and Digital
+Introduction to Psychology
+Marketing (1 hr)
+D1 (72) D3 (63)
+CVE Engr. Ali Raza EE Asad Ali khan CS Mr. Hamza Arif SE Dr. Javed Ferzund
+Applications of Information
+Civics and Community Pre-Calculus I (For Only
+and Communication Programming Fundamentals
+Engagement (1 hr) Pre-Medical Students)
+Technology (1 hr)
+B14 (100) B12 (70) C1.2 (48) C1.1 (77)
+SE Mr. Hafiz Muhammad Mudasar EE Mr. Shahzada Sufiyan SE Ms. Abida Kausar
+Khan
+Software Engineering Applied Physics (1 hr) Object Oriented Programming
+C4 (77) D7 (72) B3 (100)
+SE Mr. Fahad Ameen CS Mr. Bilal Shabir Qaisar EE Dr. Hafiz Muhammad Zeeshan SE Mr. Usman Ali
+Yousaf
+Software Engineering Discrete Structures Applied Physics (1 hr) Object Oriented Programming (Lab)
+D7 (72) D3 (63) C1.2 (48) CLab-9
+MT Dr. Amar Rauf SE Mr. Shehzad Ali EE Mr. Khalid Majeed
+Calculus and Analytic Fundamentals of Digital Logic
+Data Structures (Lab)
+Geometry Design (1 hr)
+C2.5 (77) CLab-3 D7 (72)
+SE Mr. Syed Ameer Ahmed Gillani SE Ms. Wajiha Farooq
+Computer Networks (1 hr) Computer Networks (Lab)
+D8 (72) Networking Lab
+CS Ms. Azka Riaz SE Mr. Syed Ameer Ahmed Gillani SE Mr. Fahad Ameen
+Information Security (1 hr) Computer Networks (1 hr) Artificial Intelligence (Lab)
+B13 (70) D1 (72) CLab-7
+CS Mr. Ghias ul Din Bulbun CS Ms. Sana Farooq SE Ms. Nusra Rehman
+Software Requirement
+Computer Networks (1 hr) Information Security (1 hr)
+Engineering
+B14 (100) C1.2 (48) C4 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA22-BCS-8-C (52)
+FA22-BCS-8-D (52)
+SP26-BSE-1-A (50)
+FA25-BSE-2-A (50)
+FA25-BSE-2-B (50)
+SP25-BSE-3-A (56)
+SP25-BSE-3-B (56)
+FA24-BSE-4-A (49)
+FA24-BSE-4-B (55)
+FA24-BSE-4-C (42)
+
+
+--- PAGE 23 ---
+CUI Sahiwal
+CS Ms. Syda Fatima Usman SE Mr. Muhammad Yousaf CS Mr. Mubashar Raza
+Computer Organization and
+Web Technologies (1 hr) Mobile Application Development (Lab)
+Assembly Language (1 hr)
+C1.1 (77) CLab-7 D2 (63)
+CS Ms. Syda Fatima Usman CS Mr. Muhammad Ali Shahid MT Dr. Misbah Arshad SE Ms. Hafza Mehreen
+Computer Organization and Software Design and
+Web Technologies (1 hr) Multivariable Calculus
+Assembly Language (1 hr) Architecture
+C2.5 (77) D2 (63) D8 (72) D6 (72)
+SE Ms. Fatima Khan SE Ms. Hafza Mehreen MT Dr. M Raza SE Ms. Kanwal Fatima
+Software Quality Engineering Design and Analysis of
+Automated Software Testing (1 hr) Linear Algebra
+(1 hr) Algorithms
+D4 (66) D1 (72) D6 (72) D2 (63)
+MT Dr. M Raza SE Ms. Hafsa Saleem SE Ms. Fatima Khan SE Ms. Hafsa Saleem
+Software Construction and Software Quality Engineering
+Linear Algebra Software Construction and Development (Lab)
+Development (1 hr) (1 hr)
+D9 (72) D9 (72) D7 (72) CLab-5
+CS Mr. Muhammad Khadim Hussain CS Dr. Muhammad Farhan CS Mr. Muhammad Qadeer MS Dr. Rahib Ali
+Design Patterns (Lab) Design Patterns (1 hr) Human Resource Management Fundamentals of Marketing
+CLab-11 C2.2 (48) C1.3 (77) B14 (100)
+SE Dr. Javed Ferzund CS Prof. Dr. Nazir Ahmad Zafar
+Advanced Programing Languages (Lab) Advanced Formal Methods
+CLab-6 C2.4 (77)
+SE Dr. Javed Ferzund CS Prof. Dr. Nazir Ahmad Zafar
+Advanced Programing Languages (Lab) Advanced Formal Methods
+CLab-6 C2.4 (77)
+SE Dr. Javed Ferzund CS Prof. Dr. Nazir Ahmad Zafar CS Dr. Zafar Iqbal Roy
+Advanced Programing Languages (Lab) Advanced Formal Methods Advanced Operating System
+CLab-6 C2.4 (77) C5 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP24-BSE-5-A (43)
+SP24-BSE-5-B (35)
+FA23-BSE-6-A (61)
+FA23-BSE-6-B (62)
+SP23-BSE-7-A (59)
+FA22-BSE-8-A (53)
+FA22-BSE-8-B (43)
+SP26-PCS-1-A (5)
+FA25-PCS-2-A (5)
+SP26-RCS-1-A (40)
+
+
+--- PAGE 24 ---
+CUI Sahiwal
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SE Dr. Javed Ferzund CS Prof. Dr. Nazir Ahmad Zafar CS Dr. Zafar Iqbal Roy
+FA25-RCS-2-A (40) Advanced Programing Languages (Lab) Advanced Formal Methods Advanced Operating System
+CLab-6 C2.4 (77) C5 (77)
+Fehm Ul Quran/Prayer Break
+CS Dr. Zafar Iqbal Roy
+SP25-RCS-3-A (40) Advanced Operating System
+C5 (77)
+Timetable generated:04/02/2026 aSc Timetables
+
+
+--- PAGE 25 ---
+CUI Sahiwal
+EE Dr. Abuzar Baqir CVE Engr. M Hamza Ijaz CS Mr. Husnain Raza
+Applications of Information
+Pre-Calculus I (For Only
+Functional English and Communication
+Pre-Medical Students)
+Technology (1 hr)
+C2.4 (77) C5 (77) D9 (72)
+EE Dr. Abuzar Baqir CS Mr. Fayez Afzaal CS Mr. Fayez Afzaal
+Pre-Calculus I (For Only
+Programming Fundamentals Programming Fundamentals (Lab)
+Pre-Medical Students)
+C2.4 (77) C2.5 (77) CLab-10
+EE Maham Fatima MT. Ms. Sana Nasir CS Ms. Raheela Shahzadi EE Mr. Molana Muhammad Yasin
+Pre Calculus-II (Pre-Medical
+Applied Physics (1 hr) Software Engineering Understanding of Holy Quran - I (Fehm-e-Quran-I)
+Students only)
+C2.3 (48) W4 (81) B12 (70) C1.2 (48)
+ME M Naveed EE Mr. Molana Muhammad Yasin
+Applied Physics (Lab) Understanding of Holy Quran - I (Fehm-e-Quran-I)
+Physics Lab C1.2 (48)
+EE Mr. Molana Muhammad Yasin
+Understanding of Holy Quran - I (Fehm-e-Quran-I)
+A2.2 (63)
+EE Mr. Molana Muhammad Yasin CS Ms. Anam Khan CS Ms. Anam Khan
+Object Oriented Programming Object Oriented Programming
+Understanding of Holy Quran - I (Fehm-e-Quran-I)
+(Lab) (Lab)
+A2.2 (63) CLab-11 CLab-11
+SE Mr. Usman Ali MS Dr. Hafiz M Arshad MS Dr. Hafiz M Arshad
+Object Oriented Programming (Lab) Understanding of Holy Quran - I Understanding of Holy Quran - I
+(Fehm-e-Quran-I) (Fehm-e-Quran-I)
+CLab-2 B13 (70) C1 (77)
+CS Ms. Asma Iqbal EE Mr. Khalid Majeed CS Ms. Sidra Iqbal MT Dr. Sabir Ali Shahzad
+Fundamentals of Digital Logic Calculus and Analytic
+Software Engineering Data Structures
+Design (1 hr) Geometry
+C1 (77) B12 (70) C1.1 (77) C1.1 (77)
+MT Dr. Sabir Ali Shahzad CS Ms. Asma Iqbal
+Calculus and Analytic
+Software Engineering
+Geometry
+C1.2 (48) C2.4 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+Timetable SP26 COMSATS University Islamabad,Sahiwal
+Friday
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP26-BCS-1-A (50)
+SP26-BCS-1-B (50)
+FA25-BCS-2-A (50)
+FA25-BCS-2-B (50)
+FA25-BCS-2-C (50)
+FA25-BCS-2-D (50)
+FA25-BCS-2-E (50)
+SP25-BCS-3-A (54)
+SP25-BCS-3-B (51)
+SP25-BCS-3-C (57)
+
+
+--- PAGE 26 ---
+CUI Sahiwal
+CS Mr. Muhammad Khadim Hussain CS Ms. Azka Riaz
+Artificial Intelligence (1 hr) Information Security (1 hr)
+D1 (72) C5 (77)
+SE Mr. Fahad Ameen CS Mr. Ghias ul Din Bulbun
+Artificial Intelligence (1 hr) Computer Networks (1 hr)
+C1.1 (77) D2 (63)
+CS Ms. Rimsha Rafiq SE Mr. Muhammad Usman Nasir CS Ms. Rimsha Rafiq
+Artificial Intelligence (1 hr) Computer Networks (1 hr) Artificial Intelligence (Lab)
+B12 (70) D3 (63) CLab-2
+CS Mr. Muhammad Umar CS Ms. Rimsha Rafiq SE Mr. Muhammad Usman Nasir
+Information Security (1 hr) Artificial Intelligence (1 hr) Computer Networks (1 hr)
+C1.3 (77) C4 (77) D1 (72)
+CS Mr. Ali Sher Kashif SE Ms. Kanwal Fatima CS Mr. Ali Sher Kashif
+Mobile Application Design and Analysis of
+Mobile Application Development (Lab)
+Development (1 hr) Algorithms
+C1.1 (77) D3 (63) CLab-6
+CS Mr. Imran Shahzad CS Dr. Zeeshan Raza CS Ms. Huma Nisar
+Design and Analysis of
+Mobile Application Development (Lab) Operating Systems (1 hr)
+Algorithms
+CLab-12 C2.5 (77) B13 (70)
+CS Mr. Mubashar Raza CS Mr. M. Arslan Sarwar
+Computer Organization and
+Mobile Application Development (Lab)
+Assembly Language (1 hr)
+D9 (72) CLab-7
+CS Ms. Sana Farooq MT Dr. Najma
+Advance Database Systems (Lab) Linear Algebra
+CLab-6 C1.4 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA24-BCS-4-A (57)
+FA24-BCS-4-B (57)
+FA24-BCS-4-C (57)
+FA24-BCS-4-D (57)
+FA24-BCS-4-E (57)
+FA24-BCS-4-F (57)
+SP24-BCS-5-A (56)
+SP24-BCS-5-B (55)
+SP24-BCS-5-C (55)
+FA23-BCS-6-A (63)
+
+
+--- PAGE 27 ---
+CUI Sahiwal
+CS Ms. Aqsa Tehseen CS Ms. Aqsa Tehseen
+Advance Database Systems (1
+Advance Database Systems (Lab)
+hr)
+CLab-4 C1 (77)
+CS Mr. Husnain Raza CS Mr. Gohar Liaqat MT Ms. Zoya CS Mr. Gohar Liaqat
+Machine Learning Machine Learning
+Theory of Automata Linear Algebra
+Fundamentals (Lab) Fundamentals (Lab)
+C1.4 (77) CLab-6 C5 (77) CLab-3
+CS Ms. Samra Firdous Sabir CS Ms. Samra Firdous Sabir
+Advanced Web Technologies
+Advanced Web Technologies (Lab)
+(1 hr)
+CLab-11 C2.4 (77)
+CS Ms. Raheela Shahzadi CS Mr. Syed Anwaar Mehdi CS Mr. Husnain Raza CS Ms. Samra Firdous Sabir
+Machine Learning Advance Database Systems (1 Advanced Web Technologies
+Theory of Automata
+Fundamentals (1 hr) hr) (1 hr)
+C4 (77) B7 (70) B12 (70) C5 (77)
+CS Ms. Rimsha Naheed CS Ms. Rimsha Naheed CS Mr. Muhammad Qadeer
+Human Computer Interaction
+Human Computer Interaction (Lab) Human Resource Management
+(1 hr)
+CLab-3 C4 (77) B14 (100)
+SE Dr. Muhammad Shoaib CS Mr. Muhammad Ahmad Farid SE Ms. Nusra Rehman
+Machine Learning Information Security Human Resource Management
+B13 (70) C1.3 (77) C1.4 (77)
+CS Mr. Muhammad Ahmad Farid CS Mr. Syed Nasir Mehdi
+Information Security Compiler Construction (1 hr)
+C2.5 (77) W2 (81)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA23-BCS-6-B (61)
+FA23-BCS-6-C (63)
+FA23-BCS-6-D (56)
+FA23-BCS-6-E (55)
+FA23-BCS-6-F (57)
+SP23-BCS-7-A (58)
+SP23-BCS-7-B (46)
+SP23-BCS-7-C (61)
+FA22-BCS-8-A (58)
+FA22-BCS-8-B (54)
+
+
+--- PAGE 28 ---
+CUI Sahiwal
+SE Ms. Abida Kausar MS Dr. Hafiz M Arshad MT. Ms. Sana Nasir
+Understanding of Holy Quran - I Pre-Calculus II (For Only
+Object Oriented Programming
+(Fehm-e-Quran-I) Pre-Medical Students)
+D6 (72) D9 (72) D6 (72)
+SE Mr. Fahad Ameen MS Dr. Hafiz M Arshad MT. Ms. Sana Nasir
+Understanding of Holy Quran - I Pre-Calculus II (For Only
+Software Engineering
+(Fehm-e-Quran-I) Pre-Medical Students)
+D6 (72) D9 (72) D6 (72)
+CS Mr. Ali Sher Kashif SE Ms. Abida Kausar
+Data Structures Software Engineering
+C5 (77) B3 (100)
+CS Ms. Mahnoor Fatima CS Ms. Mahnoor Fatima SE Mr. Fahad Ameen CS Ms. Sana Farooq
+Software Requirement
+Information Security (Lab) Information Security (1 hr) Artificial Intelligence (1 hr)
+Engineering
+CLab-5 C1 (77) D8 (72) B3 (100)
+SE Mr. Sunil Ashraf CS Ms. Sana Farooq SE Mr. Fahad Ameen
+Software Requirement
+Computer Networks (Lab) Artificial Intelligence (1 hr)
+Engineering
+Networking Lab C2.5 (77) D8 (72)
+CS Ms. Huma Nisar SE Ms. Wajiha Farooq SE Ms. Wajiha Farooq
+Artificial Intelligence (1 hr) Computer Networks (Lab) Computer Networks (Lab)
+C1.2 (48) Networking Lab Networking Lab
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+FA22-BCS-8-C (52)
+FA22-BCS-8-D (52)
+SP26-BSE-1-A (50)
+FA25-BSE-2-A (50)
+FA25-BSE-2-B (50)
+SP25-BSE-3-A (56)
+SP25-BSE-3-B (56)
+FA24-BSE-4-A (49)
+FA24-BSE-4-B (55)
+FA24-BSE-4-C (42)
+
+
+--- PAGE 29 ---
+CUI Sahiwal
+SE Ms. Shaheen Kausar SE Mr. Muhammad Yousaf CS Mr. Muhammad Ali Shahid CS Mr. Muhammad Ali Shahid
+Mobile Application Computer Organization and Computer Organization and
+Operating Systems (1 hr)
+Development (1 hr) Assembly Language (Lab) Assembly Language (Lab)
+D1 (72) D6 (72) CLab-3 CLab-3
+SE Mr. Muhammad Yousaf SE Ms. Hafza Mehreen SE Mr. Muhammad Yousaf
+Mobile Application Software Design and
+Mobile Application Development (Lab)
+Development (1 hr) Architecture
+D7 (72) D4 (66) CLab-8
+SE Mr. Khuram Nisar SE Mr. Khuram Nisar SE Ms. Fatima Khan
+Advanced Web Technologies
+Advanced Web Technologies (Lab) Software Quality Engineering (Lab)
+(1 hr)
+D8 (72) CLab-9 CLab-1
+SE Ms. Fatima Khan SE Ms. Hafza Mehreen SE Ms. Hafza Mehreen
+Automated Software Testing Automated Software Testing
+Software Quality Engineering (Lab)
+(Lab) (Lab)
+CLab-1 CLab-5 CLab-5
+MS Dr. Hafiz M Arshad MS Dr. Hafiz M Arshad
+Understanding of Holy Quran - I Understanding of Holy Quran - I
+(Fehm-e-Quran-I) (Fehm-e-Quran-I)
+B13 (70) C1 (77)
+MS Dr. Hafiz M Arshad MS Dr. Hafiz M Arshad
+Understanding of Holy Quran - I Understanding of Holy Quran - I
+(Fehm-e-Quran-I) (Fehm-e-Quran-I)
+B13 (70) C1 (77)
+Timetable generated:04/02/2026 aSc Timetables
+kaerB
+reyarP/naruQ
+lU
+mheF
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+SP24-BSE-5-A (43)
+SP24-BSE-5-B (35)
+FA23-BSE-6-A (61)
+FA23-BSE-6-B (62)
+SP23-BSE-7-A (59)
+FA22-BSE-8-A (53)
+FA22-BSE-8-B (43)
+SP26-PCS-1-A (5)
+FA25-PCS-2-A (5)
+SP26-RCS-1-A (40)
+
+
+--- PAGE 30 ---
+CUI Sahiwal
+1 2 3 Break 4 5
+8:30 - 9:55 9:55 - 11:20 11:20 - 12:45 12:45 - 1:40 1:40 - 3:05 3:05 - 4:30
+MS Dr. Hafiz M Arshad MS Dr. Hafiz M Arshad
+Understanding of Holy Quran - I Understanding of Holy Quran - I
+FA25-RCS-2-A (40)
+(Fehm-e-Quran-I) (Fehm-e-Quran-I)
+B13 (70) C1 (77)
+Fehm Ul Quran/Prayer Break
+SP25-RCS-3-A (40)
+Timetable generated:04/02/2026 aSc Timetables

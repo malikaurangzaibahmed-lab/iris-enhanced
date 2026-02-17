@@ -1,0 +1,308 @@
+[
+  {
+    "subject": "Human Computer Interaction",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "W2",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Compiler Construction",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "C1.2",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "C2.2",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Compiler Construction (Lab)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "CLab-11",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C2.5",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "W4",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Computer Interaction",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "B12",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "E-Commerce and Digital Marketing (Lab)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar Khan",
+    "room": "CLab-7",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Compiler Construction (Lab)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "CLab-1",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Machine Learning",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D6",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Compiler Construction",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "C1.3",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Computer Interaction",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "D1",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C2.4",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Compiler Construction",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "A3",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Computer Interaction (Lab)",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "CLab-3",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Computer Interaction",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "C2.4",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C2.4",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C2.4",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Computer Interaction",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "C2.5",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Machine Learning",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D4",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "W4",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C2.5",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "E-Commerce and Digital Marketing (Lab)",
+    "teacher": "Mr. Muhammad Aamir",
+    "room": "CLab-5",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Computer Interaction",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "C5",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Compiler Construction (Lab)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "CLab-8",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Introduction to Psychology",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "C2.3",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C1.1",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Computer Interaction (Lab)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "Networking Lab",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "C2.4",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C1.3",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C4",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Software Engineering",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "D6",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Mr. Usman Ali",
+    "room": "CLab-4",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "batch": "CS-2022"
+  },
+  {
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "Dr. Hafiz M Arshad",
+    "room": "D9",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "12:45",
+    "batch": "CS-2022"
+  }
+]

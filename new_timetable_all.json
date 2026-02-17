@@ -1,0 +1,5591 @@
+[
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Khan E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Introduction to Psychology",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Khan E-Commerce and Digital Marketing (Lab)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Khan E-Commerce and Digital Marketing (Lab)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Human Resource Management",
+    "teacher": "MS Mr. M. Shoaib Bajwa",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Khan E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Human Resource Management",
+    "teacher": "MS Mr. M. Shoaib Bajwa",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA22-BCS-8-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Introduction to Psychology",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA22-BCS-8-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "VS Dr. Noor ul Ain",
+    "room": "W1 (73)"
+  },
+  {
+    "batch": "FA22-BCS-8-B",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Introduction to Psychology",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "W2 (81)"
+  },
+  {
+    "batch": "FA22-BCS-8-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "W4 (81)"
+  },
+  {
+    "batch": "FA22-BCS-8-B",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Human Resource Management",
+    "teacher": "VS Dr. Noor ul Ain",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "FA22-BCS-8-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Introduction to Psychology",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "FA22-BCS-8-B",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA22-BCS-8-B",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "E-Commerce and Digital Marketing (Lab)",
+    "teacher": "Mr. Muhammad Aamir",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA22-BCS-8-C",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Human Resource Management",
+    "teacher": "VS Dr. Noor ul Ain",
+    "room": "W2 (81)"
+  },
+  {
+    "batch": "FA22-BCS-8-C",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA22-BCS-8-C",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Introduction to Psychology",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "W3 (73)"
+  },
+  {
+    "batch": "FA22-BCS-8-C",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "VS Dr. Noor ul Ain",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA22-BCS-8-C",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "E-Commerce and Digital Marketing (Lab)",
+    "teacher": "Mr. Muhammad Aamir",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA22-BCS-8-C",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA22-BCS-8-C",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Introduction to Psychology",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA22-BCS-8-D",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "VS Mr. Hafeez Iqbal",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA22-BCS-8-D",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Introduction to Psychology",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA22-BCS-8-D",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA22-BCS-8-D",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "E-Commerce and Digital Marketing (Lab)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "FA22-BCS-8-D",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "VS Mr. Hafeez Iqbal",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA22-BCS-8-D",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "E-Commerce and Digital Marketing (1 hr)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "A3 (63)"
+  },
+  {
+    "batch": "FA22-BCS-8-D",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Introduction to Psychology",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA22-BSE-8-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Design Patterns (1 hr)",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA22-BSE-8-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Design Patterns (Lab)",
+    "teacher": "Mr. Muhammad Khadim Hussain",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "FA22-BSE-8-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "W3 (73)"
+  },
+  {
+    "batch": "FA22-BSE-8-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Fundamentals of Marketing",
+    "teacher": "MS Dr. Rahib Ali",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA22-BSE-8-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Fundamentals of Marketing",
+    "teacher": "MS Dr. Rahib Ali",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA22-BSE-8-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Design Patterns (1 hr)",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA22-BSE-8-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "W3 (73)"
+  },
+  {
+    "batch": "FA22-BSE-8-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA22-BSE-8-B",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Fundamentals of Marketing",
+    "teacher": "MS Dr. Rahib Ali",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "FA22-BSE-8-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Design Patterns (1 hr)",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA22-BSE-8-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Design Patterns (1 hr)",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA22-BSE-8-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "FA22-BSE-8-B",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Fundamentals of Marketing",
+    "teacher": "MS Dr. Rahib Ali",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA22-BSE-8-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Design Patterns (Lab)",
+    "teacher": "Mr. Muhammad Khadim Hussain",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Ms. Sana Farooq",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. Najma",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Theory of Automata",
+    "teacher": "Dr. Yawar Abbas Abid",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Ahmad Shaf",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Theory of Automata",
+    "teacher": "Dr. Yawar Abbas Abid",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Mr. Khuram Nisar",
+    "room": "CLab-12"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Ms. Sana Farooq",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Ahmad Shaf",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. Najma",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-A",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advance Database Systems (Lab)",
+    "teacher": "Ms. Sana Farooq",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Ahmad Shaf",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. Naeem",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Theory of Automata",
+    "teacher": "Dr. Yawar Abbas Abid",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. Naeem",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advance Database Systems (Lab)",
+    "teacher": "Mr. Syed Anwaar Mehdi",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Theory of Automata",
+    "teacher": "Dr. Yawar Abbas Abid",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Ahmad Shaf",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Mr. Khuram Nisar",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA23-BCS-6-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Ahmad Shaf",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Linear Algebra",
+    "teacher": "Ms. Zoya",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Linear Algebra",
+    "teacher": "Ms. Zoya",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Mr. Khuram Nisar",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Ms. Aqsa Tehseen",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Ahmad Shaf",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Ms. Aqsa Tehseen",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-C",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advance Database Systems (Lab)",
+    "teacher": "Ms. Aqsa Tehseen",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Linear Algebra",
+    "teacher": "Ms. Zoya",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Khan Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Ms. Aqsa Tehseen",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Ms. Samra Firdous Sabir",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Ms. Aqsa Tehseen",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Khan Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advance Database Systems (Lab)",
+    "teacher": "Ms. Aqsa Tehseen",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Linear Algebra",
+    "teacher": "Ms. Zoya",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "FA23-BCS-6-D",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Ms. Samra Firdous Sabir",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Linear Algebra",
+    "teacher": "Ms. Zoya",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Mr. Syed Anwaar Mehdi",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Mr. Syed Anwaar Mehdi",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Linear Algebra",
+    "teacher": "Ms. Zoya",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "A3 (63)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advance Database Systems (Lab)",
+    "teacher": "Mr. Syed Anwaar Mehdi",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Ms. Samra Firdous Sabir",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-E",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Ms. Samra Firdous Sabir",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. Naeem",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advance Database Systems (Lab)",
+    "teacher": "Mr. Syed Anwaar Mehdi",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Ms. Samra Firdous Sabir",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. Naeem",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Mr. Syed Anwaar Mehdi",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning Fundamentals (Lab)",
+    "teacher": "Ms. Anam Khan",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Ms. Samra Firdous Sabir",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advance Database Systems (1 hr)",
+    "teacher": "Mr. Syed Anwaar Mehdi",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Theory of Automata",
+    "teacher": "Mr. Husnain Raza",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Ms. Samra Firdous Sabir",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA23-BCS-6-F",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning Fundamentals (1 hr)",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Quality Engineering (1 hr)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Software Construction and Development (1 hr)",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Construction and Development (Lab)",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Automated Software Testing (1 hr)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Construction and Development (1 hr)",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. M Raza",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Automated Software Testing (Lab)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Khuram Nisar",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Automated Software Testing (Lab)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. M Raza",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Quality Engineering (1 hr)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Automated Software Testing (1 hr)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Quality Engineering (Lab)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Khuram Nisar",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-A",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Mr. Khuram Nisar",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Automated Software Testing (1 hr)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Khan Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Automated Software Testing (1 hr)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Advanced Web Technologies (Lab)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar Khan",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Quality Engineering (1 hr)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Software Construction and Development (1 hr)",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. M Raza",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Khan Advanced Web Technologies (1 hr)",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Quality Engineering (1 hr)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Construction and Development (Lab)",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Linear Algebra",
+    "teacher": "Dr. M Raza",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Construction and Development (1 hr)",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Automated Software Testing (Lab)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Automated Software Testing (Lab)",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA23-BSE-6-B",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Quality Engineering (Lab)",
+    "teacher": "Ms. Fatima Khan",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Rida",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Rida",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Muhammad Khadim Hussain",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Mr. Muhammad Khadim Hussain",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "W2 (81)"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security (Lab)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-A",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Muhammad Khadim Hussain",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security (Lab)",
+    "teacher": "Ms. Mahnoor Fatima",
+    "room": "CLab-12"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Rida",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Mahnoor Fatima",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Rida",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Mahnoor Fatima",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "FA24-BCS-4-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Asma",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security (Lab)",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Mr. Muhammad Usman Nasir",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Ghias ul Din Bulbun",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Asma",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-C",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Ghias ul Din Bulbun",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Muhammad Usman Nasir",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Asma",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security (Lab)",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Mr. Muhammad Usman Nasir",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Asma",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA24-BCS-4-D",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Muhammad Usman Nasir",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Mr. Muhammad Usman Nasir",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Asma",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Muhammad Usman Nasir",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Asma",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security (Lab)",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Muhammad Usman Nasir",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-E",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Rimsha Rafiq",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security (Lab)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Ms. Sameen Fatima",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Ms. Sameen Fatima",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Mr. Muhammad Umar",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Misbah Arshad",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Misbah Arshad",
+    "room": "W4 (81)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Ms. Sameen Fatima",
+    "room": "W4 (81)"
+  },
+  {
+    "batch": "FA24-BCS-4-F",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Mr. Manzar Abbas",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Mahnoor Fatima",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Requirement Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Syed Ameer Ahmed Gillani",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Syed Ameer Ahmed Gillani",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Mahnoor Fatima",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Software Requirement Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "FA24-BSE-4-A",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security (Lab)",
+    "teacher": "Ms. Mahnoor Fatima",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "A2.1 (63)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Requirement Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Syed Ameer Ahmed Gillani",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security (Lab)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Syed Ameer Ahmed Gillani",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Azka Riaz",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Requirement Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA24-BSE-4-B",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Requirement Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Artificial Intelligence (Lab)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Ghias ul Din Bulbun",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security (Lab)",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security (1 hr)",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Networks (1 hr)",
+    "teacher": "Mr. Ghias ul Din Bulbun",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Requirement Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Networks (Lab)",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "FA24-BSE-4-C",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Artificial Intelligence (1 hr)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Discrete Structures",
+    "teacher": "Dr. Aniqa Rehman",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Object Oriented Programming",
+    "teacher": "Ms. Anam Khan",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Ms. Anam Khan",
+    "room": "CLab-4"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Object Oriented Programming",
+    "teacher": "Ms. Anam Khan",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Discrete Structures",
+    "teacher": "Dr. Aniqa Rehman",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Pre Calculus-II (Pre-Medical Students only)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "W4 (81)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Raheela Shahzadi",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "Mr. Molana Muhammad Yasin",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Pre Calculus-II (Pre-Medical Students only)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "W4 (81)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Discrete Structures",
+    "teacher": "Dr. Aniqa Rehman",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Mr. Usman Ali",
+    "room": "CLab-12"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Discrete Structures",
+    "teacher": "Dr. Aniqa Rehman",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Usman Ali",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Usman Ali",
+    "room": "W1 (73)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA25-BCS-2-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "Mr. Molana Muhammad Yasin",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Engineering",
+    "teacher": "Dr. Aniqa Rehman",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Hamza Arif",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Discrete Structures",
+    "teacher": "Dr. Shaheen Akhtar",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Hamza Arif",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Mr. Hamza Arif",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Discrete Structures",
+    "teacher": "Dr. Shaheen Akhtar",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Engineering",
+    "teacher": "Dr. Aniqa Rehman",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-C",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "Mr. Molana Muhammad Yasin",
+    "room": "A2.2 (63)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Object Oriented Programming",
+    "teacher": "Ms. Anam Khan",
+    "room": "A1.2 (63)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Object Oriented Programming",
+    "teacher": "Ms. Anam Khan",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Sana Farooq",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Ms. Anam Khan",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Ms. Anam Khan",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "FA25-BCS-2-D",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "Mr. Molana Muhammad Yasin",
+    "room": "A2.2 (63)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Applied Physics (1 hr)",
+    "teacher": "Mr. Shahzada Sufiyan",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Huma Nisar",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Sunil Ashraf",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Applied Physics (1 hr)",
+    "teacher": "Mr. Shahzada Sufiyan",
+    "room": "W4 (81)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Usman Ali",
+    "room": "A1.1 (63)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Huma Nisar",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Usman Ali",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Applied Physics (Lab)",
+    "teacher": "CE Mr. Ahsan Maqsood",
+    "room": "Physics Lab"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA25-BCS-2-E",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Mr. Usman Ali",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Applied Physics (1 hr)",
+    "teacher": "Mr. Shahzada Sufiyan",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Ms. Abida Kausar",
+    "room": "CLab-12"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "A1.2 (63)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Khan Software Engineering",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Applied Physics (Lab)",
+    "teacher": "Mr. Shahzada Sufiyan",
+    "room": "Physics Lab"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Object Oriented Programming",
+    "teacher": "Ms. Abida Kausar",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Khan Software Engineering",
+    "teacher": "Mr. Hafiz Muhammad Mudasar",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Applied Physics (1 hr)",
+    "teacher": "Mr. Shahzada Sufiyan",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-A",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Object Oriented Programming",
+    "teacher": "Ms. Abida Kausar",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Muhammad Khadim Hussain",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Yousaf Applied Physics (1 hr)",
+    "teacher": "Dr. Hafiz Muhammad Zeeshan",
+    "room": "A1.3 (63)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Applied Physics (Lab)",
+    "teacher": "CE Mr. Ahsan Maqsood",
+    "room": "Physics Lab"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Object Oriented Programming",
+    "teacher": "Mr. Muhammad Khadim Hussain",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Yousaf Applied Physics (1 hr)",
+    "teacher": "Dr. Hafiz Muhammad Zeeshan",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Object Oriented Programming (Lab)",
+    "teacher": "Mr. Usman Ali",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Discrete Structures",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Engineering",
+    "teacher": "Mr. Fahad Ameen",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "FA25-BSE-2-B",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Pre-Calculus II (For Only Pre-Medical Students)",
+    "teacher": ". Ms. Sana Nasir",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C1.5 (35)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C2 (36)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Holy Quran- II (Fehm-e-Quran-II)",
+    "teacher": "Mr. Molana Muhammad Yasin",
+    "room": "B10 (40)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA25-PCS-2-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Programing Languages (Lab)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C1.5 (35)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Operating System",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C2 (36)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Operating System",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Programing Languages (Lab)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "FA25-RCS-2-A",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Compiler Construction (Lab)",
+    "teacher": "Mr. Ghias ul Din Bulbun",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "4:30",
+    "subject": "Compiler Construction (1 hr)",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Human Computer Interaction (1 hr)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Human Computer Interaction (1 hr)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "SP23-BCS-7-A",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Human Computer Interaction (Lab)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Human Resource Management",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Compiler Construction (Lab)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Compiler Construction (1 hr)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Compiler Construction (1 hr)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Computer Interaction (1 hr)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Computer Interaction (Lab)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Human Computer Interaction (1 hr)",
+    "teacher": "Ms. Rimsha Naheed",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Resource Management",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Machine Learning",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP23-BCS-7-B",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Machine Learning",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Computer Interaction (1 hr)",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Human Resource Management",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "W4 (81)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Machine Learning",
+    "teacher": "Mr. Bilal Shabir Qaisar",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Human Computer Interaction (Lab)",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Human Computer Interaction (1 hr)",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Compiler Construction (1 hr)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "A3 (63)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Human Resource Management",
+    "teacher": "Ms. Nusra Rehman",
+    "room": "A3 (63)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Compiler Construction (Lab)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "CLab-8"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Information Security",
+    "teacher": "Mr. Muhammad Ahmad Farid",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP23-BCS-7-C",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Compiler Construction (1 hr)",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "W2 (81)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Project Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Principles of Operating Systems (Lab)",
+    "teacher": "Ms. Sameen Fatima",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Business Process Engineering",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Introduction to Psychology",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Principles of Operating Systems",
+    "teacher": "Ms. Sameen Fatima",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Machine Learning",
+    "teacher": "Dr. Zeeshan Raza",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Project Management",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Introduction to Psychology",
+    "teacher": "Mr. Gohar Liaqat",
+    "room": "W1 (73)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Machine Learning",
+    "teacher": "Dr. Zeeshan Raza",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Business Process Engineering",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP23-BSE-7-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Principles of Operating Systems",
+    "teacher": "Ms. Sameen Fatima",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Mr. Imran Shahzad",
+    "room": "A2.1 (63)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Statistics and Probability Theory",
+    "teacher": "Ms. Nosheen Ramzan",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (Lab)",
+    "teacher": "Ms. Sameen Fatima",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Web Technologies (Lab)",
+    "teacher": "Mr. Imran Shahzad",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Statistics and Probability Theory",
+    "teacher": "Ms. Nosheen Ramzan",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Organization and Assembly Language (Lab)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "CLab-8"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Mr. Imran Shahzad",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Ms. Kanwal Fatima",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Mobile Application Development (Lab)",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP24-BCS-5-A",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Statistics and Probability Theory",
+    "teacher": "Ms. Nosheen Ramzan",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "CE Ms. Amna Bashir",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Web Technologies (Lab)",
+    "teacher": "Mr. M. Arslan Sarwar",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Mr. M. Arslan Sarwar",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "CE Ms. Amna Bashir",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Imran Shahzad",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Statistics and Probability Theory",
+    "teacher": "Ms. Nosheen Ramzan",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Organization and Assembly Language (Lab)",
+    "teacher": "CE Ms. Amna Bashir",
+    "room": "CLab-12"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Dr. Zeeshan Raza",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Imran Shahzad",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Mr. M. Arslan Sarwar",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (Lab)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Dr. Zeeshan Raza",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP24-BCS-5-B",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Mobile Application Development (Lab)",
+    "teacher": "Mr. Imran Shahzad",
+    "room": "CLab-12"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Dr. Zeeshan Raza",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Computer Organization and Assembly Language (Lab)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Web Technologies (Lab)",
+    "teacher": "Mr. Muhammad Aamir",
+    "room": "CLab-5"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. M. Arslan Sarwar",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Statistics and Probability Theory",
+    "teacher": "Ms. Nosheen Ramzan",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (Lab)",
+    "teacher": "Ms. Huma Nisar",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. M. Arslan Sarwar",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Design and Analysis of Algorithms",
+    "teacher": "Dr. Zeeshan Raza",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Statistics and Probability Theory",
+    "teacher": "Ms. Nosheen Ramzan",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "SP24-BCS-5-C",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Mobile Application Development (Lab)",
+    "teacher": "Mr. M. Arslan Sarwar",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Design and Architecture",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Web Technologies (Lab)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Misbah Arshad",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Misbah Arshad",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Muhammad Yousaf",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Design and Architecture",
+    "teacher": "Ms. Hafsa Saleem",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (Lab)",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Mubashar Raza",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Mobile Application Development (Lab)",
+    "teacher": "Mr. Muhammad Yousaf",
+    "room": "CLab-7"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Organization and Assembly Language (Lab)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Organization and Assembly Language (Lab)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-A",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Muhammad Yousaf",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Misbah Arshad",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Operating Systems (1 hr)",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Web Technologies (Lab)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "Networking Lab"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Operating Systems (Lab)",
+    "teacher": "Ms. Shaheen Kausar",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Computer Organization and Assembly Language (Lab)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "CLab-2"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Muhammad Yousaf",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Computer Organization and Assembly Language (1 hr)",
+    "teacher": "Mr. Muhammad Ali Shahid",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Multivariable Calculus",
+    "teacher": "Dr. Misbah Arshad",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Software Design and Architecture",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Web Technologies (1 hr)",
+    "teacher": "Ms. Syda Fatima Usman",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 5,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Mobile Application Development (Lab)",
+    "teacher": "Mr. Muhammad Yousaf",
+    "room": "CLab-8"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Mobile Application Development (1 hr)",
+    "teacher": "Mr. Muhammad Yousaf",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "SP24-BSE-5-B",
+    "dayIndex": 5,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Software Design and Architecture",
+    "teacher": "Ms. Hafza Mehreen",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Database Systems",
+    "teacher": "Mr. Tariq Rafiq",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Mr. Khalid Majeed",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Data Structures",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Data Structures (Lab)",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "CLab-8"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Fundamentals of Digital Logic Design (Lab)",
+    "teacher": "Mr. Asim",
+    "room": "DLD Lab"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Sabir Ali Shahzad",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Database Systems (Lab)",
+    "teacher": "Mr. Tariq Rafiq",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Database Systems",
+    "teacher": "Mr. Tariq Rafiq",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Data Structures",
+    "teacher": "Ms. Sidra Iqbal",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Sabir Ali Shahzad",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Mr. Khalid Majeed",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Sabir Ali Shahzad",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Mr. Khalid Majeed",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 1,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Database Systems",
+    "teacher": "Mr. Tariq Rafiq",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Database Systems",
+    "teacher": "Mr. Tariq Rafiq",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Database Systems (Lab)",
+    "teacher": "Mr. Tariq Rafiq",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Data Structures",
+    "teacher": "Mr. Shehzad Ali",
+    "room": "D3 (63)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Mr. Khalid Majeed",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Data Structures (Lab)",
+    "teacher": "Mr. Shehzad Ali",
+    "room": "CLab-12"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Data Structures",
+    "teacher": "Mr. Shehzad Ali",
+    "room": "D1 (72)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Fundamentals of Digital Logic Design (Lab)",
+    "teacher": "Mr. Asim",
+    "room": "DLD Lab"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Sabir Ali Shahzad",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "SP25-BCS-3-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Database Systems",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Dr. Atif Mehmood",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Database Systems (Lab)",
+    "teacher": "Mr. Tariq Rafiq",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Hameed Ullah",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Asma Iqbal",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Fundamentals of Digital Logic Design (Lab)",
+    "teacher": "Mr. Asim",
+    "room": "DLD Lab"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Data Structures",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Hameed Ullah",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Database Systems",
+    "teacher": "Mr. Syed Nasir Mehdi",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Data Structures (Lab)",
+    "teacher": "Ms. Aqsa Tehseen",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Data Structures",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP25-BCS-3-C",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Dr. Atif Mehmood",
+    "room": "W2 (81)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Database Systems",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Shaheen Akhtar",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Abida Kausar",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Dr. Saqlain",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Shaheen Akhtar",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Fundamentals of Digital Logic Design (Lab)",
+    "teacher": "Mr. Kashif",
+    "room": "DLD Lab"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Database Systems (Lab)",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Database Systems",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "W3 (73)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Data Structures (Lab)",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "CLab-11"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Dr. Saqlain",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Data Structures",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Abida Kausar",
+    "room": "B3 (100)"
+  },
+  {
+    "batch": "SP25-BSE-3-A",
+    "dayIndex": 5,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Data Structures",
+    "teacher": "Mr. Ali Sher Kashif",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Data Structures",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Database Systems (Lab)",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "CLab-9"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Abida Kausar",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Database Systems",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Software Engineering",
+    "teacher": "Ms. Abida Kausar",
+    "room": "D2 (63)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Fundamentals of Digital Logic Design (Lab)",
+    "teacher": "Mr. Kashif",
+    "room": "DLD Lab"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Mr. Khalid Majeed",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Database Systems",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Amar Rauf",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Data Structures",
+    "teacher": "Dr. Muhammad Shoaib",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Fundamentals of Digital Logic Design (1 hr)",
+    "teacher": "Mr. Khalid Majeed",
+    "room": "D7 (72)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Calculus and Analytic Geometry",
+    "teacher": "Dr. Amar Rauf",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP25-BSE-3-B",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Data Structures (Lab)",
+    "teacher": "Mr. Shehzad Ali",
+    "room": "CLab-3"
+  },
+  {
+    "batch": "SP25-RCS-3-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "SP25-RCS-3-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C1.5 (35)"
+  },
+  {
+    "batch": "SP25-RCS-3-A",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Operating System",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP25-RCS-3-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP25-RCS-3-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP25-RCS-3-A",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Operating System",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Functional English",
+    "teacher": "Engr. M Hamza Ijaz",
+    "room": "C2.2 (48)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Applications of Information and Communication Technology (Lab)",
+    "teacher": "Mr. Muhammad Qadeer",
+    "room": "CLab-1"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Programming Fundamentals",
+    "teacher": "Mr. Fayez Afzaal",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Applications of Information and Communication Technology (1 hr)",
+    "teacher": "Mr. Husnain Raza",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Programming Fundamentals (Lab)",
+    "teacher": "Mr. Fayez Afzaal",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 2,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Civics and Community Engagement (1 hr)",
+    "teacher": "Engr. M Yousaf Mushtaq",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Pre-Calculus I (For Only Pre-Medical Students)",
+    "teacher": "Dr. Abuzar Baqir",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Civics and Community Engagement (1 hr)",
+    "teacher": "Engr. M Yousaf Mushtaq",
+    "room": "B12 (70)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Programming Fundamentals",
+    "teacher": "Mr. Fayez Afzaal",
+    "room": "A2.2 (63)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 4,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Applications of Information and Communication Technology (1 hr)",
+    "teacher": "Mr. Husnain Raza",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Pre-Calculus I (For Only Pre-Medical Students)",
+    "teacher": "Dr. Abuzar Baqir",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Functional English",
+    "teacher": "Engr. M Hamza Ijaz",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Programming Fundamentals",
+    "teacher": "Mr. Fayez Afzaal",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Applications of Information and Communication Technology (Lab)",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Applications of Information and Communication Technology (Lab)",
+    "teacher": "Ms. Afia Afzaal",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Civics and Community Engagement (1 hr)",
+    "teacher": "Engr. Ali Raza",
+    "room": "C1.4 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Applications of Information and Communication Technology (1 hr)",
+    "teacher": "Mr. Hamza Arif",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 1,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Functional English",
+    "teacher": "Engr. M Hamza Ijaz",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Pre-Calculus I (For Only Pre-Medical Students)",
+    "teacher": "Dr. Abuzar Baqir",
+    "room": "B7 (70)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Functional English",
+    "teacher": "Engr. M Hamza Ijaz",
+    "room": "C1.3 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Civics and Community Engagement (1 hr)",
+    "teacher": "Engr. Ali Raza",
+    "room": "A2.2 (63)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Applications of Information and Communication Technology (1 hr)",
+    "teacher": "Mr. Hamza Arif",
+    "room": "D8 (72)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Programming Fundamentals (Lab)",
+    "teacher": "Mr. Fayez Afzaal",
+    "room": "CLab-10"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 4,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Pre-Calculus I (For Only Pre-Medical Students)",
+    "teacher": "Dr. Abuzar Baqir",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP26-BCS-1-B",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Programming Fundamentals",
+    "teacher": "Mr. Fayez Afzaal",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 1,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Functional English",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "D6 (72)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Applications of Information and Communication Technology (Lab)",
+    "teacher": "Mr. Hamza Arif",
+    "room": "CLab-8"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Applications of Information and Communication Technology (1 hr)",
+    "teacher": "Mr. Hamza Arif",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 2,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Functional English",
+    "teacher": "Ms. Wajiha Farooq",
+    "room": "D4 (66)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Civics and Community Engagement (1 hr)",
+    "teacher": "Engr. Ali Raza",
+    "room": "D9 (72)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 3,
+    "startTime": "8:30",
+    "endTime": "9:55",
+    "subject": "Programming Fundamentals",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C2.5 (77)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 3,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Programming Fundamentals (Lab)",
+    "teacher": "Mr. Fayez Afzaal",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Applications of Information and Communication Technology (1 hr)",
+    "teacher": "Mr. Hamza Arif",
+    "room": "C1.2 (48)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Programming Fundamentals",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C1.1 (77)"
+  },
+  {
+    "batch": "SP26-BSE-1-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Civics and Community Engagement (1 hr)",
+    "teacher": "Engr. Ali Raza",
+    "room": "B14 (100)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C1.5 (35)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C2 (36)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Programing Languages (Lab)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP26-PCS-1-A",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 1,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C2.3 (48)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 1,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 2,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C1.5 (35)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 2,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 2,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Operating System",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 3,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Advanced Programing Languages (1 hr)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "C2 (36)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 3,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Quantum Machine Learning",
+    "teacher": "Dr. Muhammad Farhan",
+    "room": "C1 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 3,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Data Mining",
+    "teacher": "Dr. Inaam ul Haq",
+    "room": "C4 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 4,
+    "startTime": "1:40",
+    "endTime": "3:05",
+    "subject": "Advanced Formal Methods",
+    "teacher": "Prof. Dr. Nazir Ahmad Zafar",
+    "room": "C2.4 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 4,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Advanced Operating System",
+    "teacher": "Dr. Zafar Iqbal Roy",
+    "room": "C5 (77)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 4,
+    "startTime": "9:55",
+    "endTime": "11:20",
+    "subject": "Advanced Programing Languages (Lab)",
+    "teacher": "Dr. Javed Ferzund",
+    "room": "CLab-6"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 5,
+    "startTime": "11:20",
+    "endTime": "12:45",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "B13 (70)"
+  },
+  {
+    "batch": "SP26-RCS-1-A",
+    "dayIndex": 5,
+    "startTime": "3:05",
+    "endTime": "4:30",
+    "subject": "Understanding of Holy Quran - I (Fehm-e-Quran-I)",
+    "teacher": "MS Dr. Hafiz M Arshad",
+    "room": "C1 (77)"
+  }
+]

@@ -1,0 +1,496 @@
+import 'models.dart';
+
+class TemporalInsight {
+  final String headline;
+  final String subline;
+  final bool isLive;
+  final String? timeInfo; // E.g., "45 mins left", "Starting in 5 mins"
+  final String? teacherInfo; // E.g., "Dr. Ahmed Khan"
+  final bool isUrgent; // True if class starts within 5 mins
+
+  const TemporalInsight({
+    required this.headline,
+    required this.subline,
+    required this.isLive,
+    this.timeInfo,
+    this.teacherInfo,
+    this.isUrgent = false,
+  });
+}
+
+/// A single schedule entry for the teacher locator
+class TeacherScheduleEntry {
+  final int dayIndex;
+  final String startTime;
+  final String endTime;
+  final String subject;
+  final String room;
+  final String batch;
+  final bool isLive;
+  final bool isUpcoming; // today but hasn't started
+
+  const TeacherScheduleEntry({
+    required this.dayIndex,
+    required this.startTime,
+    required this.endTime,
+    required this.subject,
+    required this.room,
+    required this.batch,
+    this.isLive = false,
+    this.isUpcoming = false,
+  });
+
+  static const List<String> dayNames = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+  ];
+
+  String get dayName => dayIndex >= 1 && dayIndex <= 7 ? dayNames[dayIndex - 1] : 'Day $dayIndex';
+}
+
+/// Rich result from the teacher locator
+class TeacherLocatorResult {
+  final String teacherName;
+  final String status; // 'live', 'today', 'scheduled', 'not_found'
+  final String statusText;
+  final TeacherScheduleEntry? liveSession;
+  final List<TeacherScheduleEntry> todaySessions;
+  final Map<int, List<TeacherScheduleEntry>> weeklySchedule; // dayIndex -> sessions
+  final List<String> allRooms;
+  final List<String> allSubjects;
+
+  const TeacherLocatorResult({
+    required this.teacherName,
+    required this.status,
+    required this.statusText,
+    this.liveSession,
+    this.todaySessions = const [],
+    this.weeklySchedule = const {},
+    this.allRooms = const [],
+    this.allSubjects = const [],
+  });
+}
+
+class OmniBrain {
+  final UniversityMemory memory;
+
+  OmniBrain(this.memory);
+
+  List<ClassSession> scheduleFor(String batch) {
+    return memory.byBatch()[batch] ?? [];
+  }
+
+  // Get merged lecture sessions (consecutive slots of same lecture)
+  List<ClassSession> getMergedConsecutiveSessions(List<ClassSession> schedule) {
+    if (schedule.isEmpty) return [];
+    
+    final sorted = List<ClassSession>.from(schedule)
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+    
+    final merged = <ClassSession>[];
+    ClassSession? current;
+    
+    for (final session in sorted) {
+      if (current == null) {
+        current = session;
+        continue;
+      }
+      
+      // Check if this session is consecutive with current
+      if (current.isConsecutiveWith(session)) {
+        // Merge: create new session with extended end time
+        current = ClassSession(
+          id: current.id,
+          batchKey: current.batchKey,
+          dayIndex: current.dayIndex,
+          startTime: current.startTime,
+          endTime: session.endTime, // Extend to this session's end
+          subject: current.subject,
+          teacher: current.teacher,
+          room: current.room,
+        );
+      } else {
+        merged.add(current);
+        current = session;
+      }
+    }
+    
+    if (current != null) {
+      merged.add(current);
+    }
+    
+    return merged;
+  }
+
+  // Find all consecutive sessions for a given session
+  ClassSession getMergedSession(ClassSession session, List<ClassSession> allSessions) {
+    final sameDaySessions = allSessions
+        .where((s) => s.dayIndex == session.dayIndex && s.isSameLectureAs(session))
+        .toList()
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+    
+    if (sameDaySessions.isEmpty) return session;
+    
+    // Find the block containing this session
+    String? startTime;
+    String? endTime;
+    
+    for (int i = 0; i < sameDaySessions.length; i++) {
+      final s = sameDaySessions[i];
+      
+      // Check if current session is in this block
+      if (s.safeStartVal <= session.safeStartVal && s.safeEndVal > session.safeStartVal) {
+        startTime = s.startTime;
+        endTime = s.endTime;
+        
+        // Extend to all consecutive sessions
+        for (int j = i + 1; j < sameDaySessions.length; j++) {
+          final next = sameDaySessions[j];
+          if ((next.safeStartVal - sameDaySessions[j - 1].safeEndVal).abs() < 0.01) {
+            endTime = next.endTime;
+          } else {
+            break;
+          }
+        }
+        break;
+      }
+    }
+    
+    if (startTime == null || endTime == null) return session;
+    
+    return ClassSession(
+      id: session.id,
+      batchKey: session.batchKey,
+      dayIndex: session.dayIndex,
+      startTime: startTime,
+      endTime: endTime,
+      subject: session.subject,
+      teacher: session.teacher,
+      room: session.room,
+    );
+  }
+
+  ClassSession? getCurrentClass(String batch, DateTime now) {
+    final currentT = now.hour + (now.minute / 60.0);
+    final schedule = scheduleFor(batch);
+    
+    for (final s in schedule) {
+      if (s.dayIndex == now.weekday && currentT >= s.safeStartVal && currentT < s.safeEndVal) {
+        // Return merged session to handle consecutive slots
+        return getMergedSession(s, schedule);
+      }
+    }
+    return null;
+  }
+
+  ClassSession? getNextClass(String batch, DateTime now) {
+    final currentT = now.hour + (now.minute / 60.0);
+    final schedule = scheduleFor(batch);
+
+    final today = schedule
+        .where((s) => s.dayIndex == now.weekday && s.safeStartVal > currentT)
+        .toList()
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+    if (today.isNotEmpty) {
+      // Return merged session to handle consecutive slots
+      return getMergedSession(today.first, schedule);
+    }
+
+    for (int daysAhead = 1; daysAhead <= 6; daysAhead++) {
+      final nextDay = ((now.weekday + daysAhead - 1) % 7) + 1;
+      final candidates = schedule.where((s) => s.dayIndex == nextDay).toList()
+        ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+      if (candidates.isNotEmpty) {
+        // Return merged session to handle consecutive slots
+        return getMergedSession(candidates.first, schedule);
+      }
+    }
+
+    return null;
+  }
+
+  List<String> findEmptyRooms(DateTime now) {
+    final rooms = <String>{};
+    for (final session in memory.sessions) {
+      rooms.add(session.room);
+    }
+
+    final occupied = <String>{};
+    final currentT = now.hour + (now.minute / 60.0);
+    for (final session in memory.sessions) {
+      if (session.dayIndex == now.weekday && currentT >= session.safeStartVal && currentT < session.safeEndVal) {
+        occupied.add(session.room);
+      }
+    }
+
+    final available = rooms.difference(occupied).toList()..sort();
+    return available;
+  }
+
+  /// Get all unique teacher names from the registry
+  List<String> allTeachers() {
+    final names = <String>{};
+    for (final session in memory.sessions) {
+      if (session.teacher.isNotEmpty && session.teacher != 'Unknown') {
+        names.add(session.teacher);
+      }
+    }
+    final sorted = names.toList()..sort();
+    return sorted;
+  }
+
+  /// Smart fuzzy-ish search: matches if all search words appear in the name
+  bool _matchesTeacher(String teacherName, String search) {
+    final name = teacherName.toLowerCase();
+    final words = search.split(RegExp(r'\s+'));
+    // All words must appear in the name
+    return words.every((w) => name.contains(w));
+  }
+
+  /// Locate a teacher with full weekly schedule and smart status
+  TeacherLocatorResult locateTeacher(String query, DateTime now) {
+    final search = query.toLowerCase().trim();
+    if (search.isEmpty) {
+      return const TeacherLocatorResult(
+        teacherName: '',
+        status: 'empty',
+        statusText: 'Enter a teacher name',
+      );
+    }
+
+    final weekday = now.weekday;
+    final currentT = now.hour + (now.minute / 60.0);
+
+    // Gather ALL sessions for matching teachers
+    final matchedSessions = <ClassSession>[];
+    String? resolvedName;
+
+    for (final session in memory.sessions) {
+      if (_matchesTeacher(session.teacher, search)) {
+        matchedSessions.add(session);
+        // Keep the most common full name
+        resolvedName ??= session.teacher;
+      }
+    }
+
+    if (matchedSessions.isEmpty) {
+      return TeacherLocatorResult(
+        teacherName: query,
+        status: 'not_found',
+        statusText: 'No match found in registry',
+      );
+    }
+
+    // Resolve the most common name variant
+    final nameFreq = <String, int>{};
+    for (final s in matchedSessions) {
+      nameFreq[s.teacher] = (nameFreq[s.teacher] ?? 0) + 1;
+    }
+    resolvedName = nameFreq.entries
+        .reduce((a, b) => a.value >= b.value ? a : b)
+        .key;
+
+    // Build weekly schedule
+    final weeklySchedule = <int, List<TeacherScheduleEntry>>{};
+    final allRooms = <String>{};
+    final allSubjects = <String>{};
+    TeacherScheduleEntry? liveSession;
+    final todaySessions = <TeacherScheduleEntry>[];
+
+    for (final session in matchedSessions) {
+      allRooms.add(session.room);
+      allSubjects.add(session.subject);
+
+      final isLive = session.dayIndex == weekday &&
+          currentT >= session.safeStartVal &&
+          currentT < session.safeEndVal;
+      final isUpcoming = session.dayIndex == weekday &&
+          session.safeStartVal > currentT;
+
+      final entry = TeacherScheduleEntry(
+        dayIndex: session.dayIndex,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        subject: session.subject,
+        room: session.room,
+        batch: session.batchKey.batch,
+        isLive: isLive,
+        isUpcoming: isUpcoming,
+      );
+
+      weeklySchedule.putIfAbsent(session.dayIndex, () => []).add(entry);
+
+      if (isLive) liveSession = entry;
+      if (session.dayIndex == weekday) todaySessions.add(entry);
+    }
+
+    // Sort each day's sessions by start time
+    for (final entries in weeklySchedule.values) {
+      entries.sort((a, b) => a.startTime.compareTo(b.startTime));
+    }
+    todaySessions.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    // Determine status
+    String status;
+    String statusText;
+
+    if (liveSession != null) {
+      status = 'live';
+      statusText = 'Live now in ${liveSession.room} — ${liveSession.subject}';
+    } else if (todaySessions.any((s) => s.isUpcoming)) {
+      status = 'today';
+      final next = todaySessions.firstWhere((s) => s.isUpcoming);
+      statusText = 'Next at ${next.startTime} in ${next.room} — ${next.subject}';
+    } else if (todaySessions.isNotEmpty) {
+      status = 'today';
+      statusText = 'Done for today (${todaySessions.length} classes completed)';
+    } else {
+      // Find next day they teach
+      status = 'scheduled';
+      int? nextDay;
+      for (int offset = 1; offset <= 7; offset++) {
+        final day = ((weekday - 1 + offset) % 7) + 1;
+        if (weeklySchedule.containsKey(day)) {
+          nextDay = day;
+          break;
+        }
+      }
+      if (nextDay != null) {
+        final nextEntries = weeklySchedule[nextDay]!;
+        statusText = 'Next on ${TeacherScheduleEntry.dayNames[nextDay - 1]} at ${nextEntries.first.startTime}';
+      } else {
+        statusText = 'Schedule available';
+      }
+    }
+
+    return TeacherLocatorResult(
+      teacherName: resolvedName,
+      status: status,
+      statusText: statusText,
+      liveSession: liveSession,
+      todaySessions: todaySessions,
+      weeklySchedule: weeklySchedule,
+      allRooms: allRooms.toList()..sort(),
+      allSubjects: allSubjects.toList()..sort(),
+    );
+  }
+
+  TemporalInsight buildTemporalInsight(String batch, DateTime now) {
+    final current = getCurrentClass(batch, now);
+    final next = getNextClass(batch, now);
+    final currentT = now.hour + (now.minute / 60.0);
+    final schedule = scheduleFor(batch);
+    final today = schedule
+        .where((s) => s.dayIndex == now.weekday)
+        .toList()
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+    if (current != null) {
+      // Time remaining calculation for merged lecture
+      final minutesLeft = ((current.safeEndVal - currentT) * 60).round();
+      final timeLeft = minutesLeft > 60 
+          ? '${(minutesLeft / 60).floor()}h ${minutesLeft % 60}m left'
+          : '$minutesLeft mins left';
+      
+      return TemporalInsight(
+        headline: 'Live Now',
+        subline: '${current.subject} · ${current.room}',
+        timeInfo: timeLeft,
+        teacherInfo: current.teacher,
+        isLive: true,
+        isUrgent: false,
+      );
+    }
+
+    if (today.isNotEmpty) {
+      final previous = today.lastWhere(
+        (s) => s.safeEndVal <= currentT,
+        orElse: () => today.first,
+      );
+      final upcoming = today.firstWhere(
+        (s) => s.safeStartVal > currentT,
+        orElse: () => today.first,
+      );
+      if (previous.safeEndVal <= currentT && upcoming.safeStartVal > currentT) {
+        // Get merged version of upcoming class for accurate time display
+        final mergedUpcoming = getMergedSession(upcoming, schedule);
+        
+        // Break time calculations
+        final breakMinutes = ((mergedUpcoming.safeStartVal - currentT) * 60).round();
+        final breakDuration = breakMinutes > 60 
+            ? '${(breakMinutes / 60).floor()}h ${breakMinutes % 60}m break'
+            : '$breakMinutes min break';
+        
+        return TemporalInsight(
+          headline: 'Break',
+          subline: '${mergedUpcoming.subject} at ${mergedUpcoming.startTime} · ${mergedUpcoming.room}',
+          timeInfo: breakDuration,
+          teacherInfo: mergedUpcoming.teacher,
+          isLive: false,
+        );
+      }
+    }
+
+    if (next != null) {
+      final dayDiff = (next.dayIndex - now.weekday) % 7;
+      final earlyMorning = now.hour < 8 && dayDiff == 0;
+      final label = earlyMorning ? 'Early Morning' : (dayDiff == 0 ? 'Next Up' : 'Next Day');
+      
+      // Check if starting soon (within 5 minutes for today's classes)
+      final isStartingSoon = dayDiff == 0 && now.hour + (now.minute / 60.0) >= (next.safeStartVal - 0.084); // 0.084 = 5 mins
+      
+      String timeInfo = '';
+      if (dayDiff == 0) {
+        // Same day class
+        final nextMinutes = ((next.safeStartVal - now.hour - (now.minute / 60.0)) * 60).round();
+        if (nextMinutes > 0) {
+          timeInfo = nextMinutes > 60 
+              ? 'in ${(nextMinutes / 60).floor()}h ${nextMinutes % 60}m'
+              : 'in $nextMinutes mins';
+        }
+      } else if (dayDiff > 0) {
+        // Next day class - calculate time until class
+        final daysUntil = dayDiff == 1 ? 1 : dayDiff;
+        final hoursUntilMidnight = 24 - now.hour;
+        final minutesUntilMidnight = 60 - now.minute;
+        final totalMinutesUntilMidnight = (hoursUntilMidnight * 60) + minutesUntilMidnight - 60;
+        
+        // Add time from midnight to class start
+        final classStartMinutes = (next.safeStartVal * 60).round();
+        final totalMinutes = totalMinutesUntilMidnight + classStartMinutes + ((daysUntil - 1) * 24 * 60);
+        
+        final hours = totalMinutes ~/ 60;
+        final mins = totalMinutes % 60;
+        
+        if (hours > 24) {
+          final days = hours ~/ 24;
+          final remainingHours = hours % 24;
+          timeInfo = remainingHours > 0 
+              ? 'in ${days}d ${remainingHours}h'
+              : 'in ${days}d';
+        } else if (hours > 0) {
+          timeInfo = mins > 0 
+              ? 'in ${hours}h ${mins}m'
+              : 'in ${hours}h';
+        } else {
+          timeInfo = 'in ${mins}m';
+        }
+      }
+      
+      return TemporalInsight(
+        headline: label,
+        subline: '${next.subject} at ${next.startTime} · ${next.room}',
+        timeInfo: timeInfo,
+        teacherInfo: next.teacher,
+        isLive: false,
+        isUrgent: isStartingSoon,
+      );
+    }
+
+    return const TemporalInsight(
+      headline: 'No Classes',
+      subline: 'Enjoy the free time',
+      isLive: false,
+    );
+  }
+}

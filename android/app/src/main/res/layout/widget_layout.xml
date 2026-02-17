@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- IRIS Widget - 2x2 Grid, bulletproof design -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="#020617">
+
+    <!-- Row 1: Subject + Time -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="8dp">
+
+        <!-- Status Indicator Dot -->
+        <View
+            android:id="@+id/status_dot"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_marginEnd="6dp"
+            android:visibility="gone"
+            android:background="@drawable/status_dot_blue" />
+
+        <!-- Subject -->
+        <TextView
+            android:id="@+id/widget_subject"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="System Idle"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <!-- Refresh Button -->
+        <TextView
+            android:id="@+id/widget_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="↻"
+            android:textSize="14sp"
+            android:textColor="#A5B4FC"
+            android:layout_marginStart="4dp" />
+    </LinearLayout>
+
+    <!-- Row 2: Room + Teacher -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp">
+
+        <TextView
+            android:id="@+id/widget_room"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Room"
+            android:textSize="12sp"
+            android:textColor="#FFFFFFBB"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/widget_teacher"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Teacher"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF99"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Row 3: Time Information -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp">
+
+        <TextView
+            android:id="@+id/widget_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Time"
+            android:textSize="12sp"
+            android:textColor="#818CF8"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/widget_time_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="11sp"
+            android:textColor="#818CF8"
+            android:visibility="gone"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Row 4: Progress Bar -->
+    <ProgressBar
+        android:id="@+id/widget_progress"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:max="100"
+        android:progress="0"
+        android:indeterminate="false"
+        android:minHeight="2dp"
+        android:layout_marginHorizontal="4dp"
+        android:layout_marginTop="4dp" />
+
+</LinearLayout>

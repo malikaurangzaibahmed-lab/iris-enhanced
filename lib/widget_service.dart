@@ -1,0 +1,369 @@
+import 'package:home_widget/home_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
+
+class BlurLevel {
+  static const int none = 0;
+  static const int low = 1;
+  static const int medium = 2;
+  static const int high = 3;
+
+  static String getName(int level) {
+    switch (level) {
+      case none:
+        return 'Off';
+      case low:
+        return 'Low';
+      case medium:
+        return 'Medium';
+      case high:
+        return 'High';
+      default:
+        return 'Medium';
+    }
+  }
+
+  static double getBlurSigma(int level) {
+    switch (level) {
+      case none:
+        return 0;
+      case low:
+        return 2.5;
+      case medium:
+        return 5.4;
+      case high:
+        return 18;
+      default:
+        return 5.4;
+    }
+  }
+}
+
+class WidgetService {
+  static const String _prefCurrentClassSubject = 'flutter.current_class_subject';
+  static const String _prefCurrentClassRoom = 'flutter.current_class_room';
+  static const String _prefCurrentClassTeacher = 'flutter.current_class_teacher';
+  static const String _prefCurrentClassEndTime = 'flutter.current_class_end_time';
+  static const String _prefProgressPercentage = 'flutter.progress_percentage';
+  static const String _prefIsClassLive = 'flutter.is_class_live';
+  static const String _prefBlurLevel = 'flutter.blur_level';
+  static const String _prefTimeInfo = 'flutter.time_info';
+  static const String _prefIsUrgent = 'flutter.is_urgent';
+  static const String _prefLastUpdate = 'flutter.last_update_hash';
+  
+  // Temporal Insight fields for widget display
+  static const String _prefHeadline = 'flutter.widget_headline';
+  static const String _prefSubline = 'flutter.widget_subline';
+  static const String _prefWidgetDarkMode = 'flutter.widget_dark_mode';
+
+  static const String _widgetGroupId = 'com.example.student_organizer';
+
+  static Future<void> initialize() async {
+    try {
+      await HomeWidget.setAppGroupId(_widgetGroupId);
+      debugPrint('✅ Home Widget Service initialized');
+    } catch (e) {
+      debugPrint('⚠️ Widget initialization: $e');
+    }
+  }
+
+  /// Initialize widget with default "idle" state on app startup
+  static Future<void> initializeWidgetDefaults() async {
+    try {
+      debugPrint('🔧 Initializing widget defaults...');
+      await updateWidgetIdle(
+        headline: 'System Idle',
+        subline: 'No active class',
+        teacherInfo: '',
+        timeInfo: 'Ready to go',
+        isUrgent: false,
+      );
+      debugPrint('✅ Widget defaults initialized');
+    } catch (e) {
+      debugPrint('⚠️ Widget defaults init failed: $e');
+    }
+  }
+
+  /// Completely rebuild widget with validation at every step
+  static Future<void> updateWidget({
+    required bool isLive,
+    required String subject,
+    required String room,
+    required String teacher,
+    required String endTime,
+    required int progressPercentage,
+    required String nextClassSubject,
+    required String nextClassStartTime,
+    required String nextClassRoom,
+    String timeInfo = '',
+    bool isUrgent = false,
+  }) async {
+    try {
+      // STEP 1: Validate and sanitize all inputs
+      final sanitizedSubject = _validateString(subject, 'System Idle', 50);
+      final sanitizedRoom = _validateString(room, 'No active class', 100);
+      final sanitizedTeacher = _validateString(teacher, '', 50);
+      final sanitizedEndTime = _validateString(endTime, '', 20);
+      final sanitizedTimeInfo = _validateString(timeInfo, '', 50);
+      final sanitizedProgress = progressPercentage.clamp(0, 100);
+
+      debugPrint('🔧 Widget update initiated');
+      debugPrint('  Subject: $sanitizedSubject');
+      debugPrint('  Room: $sanitizedRoom');
+      debugPrint('  Live: $isLive');
+      debugPrint('  Progress: $sanitizedProgress%');
+
+      // STEP 2: Save to local shared preferences first (backup)
+      final prefs = await SharedPreferences.getInstance();
+      
+      try {
+        await prefs.setBool(_prefIsClassLive, isLive);
+        await prefs.setString(_prefCurrentClassSubject, sanitizedSubject);
+        await prefs.setString(_prefCurrentClassRoom, sanitizedRoom);
+        await prefs.setString(_prefCurrentClassTeacher, sanitizedTeacher);
+        await prefs.setString(_prefCurrentClassEndTime, sanitizedEndTime);
+        await prefs.setInt(_prefProgressPercentage, sanitizedProgress);
+        await prefs.setString(_prefTimeInfo, sanitizedTimeInfo);
+        await prefs.setBool(_prefIsUrgent, isUrgent);
+        debugPrint('✅ Local preferences saved');
+      } catch (e) {
+        debugPrint('⚠️ Local pref save failed: $e');
+      }
+
+      // STEP 3: Save to HomeWidget (Android device storage)
+      try {
+        await HomeWidget.saveWidgetData<bool>(_prefIsClassLive, isLive);
+        await HomeWidget.saveWidgetData<String>(_prefCurrentClassSubject, sanitizedSubject);
+        await HomeWidget.saveWidgetData<String>(_prefCurrentClassRoom, sanitizedRoom);
+        await HomeWidget.saveWidgetData<String>(_prefCurrentClassTeacher, sanitizedTeacher);
+        await HomeWidget.saveWidgetData<String>(_prefCurrentClassEndTime, sanitizedEndTime);
+        await HomeWidget.saveWidgetData<int>(_prefProgressPercentage, sanitizedProgress);
+        await HomeWidget.saveWidgetData<String>(_prefTimeInfo, sanitizedTimeInfo);
+        await HomeWidget.saveWidgetData<bool>(_prefIsUrgent, isUrgent);
+        debugPrint('✅ HomeWidget data saved');
+      } catch (e) {
+        debugPrint('⚠️ HomeWidget save failed: $e');
+        // Continue anyway - widget will use local prefs
+      }
+
+      // STEP 4: Request widget update
+      try {
+        // Try multiple widget names to ensure at least one succeeds
+        List<String> widgetNames = [
+          'ClassTrackerWidget',
+          'OmniFlowWidgetProvider',
+          'OmniFlowWidget',
+        ];
+        
+        for (String name in widgetNames) {
+          try {
+            await HomeWidget.updateWidget(
+              name: name,
+              iOSName: 'OmniFlowWidget',
+              androidName: name,
+            );
+            debugPrint('✅ Widget update sent to $name');
+            break; // Success, stop trying
+          } catch (e) {
+            debugPrint('⚠️ Widget update to $name failed: $e');
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Widget update request failed: $e');
+      }
+    } catch (e) {
+      debugPrint('🔥 Widget update failed: $e');
+    }
+  }
+
+  /// Update widget for idle state
+  static Future<void> updateWidgetIdle({
+    required String headline,
+    required String subline,
+    required String teacherInfo,
+    String timeInfo = '',
+    bool isUrgent = false,
+  }) async {
+    await updateWidget(
+      isLive: false,
+      subject: headline,
+      room: subline,
+      teacher: teacherInfo,
+      endTime: '',
+      progressPercentage: 0,
+      nextClassSubject: '',
+      nextClassStartTime: '',
+      nextClassRoom: '',
+      timeInfo: timeInfo,
+      isUrgent: isUrgent,
+    );
+  }
+
+  /// Validate and sanitize string input
+  static String _validateString(String? input, String defaultValue, int maxLength) {
+    try {
+      if (input == null || input.isEmpty) {
+        return defaultValue;
+      }
+      
+      String trimmed = input.trim();
+      if (trimmed.isEmpty) {
+        return defaultValue;
+      }
+      
+      // Sanitize first
+      String sanitized = trimmed.replaceAll(RegExp(r'[^\w\s·–\-:/()&]'), '');
+      
+      // Then limit length safely
+      if (sanitized.length > maxLength) {
+        sanitized = sanitized.substring(0, maxLength);
+      }
+      
+      sanitized = sanitized.trim();
+      return sanitized.isEmpty ? defaultValue : sanitized;
+    } catch (e) {
+      debugPrint('⚠️ String validation error for "$input": $e');
+      return defaultValue;
+    }
+  }
+
+  static Future<void> setTimeInfo(String timeInfo) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefTimeInfo, timeInfo);
+      await HomeWidget.saveWidgetData<String>(_prefTimeInfo, timeInfo);
+    } catch (e) {
+      debugPrint('⚠️ setTimeInfo failed: $e');
+    }
+  }
+
+  static Future<void> setUrgent(bool isUrgent) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefIsUrgent, isUrgent);
+      await HomeWidget.saveWidgetData<bool>(_prefIsUrgent, isUrgent);
+    } catch (e) {
+      debugPrint('⚠️ setUrgent failed: $e');
+    }
+  }
+
+  static Future<String> getTimeInfo() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_prefTimeInfo) ?? '';
+    } catch (e) {
+      debugPrint('⚠️ getTimeInfo failed: $e');
+      return '';
+    }
+  }
+
+  static Future<bool> getUrgent() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_prefIsUrgent) ?? false;
+    } catch (e) {
+      debugPrint('⚠️ getUrgent failed: $e');
+      return false;
+    }
+  }
+
+  static Future<void> setBlurLevel(int level) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_prefBlurLevel, level);
+    } catch (e) {
+      debugPrint('⚠️ setBlurLevel failed: $e');
+    }
+  }
+
+  static Future<int> getBlurLevel() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getInt(_prefBlurLevel) ?? BlurLevel.medium;
+    } catch (e) {
+      debugPrint('⚠️ getBlurLevel failed: $e');
+      return BlurLevel.medium;
+    }
+  }
+
+  /// Force clear widget cache
+  static Future<void> clearCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_prefLastUpdate);
+      debugPrint('🗑️ Widget cache cleared');
+    } catch (e) {
+      debugPrint('⚠️ Cache clear failed: $e');
+    }
+  }
+
+  // Widget dark mode toggle methods
+  static Future<void> setWidgetDarkMode(bool isDark) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefWidgetDarkMode, isDark);
+      await HomeWidget.saveWidgetData<bool>(_prefWidgetDarkMode, isDark);
+      debugPrint('✅ Widget dark mode set to: $isDark');
+    } catch (e) {
+      debugPrint('⚠️ setWidgetDarkMode failed: $e');
+    }
+  }
+
+  static Future<bool> getWidgetDarkMode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Default to system dark mode (false = light, true = dark)
+      return prefs.getBool(_prefWidgetDarkMode) ?? false;
+    } catch (e) {
+      debugPrint('⚠️ getWidgetDarkMode failed: $e');
+      return false;
+    }
+  }
+
+  /// Update widget with temporal insight data
+  static Future<void> updateWidgetWithInsight({
+    required String headline,
+    required String subline,
+    required String timeInfo,
+    required String teacherInfo,
+    required bool isLive,
+    required bool isUrgent,
+    required int progressPercentage,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Save all data to local prefs
+      await prefs.setString(_prefHeadline, headline);
+      await prefs.setString(_prefSubline, subline);
+      await prefs.setString(_prefTimeInfo, timeInfo);
+      await prefs.setString(_prefCurrentClassTeacher, teacherInfo);
+      await prefs.setBool(_prefIsClassLive, isLive);
+      await prefs.setBool(_prefIsUrgent, isUrgent);
+      await prefs.setInt(_prefProgressPercentage, progressPercentage);
+      
+      // Save to HomeWidget
+      await HomeWidget.saveWidgetData<String>(_prefHeadline, headline);
+      await HomeWidget.saveWidgetData<String>(_prefSubline, subline);
+      await HomeWidget.saveWidgetData<String>(_prefTimeInfo, timeInfo);
+      await HomeWidget.saveWidgetData<String>(_prefCurrentClassTeacher, teacherInfo);
+      await HomeWidget.saveWidgetData<bool>(_prefIsClassLive, isLive);
+      await HomeWidget.saveWidgetData<bool>(_prefIsUrgent, isUrgent);
+      await HomeWidget.saveWidgetData<int>(_prefProgressPercentage, progressPercentage);
+      
+      // Request widget update
+      List<String> widgetNames = ['ClassTrackerWidget', 'OmniFlowWidgetProvider', 'OmniFlowWidget'];
+      for (String name in widgetNames) {
+        try {
+          await HomeWidget.updateWidget(name: name, iOSName: 'OmniFlowWidget', androidName: name);
+          break;
+        } catch (e) {
+          debugPrint('⚠️ Update to $name failed: $e');
+        }
+      }
+      
+      debugPrint('✅ Widget updated with insight: $headline');
+    } catch (e) {
+      debugPrint('🔥 updateWidgetWithInsight failed: $e');
+    }
+  }}
