@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:student_organizer/core/models.dart';
-import 'package:student_organizer/services/pdf_timetable_parser.dart';
+import 'package:iris/core/models.dart';
+import 'package:iris/services/pdf_timetable_parser.dart';
 
 class TimetableUpdateService {
   static const String serverEndpoint = '';

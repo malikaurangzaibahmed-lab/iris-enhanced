@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:student_organizer/core/models.dart';
+import 'package:iris/core/models.dart';
 
 /// Debug parser that logs detailed extraction info for each row
 class PDFDebugParser {

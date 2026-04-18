@@ -39,7 +39,36 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Android/iOS
+android/.gradle/
+android/local.properties
+android/app/build/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Flutter/Flutter.podspec
+
+# Sensitive or user-specific
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+*.crt
+*.env
+
+# APKs and binaries
+*.apk
+*.ipa
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Backup files
+*~
+*.bak
+*.old
+
+# Exclude large assets if needed
+# assets/reference pics/
+# assets/timetable_seed_backup.json

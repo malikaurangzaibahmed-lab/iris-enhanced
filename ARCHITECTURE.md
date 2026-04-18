@@ -4,6 +4,15 @@
 
 This document defines the **Sacred Rules** that govern the OMNI-FLOW OS codebase. These principles ensure the system maintains its intelligence, performance, and premium user experience.
 
+## 📌 Project Workflow Addendum
+
+The canonical operational rules are tracked in [IRIS_RULES.md](IRIS_RULES.md).
+
+**Always apply these cross-cutting constraints while implementing architecture changes:**
+- Ask for explicit approval before running `flutter build apk --split-per-abi`.
+- Use the term **smart pill** for the top portal feedback overlay.
+- Keep [IRIS_RULES.md](IRIS_RULES.md) updated as new implementation constraints are introduced.
+
 ---
 
 ## 📜 THE FIVE SACRED RULES

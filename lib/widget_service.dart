@@ -148,26 +148,12 @@ class WidgetService {
 
       // STEP 4: Request widget update
       try {
-        // Try multiple widget names to ensure at least one succeeds
-        List<String> widgetNames = [
-          'ClassTrackerWidget',
-          'OmniFlowWidgetProvider',
-          'OmniFlowWidget',
-        ];
-        
-        for (String name in widgetNames) {
-          try {
-            await HomeWidget.updateWidget(
-              name: name,
-              iOSName: 'OmniFlowWidget',
-              androidName: name,
-            );
-            debugPrint('✅ Widget update sent to $name');
-            break; // Success, stop trying
-          } catch (e) {
-            debugPrint('⚠️ Widget update to $name failed: $e');
-          }
-        }
+        await HomeWidget.updateWidget(
+          name: 'ClassTrackerWidget',
+          iOSName: 'OmniFlowWidget',
+          androidName: 'ClassTrackerWidget',
+        );
+        debugPrint('✅ Widget update sent to ClassTrackerWidget');
       } catch (e) {
         debugPrint('⚠️ Widget update request failed: $e');
       }
@@ -352,15 +338,11 @@ class WidgetService {
       await HomeWidget.saveWidgetData<int>(_prefProgressPercentage, progressPercentage);
       
       // Request widget update
-      List<String> widgetNames = ['ClassTrackerWidget', 'OmniFlowWidgetProvider', 'OmniFlowWidget'];
-      for (String name in widgetNames) {
-        try {
-          await HomeWidget.updateWidget(name: name, iOSName: 'OmniFlowWidget', androidName: name);
-          break;
-        } catch (e) {
-          debugPrint('⚠️ Update to $name failed: $e');
-        }
-      }
+      await HomeWidget.updateWidget(
+        name: 'ClassTrackerWidget',
+        iOSName: 'OmniFlowWidget',
+        androidName: 'ClassTrackerWidget',
+      );
       
       debugPrint('✅ Widget updated with insight: $headline');
     } catch (e) {

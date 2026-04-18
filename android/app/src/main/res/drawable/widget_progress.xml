@@ -7,9 +7,11 @@
         </shape>
     </item>
     <item android:id="@android:id/progress">
-        <shape android:shape="rectangle">
-            <corners android:radius="8dp" />
-            <solid android:color="#6366F1" />
-        </shape>
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="8dp" />
+                <solid android:color="#5B7FFF" />
+            </shape>
+        </clip>
     </item>
 </layer-list>

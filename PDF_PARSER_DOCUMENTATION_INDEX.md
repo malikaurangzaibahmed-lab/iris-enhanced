@@ -1,7 +1,7 @@
 # PDF Parser Testing - Complete Index
 
 ## Overview
-This is the complete documentation for testing the PDF parser against the actual ME (9).pdf, CVE.pdf, and EE (4).pdf files in the student_organizer app.
+This is the complete documentation for testing the PDF parser against the actual ME (9).pdf, CVE.pdf, and EE (4).pdf files in the IRIS app.
 
 **Status**: ✅ COMPLETE - Parser tested, analyzed, and enhanced
 

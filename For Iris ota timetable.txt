@@ -1,0 +1,16 @@
+For Iris Folder
+
+# Step 1: Parse the PDF
+cd d:\IRIS
+python tools/process_pdf_registry.py
+
+# Step 2: Copy to deployment folder
+Copy-Item assets\timetable_seed.json cloudflare_deploy\timetable_seed.json
+
+# Step 3: Upload to GitHub
+cd cloudflare_deploy
+git add timetable_seed.json
+git commit -m "Update timetable"
+git push
+
+# Done! Users get update automatically within 24 hours (or manually via refresh button)

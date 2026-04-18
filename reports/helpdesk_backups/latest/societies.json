@@ -1,0 +1,890 @@
+[
+  {
+    "links": {
+      "whatsapp": ".",
+      "instagram": "https://www.instagram.com/societyofms?igsh=bW82Yzl6MmlhMmpr",
+      "facebook": "."
+    },
+    "name": "Society of MS",
+    "desc": "Providing a platform to showcase your talent. Our moto: SEEK, SHINE, MOTIVATE.",
+    "imageUrl": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775900940/cui_helpdesk/societies/eti6nby6mtnjyg3za45w.jpg",
+    "members": [
+      {
+        "name": "Mashal Nadeem",
+        "role": "President",
+        "imageUrl": "",
+        "rank": 1,
+        "id": "69da190d795947e817dd20b8"
+      },
+      {
+        "name": "Rana Rasikh",
+        "role": "General Secretary",
+        "imageUrl": "",
+        "rank": 2,
+        "id": "69da190d795947e817dd20b9"
+      },
+      {
+        "name": "M Muzzamil",
+        "role": "VP. Finance Club",
+        "imageUrl": "",
+        "rank": 3,
+        "id": "69da190d795947e817dd20ba"
+      },
+      {
+        "name": "Maryam CH",
+        "role": "VP. Literary Club",
+        "imageUrl": "",
+        "rank": 4,
+        "id": "69da190d795947e817dd20bb"
+      },
+      {
+        "name": "Subhana Rao",
+        "role": "VP. Arts Club",
+        "imageUrl": "",
+        "rank": 5,
+        "id": "69da190d795947e817dd20bc"
+      },
+      {
+        "name": "Zaeem Khalid",
+        "role": "VP. Event Mgt Club",
+        "imageUrl": "",
+        "rank": 6,
+        "id": "69da190d795947e817dd20bd"
+      },
+      {
+        "name": "Zunair Talha",
+        "role": "VP. Logistics Club",
+        "imageUrl": "",
+        "rank": 7,
+        "id": "69da190d795947e817dd20be"
+      },
+      {
+        "name": "Touseeq Ghous",
+        "role": "VP. Media Club",
+        "imageUrl": "",
+        "rank": 8,
+        "id": "69da190d795947e817dd20bf"
+      },
+      {
+        "name": "Abdullah Jutt",
+        "role": "VP. Social Service Club",
+        "imageUrl": "",
+        "rank": 9,
+        "id": "69da190d795947e817dd20c0"
+      },
+      {
+        "name": "Ahsan Ashfaq",
+        "role": "VP. lnd-Uni Club",
+        "imageUrl": "",
+        "rank": 10,
+        "id": "69da190d795947e817dd20c1"
+      }
+    ],
+    "createdAt": "2026-04-11T09:49:01.203Z",
+    "updatedAt": "2026-04-11T09:49:01.203Z",
+    "id": "69da190d795947e817dd20b7"
+  },
+  {
+    "links": {
+      "whatsapp": "no",
+      "instagram": "https://www.instagram.com/p/DWtRNURDa1A/?igsh=MWJtYTRpd2Y4NHp1Nw==",
+      "facebook": "https://www.facebook.com/share/17wVoRRVRD/"
+    },
+    "name": "Comsats Literary Society (CLS)",
+    "desc": "A vibrant community for bibliophiles and aspiring writers to explore diverse literary genres and showcase their creative talents. From intellectual discussions to creative writing workshops, the society fosters a deep appreciation for the power of words.",
+    "imageUrl": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775893740/cui_helpdesk/societies/g9bwhtieggd6plhjhazq.jpg",
+    "members": [
+      {
+        "name": "Awais Sana",
+        "role": "President",
+        "imageUrl": "",
+        "rank": 1,
+        "id": "69da11dca79dc91b0b324ea2"
+      },
+      {
+        "name": "Ibrahim",
+        "role": "VP. Male",
+        "imageUrl": "",
+        "rank": 2,
+        "id": "69da11dca79dc91b0b324ea3"
+      },
+      {
+        "name": "Wazia Sajjad",
+        "role": "VP. Female",
+        "imageUrl": "",
+        "rank": 3,
+        "id": "69da11dca79dc91b0b324ea4"
+      },
+      {
+        "name": "Ali Hamza",
+        "role": "General Secretary",
+        "imageUrl": "",
+        "rank": 4,
+        "id": "69da11dca79dc91b0b324ea5"
+      },
+      {
+        "name": "Aslam",
+        "role": "Under GEN. SEC.",
+        "imageUrl": "",
+        "rank": 5,
+        "id": "69da11dca79dc91b0b324ea6"
+      },
+      {
+        "name": "Abdullah Saif",
+        "role": "Management Director",
+        "imageUrl": "",
+        "rank": 6,
+        "id": "69da11dca79dc91b0b324ea7"
+      },
+      {
+        "name": "Bilal Ahmad",
+        "role": "Logistics Director",
+        "imageUrl": "",
+        "rank": 8,
+        "id": "69da11dca79dc91b0b324ea8"
+      },
+      {
+        "name": "Abdul Rehman",
+        "role": "Media Wing Director",
+        "imageUrl": "",
+        "rank": 9,
+        "id": "69da11dca79dc91b0b324ea9"
+      },
+      {
+        "name": "Muniam Bakhtiar",
+        "role": "Declamation & Debates Director",
+        "imageUrl": "",
+        "rank": 11,
+        "id": "69da11dca79dc91b0b324eaa"
+      },
+      {
+        "name": "Shahbaz Gujjar",
+        "role": "Communication Director",
+        "imageUrl": "",
+        "rank": 14,
+        "id": "69da11dca79dc91b0b324eab"
+      },
+      {
+        "name": "Qasim Bilal",
+        "role": "Bazm-e-Hassan Director",
+        "imageUrl": "",
+        "rank": 16,
+        "id": "69da11dca79dc91b0b324eac"
+      },
+      {
+        "name": "Ali Athar",
+        "role": "Management Secretary",
+        "imageUrl": "",
+        "rank": 7,
+        "id": "69da11dca79dc91b0b324ead"
+      },
+      {
+        "name": "Hunza",
+        "role": "Media Wing Secretary",
+        "imageUrl": "",
+        "rank": 10,
+        "id": "69da11dca79dc91b0b324eae"
+      },
+      {
+        "name": "Alisha Khan",
+        "role": "Declamation & Debates Secretary",
+        "imageUrl": "",
+        "rank": 12,
+        "id": "69da11dca79dc91b0b324eaf"
+      },
+      {
+        "name": "Moatter Fatima",
+        "role": "Declamation & Debates Secretary",
+        "imageUrl": "",
+        "rank": 13,
+        "id": "69da11dca79dc91b0b324eb0"
+      },
+      {
+        "name": "Subhan",
+        "role": "Communication Secretary",
+        "imageUrl": "",
+        "rank": 15,
+        "id": "69da11dca79dc91b0b324eb1"
+      },
+      {
+        "name": "Saim Gillani",
+        "role": "Bazm-e-Hassan Secretary",
+        "imageUrl": "",
+        "rank": 17,
+        "id": "69da11dca79dc91b0b324eb2"
+      },
+      {
+        "name": "Aelaf Ashraf",
+        "role": "Writing Wing Director",
+        "imageUrl": "",
+        "rank": 18,
+        "id": "69da11dca79dc91b0b324eb3"
+      },
+      {
+        "name": "M. Ali",
+        "role": "Writing Wing Secretary",
+        "imageUrl": "",
+        "rank": 19,
+        "id": "69da11dca79dc91b0b324eb4"
+      },
+      {
+        "name": "Laiba Ather",
+        "role": "Reading Wing Director",
+        "imageUrl": "",
+        "rank": 10,
+        "id": "69da11dca79dc91b0b324eb5"
+      }
+    ],
+    "createdAt": "2026-04-11T07:49:00.625Z",
+    "updatedAt": "2026-04-11T09:18:20.387Z",
+    "id": "69d9fcec4c781697c373a2ad"
+  },
+  {
+    "links": {
+      "whatsapp": "no",
+      "instagram": "https://www.instagram.com/skill_developmentsociety?igsh=YzVwZXAzMDR1ejVz",
+      "facebook": "no"
+    },
+    "name": "Comsats Skill Development Society",
+    "desc": "Dedicated to Student growth, community support, and a better world. Togetherf we make it happen!",
+    "imageUrl": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775900125/cui_helpdesk/societies/s7vliaqopxbhrifhbjcv.jpg",
+    "members": [
+      {
+        "name": "Kashif Latif",
+        "role": "President",
+        "imageUrl": "",
+        "rank": 1,
+        "id": "69da15fca78781e0f231e370"
+      },
+      {
+        "name": "Hafiza Ayesha Noor",
+        "role": "Vice president",
+        "imageUrl": "",
+        "rank": 2,
+        "id": "69da15fca78781e0f231e371"
+      },
+      {
+        "name": "Ramzan Mustafa",
+        "role": "Joint Vice President",
+        "imageUrl": "",
+        "rank": 3,
+        "id": "69da15fca78781e0f231e372"
+      },
+      {
+        "name": "Iman Akram",
+        "role": "General Secretary",
+        "imageUrl": "",
+        "rank": 4,
+        "id": "69da15fca78781e0f231e373"
+      },
+      {
+        "name": "Maham CH",
+        "role": "President's Coordinate",
+        "imageUrl": "",
+        "rank": 5,
+        "id": "69da15fca78781e0f231e374"
+      },
+      {
+        "name": "Maryam Jamil",
+        "role": "Co-General Secretary",
+        "imageUrl": "",
+        "rank": 6,
+        "id": "69da15fca78781e0f231e375"
+      },
+      {
+        "name": "Ali Hassan",
+        "role": "Finance Director",
+        "imageUrl": "",
+        "rank": 7,
+        "id": "69da15fca78781e0f231e376"
+      },
+      {
+        "name": "Muhammad Ali",
+        "role": "Media Director",
+        "imageUrl": "",
+        "rank": 8,
+        "id": "69da15fca78781e0f231e377"
+      },
+      {
+        "name": "Rizwan Ali",
+        "role": "Operational Director",
+        "imageUrl": "",
+        "rank": 9,
+        "id": "69da15fca78781e0f231e378"
+      },
+      {
+        "name": "Ayesha Hussain",
+        "role": "Communication Director",
+        "imageUrl": "",
+        "rank": 10,
+        "id": "69da15fca78781e0f231e379"
+      },
+      {
+        "name": "Zaid Hanif",
+        "role": "Development Director",
+        "imageUrl": "",
+        "rank": 11,
+        "id": "69da15fca78781e0f231e37a"
+      },
+      {
+        "name": "Ayesha Alam",
+        "role": "Colaboration Head",
+        "imageUrl": "",
+        "rank": 12,
+        "id": "69da15fca78781e0f231e37b"
+      },
+      {
+        "name": "Areeba CH",
+        "role": "Graphics Head",
+        "imageUrl": "",
+        "rank": 13,
+        "id": "69da15fca78781e0f231e37c"
+      },
+      {
+        "name": "Hifza Tanveer",
+        "role": "CO-coperational Director",
+        "imageUrl": "",
+        "rank": 14,
+        "id": "69da15fca78781e0f231e37d"
+      },
+      {
+        "name": "Hafiz Hamza Naveed",
+        "role": "Logistics Head",
+        "imageUrl": "",
+        "rank": 15,
+        "id": "69da15fca78781e0f231e37e"
+      },
+      {
+        "name": "Amina Mustafai",
+        "role": "Management Head",
+        "imageUrl": "",
+        "rank": 16,
+        "id": "69da15fca78781e0f231e37f"
+      },
+      {
+        "name": "M. Taqi Mehdi",
+        "role": "Co-Graphics Head",
+        "imageUrl": "",
+        "rank": 17,
+        "id": "69da15fca78781e0f231e380"
+      },
+      {
+        "name": "Ali Ertaza",
+        "role": "Data Entry Head",
+        "imageUrl": "",
+        "rank": 18,
+        "id": "69da15fca78781e0f231e381"
+      }
+    ],
+    "createdAt": "2026-04-11T07:35:41.780Z",
+    "updatedAt": "2026-04-11T09:35:56.721Z",
+    "id": "69d9f9cd4c781697c373a244"
+  },
+  {
+    "links": {
+      "whatsapp": ".",
+      "instagram": "https://www.instagram.com/cds_cuiswl?igsh=cmFsNGxlZ2o1aW5k",
+      "facebook": "https://www.facebook.com/share/1DjAxdMb6j/"
+    },
+    "name": "Dramatics Society",
+    "desc": "The heart of campus entertainment. From annual plays to fun skits during welcome and farewell parties, we are the ones who keep the university's creative spirit alive.",
+    "imageUrl": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775889972/cui_helpdesk/societies/sxmwbiirgqjhlhjdecxe.jpg",
+    "members": [
+      {
+        "name": "Anas Asif",
+        "role": "President",
+        "imageUrl": null,
+        "rank": 1,
+        "id": "69d9ee3470f11ab4c997b52d"
+      },
+      {
+        "name": "Laiba Athar",
+        "role": "General Secretary",
+        "imageUrl": null,
+        "rank": 2,
+        "id": "69d9ee3470f11ab4c997b52e"
+      },
+      {
+        "name": "Aga Meesam",
+        "role": "VP.PR & Marketing Club",
+        "imageUrl": null,
+        "rank": 3,
+        "id": "69d9ee3470f11ab4c997b52f"
+      },
+      {
+        "name": "Abdul Manan",
+        "role": "Secretary",
+        "imageUrl": null,
+        "rank": 4,
+        "id": "69d9ee3470f11ab4c997b530"
+      },
+      {
+        "name": "Furqan Naveed",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 5,
+        "id": "69d9ee3470f11ab4c997b531"
+      },
+      {
+        "name": "Humna Shahid",
+        "role": "VP. Media Club",
+        "imageUrl": null,
+        "rank": 6,
+        "id": "69d9ee3470f11ab4c997b532"
+      },
+      {
+        "name": "Zainab",
+        "role": "Seceratory",
+        "imageUrl": null,
+        "rank": 7,
+        "id": "69d9ee3470f11ab4c997b533"
+      },
+      {
+        "name": "Alisha",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 8,
+        "id": "69d9ee3470f11ab4c997b534"
+      },
+      {
+        "name": "Ghulam",
+        "role": "VP. Finance Club",
+        "imageUrl": null,
+        "rank": 9,
+        "id": "69d9ee3470f11ab4c997b535"
+      },
+      {
+        "name": "Aqsa Zulifqar",
+        "role": "Secretary",
+        "imageUrl": null,
+        "rank": 10,
+        "id": "69d9ee3470f11ab4c997b536"
+      },
+      {
+        "name": "Iram Ramzan",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 11,
+        "id": "69d9ee3470f11ab4c997b537"
+      },
+      {
+        "name": "Sohaib Masud",
+        "role": "VP. Literary Club",
+        "imageUrl": null,
+        "rank": 12,
+        "id": "69d9ee3470f11ab4c997b538"
+      },
+      {
+        "name": "Selina",
+        "role": "Secretary",
+        "imageUrl": null,
+        "rank": 13,
+        "id": "69d9ee3470f11ab4c997b539"
+      },
+      {
+        "name": "Rubina Anwar",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 14,
+        "id": "69d9ee3470f11ab4c997b53a"
+      },
+      {
+        "name": "Ansa",
+        "role": "VP. Event management Club",
+        "imageUrl": null,
+        "rank": 15,
+        "id": "69d9ee3470f11ab4c997b53b"
+      },
+      {
+        "name": "Asad Ashfaq",
+        "role": "Secretary",
+        "imageUrl": null,
+        "rank": 16,
+        "id": "69d9ee3470f11ab4c997b53c"
+      },
+      {
+        "name": "Asad Khalid",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 17,
+        "id": "69d9ee3470f11ab4c997b53d"
+      },
+      {
+        "name": "Nisa",
+        "role": "VP. Arts & Creative Club",
+        "imageUrl": null,
+        "rank": 18,
+        "id": "69d9ee3470f11ab4c997b53e"
+      },
+      {
+        "name": "Urwa Adnan",
+        "role": "Secretary",
+        "imageUrl": null,
+        "rank": 19,
+        "id": "69d9ee3470f11ab4c997b53f"
+      },
+      {
+        "name": "Shamkha",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 20,
+        "id": "69d9ee3470f11ab4c997b540"
+      },
+      {
+        "name": "Ahmad Tariq",
+        "role": "VP. Acting Arena Club",
+        "imageUrl": null,
+        "rank": 21,
+        "id": "69d9ee3470f11ab4c997b541"
+      },
+      {
+        "name": "Hamna",
+        "role": "Secretary",
+        "imageUrl": null,
+        "rank": 22,
+        "id": "69d9ee3470f11ab4c997b542"
+      },
+      {
+        "name": "Asim Riaz",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 23,
+        "id": "69d9ee3470f11ab4c997b543"
+      },
+      {
+        "name": "Dawood",
+        "role": "VP. Logistics",
+        "imageUrl": null,
+        "rank": 24,
+        "id": "69d9ee3470f11ab4c997b544"
+      },
+      {
+        "name": "Zain Jabbar",
+        "role": "Secretary",
+        "imageUrl": null,
+        "rank": 25,
+        "id": "69d9ee3470f11ab4c997b545"
+      },
+      {
+        "name": "Shawaiz Ashraf",
+        "role": "Coordinator",
+        "imageUrl": null,
+        "rank": 26,
+        "id": "69d9ee3470f11ab4c997b546"
+      }
+    ],
+    "createdAt": "2026-04-09T08:11:39.462Z",
+    "updatedAt": "2026-04-11T06:46:12.670Z",
+    "id": "69d75f3bac9ebca70c567739"
+  },
+  {
+    "links": {
+      "whatsapp": "https://whatsapp.com/channel/0029Vb7sezp60eBb6lbfKY0a",
+      "instagram": "https://www.instagram.com/css.cui.swl?igsh=MnU4ZHpscHdvamQ4",
+      "facebook": "https://www.facebook.com/share/18Z1s1qRNN/"
+    },
+    "name": "Computer Science Society",
+    "desc": "The digital powerhouse of CUI. We bring tech enthusiasts together for workshops, gaming competitions, and software exhibitions to showcase the talent of our department.",
+    "imageUrl": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775887483/cui_helpdesk/societies/tif0yeqols7o7vfyj1hr.jpg",
+    "members": [
+      {
+        "name": "M. Safiullah Khan",
+        "role": "Presiodent",
+        "imageUrl": null,
+        "rank": 1,
+        "id": "69d9e47c70f11ab4c997b3a9"
+      },
+      {
+        "name": "Abdullah Khan",
+        "role": "Vice president male",
+        "imageUrl": null,
+        "rank": 2,
+        "id": "69d9e47c70f11ab4c997b3aa"
+      },
+      {
+        "name": "Wazia Sajjad",
+        "role": "Vice president female",
+        "imageUrl": null,
+        "rank": 3,
+        "id": "69d9e47c70f11ab4c997b3ab"
+      },
+      {
+        "name": "Ahmad Nawaz",
+        "role": "General Secretary",
+        "imageUrl": null,
+        "rank": 4,
+        "id": "69d9e47c70f11ab4c997b3ac"
+      },
+      {
+        "name": "Sharjeel Murtaza",
+        "role": "Creative & Graphic lead",
+        "imageUrl": null,
+        "rank": 5,
+        "id": "69d9e47c70f11ab4c997b3ad"
+      },
+      {
+        "name": "Abdul Manan",
+        "role": "Media lead",
+        "imageUrl": null,
+        "rank": 7,
+        "id": "69d9e47c70f11ab4c997b3ae"
+      },
+      {
+        "name": "Khadija Naveed",
+        "role": "Creative & Graphic co-lead",
+        "imageUrl": null,
+        "rank": 6,
+        "id": "69d9e47c70f11ab4c997b3af"
+      },
+      {
+        "name": "Shamkha Ejaz",
+        "role": "Media co-lead",
+        "imageUrl": null,
+        "rank": 8,
+        "id": "69d9e47c70f11ab4c997b3b0"
+      },
+      {
+        "name": "Faiq Anwar",
+        "role": "Marketing lead",
+        "imageUrl": null,
+        "rank": 9,
+        "id": "69d9e47c70f11ab4c997b3b1"
+      },
+      {
+        "name": "Bilal Zafar",
+        "role": "E-Gaming lead",
+        "imageUrl": null,
+        "rank": 11,
+        "id": "69d9e47c70f11ab4c997b3b2"
+      },
+      {
+        "name": "Abdullah Malik",
+        "role": "Marketing co-lead",
+        "imageUrl": null,
+        "rank": 10,
+        "id": "69d9e47c70f11ab4c997b3b3"
+      },
+      {
+        "name": "Umar Shafqat",
+        "role": "E-Gaming co-lead",
+        "imageUrl": null,
+        "rank": 12,
+        "id": "69d9e47c70f11ab4c997b3b4"
+      },
+      {
+        "name": "Abdullah Asif",
+        "role": "Outreach lead",
+        "imageUrl": null,
+        "rank": 13,
+        "id": "69d9e47c70f11ab4c997b3b5"
+      },
+      {
+        "name": "Muhammad Umer",
+        "role": "Outreach co-lead",
+        "imageUrl": null,
+        "rank": 14,
+        "id": "69d9e47c70f11ab4c997b3b6"
+      },
+      {
+        "name": "Adeel Sattar",
+        "role": "Management lead",
+        "imageUrl": null,
+        "rank": 15,
+        "id": "69d9e47c70f11ab4c997b3b7"
+      },
+      {
+        "name": "Hafsa Amir",
+        "role": "Management co-lead",
+        "imageUrl": null,
+        "rank": 16,
+        "id": "69d9e47c70f11ab4c997b3b8"
+      },
+      {
+        "name": "Laiba Ather",
+        "role": "Ushers Female lead",
+        "imageUrl": null,
+        "rank": 17,
+        "id": "69d9e47c70f11ab4c997b3b9"
+      },
+      {
+        "name": "Mehar Momin",
+        "role": "Ushers Male lead",
+        "imageUrl": null,
+        "rank": 18,
+        "id": "69d9e47c70f11ab4c997b3ba"
+      }
+    ],
+    "createdAt": "2026-04-09T08:10:54.985Z",
+    "updatedAt": "2026-04-11T06:04:44.496Z",
+    "id": "69d75f0eac9ebca70c567720"
+  },
+  {
+    "links": {
+      "whatsapp": "https://chat.whatsapp.com/FdDExUXkMHUDfsxlAjWWCF",
+      "instagram": "https://www.instagram.com/notioncuiswl?igsh=ZDRhM2RlMm05c2xl",
+      "facebook": "https://www.facebook.com/share/g/18afupGqEr/"
+    },
+    "name": "Notion",
+    "desc": "Transforming chaos into clarity. We are a community of thinkers, builders, and organizers dedicated to mastering the ultimate all-in-one workspace. Join us to streamline your workflow, build powerful systems, and collaborate with the most productive minds on campus.",
+    "imageUrl": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775675569/cui_helpdesk/societies/hijhhqtbpjnojyww23uo.png",
+    "members": [
+      {
+        "name": "Qurrat ul Ain",
+        "role": "Campus Leader",
+        "imageUrl": null,
+        "rank": 3,
+        "id": "69d75dd9ac9ebca70c567693"
+      },
+      {
+        "name": "Marrium Jamil",
+        "role": "Campus Leader",
+        "imageUrl": null,
+        "rank": 4,
+        "id": "69d75dd9ac9ebca70c567694"
+      },
+      {
+        "name": "Haseeb ul Amin",
+        "role": "Creative lead",
+        "imageUrl": null,
+        "rank": 5,
+        "id": "69d75dd9ac9ebca70c567695"
+      },
+      {
+        "name": "Urba Saleem",
+        "role": "Creative lead",
+        "imageUrl": null,
+        "rank": 6,
+        "id": "69d75dd9ac9ebca70c567696"
+      },
+      {
+        "name": "Ayesha Rafi",
+        "role": "Creative member",
+        "imageUrl": null,
+        "rank": 7,
+        "id": "69d75dd9ac9ebca70c567697"
+      },
+      {
+        "name": "Mishaal Fatima",
+        "role": "Creative member",
+        "imageUrl": null,
+        "rank": 8,
+        "id": "69d75dd9ac9ebca70c567698"
+      },
+      {
+        "name": "Usaid Asif",
+        "role": "Media Lead",
+        "imageUrl": null,
+        "rank": 9,
+        "id": "69d75dd9ac9ebca70c567699"
+      },
+      {
+        "name": "Abdullah Kashif",
+        "role": "Media member",
+        "imageUrl": null,
+        "rank": 10,
+        "id": "69d75dd9ac9ebca70c56769a"
+      },
+      {
+        "name": "Ahsan Khalil",
+        "role": "Media member",
+        "imageUrl": null,
+        "rank": 11,
+        "id": "69d75dd9ac9ebca70c56769b"
+      },
+      {
+        "name": "Afraz Ahmad",
+        "role": "Media member",
+        "imageUrl": null,
+        "rank": 12,
+        "id": "69d75dd9ac9ebca70c56769c"
+      },
+      {
+        "name": "Abdullah Ramay",
+        "role": "Design lead",
+        "imageUrl": null,
+        "rank": 13,
+        "id": "69d75dd9ac9ebca70c56769d"
+      },
+      {
+        "name": "Ibtisam Afzal",
+        "role": "Design member",
+        "imageUrl": null,
+        "rank": 14,
+        "id": "69d75dd9ac9ebca70c56769e"
+      },
+      {
+        "name": "Abdul Ahad",
+        "role": "Design member",
+        "imageUrl": null,
+        "rank": 15,
+        "id": "69d75dd9ac9ebca70c56769f"
+      },
+      {
+        "name": "Minahil",
+        "role": "Design member",
+        "imageUrl": null,
+        "rank": 14,
+        "id": "69d75dd9ac9ebca70c5676a0"
+      },
+      {
+        "name": "Abdullah Rafiq",
+        "role": "Management lead",
+        "imageUrl": null,
+        "rank": 16,
+        "id": "69d75dd9ac9ebca70c5676a1"
+      },
+      {
+        "name": "Saira Bano",
+        "role": "Management lead",
+        "imageUrl": null,
+        "rank": 17,
+        "id": "69d75dd9ac9ebca70c5676a2"
+      },
+      {
+        "name": "Muhammad Awais",
+        "role": "Management member",
+        "imageUrl": null,
+        "rank": 18,
+        "id": "69d75dd9ac9ebca70c5676a3"
+      },
+      {
+        "name": "Rehan Shafiq",
+        "role": "Management member",
+        "imageUrl": null,
+        "rank": 19,
+        "id": "69d75dd9ac9ebca70c5676a4"
+      },
+      {
+        "name": "Ahsan Iqbal",
+        "role": "Operational lead",
+        "imageUrl": null,
+        "rank": 20,
+        "id": "69d75dd9ac9ebca70c5676a5"
+      },
+      {
+        "name": "Ramzan Mustafa",
+        "role": "Operational member",
+        "imageUrl": null,
+        "rank": 21,
+        "id": "69d75dd9ac9ebca70c5676a6"
+      },
+      {
+        "name": "Muhammad Ghayas",
+        "role": "Campus Leader",
+        "imageUrl": null,
+        "rank": 2,
+        "id": "69d75dd9ac9ebca70c5676a7"
+      },
+      {
+        "name": "Sir Ali Sher Kashif",
+        "role": "Faculty Advisor",
+        "imageUrl": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775721944/cui_helpdesk/members/qidzah7pbxvouyibcmam.webp",
+        "rank": 1,
+        "id": "69d75dd9ac9ebca70c5676a8"
+      }
+    ],
+    "createdAt": "2026-04-08T14:04:18.954Z",
+    "updatedAt": "2026-04-09T08:05:45.039Z",
+    "id": "69d660625aaad9a62868b02e"
+  }
+]

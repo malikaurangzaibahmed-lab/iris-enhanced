@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <cache-path 
+        name="iris_cache" 
+        path="/" />
+    <external-cache-path 
+        name="iris_external_cache" 
+        path="/" />
+    <files-path 
+        name="iris_files" 
+        path="/" />
+    <external-files-path 
+        name="iris_external_files" 
+        path="/" />
+    <external-path 
+        name="iris_downloads" 
+        path="Download" />
+</paths>

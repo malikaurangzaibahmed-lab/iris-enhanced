@@ -17,22 +17,23 @@ class BatchKey {
 
   factory BatchKey.parse(String batch) {
     final parts = batch.split('-');
-    if (parts.length < 4) {
+    if (parts.length < 3) {
       return BatchKey(
         batch: batch,
-        program: 'UNKNOWN',
+        program: parts.isNotEmpty ? parts.first : 'UNKNOWN',
         semester: 0,
-        section: 'A',
+        section: parts.length > 1 ? parts[1] : 'A',
         intake: parts.isNotEmpty ? parts.first : 'NA',
       );
     }
+
     final intake = parts[0];
     final program = parts[1];
     final semesterText = parts[2];
     final semester = int.tryParse(semesterText) ??
-      int.tryParse(RegExp(r'\d+').firstMatch(semesterText)?.group(0) ?? '') ??
-      0;
-    final section = parts[3];
+        int.tryParse(RegExp(r'\d+').firstMatch(semesterText)?.group(0) ?? '') ??
+        0;
+    final section = parts.length >= 4 ? parts[3] : parts[2];
     return BatchKey(
       batch: batch,
       program: program,

@@ -1,4 +1,4 @@
-import 'package:student_organizer/core/models.dart';
+import 'package:iris/core/models.dart';
 
 class RoomOccupancyService {
   final Map<String, Room> _rooms = {};
@@ -118,6 +118,32 @@ class RoomOccupancyService {
 
     availability.sort((a, b) => b.studyScore.compareTo(a.studyScore));
     return availability;
+  }
+
+  /// Get available rooms for a specific time RANGE (not just a point in time)
+  /// Check if room is free for entire duration
+  List<String> getAvailableRoomsForTimeRange(
+    List<ClassSession> allSessions,
+    int dayIndex,
+    double startTime,
+    double endTime,
+  ) {
+    final availableRooms = <String>[];
+
+    for (final room in _rooms.values) {
+      // Check if any session overlaps with this time range
+      final conflicts = allSessions.where((s) =>
+          s.room == room.id &&
+          s.dayIndex == dayIndex &&
+          // Overlap check: not (one ends before other starts)
+          !(s.safeEndVal <= startTime || s.safeStartVal >= endTime));
+
+      if (conflicts.isEmpty) {
+        availableRooms.add(room.id);
+      }
+    }
+
+    return availableRooms;
   }
 
   /// Detect room conflicts across departments

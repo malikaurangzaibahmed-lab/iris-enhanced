@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:student_organizer/core/models.dart';
+import 'package:iris/core/models.dart';
 
 class TimetableStorage {
   static const String _overrideFileName = 'timetable_override.json';

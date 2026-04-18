@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:student_organizer/services/pdf_debug_parser.dart';
+import 'package:iris/services/pdf_debug_parser.dart';
 
 /// Test runner for PDF debug parser
 /// Run from: dart run lib/test/pdf_debug_runner.dart

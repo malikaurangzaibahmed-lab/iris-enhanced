@@ -1,0 +1,3462 @@
+[
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda909",
+    "name": "Schaum's outlines probability",
+    "author": "Hsu",
+    "about": "A concise guide providing solved problems and clear explanations of probability theory and random variables.",
+    "image": "uploads/1768379656371.jpg",
+    "desc": "A concise guide providing solved problems and clear explanations of probability theory and random variables.",
+    "updatedAt": "2026-01-23T16:41:26.754Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda913",
+    "name": "A Textbook of Islamic Finance",
+    "author": "Khan",
+    "about": "Introduces the principles of Shariah-compliant banking, finance, and investment instruments.",
+    "image": "uploads/1768398423835.jpg",
+    "desc": "Introduces the principles of Shariah-compliant banking, finance, and investment instruments.",
+    "updatedAt": "2026-01-14T13:47:03.849Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda912",
+    "name": "Engineering, Economics and Project Finance",
+    "author": "Shah",
+    "about": "Explores the financial modeling and economic analysis required for large-scale engineering projects.",
+    "image": "uploads/1768398424069.jpg",
+    "desc": "Explores the financial modeling and economic analysis required for large-scale engineering projects.",
+    "updatedAt": "2026-01-14T13:47:04.082Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda911",
+    "name": "Pakistan Twin Cities Architecture",
+    "author": "Khel",
+    "about": "A visual and analytical study of the architectural heritage and modern design of Islamabad and Rawalpindi.",
+    "image": "uploads/1768389312147.jpg",
+    "desc": "A visual and analytical study of the architectural heritage and modern design of Islamabad and Rawalpindi.",
+    "updatedAt": "2026-01-14T11:15:12.159Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda910",
+    "name": "Textile Raw Materials",
+    "author": "Ahmad",
+    "about": "Examines the properties and processing of natural and synthetic fibers used in the textile industry.",
+    "image": "uploads/1768389312545.jpg",
+    "desc": "Examines the properties and processing of natural and synthetic fibers used in the textile industry.",
+    "updatedAt": "2026-01-14T11:15:12.548Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda90f",
+    "name": "Alphabetical Catalogue of Federal Laws of Pakistan",
+    "author": "Bhinder",
+    "about": "A reference guide listing the federal laws of Pakistan in a structured, alphabetical format.",
+    "image": "uploads/1768384015198.jpg",
+    "desc": "A reference guide listing the federal laws of Pakistan in a structured, alphabetical format.",
+    "updatedAt": "2026-01-14T09:46:55.205Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda90e",
+    "name": "International Symposium of Light and Life",
+    "author": "Khan",
+    "about": "A collection of papers or proceedings exploring the intersection of light, physics, and biological life.",
+    "image": "uploads/1768357956511.jpg",
+    "desc": "A collection of papers or proceedings exploring the intersection of light, physics, and biological life.",
+    "updatedAt": "2026-01-14T02:32:36.519Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda90d",
+    "name": "Sakoot-e-Dhaka",
+    "author": "Afrasyab",
+    "about": "A historical account and analysis of the fall of Dhaka and the events surrounding the 1971 conflict.",
+    "image": "uploads/1768384005055.jpg",
+    "desc": "A historical account and analysis of the fall of Dhaka and the events surrounding the 1971 conflict.",
+    "updatedAt": "2026-01-14T09:46:45.058Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda90c",
+    "name": "Hafeez-ul-Rehman Khan",
+    "author": "Shafi",
+    "about": "A biographical or analytical work focused on the contributions and life of Hafeez-ul-Rehman Khan.",
+    "image": "uploads/1768398448432.jpg",
+    "desc": "A biographical or analytical work focused on the contributions and life of Hafeez-ul-Rehman Khan.",
+    "updatedAt": "2026-01-14T13:47:28.435Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda90b",
+    "name": "Hazrat Muhammad's Personality",
+    "author": "Khan",
+    "about": "Analyzes the character and moral excellence of the Prophet Muhammad (PBUH) as a model for leadership.",
+    "image": "uploads/1768384015791.jpg",
+    "desc": "Analyzes the character and moral excellence of the Prophet Muhammad (PBUH) as a model for leadership.",
+    "updatedAt": "2026-01-14T09:46:55.800Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda90a",
+    "name": "2000 Solved problems",
+    "author": "Bali",
+    "about": "A comprehensive collection of solved mathematical or engineering problems to help students master complex concepts.",
+    "image": "uploads/1768384016385.jpg",
+    "desc": "A comprehensive collection of solved mathematical or engineering problems to help students master complex concepts.",
+    "updatedAt": "2026-01-14T09:46:56.389Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda914",
+    "name": "An Introduction to Insect Behavior",
+    "author": "Irfan",
+    "about": "Explores the biological and environmental factors that influence the behavioral patterns of various insect species.",
+    "image": "uploads/1768398426101.jpg",
+    "desc": "Explores the biological and environmental factors that influence the behavioral patterns of various insect species.",
+    "updatedAt": "2026-01-14T13:47:06.107Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda908",
+    "name": "Voice and data communication",
+    "author": "Bates",
+    "about": "Explains the principles and technologies behind the transmission of voice and data over modern networks.",
+    "image": "uploads/1768398431293.jpg",
+    "desc": "Explains the principles and technologies behind the transmission of voice and data over modern networks.",
+    "updatedAt": "2026-01-14T13:47:11.298Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda907",
+    "name": "Transformers",
+    "author": "Bhopal",
+    "about": "A technical study of the design, construction, and operation of electrical transformers in power systems.",
+    "image": "uploads/1768357963421.jpg",
+    "desc": "A technical study of the design, construction, and operation of electrical transformers in power systems.",
+    "updatedAt": "2026-01-14T02:32:43.427Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda906",
+    "name": "Strategic Management",
+    "author": "Hanson, Dallas",
+    "about": "Provides a framework for analyzing internal and external environments to formulate successful business strategies.",
+    "image": "uploads/1768389311314.jpg",
+    "desc": "Provides a framework for analyzing internal and external environments to formulate successful business strategies.",
+    "updatedAt": "2026-01-14T11:15:11.323Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda905",
+    "name": "Organizational Behavior",
+    "author": "McShane, Steven",
+    "about": "Explores the impact of individual, group, and organizational variables on behavior within the workplace.",
+    "image": "uploads/1768398448661.jpg",
+    "desc": "Explores the impact of individual, group, and organizational variables on behavior within the workplace.",
+    "updatedAt": "2026-01-14T13:47:28.668Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda904",
+    "name": "Operation Management",
+    "author": "Schroeder, Roger G.",
+    "about": "Focuses on the design and management of production systems to improve efficiency and service quality.",
+    "image": "uploads/1768389297880.jpg",
+    "desc": "Focuses on the design and management of production systems to improve efficiency and service quality.",
+    "updatedAt": "2026-01-14T11:14:57.889Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda903",
+    "name": "Motivation and work Business",
+    "author": "Porter, Lyman W.",
+    "about": "Examines various theories of motivation and their practical application in enhancing workplace performance.",
+    "image": "uploads/1768398437478.jpg",
+    "desc": "Examines various theories of motivation and their practical application in enhancing workplace performance.",
+    "updatedAt": "2026-01-14T13:47:17.483Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda902",
+    "name": "Principles of Microeconomics",
+    "author": "Gans",
+    "about": "Covers the basic economic problems and how individuals and firms make choices in resource allocation.",
+    "image": "uploads/1768398428643.jpg",
+    "desc": "Covers the basic economic problems and how individuals and firms make choices in resource allocation.",
+    "updatedAt": "2026-01-14T13:47:08.650Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda901",
+    "name": "Modern Engineering Statistics",
+    "author": "Lapin, Lawrence L.",
+    "about": "Tailors statistical methods specifically for engineering applications, focusing on reliability and quality control.",
+    "image": "uploads/1768379656919.jpg",
+    "desc": "Tailors statistical methods specifically for engineering applications, focusing on reliability and quality control.",
+    "updatedAt": "2026-01-14T08:34:16.923Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda900",
+    "name": "Mind of Statistics",
+    "author": "Utts, Jessica M.",
+    "about": "Emphasizes statistical literacy and critical thinking to help students understand data in everyday life.",
+    "image": "uploads/1768398431758.jpg",
+    "desc": "Emphasizes statistical literacy and critical thinking to help students understand data in everyday life.",
+    "updatedAt": "2026-01-14T13:47:11.769Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ff",
+    "name": "Microeconomics",
+    "author": "McEachern, William A.",
+    "about": "Introduces microeconomic principles through a student-friendly approach to market dynamics.",
+    "image": "uploads/1768389312972.jpg",
+    "desc": "Introduces microeconomic principles through a student-friendly approach to market dynamics.",
+    "updatedAt": "2026-01-14T11:15:12.976Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda91f",
+    "name": "Android how to program",
+    "author": "Deitel",
+    "about": "A comprehensive guide to building Android applications using Java and modern development environments.",
+    "image": "uploads/1768384002667.jpg",
+    "desc": "A comprehensive guide to building Android applications using Java and modern development environments.",
+    "updatedAt": "2026-01-14T09:46:42.675Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda929",
+    "name": "Discrete Mathematics And Combinatorial mathematics",
+    "author": "Girmaldi",
+    "about": "Covers topics like set theory, graph theory, and counting techniques vital for computer science and logic.",
+    "image": "uploads/1768398445003.jpg",
+    "desc": "Covers topics like set theory, graph theory, and counting techniques vital for computer science and logic.",
+    "updatedAt": "2026-01-14T13:47:25.006Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda928",
+    "name": "Data Structures And Algorithms in Java",
+    "author": "Goodrich",
+    "about": "Teaches the design and implementation of efficient data organization and problem-solving techniques in Java.",
+    "image": "uploads/1768398447910.jpg",
+    "desc": "Teaches the design and implementation of efficient data organization and problem-solving techniques in Java.",
+    "updatedAt": "2026-01-14T13:47:27.914Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda927",
+    "name": "Culture of plant cells, tissues and organs",
+    "author": "Kumar",
+    "about": "Explores the laboratory techniques for growing plant parts in sterile environments for research and propagation.",
+    "image": "uploads/1768389316690.jpg",
+    "desc": "Explores the laboratory techniques for growing plant parts in sterile environments for research and propagation.",
+    "updatedAt": "2026-01-14T11:15:16.694Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda926",
+    "name": "Cost Accounting a managerial emphasis",
+    "author": "Horngren",
+    "about": "Focuses on how cost information is used for internal decision-making, planning, and performance control.",
+    "image": "uploads/1768398445255.jpg",
+    "desc": "Focuses on how cost information is used for internal decision-making, planning, and performance control.",
+    "updatedAt": "2026-01-14T13:47:25.266Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda925",
+    "name": "Corporate Finance the Essentials",
+    "author": "Besley",
+    "about": "Introduces the core concepts of financial management, including valuation, investment, and capital structure.",
+    "image": "uploads/1768398430808.jpg",
+    "desc": "Introduces the core concepts of financial management, including valuation, investment, and capital structure.",
+    "updatedAt": "2026-01-14T13:47:10.821Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda924",
+    "name": "Core Java for the impatent",
+    "author": "Horstman",
+    "about": "A fast-paced guide to the most important features of modern Java for experienced programmers.",
+    "image": "uploads/1768398426864.jpg",
+    "desc": "A fast-paced guide to the most important features of modern Java for experienced programmers.",
+    "updatedAt": "2026-01-14T13:47:06.880Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda923",
+    "name": "Cloud computing design patterns",
+    "author": "Thomas",
+    "about": "Catalogs reusable architectural patterns to solve common challenges in cloud-based software design.",
+    "image": "uploads/1768379654777.jpg",
+    "desc": "Catalogs reusable architectural patterns to solve common challenges in cloud-based software design.",
+    "updatedAt": "2026-01-14T08:34:14.785Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda922",
+    "name": "Cisco intelligent WAN (1 WAN)",
+    "author": "Edgeworth",
+    "about": "A technical guide to designing and deploying Cisco's IWAN solutions for optimized network connectivity.",
+    "image": "uploads/1768357958613.jpg",
+    "desc": "A technical guide to designing and deploying Cisco's IWAN solutions for optimized network connectivity.",
+    "updatedAt": "2026-01-14T02:32:38.617Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda921",
+    "name": "Business Statistics",
+    "author": "Sharpe",
+    "about": "Applies statistical analysis to business scenarios to help managers make data-driven strategic decisions.",
+    "image": "uploads/1768398431050.jpg",
+    "desc": "Applies statistical analysis to business scenarios to help managers make data-driven strategic decisions.",
+    "updatedAt": "2026-01-14T13:47:11.055Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda920",
+    "name": "Building database clouds in oracle database 12 c",
+    "author": "Farooq",
+    "about": "Teaches the architecture and implementation of cloud-based database services using Oracle's multi-tenant features.",
+    "image": "uploads/1768398423615.jpg",
+    "desc": "Teaches the architecture and implementation of cloud-based database services using Oracle's multi-tenant features.",
+    "updatedAt": "2026-01-14T13:47:03.620Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8fe",
+    "name": "Strategic Marketing",
+    "author": "A.M. Sheikh",
+    "about": "Discusses how to develop long-term marketing plans to achieve a sustainable competitive advantage.",
+    "image": "uploads/1768339423142.jpg",
+    "desc": "Discusses how to develop long-term marketing plans to achieve a sustainable competitive advantage.",
+    "updatedAt": "2026-01-13T21:23:43.146Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda91e",
+    "name": "Android database best practices",
+    "author": "Stroud",
+    "about": "Offers expert advice on local data storage, SQLite, and efficient database management for mobile developers.",
+    "image": "uploads/1768384014580.jpg",
+    "desc": "Offers expert advice on local data storage, SQLite, and efficient database management for mobile developers.",
+    "updatedAt": "2026-01-14T09:46:54.592Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda91d",
+    "name": "Android concurrency",
+    "author": "Meike",
+    "about": "Focuses on multi-threading and asynchronous programming to improve performance and responsiveness in Android apps.",
+    "image": "uploads/1768379655308.jpg",
+    "desc": "Focuses on multi-threading and asynchronous programming to improve performance and responsiveness in Android apps.",
+    "updatedAt": "2026-01-14T08:34:15.312Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda91c",
+    "name": "Analysing Texts",
+    "author": "Chumley",
+    "about": "Provides linguistic and critical tools for deep reading and interpreting various forms of written communication.",
+    "image": "uploads/1768379655833.jpg",
+    "desc": "Provides linguistic and critical tools for deep reading and interpreting various forms of written communication.",
+    "updatedAt": "2026-01-14T08:34:15.839Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda91b",
+    "name": "Econometric Analysis of Panel Data",
+    "author": "Battagi",
+    "about": "Explains advanced statistical techniques for analyzing data that tracks the same entities over multiple time periods.",
+    "image": "uploads/1768384003252.jpg",
+    "desc": "Explains advanced statistical techniques for analyzing data that tracks the same entities over multiple time periods.",
+    "updatedAt": "2026-01-14T09:46:43.261Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda91a",
+    "name": "70 Years of Development the way forward",
+    "author": "SDPI",
+    "about": "A policy-oriented report reviewing seven decades of national development and outlining future strategies.",
+    "image": "uploads/1768384003828.jpg",
+    "desc": "A policy-oriented report reviewing seven decades of national development and outlining future strategies.",
+    "updatedAt": "2026-01-14T09:46:43.835Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda919",
+    "name": "An Introduction To Ordinary Differential Equations",
+    "author": "Ghori",
+    "about": "A foundational mathematics text covering the methods and theories for solving first and higher-order differential equations.",
+    "image": "uploads/1768358080458.jpg",
+    "desc": "A foundational mathematics text covering the methods and theories for solving first and higher-order differential equations.",
+    "updatedAt": "2026-01-14T02:34:40.466Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda918",
+    "name": "Kashmiri Paradise lost",
+    "author": "Sugarman",
+    "about": "An analytical look at the socio-political history and the changing landscape of the Kashmir region.",
+    "image": "uploads/1768384004427.jpg",
+    "desc": "An analytical look at the socio-political history and the changing landscape of the Kashmir region.",
+    "updatedAt": "2026-01-14T09:46:44.435Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda917",
+    "name": "Science and Sustainability",
+    "author": "Husain",
+    "about": "Discusses the role of scientific innovation in achieving long-term environmental and developmental sustainability.",
+    "image": "uploads/1768398427089.jpg",
+    "desc": "Discusses the role of scientific innovation in achieving long-term environmental and developmental sustainability.",
+    "updatedAt": "2026-01-14T13:47:07.093Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda916",
+    "name": "The Greatest Man in History is Muhammad (PBUH)",
+    "author": "Afrasyab",
+    "about": "A historical and biographical tribute highlighting the unparalleled impact of Prophet Muhammad (PBUH) on civilization.",
+    "image": "uploads/1768398448174.jpg",
+    "desc": "A historical and biographical tribute highlighting the unparalleled impact of Prophet Muhammad (PBUH) on civilization.",
+    "updatedAt": "2026-01-14T13:47:28.183Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda915",
+    "name": "Glomaleon Spore Flora of Pakistan",
+    "author": "Nasim",
+    "about": "A specialized botanical study focusing on the identification and distribution of fungal spores in Pakistan.",
+    "image": "uploads/1768339422549.jpg",
+    "desc": "A specialized botanical study focusing on the identification and distribution of fungal spores in Pakistan.",
+    "updatedAt": "2026-01-14T02:01:54.700Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8dc",
+    "name": "Micromanufacturing and nanotechnology",
+    "author": "N.P. Mahalik (ed.)",
+    "about": "Explores the processes and systems involved in manufacturing products at the micro and nano scale levels.",
+    "image": "uploads/1768398438230.jpg",
+    "desc": "Explores the processes and systems involved in manufacturing products at the micro and nano scale levels.",
+    "updatedAt": "2026-01-14T13:47:18.235Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e8",
+    "name": "Psychology for AS level",
+    "author": "Eysenck, Michael W",
+    "about": "An introductory textbook tailored for AS level students, covering fundamental psychological theories.",
+    "image": "uploads/1768398420394.jpg",
+    "desc": "An introductory textbook tailored for AS level students, covering fundamental psychological theories.",
+    "updatedAt": "2026-01-14T13:47:00.399Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e7",
+    "name": "Fundamentals of investments for financial planning",
+    "author": "Woerheide, Walt J.",
+    "about": "Covers the essential investment concepts required for professional financial planning and wealth management.",
+    "image": "uploads/1768384016984.jpg",
+    "desc": "Covers the essential investment concepts required for professional financial planning and wealth management.",
+    "updatedAt": "2026-01-14T09:46:56.990Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e6",
+    "name": "Practical investment management",
+    "author": "Strong, Robert A.",
+    "about": "A guide to the theory and practice of making informed investment decisions in modern markets.",
+    "image": "uploads/1768357964105.jpg",
+    "desc": "A guide to the theory and practice of making informed investment decisions in modern markets.",
+    "updatedAt": "2026-01-14T02:32:44.109Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e5",
+    "name": "Creative capital : Georges Doriot and the birth of venture capital",
+    "author": "Ante, Spencer E.",
+    "about": "A historical account of the origins of venture capital through the life of Professor Georges Doriot.",
+    "image": "uploads/1768398432482.jpg",
+    "desc": "A historical account of the origins of venture capital through the life of Professor Georges Doriot.",
+    "updatedAt": "2026-01-14T13:47:12.487Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e4",
+    "name": "Deena Katz's complete guide to practice management",
+    "author": "Katz, Deena B.",
+    "about": "A comprehensive resource for financial advisers on managing a practice and communicating with clients.",
+    "image": "uploads/1768398432704.jpg",
+    "desc": "A comprehensive resource for financial advisers on managing a practice and communicating with clients.",
+    "updatedAt": "2026-01-14T13:47:12.715Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e3",
+    "name": "Data structure and algorithms",
+    "author": "Aho, Alfred V.",
+    "about": "A classic computer science text on organizing data and designing efficient algorithms for processing.",
+    "image": "uploads/1768398424531.jpg",
+    "desc": "A classic computer science text on organizing data and designing efficient algorithms for processing.",
+    "updatedAt": "2026-01-14T13:47:04.538Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e2",
+    "name": "Applied portfolio management",
+    "author": "Shenoy, Catherine",
+    "about": "Provides hands-on strategies for investment analysis and generating alpha in financial markets.",
+    "image": "uploads/1768389293673.jpg",
+    "desc": "Provides hands-on strategies for investment analysis and generating alpha in financial markets.",
+    "updatedAt": "2026-01-14T11:14:53.677Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e1",
+    "name": "Logic and discrete mathematics : a computer science perspective",
+    "author": "Grassmann, Winfried K.",
+    "about": "Covers logic, sets, and discrete structures essential for computer science theory and application.",
+    "image": "uploads/1768398437980.jpg",
+    "desc": "Covers logic, sets, and discrete structures essential for computer science theory and application.",
+    "updatedAt": "2026-01-14T13:47:17.987Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8df",
+    "name": "The Irwin handbook of telecommunications",
+    "author": "Green, James H.",
+    "about": "A detailed reference covering the infrastructure, technology, and management of modern telecommunication systems.",
+    "image": "uploads/1768389294110.jpg",
+    "desc": "A detailed reference covering the infrastructure, technology, and management of modern telecommunication systems.",
+    "updatedAt": "2026-01-14T11:14:54.114Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8de",
+    "name": "Introduction to fluid mechanics",
+    "author": "Fay, James A.",
+    "about": "Provides a comprehensive introduction to the physical principles and mathematical analysis of fluid flow.",
+    "image": "uploads/1768357964445.jpg",
+    "desc": "Provides a comprehensive introduction to the physical principles and mathematical analysis of fluid flow.",
+    "updatedAt": "2026-01-14T02:32:44.457Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8e9",
+    "name": "Calculus : one and several variables",
+    "author": "Salas, Saturnino L",
+    "about": "A rigorous treatment of calculus, covering both single-variable and multivariable mathematical analysis.",
+    "image": "uploads/1768389322974.jpg",
+    "desc": "A rigorous treatment of calculus, covering both single-variable and multivariable mathematical analysis.",
+    "updatedAt": "2026-01-14T11:15:22.977Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8db",
+    "name": "Adaptive filter theory",
+    "author": "Haykin, Simon",
+    "about": "An advanced mathematical treatment of adaptive signal processing and filter design techniques.",
+    "image": "uploads/1768384027150.jpg",
+    "desc": "An advanced mathematical treatment of adaptive signal processing and filter design techniques.",
+    "updatedAt": "2026-01-14T09:47:07.156Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8da",
+    "name": "Introduction to electric circuits",
+    "author": "Dorf, Richard C.",
+    "about": "A foundational engineering text covering the analysis and design of electrical circuits with modern applications.",
+    "image": "uploads/1768384017569.jpg",
+    "desc": "A foundational engineering text covering the analysis and design of electrical circuits with modern applications.",
+    "updatedAt": "2026-01-14T09:46:57.578Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d9",
+    "name": "How to give your users the LIS services they want",
+    "author": "Pantry, Sheila",
+    "about": "A practical guide for library and information professionals to understand user behavior and deliver high-quality services.",
+    "image": "uploads/1768357961011.jpg",
+    "desc": "A practical guide for library and information professionals to understand user behavior and deliver high-quality services.",
+    "updatedAt": "2026-01-14T02:32:41.014Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d8",
+    "name": "Organization Theory And Design",
+    "author": "Richard L. Daft",
+    "about": "Explores how organizations are structured and how they adapt to changing environments and technologies.",
+    "image": "uploads/1768398433022.jpg",
+    "desc": "Explores how organizations are structured and how they adapt to changing environments and technologies.",
+    "updatedAt": "2026-01-14T13:47:13.098Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d7",
+    "name": "Zoology",
+    "author": "Miller-Harlay",
+    "about": "A comprehensive textbook on the biology, evolution, and classification of the animal kingdom.",
+    "image": "uploads/1768398420606.jpg",
+    "desc": "A comprehensive textbook on the biology, evolution, and classification of the animal kingdom.",
+    "updatedAt": "2026-01-14T13:47:00.618Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d6",
+    "name": "Strategic Brand Management",
+    "author": "Kevin Lane Keller",
+    "about": "The definitive resource for building, measuring, and managing brand equity in a competitive global market.",
+    "image": "uploads/1768357961371.jpg",
+    "desc": "The definitive resource for building, measuring, and managing brand equity in a competitive global market.",
+    "updatedAt": "2026-01-14T02:32:41.381Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d5",
+    "name": "Service Management Operation, Strategy, Information Technology",
+    "author": "James A. Fitzsimmons",
+    "about": "Examines the management of service industries through the lens of operations and digital strategy.",
+    "image": "uploads/1768357961727.jpg",
+    "desc": "Examines the management of service industries through the lens of operations and digital strategy.",
+    "updatedAt": "2026-01-14T02:32:41.731Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d4",
+    "name": "Statistics For Managers",
+    "author": "Levin",
+    "about": "Focuses on applying statistical analysis to solve business problems and improve operational efficiency.",
+    "image": "uploads/1768389314173.jpg",
+    "desc": "Focuses on applying statistical analysis to solve business problems and improve operational efficiency.",
+    "updatedAt": "2026-01-14T11:15:14.179Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d3",
+    "name": "Ground Water Resources Of Pakistan",
+    "author": "Ahmed",
+    "about": "A detailed study of the hydrogeology and management of groundwater systems within the Pakistani context.",
+    "image": "uploads/1768398427583.jpg",
+    "desc": "A detailed study of the hydrogeology and management of groundwater systems within the Pakistani context.",
+    "updatedAt": "2026-01-14T13:47:07.587Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d1",
+    "name": "Public relations strategies and tactices",
+    "author": "Wilcox",
+    "about": "Teaches the principles of managing communication between an organization and its public audience.",
+    "image": "uploads/1768389294986.jpg",
+    "desc": "Teaches the principles of managing communication between an organization and its public audience.",
+    "updatedAt": "2026-01-14T11:14:54.992Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f3",
+    "name": "Formal methods in human-computer interaction",
+    "author": "Various",
+    "about": "Discusses the use of mathematical models and formal specifications to improve interface design.",
+    "image": "uploads/1768398432003.jpg",
+    "desc": "Discusses the use of mathematical models and formal specifications to improve interface design.",
+    "updatedAt": "2026-01-14T13:47:12.015Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8fd",
+    "name": "Project Management",
+    "author": "Abdulkader Thomas",
+    "about": "A specialized look at project management strategies, often integrated with modern ethical or financial frameworks.",
+    "image": "uploads/1768389321769.jpg",
+    "desc": "A specialized look at project management strategies, often integrated with modern ethical or financial frameworks.",
+    "updatedAt": "2026-01-14T11:15:21.773Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8fc",
+    "name": "Microeconomics theory",
+    "author": "Salvatore, Dominick",
+    "about": "Focuses on the analytical study of individual consumer behavior and firm decision-making processes.",
+    "image": "uploads/1768398424288.jpg",
+    "desc": "Focuses on the analytical study of individual consumer behavior and firm decision-making processes.",
+    "updatedAt": "2026-01-14T13:47:04.295Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8fb",
+    "name": "Principles of Economics",
+    "author": "Abraham Silberschatz",
+    "about": "Explores the fundamental concepts of supply and demand, market structures, and macroeconomic policy.",
+    "image": "uploads/1768389313364.jpg",
+    "desc": "Explores the fundamental concepts of supply and demand, market structures, and macroeconomic policy.",
+    "updatedAt": "2026-01-14T11:15:13.371Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8fa",
+    "name": "Management",
+    "author": "Robbins, Stephen P.",
+    "about": "A foundational textbook on management principles, covering planning, organizing, leading, and controlling.",
+    "image": "uploads/1768398448929.jpg",
+    "desc": "A foundational textbook on management principles, covering planning, organizing, leading, and controlling.",
+    "updatedAt": "2026-01-14T13:47:28.932Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f9",
+    "name": "Software testing",
+    "author": "Singh, Yogesh",
+    "about": "A practical guide to software verification and validation, featuring real-life case studies and testing methodologies.",
+    "image": "uploads/1768398437720.jpg",
+    "desc": "A practical guide to software verification and validation, featuring real-life case studies and testing methodologies.",
+    "updatedAt": "2026-01-14T13:47:17.724Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f8",
+    "name": "Experimental design : with applications in management, engineering, and the sciences",
+    "author": "Berger, Paul D.",
+    "about": "Provides statistical methods for designing experiments and analyzing data to improve quality and decision-making.",
+    "image": "uploads/1768339423703.jpg",
+    "desc": "Provides statistical methods for designing experiments and analyzing data to improve quality and decision-making.",
+    "updatedAt": "2026-01-13T21:23:43.709Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f7",
+    "name": "Fundamentals of financial management",
+    "author": "Brigham, Eugene F.",
+    "about": "Covers the essential concepts of corporate finance, including capital budgeting, risk analysis, and financial forecasting.",
+    "image": "uploads/1768357959987.jpg",
+    "desc": "Covers the essential concepts of corporate finance, including capital budgeting, risk analysis, and financial forecasting.",
+    "updatedAt": "2026-01-14T02:32:39.995Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f6",
+    "name": "Discrete mathematics with applications",
+    "author": "Epp, Susanna S.",
+    "about": "Introduces discrete mathematics with a focus on logic, proof techniques, and algorithmic thinking for computer science.",
+    "image": "uploads/1768389322167.jpg",
+    "desc": "Introduces discrete mathematics with a focus on logic, proof techniques, and algorithmic thinking for computer science.",
+    "updatedAt": "2026-01-14T11:15:22.176Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f5",
+    "name": "Doing and writing qualitative research",
+    "author": "Holliday, Adrian.",
+    "about": "A guide for researchers on how to conduct qualitative studies and present their findings effectively.",
+    "image": "uploads/1768389322563.jpg",
+    "desc": "A guide for researchers on how to conduct qualitative studies and present their findings effectively.",
+    "updatedAt": "2026-01-14T11:15:22.572Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f4",
+    "name": "Management consulting in practice",
+    "author": "Czerniawska, Fiona",
+    "about": "An inside look at the consulting industry and the practical application of management theories to solve business problems.",
+    "image": "uploads/1768398449182.jpg",
+    "desc": "An inside look at the consulting industry and the practical application of management theories to solve business problems.",
+    "updatedAt": "2026-01-14T13:47:29.185Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda92a",
+    "name": "E-Business",
+    "author": "Schneider",
+    "about": "Examines the technological and strategic aspects of conducting commercial transactions over the internet.",
+    "image": "uploads/1768384026556.jpg",
+    "desc": "Examines the technological and strategic aspects of conducting commercial transactions over the internet.",
+    "updatedAt": "2026-01-14T09:47:06.559Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f2",
+    "name": "Automata, computability and complexity : theory and applications",
+    "author": "Rich, Elaine.",
+    "about": "A theoretical study of finite state machines, Turing machines, and the computational limits of technology.",
+    "image": "uploads/1768339424265.jpg",
+    "desc": "A theoretical study of finite state machines, Turing machines, and the computational limits of technology.",
+    "updatedAt": "2026-01-13T21:23:44.267Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f1",
+    "name": "Human-computer interaction",
+    "author": "Dix, Alan.",
+    "about": "Examines the design and use of computer technology, focused on the interfaces between people and computers.",
+    "image": "uploads/1768389293256.jpg",
+    "desc": "Examines the design and use of computer technology, focused on the interfaces between people and computers.",
+    "updatedAt": "2026-01-14T11:14:53.261Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8f0",
+    "name": "IBM PC assembly language and programming",
+    "author": "Abel, Peter",
+    "about": "Teaches low-level programming for IBM PC hardware, focusing on machine architecture and assembly code.",
+    "image": "uploads/1768398427301.jpg",
+    "desc": "Teaches low-level programming for IBM PC hardware, focusing on machine architecture and assembly code.",
+    "updatedAt": "2026-01-14T13:47:07.311Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ef",
+    "name": "Artificial intelligence : a modern approach",
+    "author": "Russell, Stuart J.",
+    "about": "The leading textbook in AI, providing a comprehensive and modern introduction to the theory and practice of intelligent agents.",
+    "image": "uploads/1768357956859.jpg",
+    "desc": "The leading textbook in AI, providing a comprehensive and modern introduction to the theory and practice of intelligent agents.",
+    "updatedAt": "2026-01-14T02:32:36.867Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ee",
+    "name": "Software project management",
+    "author": "Hughes, Bob.",
+    "about": "Covers the planning, monitoring, and control of software development projects to ensure successful delivery.",
+    "image": "uploads/1768357960332.jpg",
+    "desc": "Covers the planning, monitoring, and control of software development projects to ensure successful delivery.",
+    "updatedAt": "2026-01-14T02:32:40.337Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ed",
+    "name": "Psychology",
+    "author": "Various",
+    "about": "Introduces psychological principles through integrated learning tools and research-focused critical thinking.",
+    "image": "uploads/1768357960671.jpg",
+    "desc": "Introduces psychological principles through integrated learning tools and research-focused critical thinking.",
+    "updatedAt": "2026-01-14T02:32:40.676Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ec",
+    "name": "Psychological science",
+    "author": "Various",
+    "about": "A scientific exploration of the mind and behavior, emphasizing research-based findings and human welfare.",
+    "image": "uploads/1768398432247.jpg",
+    "desc": "A scientific exploration of the mind and behavior, emphasizing research-based findings and human welfare.",
+    "updatedAt": "2026-01-14T13:47:12.254Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8eb",
+    "name": "Managerial economics",
+    "author": "Hirschey, Mark",
+    "about": "Applies economic theory and methodology to business decision-making and organizational strategy.",
+    "image": "uploads/1768357963761.jpg",
+    "desc": "Applies economic theory and methodology to business decision-making and organizational strategy.",
+    "updatedAt": "2026-01-14T02:32:43.764Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ea",
+    "name": "Electrical power systems quality",
+    "author": "Dugan, Roger C.",
+    "about": "Focuses on identifying and solving power quality problems within electrical distribution systems.",
+    "image": "uploads/1768389313780.jpg",
+    "desc": "Focuses on identifying and solving power quality problems within electrical distribution systems.",
+    "updatedAt": "2026-01-14T11:15:13.789Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda962",
+    "name": "Basic Probability Theory with applications",
+    "author": "Lefebre",
+    "about": "Introduces the laws of chance and their practical use in risk assessment and scientific modeling.",
+    "image": "uploads/1768357968514.jpg",
+    "desc": "Introduces the laws of chance and their practical use in risk assessment and scientific modeling.",
+    "updatedAt": "2026-01-14T02:32:48.521Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda96c",
+    "name": "Number Theory revealed : An Introduction",
+    "author": "Granvile",
+    "about": "A captivating introduction to the properties of integers and the mysteries of prime numbers.",
+    "image": "uploads/1768384010371.jpg",
+    "desc": "A captivating introduction to the properties of integers and the mysteries of prime numbers.",
+    "updatedAt": "2026-01-14T09:46:50.379Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda96b",
+    "name": "Notes on the Ellipsoidal function",
+    "author": "Liang",
+    "about": "Advanced mathematical notes on the properties and applications of ellipsoidal and related harmonic functions.",
+    "image": "uploads/1768398419324.jpg",
+    "desc": "Advanced mathematical notes on the properties and applications of ellipsoidal and related harmonic functions.",
+    "updatedAt": "2026-01-14T13:46:59.329Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda96a",
+    "name": "Mathematical logic for computer science",
+    "author": "ARI",
+    "about": "Focuses on formal logic systems that serve as the foundation for computational theory and programming.",
+    "image": "uploads/1768379658548.jpg",
+    "desc": "Focuses on formal logic systems that serve as the foundation for computational theory and programming.",
+    "updatedAt": "2026-01-14T08:34:18.557Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda969",
+    "name": "Introductory statistics",
+    "author": "Weis",
+    "about": "A comprehensive textbook on the fundamentals of probability and statistical analysis.",
+    "image": "uploads/1768384010940.jpg",
+    "desc": "A comprehensive textbook on the fundamentals of probability and statistical analysis.",
+    "updatedAt": "2026-01-14T09:46:50.944Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda968",
+    "name": "Introduction to Global Analysis",
+    "author": "Douglas",
+    "about": "Explores the study of differential equations and geometry on manifolds from a global perspective.",
+    "image": "uploads/1768398443298.jpg",
+    "desc": "Explores the study of differential equations and geometry on manifolds from a global perspective.",
+    "updatedAt": "2026-01-14T13:47:23.307Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda967",
+    "name": "Functional Analysis",
+    "author": "Buhler",
+    "about": "Investigates vector spaces endowed with limit-related structures and the linear operators acting upon them.",
+    "image": "uploads/1768384011516.jpg",
+    "desc": "Investigates vector spaces endowed with limit-related structures and the linear operators acting upon them.",
+    "updatedAt": "2026-01-14T09:46:51.525Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda966",
+    "name": "Elementary Statistics",
+    "author": "Bluman",
+    "about": "An accessible introduction to statistics for students with limited mathematical background, focusing on data literacy.",
+    "image": "uploads/1768398419576.jpg",
+    "desc": "An accessible introduction to statistics for students with limited mathematical background, focusing on data literacy.",
+    "updatedAt": "2026-01-14T13:46:59.589Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda965",
+    "name": "Contemporary Mathematics",
+    "author": "Moree",
+    "about": "A collection of research articles and papers exploring diverse modern topics in mathematical sciences.",
+    "image": "uploads/1768379653081.jpg",
+    "desc": "A collection of research articles and papers exploring diverse modern topics in mathematical sciences.",
+    "updatedAt": "2026-01-14T08:34:13.088Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda964",
+    "name": "Characters of Solvable Groups",
+    "author": "Isaacs",
+    "about": "An advanced text in group theory focusing on character theory and its application to solvable groups.",
+    "image": "uploads/1768398430091.jpg",
+    "desc": "An advanced text in group theory focusing on character theory and its application to solvable groups.",
+    "updatedAt": "2026-01-14T13:47:10.095Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda963",
+    "name": "Calculus : An Applied approach",
+    "author": "Larson",
+    "about": "Tailors calculus concepts for students in business, economics, and life sciences through relevant applications.",
+    "image": "uploads/1768398445520.jpg",
+    "desc": "Tailors calculus concepts for students in business, economics, and life sciences through relevant applications.",
+    "updatedAt": "2026-01-14T13:47:25.523Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda96d",
+    "name": "The practice of statistics in the life science",
+    "author": "Baldi",
+    "about": "Applies statistical techniques to biological and health data, focusing on experimental design and interpretation.",
+    "image": "uploads/1768389301658.jpg",
+    "desc": "Applies statistical techniques to biological and health data, focusing on experimental design and interpretation.",
+    "updatedAt": "2026-01-14T11:15:01.665Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda961",
+    "name": "Basic Algebra",
+    "author": "Cohn",
+    "about": "Covers the fundamental structures of algebra, including groups, rings, and fields.",
+    "image": "uploads/1768398443534.jpg",
+    "desc": "Covers the fundamental structures of algebra, including groups, rings, and fields.",
+    "updatedAt": "2026-01-14T13:47:23.538Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda960",
+    "name": "Asymptotics of Random Matrics",
+    "author": "Guionnet",
+    "about": "Detailed analysis of the distribution of eigenvalues in large random matrices for advanced physics and math.",
+    "image": "uploads/1768398426345.jpg",
+    "desc": "Detailed analysis of the distribution of eigenvalues in large random matrices for advanced physics and math.",
+    "updatedAt": "2026-01-14T13:47:06.349Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda95f",
+    "name": "An Introduction to Symmetric Functions",
+    "author": "Egge",
+    "about": "Explores the theory of symmetric polynomials and their applications in combinatorics and algebra.",
+    "image": "uploads/1768358016687.jpg",
+    "desc": "Explores the theory of symmetric polynomials and their applications in combinatorics and algebra.",
+    "updatedAt": "2026-01-14T02:33:36.698Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda95e",
+    "name": "Advances in Complex Geometry",
+    "author": "Rubeinstien",
+    "about": "A specialized mathematical study of complex manifolds and the latest research in geometric analysis.",
+    "image": "uploads/1768398445827.jpg",
+    "desc": "A specialized mathematical study of complex manifolds and the latest research in geometric analysis.",
+    "updatedAt": "2026-01-14T13:47:25.834Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda95d",
+    "name": "A Passage to Modern Analysis",
+    "author": "Terrell",
+    "about": "An introductory guide to real analysis, focusing on the properties of functions and the theory of integration.",
+    "image": "uploads/1768389319255.jpg",
+    "desc": "An introductory guide to real analysis, focusing on the properties of functions and the theory of integration.",
+    "updatedAt": "2026-01-14T11:15:19.260Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda95c",
+    "name": "A First Course In Differential Equations",
+    "author": "Zill",
+    "about": "A foundational text on the modeling and solution techniques for ordinary differential equations.",
+    "image": "uploads/1768357968855.jpg",
+    "desc": "A foundational text on the modeling and solution techniques for ordinary differential equations.",
+    "updatedAt": "2026-01-14T02:32:48.864Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda95b",
+    "name": "Management Fundamentals",
+    "author": "Lussier",
+    "about": "Covers the basic principles of management with a focus on skill-building and practical application in the workplace.",
+    "image": "uploads/1768389309488.jpg",
+    "desc": "Covers the basic principles of management with a focus on skill-building and practical application in the workplace.",
+    "updatedAt": "2026-01-14T11:15:09.494Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda95a",
+    "name": "Using MIS",
+    "author": "Kroenke",
+    "about": "Explains how businesses use information systems to achieve their strategies and improve operational performance.",
+    "image": "uploads/1768398443768.jpg",
+    "desc": "Explains how businesses use information systems to achieve their strategies and improve operational performance.",
+    "updatedAt": "2026-01-14T13:47:23.771Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda959",
+    "name": "Understandable statistics",
+    "author": "Brase",
+    "about": "A student-friendly approach to mastering descriptive and inferential statistics through clear examples.",
+    "image": "uploads/1768389330530.jpg",
+    "desc": "A student-friendly approach to mastering descriptive and inferential statistics through clear examples.",
+    "updatedAt": "2026-01-14T11:15:30.537Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda958",
+    "name": "Uderstanding basic statistics",
+    "author": "Brase",
+    "about": "A simplified guide designed to help students grasp the core concepts of data collection and statistical inference.",
+    "image": "uploads/1768384000874.jpg",
+    "desc": "A simplified guide designed to help students grasp the core concepts of data collection and statistical inference.",
+    "updatedAt": "2026-01-14T09:46:40.884Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda977",
+    "name": "Campylobacter: A Practical Approach in control foods",
+    "author": "Bell",
+    "about": "A technical manual for food safety professionals on detecting and controlling Campylobacter contamination.",
+    "image": "uploads/1768389318849.jpg",
+    "desc": "A technical manual for food safety professionals on detecting and controlling Campylobacter contamination.",
+    "updatedAt": "2026-01-14T11:15:18.854Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda981",
+    "name": "Wardlaw's Perspective in Nutrition",
+    "author": "Brednenner",
+    "about": "Provides a scientific foundation in nutrition while addressing current trends and consumer health choices.",
+    "image": "uploads/1768389300410.jpg",
+    "desc": "Provides a scientific foundation in nutrition while addressing current trends and consumer health choices.",
+    "updatedAt": "2026-01-14T11:15:00.413Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda980",
+    "name": "Wardlaw's Contemporary Nutrition",
+    "author": "Smith",
+    "about": "Explores the science of nutrition with a focus on its application to modern lifestyles and chronic disease prevention.",
+    "image": "uploads/1768389329299.jpg",
+    "desc": "Explores the science of nutrition with a focus on its application to modern lifestyles and chronic disease prevention.",
+    "updatedAt": "2026-01-14T11:15:29.307Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda97f",
+    "name": "Nutrition Now",
+    "author": "Brown",
+    "about": "An introductory text focused on practical nutrition advice for daily life and long-term health wellness.",
+    "image": "uploads/1768384008579.jpg",
+    "desc": "An introductory text focused on practical nutrition advice for daily life and long-term health wellness.",
+    "updatedAt": "2026-01-14T09:46:48.585Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda97e",
+    "name": "Nutrition for Health: Fitness and Sports",
+    "author": "William",
+    "about": "Teaches how diet and nutrition can optimize physical performance, recovery, and overall athletic health.",
+    "image": "uploads/1768379645887.jpg",
+    "desc": "Teaches how diet and nutrition can optimize physical performance, recovery, and overall athletic health.",
+    "updatedAt": "2026-01-14T08:34:05.893Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda97d",
+    "name": "Functional polymers in Food Science",
+    "author": "Cirillo",
+    "about": "Studies the application of polymer science in food packaging and controlled release of food additives.",
+    "image": "uploads/1768398442783.jpg",
+    "desc": "Studies the application of polymer science in food packaging and controlled release of food additives.",
+    "updatedAt": "2026-01-14T13:47:22.788Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda97c",
+    "name": "Functional foods and dietary supplements",
+    "author": "Noormhorm",
+    "about": "Analyzes the health benefits and regulatory aspects of foods designed to provide medical or physiological advantages.",
+    "image": "uploads/1768398419088.jpg",
+    "desc": "Analyzes the health benefits and regulatory aspects of foods designed to provide medical or physiological advantages.",
+    "updatedAt": "2026-01-14T13:46:59.091Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda97b",
+    "name": "From Milk by Products to Milk Ingredients",
+    "author": "Boer",
+    "about": "Explores the transformation of dairy by-products into functional ingredients for the food industry.",
+    "image": "uploads/1768384009160.jpg",
+    "desc": "Explores the transformation of dairy by-products into functional ingredients for the food industry.",
+    "updatedAt": "2026-01-14T09:46:49.163Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda97a",
+    "name": "Food Chemical Hazard Detection",
+    "author": "Wang",
+    "about": "Discusses analytical methods for identifying chemical toxins and contaminants within food supplies.",
+    "image": "uploads/1768389329694.jpg",
+    "desc": "Discusses analytical methods for identifying chemical toxins and contaminants within food supplies.",
+    "updatedAt": "2026-01-14T11:15:29.700Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda979",
+    "name": "Dates, Postharvest Science, processing technology",
+    "author": "Siddiq",
+    "about": "A specialized study of the biological science and industrial techniques involved in date palm cultivation and processing.",
+    "image": "uploads/1768389309077.jpg",
+    "desc": "A specialized study of the biological science and industrial techniques involved in date palm cultivation and processing.",
+    "updatedAt": "2026-01-14T11:15:09.082Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda978",
+    "name": "Conventional and advanced food processing",
+    "author": "Bhattacharya",
+    "about": "Compares traditional food preservation methods with modern industrial processing technologies.",
+    "image": "uploads/1768389300825.jpg",
+    "desc": "Compares traditional food preservation methods with modern industrial processing technologies.",
+    "updatedAt": "2026-01-14T11:15:00.830Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda957",
+    "name": "Strategic Management And Business Policy",
+    "author": "Wheelen",
+    "about": "Focuses on the formulation and implementation of corporate strategy and the analysis of external competitive environments.",
+    "image": "uploads/1768384000303.jpg",
+    "desc": "Focuses on the formulation and implementation of corporate strategy and the analysis of external competitive environments.",
+    "updatedAt": "2026-01-14T09:46:40.308Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda976",
+    "name": "Biological Controls for preventing Food",
+    "author": "Sharma",
+    "about": "Examines the use of natural and biological agents to manage food safety and prevent spoilage.",
+    "image": "uploads/1768398429836.jpg",
+    "desc": "Examines the use of natural and biological agents to manage food safety and prevent spoilage.",
+    "updatedAt": "2026-01-14T13:47:09.853Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda975",
+    "name": "Advanced Nutrition and Human Metabolism",
+    "author": "Gropper",
+    "about": "An in-depth study of the biochemical and physiological aspects of nutrients and their metabolic pathways in humans.",
+    "image": "uploads/1768384009755.jpg",
+    "desc": "An in-depth study of the biochemical and physiological aspects of nutrients and their metabolic pathways in humans.",
+    "updatedAt": "2026-01-14T09:46:49.764Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda974",
+    "name": "Foundation of Decision Analysis",
+    "author": "Howard, Ronald A.",
+    "about": "Teaches the logical framework for making high-stakes decisions under conditions of uncertainty and risk.",
+    "image": "uploads/1768384021134.jpg",
+    "desc": "Teaches the logical framework for making high-stakes decisions under conditions of uncertainty and risk.",
+    "updatedAt": "2026-01-14T09:47:01.137Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda973",
+    "name": "Instant Engineering",
+    "author": "Levy",
+    "about": "A quick-reference guide that simplifies complex engineering concepts and formulas for students and professionals.",
+    "image": "uploads/1768398443035.jpg",
+    "desc": "A quick-reference guide that simplifies complex engineering concepts and formulas for students and professionals.",
+    "updatedAt": "2026-01-14T13:47:23.042Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda972",
+    "name": "Modern Control Systems",
+    "author": "Drof",
+    "about": "Covers the design and analysis of feedback control systems, including state-space variables and stability theory.",
+    "image": "uploads/1768389330121.jpg",
+    "desc": "Covers the design and analysis of feedback control systems, including state-space variables and stability theory.",
+    "updatedAt": "2026-01-14T11:15:30.124Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda971",
+    "name": "Vector Mechanics For Engineering Dynamics",
+    "author": "Beer",
+    "about": "An advanced approach to the kinematics and kinetics of particles and rigid bodies using vector calculus.",
+    "image": "uploads/1768383999704.jpg",
+    "desc": "An advanced approach to the kinematics and kinetics of particles and rigid bodies using vector calculus.",
+    "updatedAt": "2026-01-14T09:46:39.710Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda970",
+    "name": "System Dynamics",
+    "author": "William",
+    "about": "Explores the mathematical modeling and response analysis of dynamic physical systems across various engineering disciplines.",
+    "image": "uploads/1768389301234.jpg",
+    "desc": "Explores the mathematical modeling and response analysis of dynamic physical systems across various engineering disciplines.",
+    "updatedAt": "2026-01-14T11:15:01.242Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda96f",
+    "name": "Statics and Mechanics of materials",
+    "author": "Beer",
+    "about": "Combines the principles of static equilibrium with the study of material deformation and internal stresses.",
+    "image": "uploads/1768384021719.jpg",
+    "desc": "Combines the principles of static equilibrium with the study of material deformation and internal stresses.",
+    "updatedAt": "2026-01-14T09:47:01.727Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda96e",
+    "name": "Mechanical Engineering Design",
+    "author": "Budynas",
+    "about": "A comprehensive textbook on machine element design, focusing on material strength, fatigue, and failure analysis.",
+    "image": "uploads/1768384022324.jpg",
+    "desc": "A comprehensive textbook on machine element design, focusing on material strength, fatigue, and failure analysis.",
+    "updatedAt": "2026-01-14T09:47:02.332Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda935",
+    "name": "G Mat official guide verbal review 2019",
+    "author": "Official GMAT",
+    "about": "Concentrated practice on reading comprehension, critical reasoning, and sentence correction for GMAT verbal prep.",
+    "image": "uploads/1768384025374.jpg",
+    "desc": "Concentrated practice on reading comprehension, critical reasoning, and sentence correction for GMAT verbal prep.",
+    "updatedAt": "2026-01-14T09:47:05.376Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda93f",
+    "name": "Introduction to SPSS in psychology",
+    "author": "Howitt",
+    "about": "A step-by-step guide to using SPSS software for statistical analysis in psychological and social research.",
+    "image": "uploads/1768398447147.jpg",
+    "desc": "A step-by-step guide to using SPSS software for statistical analysis in psychological and social research.",
+    "updatedAt": "2026-01-14T13:47:27.153Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda93e",
+    "name": "Introduction To Genetics",
+    "author": "Brown",
+    "about": "A foundational study of heredity, DNA structure, and the mechanisms of genetic variation in organisms.",
+    "image": "uploads/1768389310911.jpg",
+    "desc": "A foundational study of heredity, DNA structure, and the mechanisms of genetic variation in organisms.",
+    "updatedAt": "2026-01-14T11:15:10.916Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda93d",
+    "name": "Internet, mail and mixed mode surveying",
+    "author": "Dillman",
+    "about": "Teaches effective methods for designing and conducting surveys across digital and traditional communication channels.",
+    "image": "uploads/1768357969618.jpg",
+    "desc": "Teaches effective methods for designing and conducting surveys across digital and traditional communication channels.",
+    "updatedAt": "2026-01-14T02:32:49.624Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda93c",
+    "name": "International Human Resource Management",
+    "author": "Dowling",
+    "about": "Explores how global corporations manage employees across different countries and varied legal frameworks.",
+    "image": "uploads/1768398444229.jpg",
+    "desc": "Explores how global corporations manage employees across different countries and varied legal frameworks.",
+    "updatedAt": "2026-01-14T13:47:24.240Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda93b",
+    "name": "International finance reporting standards",
+    "author": "Mackenzie",
+    "about": "Provides a detailed explanation of the global accounting standards used to ensure transparency in financial statements.",
+    "image": "uploads/1768389320949.jpg",
+    "desc": "Provides a detailed explanation of the global accounting standards used to ensure transparency in financial statements.",
+    "updatedAt": "2026-01-14T11:15:20.953Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda93a",
+    "name": "Inter cloud",
+    "author": "Frahim",
+    "about": "Discusses the architecture and security challenges of connecting multiple cloud service providers into a unified system.",
+    "image": "uploads/1768379654212.jpg",
+    "desc": "Discusses the architecture and security challenges of connecting multiple cloud service providers into a unified system.",
+    "updatedAt": "2026-01-14T08:34:14.221Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda939",
+    "name": "Industrial Maintenance",
+    "author": "Brumback",
+    "about": "A practical guide to the tools and techniques used to maintain and repair industrial machinery and systems.",
+    "image": "uploads/1768384024761.jpg",
+    "desc": "A practical guide to the tools and techniques used to maintain and repair industrial machinery and systems.",
+    "updatedAt": "2026-01-14T09:47:04.773Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda938",
+    "name": "Human Resource Management",
+    "author": "Stone",
+    "about": "Covers the essential functions of HR, including talent acquisition, workplace diversity, and performance management.",
+    "image": "uploads/1768398434297.jpg",
+    "desc": "Covers the essential functions of HR, including talent acquisition, workplace diversity, and performance management.",
+    "updatedAt": "2026-01-14T13:47:14.302Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda937",
+    "name": "Health Psychology",
+    "author": "Brannon",
+    "about": "Examines how biological, psychological, and social factors influence health, illness, and patient behavior.",
+    "image": "uploads/1768398444498.jpg",
+    "desc": "Examines how biological, psychological, and social factors influence health, illness, and patient behavior.",
+    "updatedAt": "2026-01-14T13:47:24.501Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda936",
+    "name": "Green building principles and practices",
+    "author": "Kruger",
+    "about": "Introduces sustainable construction methods, energy efficiency, and eco-friendly design standards for modern buildings.",
+    "image": "uploads/1768398447416.jpg",
+    "desc": "Introduces sustainable construction methods, energy efficiency, and eco-friendly design standards for modern buildings.",
+    "updatedAt": "2026-01-14T13:47:27.424Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda940",
+    "name": "macroeconomics",
+    "author": "Blanchard",
+    "about": "Analyzes national and global economies, focusing on growth, inflation, unemployment, and monetary policy.",
+    "image": "uploads/1768384024151.jpg",
+    "desc": "Analyzes national and global economies, focusing on growth, inflation, unemployment, and monetary policy.",
+    "updatedAt": "2026-01-14T09:47:04.158Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda934",
+    "name": "G Mat official guide quantitative review 2019",
+    "author": "Official GMAT",
+    "about": "A focused review of the mathematical and numerical reasoning skills required for the GMAT quantitative section.",
+    "image": "uploads/1768384001462.jpg",
+    "desc": "A focused review of the mathematical and numerical reasoning skills required for the GMAT quantitative section.",
+    "updatedAt": "2026-01-14T09:46:41.467Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda933",
+    "name": "G Mat official guide 2019",
+    "author": "Official GMAT",
+    "about": "The definitive study resource for the GMAT exam, featuring real retired questions and detailed answer explanations.",
+    "image": "uploads/1768398444743.jpg",
+    "desc": "The definitive study resource for the GMAT exam, featuring real retired questions and detailed answer explanations.",
+    "updatedAt": "2026-01-14T13:47:24.750Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda932",
+    "name": "Global Marketing Management",
+    "author": "Keegan",
+    "about": "Explores strategies for managing marketing operations across international borders and diverse cultural landscapes.",
+    "image": "uploads/1768384006818.jpg",
+    "desc": "Explores strategies for managing marketing operations across international borders and diverse cultural landscapes.",
+    "updatedAt": "2026-01-14T09:46:46.822Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda931",
+    "name": "Exploring public relations",
+    "author": "Tench",
+    "about": "Provides a comprehensive overview of PR theory, strategy, and practice in modern organizations.",
+    "image": "uploads/1768357969950.jpg",
+    "desc": "Provides a comprehensive overview of PR theory, strategy, and practice in modern organizations.",
+    "updatedAt": "2026-01-14T02:32:49.959Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda930",
+    "name": "Excellence in business communication",
+    "author": "Thill",
+    "about": "Teaches the skills necessary for professional writing, presenting, and collaborating in a global business environment.",
+    "image": "uploads/1768398447663.jpg",
+    "desc": "Teaches the skills necessary for professional writing, presenting, and collaborating in a global business environment.",
+    "updatedAt": "2026-01-14T13:47:27.667Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda92f",
+    "name": "Essentials of social psychology",
+    "author": "Vaughan",
+    "about": "Discusses how individuals' thoughts and behaviors are influenced by the presence and actions of others.",
+    "image": "uploads/1768384025972.jpg",
+    "desc": "Discusses how individuals' thoughts and behaviors are influenced by the presence and actions of others.",
+    "updatedAt": "2026-01-14T09:47:05.976Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda92e",
+    "name": "Essentials of Business analytics",
+    "author": "Camm",
+    "about": "An introduction to predictive, descriptive, and prescriptive analytics used to drive business success.",
+    "image": "uploads/1768379645341.jpg",
+    "desc": "An introduction to predictive, descriptive, and prescriptive analytics used to drive business success.",
+    "updatedAt": "2026-01-14T08:34:05.347Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda92d",
+    "name": "Essential statistics exploring the world",
+    "author": "Gould",
+    "about": "Focuses on data literacy and understanding how statistical findings apply to real-world issues.",
+    "image": "uploads/1768389326363.jpg",
+    "desc": "Focuses on data literacy and understanding how statistical findings apply to real-world issues.",
+    "updatedAt": "2026-01-14T11:15:26.365Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda92c",
+    "name": "Elementary Statistics picturing the world",
+    "author": "Larson",
+    "about": "A visual and descriptive approach to teaching the basics of statistics to students across various disciplines.",
+    "image": "uploads/1768384002043.jpg",
+    "desc": "A visual and descriptive approach to teaching the basics of statistics to students across various disciplines.",
+    "updatedAt": "2026-01-14T09:46:42.046Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda92b",
+    "name": "Educational Psychology windows on class room",
+    "author": "Eggen",
+    "about": "Explores how psychological principles can be applied to enhance teaching and student learning in classroom settings.",
+    "image": "uploads/1768398430564.jpg",
+    "desc": "Explores how psychological principles can be applied to enhance teaching and student learning in classroom settings.",
+    "updatedAt": "2026-01-14T13:47:10.569Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda94b",
+    "name": "Organization Theory And Design",
+    "author": "Daft",
+    "about": "Explores structural designs and strategic frameworks that help organizations adapt to complex environments.",
+    "image": "uploads/1768384012101.jpg",
+    "desc": "Explores structural designs and strategic frameworks that help organizations adapt to complex environments.",
+    "updatedAt": "2026-01-14T09:46:52.105Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda956",
+    "name": "Software ownership transfer",
+    "author": "Sankaranarayanan",
+    "about": "A technical look at the legal and operational processes involved in transferring software intellectual property and rights.",
+    "image": "uploads/1768398426632.jpg",
+    "desc": "A technical look at the legal and operational processes involved in transferring software intellectual property and rights.",
+    "updatedAt": "2026-01-14T13:47:06.640Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda955",
+    "name": "Social Psychology",
+    "author": "Burton",
+    "about": "Discusses how individual behavior, thoughts, and feelings are influenced by the actual or imagined presence of others.",
+    "image": "uploads/1768398446093.jpg",
+    "desc": "Discusses how individual behavior, thoughts, and feelings are influenced by the actual or imagined presence of others.",
+    "updatedAt": "2026-01-14T13:47:26.102Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda954",
+    "name": "Social media marketing",
+    "author": "Tuten",
+    "about": "Examines the framework of social media channels and how to leverage them for brand building and customer engagement.",
+    "image": "uploads/1768398430322.jpg",
+    "desc": "Examines the framework of social media channels and how to leverage them for brand building and customer engagement.",
+    "updatedAt": "2026-01-14T13:47:10.326Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda953",
+    "name": "Research Methods In criminal justice",
+    "author": "Hagan",
+    "about": "An introduction to the methodology and ethics of conducting research within the field of criminology and law enforcement.",
+    "image": "uploads/1768389309971.jpg",
+    "desc": "An introduction to the methodology and ethics of conducting research within the field of criminology and law enforcement.",
+    "updatedAt": "2026-01-14T11:15:10.030Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda952",
+    "name": "Quantitative Methods For Business",
+    "author": "Byard",
+    "about": "Provides mathematical and statistical models to help business managers make informed, data-driven decisions.",
+    "image": "uploads/1768398443990.jpg",
+    "desc": "Provides mathematical and statistical models to help business managers make informed, data-driven decisions.",
+    "updatedAt": "2026-01-14T13:47:23.994Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda951",
+    "name": "Public relations strategies and tactices",
+    "author": "Wilcox",
+    "about": "Explores the fundamental concepts and hands-on techniques used to manage communication between organizations and the public.",
+    "image": "uploads/1768389319671.jpg",
+    "desc": "Explores the fundamental concepts and hands-on techniques used to manage communication between organizations and the public.",
+    "updatedAt": "2026-01-14T11:15:19.674Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda94f",
+    "name": "Project Management work Book",
+    "author": "Krezner",
+    "about": "A practical exercise guide used to master project planning, scheduling, and risk management through case studies.",
+    "image": "uploads/1768398419831.jpg",
+    "desc": "A practical exercise guide used to master project planning, scheduling, and risk management through case studies.",
+    "updatedAt": "2026-01-14T13:46:59.848Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda94e",
+    "name": "Power System Analysis And Design",
+    "author": "Glover",
+    "about": "Covers the mathematical modeling of electrical grids, including power flow, faults, and system stability.",
+    "image": "uploads/1768398446363.jpg",
+    "desc": "Covers the mathematical modeling of electrical grids, including power flow, faults, and system stability.",
+    "updatedAt": "2026-01-14T13:47:26.368Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda94d",
+    "name": "Positive psychology psy 1010",
+    "author": "Baumgardner",
+    "about": "Focuses on the scientific study of human strengths, well-being, and factors that allow individuals to thrive.",
+    "image": "uploads/1768398446628.jpg",
+    "desc": "Focuses on the scientific study of human strengths, well-being, and factors that allow individuals to thrive.",
+    "updatedAt": "2026-01-14T13:47:26.634Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda94c",
+    "name": "Statistics",
+    "author": "McClave",
+    "about": "Provides a comprehensive introduction to probability, data interpretation, and statistical inference.",
+    "image": "uploads/1768379653610.jpg",
+    "desc": "Provides a comprehensive introduction to probability, data interpretation, and statistical inference.",
+    "updatedAt": "2026-01-14T08:34:13.617Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8d0",
+    "name": "Quantitative Methods For Business",
+    "author": "Byard",
+    "about": "Provides mathematical and statistical tools for data-driven decision-making in corporate management.",
+    "image": "uploads/1768389314592.jpg",
+    "desc": "Provides mathematical and statistical tools for data-driven decision-making in corporate management.",
+    "updatedAt": "2026-01-14T11:15:14.595Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda94a",
+    "name": "Organizational Behaviour",
+    "author": "Huczynski",
+    "about": "Analyzes how people behave within companies and how management can improve team dynamics and productivity.",
+    "image": "uploads/1768384022933.jpg",
+    "desc": "Analyzes how people behave within companies and how management can improve team dynamics and productivity.",
+    "updatedAt": "2026-01-14T09:47:02.940Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda949",
+    "name": "Operations strategy",
+    "author": "Slack",
+    "about": "Focuses on how to align production and service operations with the overall competitive goals of a business.",
+    "image": "uploads/1768389320065.jpg",
+    "desc": "Focuses on how to align production and service operations with the overall competitive goals of a business.",
+    "updatedAt": "2026-01-14T11:15:20.069Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda947",
+    "name": "mobile and wireless technologies 2016",
+    "author": "Kim",
+    "about": "Examines the technical standards and infrastructure behind 4G/5G networks and wireless communication.",
+    "image": "uploads/1768398446907.jpg",
+    "desc": "Examines the technical standards and infrastructure behind 4G/5G networks and wireless communication.",
+    "updatedAt": "2026-01-14T13:47:26.912Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda946",
+    "name": "microelectronics circuits",
+    "author": "Rashid",
+    "about": "Discusses the design and analysis of electronic circuits containing transistors and integrated components.",
+    "image": "uploads/1768398420173.jpg",
+    "desc": "Discusses the design and analysis of electronic circuits containing transistors and integrated components.",
+    "updatedAt": "2026-01-14T13:47:00.177Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda945",
+    "name": "Microeconomics",
+    "author": "Perloff",
+    "about": "Detailed study of individual and firm-level decision-making and the impact of government policy on markets.",
+    "image": "uploads/1768384012757.jpg",
+    "desc": "Detailed study of individual and firm-level decision-making and the impact of government policy on markets.",
+    "updatedAt": "2026-01-14T09:46:52.769Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda944",
+    "name": "Mathematical logic for computer science",
+    "author": "Ari",
+    "about": "Covers propositional and predicate logic, which form the theoretical basis for programming and AI development.",
+    "image": "uploads/1768384023541.jpg",
+    "desc": "Covers propositional and predicate logic, which form the theoretical basis for programming and AI development.",
+    "updatedAt": "2026-01-14T09:47:03.547Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda943",
+    "name": "Marketing research",
+    "author": "Zikmund",
+    "about": "Teaches how to gather, analyze, and interpret data to help businesses make informed marketing decisions.",
+    "image": "uploads/1768384013357.jpg",
+    "desc": "Teaches how to gather, analyze, and interpret data to help businesses make informed marketing decisions.",
+    "updatedAt": "2026-01-14T09:46:53.360Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda942",
+    "name": "Managing engineering and technology",
+    "author": "Morse",
+    "about": "Focuses on the leadership skills required to manage technical projects and R&D departments in engineering firms.",
+    "image": "uploads/1768389320470.jpg",
+    "desc": "Focuses on the leadership skills required to manage technical projects and R&D departments in engineering firms.",
+    "updatedAt": "2026-01-14T11:15:20.479Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda941",
+    "name": "Managing change",
+    "author": "Burnes",
+    "about": "Explores different theories and practical models for leading organizations through structural and cultural transitions.",
+    "image": "uploads/1768357969268.jpg",
+    "desc": "Explores different theories and practical models for leading organizations through structural and cultural transitions.",
+    "updatedAt": "2026-01-14T02:32:49.275Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda852",
+    "name": "Essential Of Organizational Behavior",
+    "author": "Stephen P Robbins, Timothy A. Judge",
+    "about": "A concise yet thorough introduction to key OB topics like personality, motivation, and group dynamics.",
+    "image": "uploads/1768389317591.jpg",
+    "desc": "A concise yet thorough introduction to key OB topics like personality, motivation, and group dynamics.",
+    "updatedAt": "2026-01-14T11:15:17.595Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda85c",
+    "name": "Engineering Mechanics Statics",
+    "author": "J.L. Mariam",
+    "about": "Known for its accuracy and variety of practical problems related to structural engineering mechanics.",
+    "image": "uploads/1768389317121.jpg",
+    "desc": "Known for its accuracy and variety of practical problems related to structural engineering mechanics.",
+    "updatedAt": "2026-01-14T11:15:17.129Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda85b",
+    "name": "Vector Mechanics For Engineering Statics",
+    "author": "Beer",
+    "about": "Focuses on the structural analysis of trusses, frames, and machines using vector-based physics.",
+    "image": "uploads/1768398441264.jpg",
+    "desc": "Focuses on the structural analysis of trusses, frames, and machines using vector-based physics.",
+    "updatedAt": "2026-01-14T13:47:21.272Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda85a",
+    "name": "Vector Mechanics For Engineers Statics And Dynamics",
+    "author": "Ferdinand P Beer, E. Russell Johnston",
+    "about": "A comprehensive volume covering both stationary forces and the motion of objects in engineering.",
+    "image": "uploads/1768398441564.jpg",
+    "desc": "A comprehensive volume covering both stationary forces and the motion of objects in engineering.",
+    "updatedAt": "2026-01-14T13:47:21.567Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda859",
+    "name": "Vector Mechanics For Engineering Statics",
+    "author": "Beer",
+    "about": "Emphasizes the application of vector algebra to find resultants and equilibrium of force systems.",
+    "image": "uploads/1768398435505.jpg",
+    "desc": "Emphasizes the application of vector algebra to find resultants and equilibrium of force systems.",
+    "updatedAt": "2026-01-14T13:47:15.509Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda858",
+    "name": "Engineering Mechanics Statics",
+    "author": "R.C Hobbler",
+    "about": "A brief overview of the mechanical principles governing systems in state of rest.",
+    "image": "uploads/1768398422548.jpg",
+    "desc": "A brief overview of the mechanical principles governing systems in state of rest.",
+    "updatedAt": "2026-01-14T13:47:02.550Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda857",
+    "name": "Engineering Mechanics Statics",
+    "author": "N.H Dubey",
+    "about": "Features a simplified approach to learning statics with numerous solved examples for engineering students.",
+    "image": "uploads/1768398435740.jpg",
+    "desc": "Features a simplified approach to learning statics with numerous solved examples for engineering students.",
+    "updatedAt": "2026-01-14T13:47:15.743Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda856",
+    "name": "Vector Mechanics For Engineers Statics",
+    "author": "Ferdinand P Beer-William E Clausen",
+    "about": "A standard text providing a rigorous introduction to the statics of particles and rigid bodies.",
+    "image": "uploads/1768379661250.jpg",
+    "desc": "A standard text providing a rigorous introduction to the statics of particles and rigid bodies.",
+    "updatedAt": "2026-01-14T08:34:21.255Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda855",
+    "name": "Vector Mechanics For Engineering Statics",
+    "author": "Ferdinand P Beer E Russel Johnston",
+    "about": "Uses vector analysis to solve complex problems related to forces and moments in engineering systems.",
+    "image": "uploads/1768389298745.jpg",
+    "desc": "Uses vector analysis to solve complex problems related to forces and moments in engineering systems.",
+    "updatedAt": "2026-01-14T11:14:58.752Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda854",
+    "name": "Engineering Mechanics Statics",
+    "author": "Riley",
+    "about": "Covers the principles of forces acting on stationary bodies and the equilibrium of engineering structures.",
+    "image": "uploads/1768389326786.jpg",
+    "desc": "Covers the principles of forces acting on stationary bodies and the equilibrium of engineering structures.",
+    "updatedAt": "2026-01-14T11:15:26.792Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda853",
+    "name": "Professional Python",
+    "author": "Sneeringer",
+    "about": "Advanced programming techniques for Python developers focusing on clean code and efficient software design.",
+    "image": "uploads/1768389327200.jpg",
+    "desc": "Advanced programming techniques for Python developers focusing on clean code and efficient software design.",
+    "updatedAt": "2026-01-14T11:15:27.210Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda85d",
+    "name": "Elements of Civil Engineering",
+    "author": "Saikia",
+    "about": "Introduces the basic branches and principles of civil engineering, including surveying and construction.",
+    "image": "uploads/1768389298321.jpg",
+    "desc": "Introduces the basic branches and principles of civil engineering, including surveying and construction.",
+    "updatedAt": "2026-01-14T11:14:58.325Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda851",
+    "name": "Organizational Behavior",
+    "author": "Rae Andre",
+    "about": "Discusses the psychological principles that drive teamwork, leadership, and culture in the modern workplace.",
+    "image": "uploads/1768398429137.jpg",
+    "desc": "Discusses the psychological principles that drive teamwork, leadership, and culture in the modern workplace.",
+    "updatedAt": "2026-01-14T13:47:09.140Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda850",
+    "name": "Introduction To Computers",
+    "author": "Norton",
+    "about": "A foundational guide to computer hardware, software, and the basics of how digital systems operate.",
+    "image": "uploads/1768398441806.jpg",
+    "desc": "A foundational guide to computer hardware, software, and the basics of how digital systems operate.",
+    "updatedAt": "2026-01-14T13:47:21.809Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda84f",
+    "name": "Organizational Behavior",
+    "author": "Andre Rae",
+    "about": "An insightful look into how management styles and organizational structures influence employee performance.",
+    "image": "uploads/1768389291601.jpg",
+    "desc": "An insightful look into how management styles and organizational structures influence employee performance.",
+    "updatedAt": "2026-01-14T11:14:51.605Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda84e",
+    "name": "Organizational Behaviour",
+    "author": "Ahmed",
+    "about": "Explores the dynamics of human behavior within an organization and its impact on corporate productivity.",
+    "image": "uploads/1768398421037.jpg",
+    "desc": "Explores the dynamics of human behavior within an organization and its impact on corporate productivity.",
+    "updatedAt": "2026-01-14T13:47:01.040Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda84d",
+    "name": "Mechanics Of Materials",
+    "author": "Roy R Craig, Jr.",
+    "about": "Focuses on the fundamental concepts of solid mechanics and the importance of equilibrium and compatibility in engineering.",
+    "image": "uploads/1768389292057.jpg",
+    "desc": "Focuses on the fundamental concepts of solid mechanics and the importance of equilibrium and compatibility in engineering.",
+    "updatedAt": "2026-01-14T11:14:52.063Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda84c",
+    "name": "Developing Managerial Skills In Organizational Behavior",
+    "author": "Lisa A. Mainiero, Cheryl L. Tromley",
+    "about": "An experiential approach to learning OB through exercises, simulations, and skill-building activities.",
+    "image": "uploads/1768398435989.jpg",
+    "desc": "An experiential approach to learning OB through exercises, simulations, and skill-building activities.",
+    "updatedAt": "2026-01-14T13:47:16.004Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda84b",
+    "name": "Mechanics Of Materials (SI Units)",
+    "author": "Hibbeler R.C.",
+    "about": "Detailed engineering manual focusing on the design of structural elements using SI units.",
+    "image": "uploads/1768357958267.jpg",
+    "desc": "Detailed engineering manual focusing on the design of structural elements using SI units.",
+    "updatedAt": "2026-01-14T02:32:38.278Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda848",
+    "name": "Project Management The Managerial Process",
+    "author": "Gray",
+    "about": "Focuses on how projects contribute to the strategic goals of an organization and the role of the project manager.",
+    "image": "uploads/1768398425639.jpg",
+    "desc": "Focuses on how projects contribute to the strategic goals of an organization and the role of the project manager.",
+    "updatedAt": "2026-01-14T13:47:05.646Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda847",
+    "name": "Introduction To Fluid Mechanics",
+    "author": "Fox And McDonald",
+    "about": "A classic text used to master the governing equations of fluid mechanics and their engineering applications.",
+    "image": "uploads/1768389299166.jpg",
+    "desc": "A classic text used to master the governing equations of fluid mechanics and their engineering applications.",
+    "updatedAt": "2026-01-14T11:14:59.172Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda845",
+    "name": "Mechanics Of Materials",
+    "author": "William Rile",
+    "about": "Features detailed explanations and numerous examples of how materials react to external forces.",
+    "image": "uploads/1768398437229.jpg",
+    "desc": "Features detailed explanations and numerous examples of how materials react to external forces.",
+    "updatedAt": "2026-01-14T13:47:17.242Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda869",
+    "name": "Statistics For Business And Economics",
+    "author": "Paul Newbold, Willam L Cardson",
+    "about": "Provides comprehensive coverage of statistical methods used in economic research and business analysis.",
+    "image": "uploads/1768398425422.jpg",
+    "desc": "Provides comprehensive coverage of statistical methods used in economic research and business analysis.",
+    "updatedAt": "2026-01-14T13:47:05.428Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda873",
+    "name": "Modern experimental stress analysis",
+    "author": "Doyle",
+    "about": "Focuses on strain gauges, photoelasticity, and optical methods for material testing.",
+    "image": "uploads/1768389297051.jpg",
+    "desc": "Focuses on strain gauges, photoelasticity, and optical methods for material testing.",
+    "updatedAt": "2026-01-14T11:14:57.064Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda872",
+    "name": "Modern Experimental Stress Analysis",
+    "author": "Doyle",
+    "about": "An introduction to the techniques used to measure and analyze stress in physical structures experimentally.",
+    "image": "uploads/1768389325888.jpg",
+    "desc": "An introduction to the techniques used to measure and analyze stress in physical structures experimentally.",
+    "updatedAt": "2026-01-14T11:15:25.892Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda871",
+    "name": "Introduction To Graphics Communication For Engineers",
+    "author": "Gary R Bertoline",
+    "about": "Teaches the fundamentals of engineering drawing and visualization using modern digital tools.",
+    "image": "uploads/1768384030102.jpg",
+    "desc": "Teaches the fundamentals of engineering drawing and visualization using modern digital tools.",
+    "updatedAt": "2026-01-14T09:47:10.108Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda870",
+    "name": "Theory Of Machines",
+    "author": "Khurmi",
+    "about": "Discusses the kinematics and dynamics of machinery with numerous solved problems and illustrations.",
+    "image": "uploads/1768389297468.jpg",
+    "desc": "Discusses the kinematics and dynamics of machinery with numerous solved problems and illustrations.",
+    "updatedAt": "2026-01-14T11:14:57.473Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda86f",
+    "name": "Theory Of Machines",
+    "author": "R.S. Khurmi, J.K .Gupta",
+    "about": "Detailed exploration of mechanisms, cams, gears, and governors used in mechanical systems.",
+    "image": "uploads/1768379650198.jpg",
+    "desc": "Detailed exploration of mechanisms, cams, gears, and governors used in mechanical systems.",
+    "updatedAt": "2026-01-14T08:34:10.203Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda86e",
+    "name": "Theory Of Machines",
+    "author": "KHURMI",
+    "about": "A standard textbook covering the study of relative motion between machine parts and the forces acting on them.",
+    "image": "uploads/1768398428111.jpg",
+    "desc": "A standard textbook covering the study of relative motion between machine parts and the forces acting on them.",
+    "updatedAt": "2026-01-14T13:47:08.115Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda86d",
+    "name": "Fundamentals Of Machine Component Design",
+    "author": "Juvinall",
+    "about": "Focuses on the analytical methods used to design components like gears, bearings, and shafts.",
+    "image": "uploads/1768398435013.jpg",
+    "desc": "Focuses on the analytical methods used to design components like gears, bearings, and shafts.",
+    "updatedAt": "2026-01-14T13:47:15.026Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda86c",
+    "name": "Fundamentals Of Machine Component Design",
+    "author": "Robert C",
+    "about": "Covers the essential principles of designing machine parts for safety, reliability, and functionality.",
+    "image": "uploads/1768398428396.jpg",
+    "desc": "Covers the essential principles of designing machine parts for safety, reliability, and functionality.",
+    "updatedAt": "2026-01-14T13:47:08.400Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda86b",
+    "name": "Fundamentals Of Machine Component Design",
+    "author": "Robert C Juvinall, Kurt M. Marshek",
+    "about": "A comprehensive guide to the design of mechanical elements, focusing on stress analysis and fatigue life.",
+    "image": "uploads/1768398422116.jpg",
+    "desc": "A comprehensive guide to the design of mechanical elements, focusing on stress analysis and fatigue life.",
+    "updatedAt": "2026-01-14T13:47:02.120Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda86a",
+    "name": "Fluid Mechanics",
+    "author": "White",
+    "about": "A widely respected text that emphasizes both the physical understanding and mathematical analysis of fluid flow.",
+    "image": "uploads/1768357966465.jpg",
+    "desc": "A widely respected text that emphasizes both the physical understanding and mathematical analysis of fluid flow.",
+    "updatedAt": "2026-01-14T02:32:46.470Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda843",
+    "name": "Mechanics Of Materials",
+    "author": "James M. Gere",
+    "about": "Highly regarded for its clear presentation of theory and its focus on the history of structural mechanics.",
+    "image": "uploads/1768398425878.jpg",
+    "desc": "Highly regarded for its clear presentation of theory and its focus on the history of structural mechanics.",
+    "updatedAt": "2026-01-14T13:47:05.892Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda868",
+    "name": "Strategy and Human Resource Management",
+    "author": "Boxall",
+    "about": "Explores the link between firm strategy and employee management to create a competitive advantage.",
+    "image": "uploads/1768389321360.jpg",
+    "desc": "Explores the link between firm strategy and employee management to create a competitive advantage.",
+    "updatedAt": "2026-01-14T11:15:21.367Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda867",
+    "name": "Strategic Human Resource Management : Contemporary Issues",
+    "author": "Millmore, Mike",
+    "about": "Examines how HR practices can be aligned with business strategy to meet long-term organizational goals.",
+    "image": "uploads/1768389290276.jpg",
+    "desc": "Examines how HR practices can be aligned with business strategy to meet long-term organizational goals.",
+    "updatedAt": "2026-01-14T11:14:50.288Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda866",
+    "name": "Java How To Program",
+    "author": "Deitel",
+    "about": "Focuses on the foundations of Java with a focus on problem-solving and application development.",
+    "image": "uploads/1768398422326.jpg",
+    "desc": "Focuses on the foundations of Java with a focus on problem-solving and application development.",
+    "updatedAt": "2026-01-14T13:47:02.335Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda865",
+    "name": "C How to Program",
+    "author": "Deitel",
+    "about": "Teaches the fundamentals of the C language, from basic syntax to memory management and data structures.",
+    "image": "uploads/1768398441006.jpg",
+    "desc": "Teaches the fundamentals of the C language, from basic syntax to memory management and data structures.",
+    "updatedAt": "2026-01-14T13:47:21.015Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda864",
+    "name": "Java how to program",
+    "author": "Deitel",
+    "about": "An introduction to Java programming, including GUI development, exception handling, and database connectivity.",
+    "image": "uploads/1768389292857.jpg",
+    "desc": "An introduction to Java programming, including GUI development, exception handling, and database connectivity.",
+    "updatedAt": "2026-01-14T11:14:52.862Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda863",
+    "name": "Calculus",
+    "author": "Smith Minton",
+    "about": "A complete text on differential and integral calculus, focusing on real-world engineering applications.",
+    "image": "uploads/1768398428884.jpg",
+    "desc": "A complete text on differential and integral calculus, focusing on real-world engineering applications.",
+    "updatedAt": "2026-01-14T13:47:08.897Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda861",
+    "name": "C++ : How to Program",
+    "author": "Deitel",
+    "about": "A detailed guide to object-oriented programming in C++ using a code-intensive approach.",
+    "image": "uploads/1768379660695.jpg",
+    "desc": "A detailed guide to object-oriented programming in C++ using a code-intensive approach.",
+    "updatedAt": "2026-01-14T08:34:20.702Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda860",
+    "name": "Statistics For Managers",
+    "author": "Levine, Stephen",
+    "about": "Focuses on the application of statistical tools to business decision-making and data analysis.",
+    "image": "uploads/1768398435258.jpg",
+    "desc": "Focuses on the application of statistical tools to business decision-making and data analysis.",
+    "updatedAt": "2026-01-14T13:47:15.262Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda85f",
+    "name": "Fluid Mechanics",
+    "author": "Subramanian",
+    "about": "Detailed study of fluid properties and the mathematical laws governing fluid statics and dynamics.",
+    "image": "uploads/1768389290731.jpg",
+    "desc": "Detailed study of fluid properties and the mathematical laws governing fluid statics and dynamics.",
+    "updatedAt": "2026-01-14T11:14:50.735Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda85e",
+    "name": "Civil Engineering",
+    "author": "Khan",
+    "about": "Provides a general overview of civil infrastructure, materials, and project management basics.",
+    "image": "uploads/1768389291154.jpg",
+    "desc": "Provides a general overview of civil infrastructure, materials, and project management basics.",
+    "updatedAt": "2026-01-14T11:14:51.161Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda81e",
+    "name": "Project Management",
+    "author": "Gido",
+    "about": "An accessible introduction to project management, ideal for students and newcomers to the field.",
+    "image": "uploads/1768389328441.jpg",
+    "desc": "An accessible introduction to project management, ideal for students and newcomers to the field.",
+    "updatedAt": "2026-01-14T11:15:28.446Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda829",
+    "name": "Organizational Behavior",
+    "author": "Miller",
+    "about": "Examines individual and group dynamics within an organization to improve productivity and culture.",
+    "image": "uploads/1768389328011.jpg",
+    "desc": "Examines individual and group dynamics within an organization to improve productivity and culture.",
+    "updatedAt": "2026-01-14T11:15:28.016Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda828",
+    "name": "Management Organizational Behaviour An Integrated Perspective",
+    "author": "Jon L.Pierce",
+    "about": "Explores how human behavior and organizational structure impact overall management efficiency.",
+    "image": "uploads/1768398423197.jpg",
+    "desc": "Explores how human behavior and organizational structure impact overall management efficiency.",
+    "updatedAt": "2026-01-14T13:47:03.201Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda827",
+    "name": "Project Management Professional",
+    "author": "Heldman, Kim",
+    "about": "An essential guide for mastering the project management body of knowledge for professional exams.",
+    "image": "uploads/1768398436497.jpg",
+    "desc": "An essential guide for mastering the project management body of knowledge for professional exams.",
+    "updatedAt": "2026-01-14T13:47:16.500Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda826",
+    "name": "Project Management For Telecommunicatin Management",
+    "author": "Deshmand",
+    "about": "Tailored specifically for the telecommunications industry, focusing on network and tech projects.",
+    "image": "uploads/1768357967140.jpg",
+    "desc": "Tailored specifically for the telecommunications industry, focusing on network and tech projects.",
+    "updatedAt": "2026-01-14T02:32:47.150Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda825",
+    "name": "Project Management",
+    "author": "Nicholas",
+    "about": "Focuses on project management for business, engineering, and technology with a systems perspective.",
+    "image": "uploads/1768357959297.jpg",
+    "desc": "Focuses on project management for business, engineering, and technology with a systems perspective.",
+    "updatedAt": "2026-01-14T02:32:39.303Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda824",
+    "name": "The Science and Engineering of Materials",
+    "author": "Askeland",
+    "about": "Explains the science behind how materials are processed and their subsequent engineering performance.",
+    "image": "uploads/1768358080845.jpg",
+    "desc": "Explains the science behind how materials are processed and their subsequent engineering performance.",
+    "updatedAt": "2026-01-14T02:34:40.848Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda822",
+    "name": "Project Management Professional",
+    "author": "Phillips",
+    "about": "A specialized resource designed to help professionals prepare for PMP certification and advanced roles.",
+    "image": "uploads/1768384013971.jpg",
+    "desc": "A specialized resource designed to help professionals prepare for PMP certification and advanced roles.",
+    "updatedAt": "2026-01-14T09:46:53.979Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda821",
+    "name": "Project Management",
+    "author": "Choudhury",
+    "about": "Offers detailed information on project implementation, monitoring, and evaluation techniques.",
+    "image": "uploads/1768383999097.jpg",
+    "desc": "Offers detailed information on project implementation, monitoring, and evaluation techniques.",
+    "updatedAt": "2026-01-14T09:46:39.101Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda820",
+    "name": "Fundamentals Of Materials Science And Engineering",
+    "author": "William D Callister, Jr. David G Rethwiseh",
+    "about": "Provides an integrated approach to the chemical and physical foundations of engineering materials.",
+    "image": "uploads/1768384007412.jpg",
+    "desc": "Provides an integrated approach to the chemical and physical foundations of engineering materials.",
+    "updatedAt": "2026-01-14T09:46:47.419Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda81f",
+    "name": "Materials Science And Engineering",
+    "author": "Smith",
+    "about": "Investigates the relationship between the structure of materials and their mechanical properties.",
+    "image": "uploads/1768398418834.jpg",
+    "desc": "Investigates the relationship between the structure of materials and their mechanical properties.",
+    "updatedAt": "2026-01-14T13:46:58.841Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda82a",
+    "name": "Management Of Organizational Behavior",
+    "author": "Paul Herrey",
+    "about": "A classic text on leadership styles and using behavioral science to manage people effectively.",
+    "image": "uploads/1768389308282.jpg",
+    "desc": "A classic text on leadership styles and using behavioral science to manage people effectively.",
+    "updatedAt": "2026-01-14T11:15:08.290Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda81d",
+    "name": "Project management : A Managerial Approach",
+    "author": "Meredith",
+    "about": "Focuses on the decision-making processes and resource allocation vital for project managers.",
+    "image": "uploads/1768389328871.jpg",
+    "desc": "Focuses on the decision-making processes and resource allocation vital for project managers.",
+    "updatedAt": "2026-01-14T11:15:28.876Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda81c",
+    "name": "Project management",
+    "author": "Clifford F Gray",
+    "about": "Combines the technical aspects of project management with the human and behavioral side of the field.",
+    "image": "uploads/1768389318425.jpg",
+    "desc": "Combines the technical aspects of project management with the human and behavioral side of the field.",
+    "updatedAt": "2026-01-14T11:15:18.432Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda81b",
+    "name": "Project Management",
+    "author": "Jeffery K Pinto",
+    "about": "Bridges the gap between project management theory and real-world practical application.",
+    "image": "uploads/1768398436731.jpg",
+    "desc": "Bridges the gap between project management theory and real-world practical application.",
+    "updatedAt": "2026-01-14T13:47:16.736Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda818",
+    "name": "Project management",
+    "author": "Burke",
+    "about": "Provides a clear overview of project planning and control techniques used in the global industry.",
+    "image": "uploads/1768398423405.jpg",
+    "desc": "Provides a clear overview of project planning and control techniques used in the global industry.",
+    "updatedAt": "2026-01-14T13:47:03.407Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda817",
+    "name": "Project Management",
+    "author": "Kerzner",
+    "about": "Examines the organizational structures and strategic management required for successful project outcomes.",
+    "image": "uploads/1768398439962.jpg",
+    "desc": "Examines the organizational structures and strategic management required for successful project outcomes.",
+    "updatedAt": "2026-01-14T13:47:19.966Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda816",
+    "name": "Project Management",
+    "author": "Kerzner",
+    "about": "A deep dive into the systems approach to planning, scheduling, and controlling projects effectively.",
+    "image": "uploads/1768357967815.jpg",
+    "desc": "A deep dive into the systems approach to planning, scheduling, and controlling projects effectively.",
+    "updatedAt": "2026-01-14T02:32:47.819Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda815",
+    "name": "Project Management Hand Book",
+    "author": "Kohli",
+    "about": "A practical reference manual providing tools and techniques for day-to-day project execution.",
+    "image": "uploads/1768357968140.jpg",
+    "desc": "A practical reference manual providing tools and techniques for day-to-day project execution.",
+    "updatedAt": "2026-01-14T02:32:48.144Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda814",
+    "name": "Project Management",
+    "author": "Meredith",
+    "about": "Covers the essential life cycle of a project, from initial planning and budgeting to final evaluation.",
+    "image": "uploads/1768384008001.jpg",
+    "desc": "Covers the essential life cycle of a project, from initial planning and budgeting to final evaluation.",
+    "updatedAt": "2026-01-14T09:46:48.010Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda813",
+    "name": "Project Management Achieving Competitive Advantage",
+    "author": "Pinto",
+    "about": "Focuses on how effective project management can be used as a strategic tool to gain a market edge.",
+    "image": "uploads/1768389299981.jpg",
+    "desc": "Focuses on how effective project management can be used as a strategic tool to gain a market edge.",
+    "updatedAt": "2026-01-14T11:14:59.988Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda812",
+    "name": "Project Management A Managerial Approach",
+    "author": "Meredith",
+    "about": "A comprehensive guide focusing on the operational and managerial challenges of overseeing complex projects.",
+    "image": "uploads/1768338185951.jpg",
+    "desc": "A comprehensive guide focusing on the operational and managerial challenges of overseeing complex projects.",
+    "updatedAt": "2026-01-13T21:03:05.957Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda836",
+    "name": "Organizational Behaviour",
+    "author": "Huczynski",
+    "about": "An interdisciplinary perspective on how people interact within business environments and modern work cultures.",
+    "image": "uploads/1768398418195.jpg",
+    "desc": "An interdisciplinary perspective on how people interact within business environments and modern work cultures.",
+    "updatedAt": "2026-01-14T13:46:58.203Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda842",
+    "name": "Introduction To Fluid Mechanics",
+    "author": "Fox",
+    "about": "Provides a balanced and comprehensive introduction to the physical concepts and analysis of fluid flow.",
+    "image": "uploads/1768398422769.jpg",
+    "desc": "Provides a balanced and comprehensive introduction to the physical concepts and analysis of fluid flow.",
+    "updatedAt": "2026-01-14T13:47:02.777Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda841",
+    "name": "Mechanics of materials",
+    "author": "Craig, Roy R.",
+    "about": "Emphasizes the three key concepts of solid mechanics: equilibrium, constitutive laws, and compatibility.",
+    "image": "uploads/1768398442048.jpg",
+    "desc": "Emphasizes the three key concepts of solid mechanics: equilibrium, constitutive laws, and compatibility.",
+    "updatedAt": "2026-01-14T13:47:22.055Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda840",
+    "name": "Organizational Behavior",
+    "author": "Robbins Stephen",
+    "about": "Detailed analysis of motivation, leadership, and group dynamics within corporate settings.",
+    "image": "uploads/1768398429369.jpg",
+    "desc": "Detailed analysis of motivation, leadership, and group dynamics within corporate settings.",
+    "updatedAt": "2026-01-14T13:47:09.373Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda83f",
+    "name": "Mechanics Of Materials",
+    "author": "William F. Riley",
+    "about": "Focuses on the fundamentals of mechanics and the analysis of structural members like beams and shafts.",
+    "image": "uploads/1768389299578.jpg",
+    "desc": "Focuses on the fundamentals of mechanics and the analysis of structural members like beams and shafts.",
+    "updatedAt": "2026-01-14T11:14:59.583Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda83e",
+    "name": "Mechanics Of Materials",
+    "author": "Popov",
+    "about": "A classic rigorous text known for its detailed mathematical derivations and engineering applications.",
+    "image": "uploads/1768389306208.jpg",
+    "desc": "A classic rigorous text known for its detailed mathematical derivations and engineering applications.",
+    "updatedAt": "2026-01-14T11:15:06.219Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda83d",
+    "name": "Organizational Behavior",
+    "author": "Luthans Fred",
+    "about": "Introduces the concept of 'Positive Organizational Behavior' and the psychological capital of employees.",
+    "image": "uploads/1768389306627.jpg",
+    "desc": "Introduces the concept of 'Positive Organizational Behavior' and the psychological capital of employees.",
+    "updatedAt": "2026-01-14T11:15:06.630Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda83c",
+    "name": "Management And Organizational Behavior",
+    "author": "Laurie J. Mullins",
+    "about": "An integrated approach to management that emphasizes the importance of understanding people at work.",
+    "image": "uploads/1768389331391.jpg",
+    "desc": "An integrated approach to management that emphasizes the importance of understanding people at work.",
+    "updatedAt": "2026-01-14T11:15:31.394Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda83b",
+    "name": "Organizational Behavior",
+    "author": "Robbins",
+    "about": "One of the most widely used textbooks on OB, known for its clear explanations and relevant case studies.",
+    "image": "uploads/1768383997324.jpg",
+    "desc": "One of the most widely used textbooks on OB, known for its clear explanations and relevant case studies.",
+    "updatedAt": "2026-01-14T09:46:37.330Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda839",
+    "name": "Management Of Organizational Behavior",
+    "author": "Hersey",
+    "about": "Famous for introducing situational leadership, this book guides managers on leading diverse teams effectively.",
+    "image": "uploads/1768339422005.jpg",
+    "desc": "Famous for introducing situational leadership, this book guides managers on leading diverse teams effectively.",
+    "updatedAt": "2026-01-14T02:01:54.320Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda837",
+    "name": "Statics and Mechanics of materials",
+    "author": "Beer",
+    "about": "Combines the principles of rigid-body mechanics with the study of deformable bodies for a holistic engineering view.",
+    "image": "uploads/1768398436263.jpg",
+    "desc": "Combines the principles of rigid-body mechanics with the study of deformable bodies for a holistic engineering view.",
+    "updatedAt": "2026-01-14T13:47:16.267Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda874",
+    "name": "Electronic Devices & Circuit Theory",
+    "author": "Boylestad",
+    "about": "A core textbook for learning the characteristics of diodes, transistors, and integrated circuit theory.",
+    "image": "uploads/1768389325471.jpg",
+    "desc": "A core textbook for learning the characteristics of diodes, transistors, and integrated circuit theory.",
+    "updatedAt": "2026-01-14T11:15:25.477Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda834",
+    "name": "Mechanics of materials",
+    "author": "Ferdinand P. Beer",
+    "about": "Explores the mathematical models used to predict the deformation and failure of engineering materials.",
+    "image": "uploads/1768389318016.jpg",
+    "desc": "Explores the mathematical models used to predict the deformation and failure of engineering materials.",
+    "updatedAt": "2026-01-14T11:15:18.021Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda833",
+    "name": "Mechanics of materials (in si unit).",
+    "author": "Beer",
+    "about": "An edition of the classic mechanics text tailored for international engineering standards using SI units.",
+    "image": "uploads/1768357958947.jpg",
+    "desc": "An edition of the classic mechanics text tailored for international engineering standards using SI units.",
+    "updatedAt": "2026-01-15T18:09:31.960Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda832",
+    "name": "High School English Grammar and Composition",
+    "author": "Wren, Martin",
+    "about": "The classic reference book for mastering English grammar, syntax, and effective writing skills.",
+    "image": "uploads/1768398442288.jpg",
+    "desc": "The classic reference book for mastering English grammar, syntax, and effective writing skills.",
+    "updatedAt": "2026-01-14T13:47:22.297Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda831",
+    "name": "Mechanics Of Materials",
+    "author": "Hibbeler",
+    "about": "A foundational engineering text that explains the behavior of solid objects under various types of stress and strain.",
+    "image": "uploads/1768398422984.jpg",
+    "desc": "A foundational engineering text that explains the behavior of solid objects under various types of stress and strain.",
+    "updatedAt": "2026-01-14T13:47:02.988Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda830",
+    "name": "Essentials of Organizational Behaviour",
+    "author": "Robbins, Stephen P.",
+    "about": "A streamlined guide to fundamental OB concepts, balancing theory with practical application for managers.",
+    "image": "uploads/1768389307446.jpg",
+    "desc": "A streamlined guide to fundamental OB concepts, balancing theory with practical application for managers.",
+    "updatedAt": "2026-01-14T11:15:07.454Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda82f",
+    "name": "Organisational Behaviour",
+    "author": "Saiyadain",
+    "about": "Focuses on the influence of individuals, groups, and structures on behavior within organizations in the Indian context.",
+    "image": "uploads/1768398418500.jpg",
+    "desc": "Focuses on the influence of individuals, groups, and structures on behavior within organizations in the Indian context.",
+    "updatedAt": "2026-01-14T13:46:58.504Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda82e",
+    "name": "Introduction to fluid mechanics",
+    "author": "Fay, James A.",
+    "about": "An introductory text on the properties of fluids and the physical laws governing their motion.",
+    "image": "uploads/1768383998479.jpg",
+    "desc": "An introductory text on the properties of fluids and the physical laws governing their motion.",
+    "updatedAt": "2026-01-14T09:46:38.492Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda82d",
+    "name": "Mechanics of materials",
+    "author": "Ferdinand P.Beer",
+    "about": "Detailed study of material behavior under various loads, including comprehensive index references.",
+    "image": "uploads/1768389307865.jpg",
+    "desc": "Detailed study of material behavior under various loads, including comprehensive index references.",
+    "updatedAt": "2026-01-14T11:15:07.870Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda82b",
+    "name": "Statistics and Mechanics of Materials : SI Edition",
+    "author": "Hibbeler",
+    "about": "Provides a combined analysis of statistical methods and the mechanical behavior of physical materials.",
+    "image": "uploads/1768379651307.jpg",
+    "desc": "Provides a combined analysis of statistical methods and the mechanical behavior of physical materials.",
+    "updatedAt": "2026-01-14T08:34:11.315Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ae",
+    "name": "Design Of Machinery",
+    "author": "Robert L Norton",
+    "about": "An introduction to the synthesis and analysis of mechanisms and machines using modern design methodologies.",
+    "image": "uploads/1768389330964.jpg",
+    "desc": "An introduction to the synthesis and analysis of mechanisms and machines using modern design methodologies.",
+    "updatedAt": "2026-01-14T11:15:30.975Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b8",
+    "name": "Finite elements in Engineering",
+    "author": "Chandrupatla",
+    "about": "Introduces the Finite Element Method (FEM) for solving complex structural and thermal engineering problems.",
+    "image": "uploads/1768389307039.jpg",
+    "desc": "Introduces the Finite Element Method (FEM) for solving complex structural and thermal engineering problems.",
+    "updatedAt": "2026-01-14T11:15:07.050Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b7",
+    "name": "Gas Dynamics",
+    "author": "Purohit",
+    "about": "Focuses on the study of gas flows and the changes in properties during high-speed motion.",
+    "image": "uploads/1768389295414.jpg",
+    "desc": "Focuses on the study of gas flows and the changes in properties during high-speed motion.",
+    "updatedAt": "2026-01-14T11:14:55.426Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b6",
+    "name": "Renewable Energy",
+    "author": "Sorensen",
+    "about": "A technical overview of sustainable energy sources like solar, wind, and hydro power systems.",
+    "image": "uploads/1768384019386.jpg",
+    "desc": "A technical overview of sustainable energy sources like solar, wind, and hydro power systems.",
+    "updatedAt": "2026-01-14T09:46:59.390Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b5",
+    "name": "Introduction To Robotics Mechanics And Control",
+    "author": "John J Craig",
+    "about": "Covers the fundamental aspects of robot manipulators, including kinematics, dynamics, and control loops.",
+    "image": "uploads/1768389295811.jpg",
+    "desc": "Covers the fundamental aspects of robot manipulators, including kinematics, dynamics, and control loops.",
+    "updatedAt": "2026-01-14T11:14:55.815Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b4",
+    "name": "Power Plant Technology",
+    "author": "M M El Wakil",
+    "about": "Explores the engineering principles behind various power generation systems, including thermal and nuclear plants.",
+    "image": "uploads/1768389323825.jpg",
+    "desc": "Explores the engineering principles behind various power generation systems, including thermal and nuclear plants.",
+    "updatedAt": "2026-01-14T11:15:23.832Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b3",
+    "name": "Engineering Design",
+    "author": "George E. Dieter, Linda C. Schmidt",
+    "about": "Provides a structured approach to the engineering design process, from concept to product realization.",
+    "image": "uploads/1768379646454.jpg",
+    "desc": "Provides a structured approach to the engineering design process, from concept to product realization.",
+    "updatedAt": "2026-01-14T08:34:06.464Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b2",
+    "name": "Workshop Technology Part II",
+    "author": "W A J Chapman",
+    "about": "Detailed guide on metal joining, forming, and the operational mechanics of workshop machinery.",
+    "image": "uploads/1768379646996.jpg",
+    "desc": "Detailed guide on metal joining, forming, and the operational mechanics of workshop machinery.",
+    "updatedAt": "2026-01-14T08:34:07.001Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b1",
+    "name": "Workshop Technology Part III",
+    "author": "W A J Chapman",
+    "about": "Advanced study of manufacturing processes, including machine tools and precision engineering techniques.",
+    "image": "uploads/1768389315424.jpg",
+    "desc": "Advanced study of manufacturing processes, including machine tools and precision engineering techniques.",
+    "updatedAt": "2026-01-14T11:15:15.429Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b0",
+    "name": "Design Of Machinery",
+    "author": "Norton",
+    "about": "Covers kinematics and dynamics of machinery with an emphasis on the use of computer-aided design tools.",
+    "image": "uploads/1768398449969.jpg",
+    "desc": "Covers kinematics and dynamics of machinery with an emphasis on the use of computer-aided design tools.",
+    "updatedAt": "2026-01-14T13:47:29.974Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8af",
+    "name": "Mechanical Engineering Design",
+    "author": "Shigley",
+    "about": "The standard reference for machine member design, focusing on material strength and failure prevention.",
+    "image": "uploads/1768357965128.jpg",
+    "desc": "The standard reference for machine member design, focusing on material strength and failure prevention.",
+    "updatedAt": "2026-01-14T02:32:45.133Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8b9",
+    "name": "Automatic Control Systems",
+    "author": "Benjamin C Kuo, Farid Golnaraghi",
+    "about": "A classic text on feedback control systems, focusing on stability and mathematical modeling of automation.",
+    "image": "uploads/1768398449732.jpg",
+    "desc": "A classic text on feedback control systems, focusing on stability and mathematical modeling of automation.",
+    "updatedAt": "2026-01-14T13:47:29.736Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ad",
+    "name": "Zikr-e-Akbar",
+    "author": "Mujahid Akbar",
+    "about": "A specialized text likely focused on historical or biographical accounts within a specific cultural context.",
+    "image": "uploads/1768398439703.jpg",
+    "desc": "A specialized text likely focused on historical or biographical accounts within a specific cultural context.",
+    "updatedAt": "2026-01-14T13:47:19.707Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ac",
+    "name": "College Physics",
+    "author": "Giambattista RichardSon RichardSon",
+    "about": "Presents physics principles using a unique integrated approach tailored for undergraduate science students.",
+    "image": "uploads/1768357966791.jpg",
+    "desc": "Presents physics principles using a unique integrated approach tailored for undergraduate science students.",
+    "updatedAt": "2026-01-14T02:32:46.796Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ab",
+    "name": "The Oxford English Urdu Dictionary",
+    "author": "Shanul Haq",
+    "about": "A comprehensive linguistic resource for translation and vocabulary building between English and Urdu.",
+    "image": "uploads/1768398434528.jpg",
+    "desc": "A comprehensive linguistic resource for translation and vocabulary building between English and Urdu.",
+    "updatedAt": "2026-01-14T13:47:14.533Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8aa",
+    "name": "Mechanical engineering (objective)",
+    "author": "Kumar",
+    "about": "A collection of multiple-choice questions designed for competitive exams and technical interviews in mechanical engineering.",
+    "image": "uploads/1768384019983.jpg",
+    "desc": "A collection of multiple-choice questions designed for competitive exams and technical interviews in mechanical engineering.",
+    "updatedAt": "2026-01-14T09:46:59.995Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a9",
+    "name": "Physics",
+    "author": "Serway Jewett",
+    "about": "Features a strong problem-solving approach to help students master the fundamental laws of the physical world.",
+    "image": "uploads/1768384028317.jpg",
+    "desc": "Features a strong problem-solving approach to help students master the fundamental laws of the physical world.",
+    "updatedAt": "2026-01-14T09:47:08.321Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a8",
+    "name": "Physics",
+    "author": "Resnick",
+    "about": "A foundation-level textbook covering classical mechanics, electromagnetism, and modern physics concepts.",
+    "image": "uploads/1768383995494.jpg",
+    "desc": "A foundation-level textbook covering classical mechanics, electromagnetism, and modern physics concepts.",
+    "updatedAt": "2026-01-14T09:46:35.501Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a7",
+    "name": "The Physics Of Vibrations And Waves",
+    "author": "H J Pain",
+    "about": "Explores the mathematical and physical principles governing oscillations and wave propagation in various media.",
+    "image": "uploads/1768389315854.jpg",
+    "desc": "Explores the mathematical and physical principles governing oscillations and wave propagation in various media.",
+    "updatedAt": "2026-01-14T11:15:15.860Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a6",
+    "name": "Change Your Lens Change Your World",
+    "author": "Faiez H.Seyal",
+    "about": "A motivational book focused on personal development and shifting perspectives to achieve success.",
+    "image": "uploads/1768398434765.jpg",
+    "desc": "A motivational book focused on personal development and shifting perspectives to achieve success.",
+    "updatedAt": "2026-01-14T13:47:14.770Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a5",
+    "name": "Hazrat Muhammad's Personality",
+    "author": "Khan",
+    "about": "An exploration of the character and leadership traits of the Prophet Muhammad (PBUH).",
+    "image": "uploads/1768398450223.jpg",
+    "desc": "An exploration of the character and leadership traits of the Prophet Muhammad (PBUH).",
+    "updatedAt": "2026-01-14T13:47:30.229Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a4",
+    "name": "Marketing Management A South Asian Perspective",
+    "author": "A.M.Sheikh",
+    "about": "Tailors marketing management principles specifically to the South Asian economic and cultural landscape.",
+    "image": "uploads/1768379659082.jpg",
+    "desc": "Tailors marketing management principles specifically to the South Asian economic and cultural landscape.",
+    "updatedAt": "2026-01-14T08:34:19.088Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c4",
+    "name": "Vector Mechanics For Engineering Dynamics",
+    "author": "Ferdinand P Beer E Russel Johnston",
+    "about": "A core engineering text covering the motion of particles and rigid bodies using vector algebra.",
+    "image": "uploads/1768379652397.jpg",
+    "desc": "A core engineering text covering the motion of particles and rigid bodies using vector algebra.",
+    "updatedAt": "2026-01-14T08:34:12.401Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8cf",
+    "name": "mobile and wireless technologies 2016",
+    "author": "Kim",
+    "about": "Examines the evolution of mobile networks, wireless communication protocols, and modern connectivity trends.",
+    "image": "uploads/1768398438487.jpg",
+    "desc": "Examines the evolution of mobile networks, wireless communication protocols, and modern connectivity trends.",
+    "updatedAt": "2026-01-14T13:47:18.490Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ce",
+    "name": "Automotive Mechanics",
+    "author": "William H Crouse",
+    "about": "A comprehensive guide to the construction, operation, and maintenance of modern motor vehicles.",
+    "image": "uploads/1768398438730.jpg",
+    "desc": "A comprehensive guide to the construction, operation, and maintenance of modern motor vehicles.",
+    "updatedAt": "2026-01-14T13:47:18.734Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8cd",
+    "name": "Fundamentals of industrial instrumentation and process control",
+    "author": "William",
+    "about": "Covers the sensors, controllers, and systems used to automate and monitor industrial manufacturing processes.",
+    "image": "uploads/1768398433330.jpg",
+    "desc": "Covers the sensors, controllers, and systems used to automate and monitor industrial manufacturing processes.",
+    "updatedAt": "2026-01-14T13:47:13.335Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8cc",
+    "name": "Product Design And Development",
+    "author": "Ulrich",
+    "about": "Integrates marketing, design, and manufacturing perspectives for effective product innovation and creation.",
+    "image": "uploads/1768398438962.jpg",
+    "desc": "Integrates marketing, design, and manufacturing perspectives for effective product innovation and creation.",
+    "updatedAt": "2026-01-14T13:47:18.971Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8cb",
+    "name": "Internal Combustion Engine In Theory And Practice",
+    "author": "Taylor",
+    "about": "A classic technical reference on the design, thermodynamics, and performance characteristics of IC engines.",
+    "image": "uploads/1768384006233.jpg",
+    "desc": "A classic technical reference on the design, thermodynamics, and performance characteristics of IC engines.",
+    "updatedAt": "2026-01-14T09:46:46.238Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ca",
+    "name": "biomedical instrumentation and measurements",
+    "author": "cromwell",
+    "about": "Explores the design and application of electronic instruments used for medical diagnosis and physiological monitoring.",
+    "image": "uploads/1768384018155.jpg",
+    "desc": "Explores the design and application of electronic instruments used for medical diagnosis and physiological monitoring.",
+    "updatedAt": "2026-01-14T09:46:58.162Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c9",
+    "name": "Solid State Electronic Devices",
+    "author": "Streetman",
+    "about": "Discusses the physics of semiconductors and the operation of modern solid-state devices like transistors and LEDs.",
+    "image": "uploads/1768398439197.jpg",
+    "desc": "Discusses the physics of semiconductors and the operation of modern solid-state devices like transistors and LEDs.",
+    "updatedAt": "2026-01-14T13:47:19.204Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c8",
+    "name": "Understandable statistics",
+    "author": "Brase",
+    "about": "A user-friendly introduction to data analysis, probability, and hypothesis testing for non-mathematicians.",
+    "image": "uploads/1768384020560.jpg",
+    "desc": "A user-friendly introduction to data analysis, probability, and hypothesis testing for non-mathematicians.",
+    "updatedAt": "2026-01-14T09:47:00.567Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c6",
+    "name": "Statistics For The Behavioral Sciences",
+    "author": "Frederick J. Gravetter",
+    "about": "Teaches essential statistical concepts and procedures used in psychology and other behavioral science research.",
+    "image": "uploads/1768398420818.jpg",
+    "desc": "Teaches essential statistical concepts and procedures used in psychology and other behavioral science research.",
+    "updatedAt": "2026-01-14T13:47:00.825Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c5",
+    "name": "Vector Mechanics For Engineering Dynamics",
+    "author": "Beer",
+    "about": "An advanced study of the kinematics and kinetics of particles and rigid bodies using vector mathematical methods.",
+    "image": "uploads/1768398439459.jpg",
+    "desc": "An advanced study of the kinematics and kinetics of particles and rigid bodies using vector mathematical methods.",
+    "updatedAt": "2026-01-14T13:47:19.467Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a3",
+    "name": "International Marketing",
+    "author": "A.M.Sheikh",
+    "about": "Discusses the complexities of marketing goods and services across international borders and cultures.",
+    "image": "uploads/1768389296219.jpg",
+    "desc": "Discusses the complexities of marketing goods and services across international borders and cultures.",
+    "updatedAt": "2026-01-14T11:14:56.225Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c3",
+    "name": "Fundamentals Of Fluid Mechanics",
+    "author": "Bruce R Munson",
+    "about": "Explains the physical laws governing fluids at rest and in motion for engineering applications.",
+    "image": "uploads/1768398433560.jpg",
+    "desc": "Explains the physical laws governing fluids at rest and in motion for engineering applications.",
+    "updatedAt": "2026-01-14T13:47:13.565Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c2",
+    "name": "Fundamentals Of Fluid Mechanics",
+    "author": "Munson",
+    "about": "Presents fluid properties and flow phenomena with a focus on problem-solving and visual understanding.",
+    "image": "uploads/1768357957193.jpg",
+    "desc": "Presents fluid properties and flow phenomena with a focus on problem-solving and visual understanding.",
+    "updatedAt": "2026-01-14T02:32:37.199Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c1",
+    "name": "Theory Of Machines And Mechanisms",
+    "author": "Uicker Jr",
+    "about": "Analysis of the relative motion and force transmission in complex mechanical linkages and gears.",
+    "image": "uploads/1768379657470.jpg",
+    "desc": "Analysis of the relative motion and force transmission in complex mechanical linkages and gears.",
+    "updatedAt": "2026-01-14T08:34:17.473Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8c0",
+    "name": "Production And Operations Management",
+    "author": "Everett E. Adam",
+    "about": "Focuses on managing the transformation process to produce goods and services efficiently.",
+    "image": "uploads/1768357964798.jpg",
+    "desc": "Focuses on managing the transformation process to produce goods and services efficiently.",
+    "updatedAt": "2026-01-14T02:32:44.801Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8bf",
+    "name": "Fundamentals Of Heat And Mass Transfer",
+    "author": "Incropera",
+    "about": "The definitive text on conduction, convection, and radiation, essential for thermal engineering studies.",
+    "image": "uploads/1768384018772.jpg",
+    "desc": "The definitive text on conduction, convection, and radiation, essential for thermal engineering studies.",
+    "updatedAt": "2026-01-14T09:46:58.777Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8be",
+    "name": "Fundamentals of modern manufacturing",
+    "author": "Mikell",
+    "about": "Explores the materials, processes, and systems that define modern industrial production.",
+    "image": "uploads/1768389323408.jpg",
+    "desc": "Explores the materials, processes, and systems that define modern industrial production.",
+    "updatedAt": "2026-01-14T11:15:23.414Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8bd",
+    "name": "Mechanical vibrations",
+    "author": "Rao",
+    "about": "Analytical approach to predicting and controlling vibrations in machines and structural components.",
+    "image": "uploads/1768379658005.jpg",
+    "desc": "Analytical approach to predicting and controlling vibrations in machines and structural components.",
+    "updatedAt": "2026-01-14T08:34:18.012Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8bb",
+    "name": "Mastering CAD/CAM",
+    "author": "Ibrahim Zeid",
+    "about": "Comprehensive guide to computer-aided design and manufacturing, covering geometric modeling and CNC tools.",
+    "image": "uploads/1768357962410.jpg",
+    "desc": "Comprehensive guide to computer-aided design and manufacturing, covering geometric modeling and CNC tools.",
+    "updatedAt": "2026-01-14T02:32:42.415Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8ba",
+    "name": "Automatic Control Systems",
+    "author": "Golnaraghi",
+    "about": "Explains the design and analysis of control systems using both classical and modern state-space methods.",
+    "image": "uploads/1768389314995.jpg",
+    "desc": "Explains the design and analysis of control systems using both classical and modern state-space methods.",
+    "updatedAt": "2026-01-14T11:15:14.998Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda87f",
+    "name": "Vector Mechanics For Engineers Dynamics",
+    "author": "Ferdinand P Beer-William E Clausen",
+    "about": "Focuses on the kinematics and kinetics of particles and rigid bodies using vector analysis.",
+    "image": "uploads/1768398440772.jpg",
+    "desc": "Focuses on the kinematics and kinetics of particles and rigid bodies using vector analysis.",
+    "updatedAt": "2026-01-14T13:47:20.776Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda88c",
+    "name": "Strength Of Materials",
+    "author": "James M. Gere, Barry J. Goodo",
+    "about": "Examines the mechanical behavior of materials and the analytical methods used to calculate stress and deformation.",
+    "image": "uploads/1768398442535.jpg",
+    "desc": "Examines the mechanical behavior of materials and the analytical methods used to calculate stress and deformation.",
+    "updatedAt": "2026-01-14T13:47:22.539Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda88b",
+    "name": "Internal Combustion Engine Fundamentals",
+    "author": "John B. Heywood",
+    "about": "The definitive guide to the design, operation, and performance of internal combustion engines and their environmental impact.",
+    "image": "uploads/1768398440223.jpg",
+    "desc": "The definitive guide to the design, operation, and performance of internal combustion engines and their environmental impact.",
+    "updatedAt": "2026-01-14T13:47:20.236Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda88a",
+    "name": "Calculus",
+    "author": "Stewart, James",
+    "about": "A widely respected textbook known for its mathematical precision and accuracy in teaching single and multivariable calculus.",
+    "image": "uploads/1768398424979.jpg",
+    "desc": "A widely respected textbook known for its mathematical precision and accuracy in teaching single and multivariable calculus.",
+    "updatedAt": "2026-01-14T13:47:04.990Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda889",
+    "name": "Calculus",
+    "author": "Stewart, James",
+    "about": "Focuses on the conceptual understanding of calculus, covering limits, derivatives, and integrals with real-world applications.",
+    "image": "uploads/1768383996114.jpg",
+    "desc": "Focuses on the conceptual understanding of calculus, covering limits, derivatives, and integrals with real-world applications.",
+    "updatedAt": "2026-01-14T09:46:36.123Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda888",
+    "name": "C ++ How to program",
+    "author": "Deitel",
+    "about": "Explains low-level memory management and high-level class structures in C++.",
+    "image": "uploads/1768384028927.jpg",
+    "desc": "Explains low-level memory management and high-level class structures in C++.",
+    "updatedAt": "2026-01-14T09:47:08.936Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda884",
+    "name": "Fundamentals of physics",
+    "author": "Holliday  Resnicks",
+    "about": "A widely used physics textbook covering mechanics, electromagnetism, and modern physics.",
+    "image": "uploads/1768389304962.jpg",
+    "desc": "A widely used physics textbook covering mechanics, electromagnetism, and modern physics.",
+    "updatedAt": "2026-01-14T11:15:04.966Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda883",
+    "name": "Workshop Technology Part 1",
+    "author": "W A J Chapman",
+    "about": "Covers the fundamental tools, manufacturing processes, and safety procedures used in a workshop.",
+    "image": "uploads/1768379648588.jpg",
+    "desc": "Covers the fundamental tools, manufacturing processes, and safety procedures used in a workshop.",
+    "updatedAt": "2026-01-14T08:34:08.591Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda882",
+    "name": "Calculus",
+    "author": "Anton",
+    "about": "Explores multivariable calculus and infinite series, essential for advanced engineering analysis.",
+    "image": "uploads/1768398440506.jpg",
+    "desc": "Explores multivariable calculus and infinite series, essential for advanced engineering analysis.",
+    "updatedAt": "2026-01-14T13:47:20.510Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda881",
+    "name": "Calculus",
+    "author": "Anton",
+    "about": "A foundational mathematics text covering derivatives, integrals, and their various applications.",
+    "image": "uploads/1768389325073.jpg",
+    "desc": "A foundational mathematics text covering derivatives, integrals, and their various applications.",
+    "updatedAt": "2026-01-14T11:15:25.077Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda880",
+    "name": "Pakistan Studies",
+    "author": "Zafar",
+    "about": "A comprehensive overview of Pakistan's history, culture, geography, and political development.",
+    "image": "uploads/1768389316277.jpg",
+    "desc": "A comprehensive overview of Pakistan's history, culture, geography, and political development.",
+    "updatedAt": "2026-01-14T11:15:16.283Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda88d",
+    "name": "Human Resource Management",
+    "author": "A.M.Sheikh",
+    "about": "Covers the strategic management of people, focusing on recruitment, training, and employee relations in organizations.",
+    "image": "uploads/1768398427795.jpg",
+    "desc": "Covers the strategic management of people, focusing on recruitment, training, and employee relations in organizations.",
+    "updatedAt": "2026-01-14T13:47:07.812Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda87e",
+    "name": "Thermodynamics: An Engineering Approach",
+    "author": "Yunus A. Cengol. Michael A. Boles",
+    "about": "Covers power cycles, refrigeration, and the basics of heat transfer for engineering students.",
+    "image": "uploads/1768379649107.jpg",
+    "desc": "Covers power cycles, refrigeration, and the basics of heat transfer for engineering students.",
+    "updatedAt": "2026-01-14T08:34:09.110Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda87d",
+    "name": "Thermodynamics An Engineering Approach",
+    "author": "Cengel",
+    "about": "Provides a clear understanding of energy analysis and the macroscopic study of thermal systems.",
+    "image": "uploads/1768384029517.jpg",
+    "desc": "Provides a clear understanding of energy analysis and the macroscopic study of thermal systems.",
+    "updatedAt": "2026-01-14T09:47:09.526Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda87c",
+    "name": "Thermodynamics: An Engineering Approach",
+    "author": "Yunus A. Cengol. Michael A. Boles",
+    "about": "Known for its intuitive approach to teaching thermodynamics through real-world engineering examples.",
+    "image": "uploads/1768398425208.jpg",
+    "desc": "Known for its intuitive approach to teaching thermodynamics through real-world engineering examples.",
+    "updatedAt": "2026-01-14T13:47:05.215Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda87b",
+    "name": "Introduction To Engineering Thermodynamics",
+    "author": "Richard E Somtag",
+    "about": "An introductory guide to heat transfer, energy conversion, and the properties of pure substances.",
+    "image": "uploads/1768389311742.jpg",
+    "desc": "An introductory guide to heat transfer, energy conversion, and the properties of pure substances.",
+    "updatedAt": "2026-01-14T11:15:11.745Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda87a",
+    "name": "Fundamentals Of Engineering Thermodynamics",
+    "author": "Moran",
+    "about": "Emphasizes the application of thermodynamic principles to solve engineering and environmental problems.",
+    "image": "uploads/1768389305376.jpg",
+    "desc": "Emphasizes the application of thermodynamic principles to solve engineering and environmental problems.",
+    "updatedAt": "2026-01-14T11:15:05.388Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda879",
+    "name": "Fundamentals Of Engineering Thermodynamics",
+    "author": "Moran",
+    "about": "A classic text covering energy, entropy, and the first and second laws of thermodynamics.",
+    "image": "uploads/1768356113948.jpg",
+    "desc": "A classic text covering energy, entropy, and the first and second laws of thermodynamics.",
+    "updatedAt": "2026-01-14T02:01:53.962Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda878",
+    "name": "Electronic Devices and Circuit Theory",
+    "author": "Boylestad",
+    "about": "An updated edition focusing on the latest trends in electronic devices and simulation software.",
+    "image": "uploads/1768398421897.jpg",
+    "desc": "An updated edition focusing on the latest trends in electronic devices and simulation software.",
+    "updatedAt": "2026-01-14T13:47:01.904Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda877",
+    "name": "Electronic Devices And Circuit Theory",
+    "author": "Robert L. Boylestacl, Louis Nashelsky",
+    "about": "Provides a detailed look at circuit design, frequency response, and operational amplifiers.",
+    "image": "uploads/1768357957896.jpg",
+    "desc": "Provides a detailed look at circuit design, frequency response, and operational amplifiers.",
+    "updatedAt": "2026-01-14T02:32:37.900Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda876",
+    "name": "electronic devices and circuits theory",
+    "author": "Boylested",
+    "about": "Explains semiconductor physics and the operational analysis of various electronic components.",
+    "image": "uploads/1768379649659.jpg",
+    "desc": "Explains semiconductor physics and the operational analysis of various electronic components.",
+    "updatedAt": "2026-01-14T08:34:09.669Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda875",
+    "name": "Electronic Devices and Circuit Theory",
+    "author": "Boylestad",
+    "about": "Covers the fundamental concepts of electronic circuits and their applications in modern technology.",
+    "image": "uploads/1768379660148.jpg",
+    "desc": "Covers the fundamental concepts of electronic circuits and their applications in modern technology.",
+    "updatedAt": "2026-01-14T08:34:20.153Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda897",
+    "name": "Vector and Tensor Analysis",
+    "author": "Shah",
+    "about": "Focuses on the mathematical study of vectors and tensors, essential for solving high-level engineering and physics problems.",
+    "image": "uploads/1768389324651.jpg",
+    "desc": "Focuses on the mathematical study of vectors and tensors, essential for solving high-level engineering and physics problems.",
+    "updatedAt": "2026-01-14T11:15:24.662Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a2",
+    "name": "Statistics Using SPSS, And Integrative Approach",
+    "author": "Weinbrg",
+    "about": "Combines statistical theory with hands-on practice using SPSS software for social science research.",
+    "image": "uploads/1768398421249.jpg",
+    "desc": "Combines statistical theory with hands-on practice using SPSS software for social science research.",
+    "updatedAt": "2026-01-14T13:47:01.253Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a1",
+    "name": "Java A Framework for Program",
+    "author": "Lambert, Kenneth Alfred",
+    "about": "Introduces students to the structure of Java and how to use it to create efficient, scalable software frameworks.",
+    "image": "uploads/1768398421465.jpg",
+    "desc": "Introduces students to the structure of Java and how to use it to create efficient, scalable software frameworks.",
+    "updatedAt": "2026-01-14T13:47:01.478Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda8a0",
+    "name": "Java How To Programming",
+    "author": "Deitel",
+    "about": "A code-intensive guide to Java, focusing on application development and software engineering principles.",
+    "image": "uploads/1768384027739.jpg",
+    "desc": "A code-intensive guide to Java, focusing on application development and software engineering principles.",
+    "updatedAt": "2026-01-14T09:47:07.746Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda89f",
+    "name": "C How to Program Introducing c++ and Java",
+    "author": "H. M. Deitel",
+    "about": "Teaches fundamental programming logic and the evolution from procedural to object-oriented programming.",
+    "image": "uploads/1768389302515.jpg",
+    "desc": "Teaches fundamental programming logic and the evolution from procedural to object-oriented programming.",
+    "updatedAt": "2026-01-14T11:15:02.519Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda89d",
+    "name": "Principles Of Marketing",
+    "author": "Philip Kotler",
+    "about": "Explains how companies create value for customers to build strong relationships and capture value in return.",
+    "image": "uploads/1768398421685.jpg",
+    "desc": "Explains how companies create value for customers to build strong relationships and capture value in return.",
+    "updatedAt": "2026-01-14T13:47:01.690Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda89c",
+    "name": "Principles Of Marketing",
+    "author": "Kurtz- Boone",
+    "about": "A creative approach to marketing management that emphasizes innovation and contemporary trends.",
+    "image": "uploads/1768389324226.jpg",
+    "desc": "A creative approach to marketing management that emphasizes innovation and contemporary trends.",
+    "updatedAt": "2026-01-14T11:15:24.230Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda89b",
+    "name": "Principles Of Marketing",
+    "author": "Kamarulzaman",
+    "about": "An introduction to marketing fundamentals with a focus on regional market dynamics and strategy.",
+    "image": "uploads/1768389302909.jpg",
+    "desc": "An introduction to marketing fundamentals with a focus on regional market dynamics and strategy.",
+    "updatedAt": "2026-01-14T11:15:02.912Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda89a",
+    "name": "Principles Of Marketing",
+    "author": "Kotler",
+    "about": "Updated insights into digital marketing, social responsibility, and modern customer relationship management.",
+    "image": "uploads/1768389303339.jpg",
+    "desc": "Updated insights into digital marketing, social responsibility, and modern customer relationship management.",
+    "updatedAt": "2026-01-14T11:15:03.345Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda899",
+    "name": "Fluid Mechaincs",
+    "author": "White",
+    "about": "Detailed analysis of fluid properties, pipe flow, and open channel hydraulics with practical engineering examples.",
+    "image": "uploads/1768398431531.jpg",
+    "desc": "Detailed analysis of fluid properties, pipe flow, and open channel hydraulics with practical engineering examples.",
+    "updatedAt": "2026-01-14T13:47:11.537Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda898",
+    "name": "Principles Of Marketing",
+    "author": "Philip Kotler",
+    "about": "The industry-standard guide to understanding consumer value, branding, and global marketing strategies.",
+    "image": "uploads/1768398450455.jpg",
+    "desc": "The industry-standard guide to understanding consumer value, branding, and global marketing strategies.",
+    "updatedAt": "2026-01-14T13:47:30.459Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda811",
+    "name": "Project Management",
+    "author": "Abdulkader Thomas",
+    "about": "This book explores project management principles specifically within the framework of Islamic finance and ethics.",
+    "image": "uploads/1768389308676.jpg",
+    "desc": "This book explores project management principles specifically within the framework of Islamic finance and ethics.",
+    "updatedAt": "2026-01-14T11:15:08.679Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda896",
+    "name": "Physics",
+    "author": "Gilbert",
+    "about": "A foundational study of physical laws, covering classical mechanics, thermodynamics, and wave motion.",
+    "image": "uploads/1768389303728.jpg",
+    "desc": "A foundational study of physical laws, covering classical mechanics, thermodynamics, and wave motion.",
+    "updatedAt": "2026-01-14T11:15:03.731Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda895",
+    "name": "Modern Physics For Scientists And Engineers",
+    "author": "John R. Taylor-Chris D. Zafiratos",
+    "about": "Covers the major developments of 20th-century physics, including relativity and quantum mechanics.",
+    "image": "uploads/1768389304126.jpg",
+    "desc": "Covers the major developments of 20th-century physics, including relativity and quantum mechanics.",
+    "updatedAt": "2026-01-14T11:15:04.132Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda894",
+    "name": "Business Communication",
+    "author": "Ellen, Mary Guffey",
+    "about": "Teaches effective writing, speaking, and interpersonal communication skills tailored for the modern corporate environment.",
+    "image": "uploads/1768398434054.jpg",
+    "desc": "Teaches effective writing, speaking, and interpersonal communication skills tailored for the modern corporate environment.",
+    "updatedAt": "2026-01-14T13:47:14.063Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda893",
+    "name": "Bioinformatics Databases And Algorithms",
+    "author": "Gautham",
+    "about": "Explores the computational techniques and databases used to analyze biological sequences and genetic information.",
+    "image": "uploads/1768357965467.jpg",
+    "desc": "Explores the computational techniques and databases used to analyze biological sequences and genetic information.",
+    "updatedAt": "2026-01-14T02:32:45.472Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda892",
+    "name": "Introduction To Machine Learning",
+    "author": "Ethem Alpaydin",
+    "about": "Explains the statistical foundations and computational tools required to build intelligent systems and data models.",
+    "image": "uploads/1768398424752.jpg",
+    "desc": "Explains the statistical foundations and computational tools required to build intelligent systems and data models.",
+    "updatedAt": "2026-01-14T13:47:04.770Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda891",
+    "name": "Introduction To Machine Learning",
+    "author": "Ethem Alpaydin",
+    "about": "Provides a comprehensive overview of machine learning algorithms, from basic supervised learning to neural networks.",
+    "image": "uploads/1768357965799.jpg",
+    "desc": "Provides a comprehensive overview of machine learning algorithms, from basic supervised learning to neural networks.",
+    "updatedAt": "2026-01-14T02:32:45.805Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda890",
+    "name": "Fluid Mechaincs",
+    "author": "Jog",
+    "about": "An advanced engineering text providing a rigorous mathematical treatment of fluid flow and mechanics.",
+    "image": "uploads/1768389304548.jpg",
+    "desc": "An advanced engineering text providing a rigorous mathematical treatment of fluid flow and mechanics.",
+    "updatedAt": "2026-01-14T11:15:04.551Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda88f",
+    "name": "Viscous Fluid Dynamics",
+    "author": "Shah",
+    "about": "A specialized look at the flow of viscous fluids, focusing on laminar and turbulent boundary layer theories.",
+    "image": "uploads/1768357966140.jpg",
+    "desc": "A specialized look at the flow of viscous fluids, focusing on laminar and turbulent boundary layer theories.",
+    "updatedAt": "2026-01-14T02:32:46.145Z"
+  },
+  {
+    "isAvailable": true,
+    "_id": "6966797fd876bb684bbda88e",
+    "name": "Quantitative Methods For Business",
+    "author": "Anderson Sweeney",
+    "about": "Introduces statistical and mathematical models used to solve complex business decision-making problems.",
+    "image": "uploads/1768379659611.jpg",
+    "desc": "Introduces statistical and mathematical models used to solve complex business decision-making problems.",
+    "updatedAt": "2026-01-14T08:34:19.618Z"
+  }
+]

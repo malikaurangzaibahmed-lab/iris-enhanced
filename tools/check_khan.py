@@ -1,6 +1,6 @@
 import json
 
-data = json.loads(open(r"D:\Flutter\student_organizer\assets\timetable_seed.json", encoding="utf-8").read())
+data = json.loads(open(r"D:\Flutter\IRIS\assets\timetable_seed.json", encoding="utf-8").read())
 print("=== Entries with 'Khan' in subject ===")
 for s in data:
     sub = s.get("subject", "")

@@ -1,0 +1,14 @@
+{
+  "fetched_at": "2026-04-13T13:06:16.484313+00:00",
+  "bundle_dir": "reports\\helpdesk_backups\\20260413T130616Z",
+  "datasets": [
+    "notices",
+    "faculty",
+    "alumni",
+    "societies",
+    "books",
+    "lost_found_student",
+    "lost_found_all"
+  ],
+  "errors": {}
+}

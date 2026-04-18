@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'services/pdf_debug_parser.dart';
+import 'widgets/liquid_glass_effect.dart';
 
 /// Debug screen for testing PDF parser
 class PDFDebugScreen extends StatefulWidget {
@@ -74,197 +75,199 @@ class _PDFDebugScreenState extends State<PDFDebugScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('PDF Parser Debug'),
-        backgroundColor: Colors.deepPurple,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text(
-              'Run parser tests against actual PDFs',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            ...pdfTests.map((test) {
-              final (path, batch) = test;
-              final result = results[path];
-              final isLoading = loading[path] ?? false;
-              final error = errors[path];
+    return LiquidGlassEffect(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('PDF Parser Debug'),
+          backgroundColor: Colors.deepPurple,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Text(
+                'Run parser tests against actual PDFs',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ...pdfTests.map((test) {
+                final (path, batch) = test;
+                final result = results[path];
+                final isLoading = loading[path] ?? false;
+                final error = errors[path];
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    path.split('/').last,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Batch: $batch',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (isLoading)
-                              const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            else
-                              ElevatedButton(
-                                onPressed: () => _runTest(path, batch),
-                                child: const Text('Run'),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (error != null)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.red[100],
-                              border: Border.all(color: Colors.red),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              error,
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 11,
-                              ),
-                            ),
-                          )
-                        else if (result != null)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.green[100],
-                                  border: Border.all(color: Colors.green),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '✅ Success: ${result.sessions.length} sessions parsed',
+                                      path.split('/').last,
                                       style: const TextStyle(
-                                        color: Colors.green,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    _buildStats(result),
+                                    Text(
+                                      'Batch: $batch',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'Sessions:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                              if (isLoading)
+                                const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              else
+                                ElevatedButton(
+                                  onPressed: () => _runTest(path, batch),
+                                  child: const Text('Run'),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (error != null)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.red[100],
+                                border: Border.all(color: Colors.red),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                error,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 11,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              ...result.rows.asMap().entries.map((entry) {
-                                final idx = entry.key;
-                                final row = entry.value;
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
+                            )
+                          else if (result != null)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: double.infinity,
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[100],
-                                    border: Border.all(
-                                      color: _confidenceColor(row.confidence),
-                                      width: 2,
-                                    ),
+                                    color: Colors.green[100],
+                                    border: Border.all(color: Colors.green),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '[${idx + 1}/Conf ${row.confidence}%] ${row.day} ${row.timeRange}',
+                                        '✅ Success: ${result.sessions.length} sessions parsed',
                                         style: const TextStyle(
+                                          color: Colors.green,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 11,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        '📚 ${row.subject}',
-                                        style: const TextStyle(fontSize: 11),
+                                      _buildStats(result),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Sessions:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                ...result.rows.asMap().entries.map((entry) {
+                                  final idx = entry.key;
+                                  final row = entry.value;
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      border: Border.all(
+                                        color: _confidenceColor(row.confidence),
+                                        width: 2,
                                       ),
-                                      Text(
-                                        '👨‍🏫 ${row.teacher}',
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                      Text(
-                                        '🏛️ ${row.room}',
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                      if (row.subject == 'Unknown' ||
-                                          row.teacher == 'Unknown' ||
-                                          row.room == 'TBD')
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 4),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange[200],
-                                              borderRadius: BorderRadius.circular(2),
-                                            ),
-                                            child: const Text(
-                                              '⚠️ Contains missing data',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.orangeAccent,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '[${idx + 1}/Conf ${row.confidence}%] ${row.day} ${row.timeRange}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '📚 ${row.subject}',
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                        Text(
+                                          '👨‍🏫 ${row.teacher}',
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                        Text(
+                                          '🏛️ ${row.room}',
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                        if (row.subject == 'Unknown' ||
+                                            row.teacher == 'Unknown' ||
+                                            row.room == 'TBD')
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 4),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange[200],
+                                                borderRadius: BorderRadius.circular(2),
+                                              ),
+                                              child: const Text(
+                                                '⚠️ Contains missing data',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.orangeAccent,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                    ],
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
-                      ],
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
-          ],
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );

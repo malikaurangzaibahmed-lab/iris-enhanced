@@ -1,0 +1,32 @@
+[
+  {
+    "_id": "69dc063630be1ceb8c727a77",
+    "type": "lost",
+    "name": "Testing",
+    "userName": "Abdul Rehman",
+    "rollNumber": "SP25-BCS-160",
+    "desc": "nothing ",
+    "location": "A block ",
+    "contact": "03700395249",
+    "image": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1776027190/cui_helpdesk/lostfound/file-1776027189911.jpg",
+    "userId": "DPQan4CGK3NVdFxmKy29d80DfFo1",
+    "createdAt": "2026-04-12T20:53:10.578Z",
+    "updatedAt": "2026-04-12T20:53:10.578Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d6554a8f6cc477703cffe9",
+    "type": "lost",
+    "name": "Mobile",
+    "userName": "Abdul Rehman",
+    "rollNumber": "SP25-BCS-160",
+    "desc": "Iphone lost near A block",
+    "location": "A block",
+    "contact": "03700395249",
+    "image": "https://res.cloudinary.com/dbjdnztkq/image/upload/v1775654217/cui_helpdesk/lostfound/file-1775654217368.jpg",
+    "userId": "DPQan4CGK3NVdFxmKy29d80DfFo1",
+    "createdAt": "2026-04-08T13:16:58.007Z",
+    "updatedAt": "2026-04-08T13:16:58.007Z",
+    "__v": 0
+  }
+]

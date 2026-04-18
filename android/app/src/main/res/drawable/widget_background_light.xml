@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget background for light mode -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="135"
+        android:startColor="#FAFBFF"
+        android:centerColor="#EEF2FF"
+        android:endColor="#E0E7FF"
+        android:type="linear" />
+    <corners android:radius="16dp" />
+</shape>

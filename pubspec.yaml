@@ -1,4 +1,4 @@
-name: student_organizer
+name: iris
 description: "IRIS - Intelligent Resource Information System"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -38,13 +38,14 @@ dependencies:
   url_launcher: ^6.3.1
   home_widget: ^0.6.0
   webview_flutter: ^4.8.0
+  webview_flutter_android: ^4.0.0
   file_picker: ^8.1.5
   flutter_local_notifications: ^17.1.2
   flutter_foreground_task: ^8.12.0
   timezone: ^0.9.2
   http: ^1.2.2
   path_provider: ^2.1.4
-  package_info_plus: ^8.1.1
+  open_filex: ^4.6.0
   syncfusion_flutter_pdf: ^26.2.13
 
 dev_dependencies:
@@ -75,6 +76,19 @@ flutter:
     - assets/timetable_seed.json
     - assets/iris_logo.png
     - assets/Alex_Jones.gif
+    - assets/sfx_nav_soft.ogg
+    - assets/sfx_nav_click.ogg
+    - assets/sfx_confirm.ogg
+    - assets/ui_toggle_soft.wav
+    - assets/ui_toggle_click.mp3
+    - assets/ui_toggle_click.wav
+    - assets/ui_toggle_soft.mp3
+    - assets/sfx_confirm.ogg
+    - assets/ui_sfx/coins.wav
+    - assets/ui_sfx/laser.wav
+    - assets/ui_sfx/nasa_on_a_mission.mp3
+    - assets/ui_sfx_pack/
+    - assets/helpdesk_backup/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

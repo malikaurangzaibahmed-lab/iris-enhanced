@@ -1,6 +1,6 @@
 {
-    "name": "student_organizer",
-    "short_name": "student_organizer",
+    "name": "iris",
+    "short_name": "IRIS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

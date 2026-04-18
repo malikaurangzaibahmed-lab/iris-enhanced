@@ -13,38 +13,33 @@ import android.widget.RemoteViews
 class ClassTrackerWidget : AppWidgetProvider() {
     companion object {
         private const val TAG = "ClassTrackerWidget"
-        // Try multiple preference store names since home_widget might use different names
         private val PREFS_NAMES = arrayOf(
-            "com.example.student_organizer",  // App group ID
-            "HomeWidgetPreferences",          // Standard home_widget name
-            "FlutterSharedPreferences",       // Flutter's native prefs
+            "com.example.student_organizer",
+            "HomeWidgetPreferences",
+            "FlutterSharedPreferences",
         )
         private const val UPDATE_ACTION = "com.example.student_organizer.WIDGET_UPDATE"
 
-        fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+        fun updateAppWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int,
+            providerClass: Class<out AppWidgetProvider> = ClassTrackerWidget::class.java,
+        ) {
             try {
-                Log.d(TAG, "Updating widget $appWidgetId")
-                
-                // Try to read from multiple possible preference stores
                 var prefs: SharedPreferences? = null
                 for (prefsName in PREFS_NAMES) {
                     val candidate = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-                    // Check if this prefs store has our data
-                    if (candidate.contains("flutter.widget_headline") || 
+                    if (candidate.contains("flutter.widget_headline") ||
                         candidate.contains("flutter.current_class_subject")) {
                         prefs = candidate
-                        Log.d(TAG, "Found widget data in prefs: $prefsName")
                         break
                     }
                 }
-                
-                // If no data found, use the app group ID as fallback
                 if (prefs == null) {
-                    Log.w(TAG, "Widget data not found in any prefs store, using default")
                     prefs = context.getSharedPreferences(PREFS_NAMES[0], Context.MODE_PRIVATE)
                 }
-                
-                // Read temporal insight data with safe defaults
+
                 val headline = prefs.getString("flutter.widget_headline", "System Idle") ?: "System Idle"
                 val subline = prefs.getString("flutter.widget_subline", "No active class") ?: "No active class"
                 val teacher = prefs.getString("flutter.current_class_teacher", "") ?: ""
@@ -53,103 +48,121 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 val isLive = prefs.getBoolean("flutter.is_class_live", false)
                 val isUrgent = prefs.getBoolean("flutter.is_urgent", false)
                 val widgetDarkMode = prefs.getBoolean("flutter.widget_dark_mode", false)
-                
-                Log.d(TAG, "Loaded: headline=$headline, live=$isLive, urgent=$isUrgent, darkMode=$widgetDarkMode")
 
-                val views = RemoteViews(context.packageName, R.layout.widget)
-                
-                // Set headline
+                val layoutId = if (widgetDarkMode) R.layout.widget_safe_dark else R.layout.widget_safe
+                val views = try {
+                    RemoteViews(context.packageName, layoutId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Widget layout inflate failed: ${e.message}", e)
+                    return
+                }
+
                 views.setTextViewText(R.id.widget_headline, headline)
-                
-                // Apply color based on state and dark mode
-                val textColorDark = 0xFF6366F1.toInt()  // Indigo
-                val textColorLight = 0xFF1E293B.toInt() // Dark slate (light mode)
+                views.setTextViewText(R.id.widget_subline, subline)
+
                 val headlineColor = when {
-                    isLive -> 0xFF10B981.toInt()        // Green for live
-                    isUrgent -> 0xFFEF4444.toInt()      // Red for urgent
-                    else -> if (widgetDarkMode) textColorDark else textColorLight
+                    isLive -> 0xFF10B981.toInt()
+                    isUrgent -> 0xFFF59E0B.toInt()
+                    else -> if (widgetDarkMode) 0xFFE2E8F0.toInt() else 0xFF334155.toInt()
                 }
                 views.setTextColor(R.id.widget_headline, headlineColor)
-                
-                // Set subline
-                views.setTextViewText(R.id.widget_subline, subline)
-                val sublineColor = if (widgetDarkMode) 0xFFF5F5F5.toInt() else 0xFF333333.toInt()
-                views.setTextColor(R.id.widget_subline, sublineColor)
-                
-                // Set teacher info if available
+                views.setTextColor(R.id.widget_subline, if (widgetDarkMode) 0xFFFFFFFF.toInt() else 0xFF1E293B.toInt())
+
+                when {
+                    isLive -> {
+                        views.setTextViewText(R.id.widget_status_badge, "LIVE")
+                        views.setTextColor(R.id.widget_status_badge, 0xFF10B981.toInt())
+                        views.setViewVisibility(R.id.widget_status_badge, android.view.View.VISIBLE)
+                    }
+                    isUrgent -> {
+                        views.setTextViewText(R.id.widget_status_badge, "SOON")
+                        views.setTextColor(R.id.widget_status_badge, 0xFFF59E0B.toInt())
+                        views.setViewVisibility(R.id.widget_status_badge, android.view.View.VISIBLE)
+                    }
+                    else -> {
+                        views.setTextViewText(R.id.widget_status_badge, "NEXT")
+                        views.setTextColor(R.id.widget_status_badge, if (widgetDarkMode) 0xFFBFDBFE.toInt() else 0xFF5B7FFF.toInt())
+                        views.setViewVisibility(R.id.widget_status_badge, android.view.View.VISIBLE)
+                    }
+                }
+
                 if (teacher.isNotEmpty()) {
-                    views.setTextViewText(R.id.widget_teacher_info, teacher)
-                    val teacherColor = if (widgetDarkMode) 0xFFA0A0A0.toInt() else 0xFF666666.toInt()
-                    views.setTextColor(R.id.widget_teacher_info, teacherColor)
+                    views.setTextViewText(R.id.widget_teacher_info, "Teacher: $teacher")
+                    views.setTextColor(R.id.widget_teacher_info, if (widgetDarkMode) 0xFFCBD5E1.toInt() else 0xFF64748B.toInt())
                     views.setViewVisibility(R.id.widget_teacher_info, android.view.View.VISIBLE)
                 } else {
                     views.setViewVisibility(R.id.widget_teacher_info, android.view.View.GONE)
                 }
-                
-                // Show/hide progress bar only if live
+
                 if (isLive) {
                     views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
                     views.setViewVisibility(R.id.widget_progress, android.view.View.VISIBLE)
                 } else {
                     views.setViewVisibility(R.id.widget_progress, android.view.View.GONE)
                 }
-                
-                // Show/hide live indicator
-                if (isLive) {
-                    views.setViewVisibility(R.id.widget_live_indicator, android.view.View.VISIBLE)
-                } else {
-                    views.setViewVisibility(R.id.widget_live_indicator, android.view.View.GONE)
-                }
-                
-                // Set time info
-                views.setTextViewText(R.id.widget_time_info, if (timeInfo.isEmpty()) "--" else timeInfo)
-                val timeColor = if (widgetDarkMode) 0xFF888888.toInt() else 0xFF777777.toInt()
-                views.setTextColor(R.id.widget_time_info, timeColor)
 
-                // Launch app on click
-                val intent = Intent(context, MainActivity::class.java)
-                val pendingIntent = PendingIntent.getActivity(context, 0, intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                views.setOnClickPendingIntent(R.id.widget_headline, pendingIntent)
-                views.setOnClickPendingIntent(R.id.widget_subline, pendingIntent)
-                views.setOnClickPendingIntent(R.id.widget_time_info, pendingIntent)
+                val displayTime = if (timeInfo.isEmpty()) "--" else timeInfo
+                views.setTextViewText(R.id.widget_time_info, displayTime)
+                val timeColor = when {
+                    isLive -> 0xFF10B981.toInt()
+                    isUrgent -> 0xFFF59E0B.toInt()
+                    else -> if (widgetDarkMode) 0xFFA5B4C5.toInt() else 0xFF64748B.toInt()
+                }
+                views.setTextColor(R.id.widget_time_info, timeColor)
+                views.setTextColor(R.id.widget_refresh, if (widgetDarkMode) 0xFFBFDBFE.toInt() else 0xFF334155.toInt())
+
+                val launchIntent = Intent(context, MainActivity::class.java)
+                val launchPending = PendingIntent.getActivity(
+                    context,
+                    0,
+                    launchIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+                views.setOnClickPendingIntent(R.id.widget_root, launchPending)
+                views.setOnClickPendingIntent(R.id.widget_headline, launchPending)
+                views.setOnClickPendingIntent(R.id.widget_subline, launchPending)
+                views.setOnClickPendingIntent(R.id.widget_time_info, launchPending)
+
+                val refreshIntent = Intent(context, providerClass).apply {
+                    action = UPDATE_ACTION
+                }
+                val refreshPending = PendingIntent.getBroadcast(
+                    context,
+                    appWidgetId + 2000,
+                    refreshIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+                views.setOnClickPendingIntent(R.id.widget_refresh, refreshPending)
 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
-                Log.d(TAG, "✅ Successfully updated widget $appWidgetId")
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Error updating widget: ${e.message}", e)
+                Log.e(TAG, "Widget update failed: ${e.message}", e)
+            }
+        }
+
+        private fun updateAllInstances(
+            context: Context,
+            providerClass: Class<out AppWidgetProvider>,
+        ) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val thisAppWidget = ComponentName(context.packageName, providerClass.name)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget)
+            for (appWidgetId in appWidgetIds) {
+                updateAppWidget(context, appWidgetManager, appWidgetId, providerClass)
             }
         }
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        Log.d(TAG, "onUpdate called with ${appWidgetIds.size} widgets")
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            updateAppWidget(context, appWidgetManager, appWidgetId, ClassTrackerWidget::class.java)
         }
     }
 
     override fun onReceive(context: Context, intent: Intent?) {
-        Log.d(TAG, "onReceive: ${intent?.action}")
         super.onReceive(context, intent)
         if (intent?.action == UPDATE_ACTION) {
-            Log.d(TAG, "Received widget update broadcast")
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            val thisAppWidget = ComponentName(context.packageName, ClassTrackerWidget::class.java.name)
-            val appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget)
-            for (appWidgetId in appWidgetIds) {
-                updateAppWidget(context, appWidgetManager, appWidgetId)
-            }
+            updateAllInstances(context, ClassTrackerWidget::class.java)
         }
-    }
-
-    override fun onEnabled(context: Context) {
-        super.onEnabled(context)
-        Log.d(TAG, "Widget enabled")
-    }
-
-    override fun onDisabled(context: Context) {
-        super.onDisabled(context)
-        Log.d(TAG, "Widget disabled")
     }
 }

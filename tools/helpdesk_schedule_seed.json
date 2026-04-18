@@ -1,0 +1,1498 @@
+﻿{
+    "captured_at":  "2026-04-14T00:09:34Z",
+    "captured_from":  "authenticated_helpdesk_schedule_tab",
+    "semester_schedule":  [
+                              {
+                                  "title":  "REGISTRATION WEEK",
+                                  "date":  "2026-01-26",
+                                  "status":  "expired"
+                              },
+                              {
+                                  "title":  "COMMENCEMENT OF CLASSES",
+                                  "date":  "2026-02-02",
+                                  "status":  "expired"
+                              },
+                              {
+                                  "title":  "LAST DATE FOR DROP COURSE",
+                                  "date":  "2026-03-06",
+                                  "status":  "expired"
+                              },
+                              {
+                                  "title":  "MID EXAMS",
+                                  "date":  "2026-04-13",
+                                  "status":  "expired"
+                              },
+                              {
+                                  "title":  "LAST DAY OF CLASSES",
+                                  "date":  "2026-05-22",
+                                  "status":  "upcoming"
+                              },
+                              {
+                                  "title":  "TERMINAL EXAMS",
+                                  "date":  "2026-06-03",
+                                  "status":  "upcoming"
+                              },
+                              {
+                                  "title":  "RESULT OF TERMINAL EXAMS",
+                                  "date":  "2026-07-06",
+                                  "status":  "upcoming"
+                              }
+                          ],
+    "deadlines":  [
+                      {
+                          "title":  "Assignment # 1",
+                          "date":  "2026-04-13T00:00:00",
+                          "status":  "passed"
+                      },
+                      {
+                          "title":  "Assignment # 2",
+                          "date":  "2026-04-13T00:00:00",
+                          "status":  "passed"
+                      },
+                      {
+                          "title":  "Assignment # 3",
+                          "date":  "2026-06-01T00:00:00",
+                          "status":  "upcoming"
+                      },
+                      {
+                          "title":  "Assignment # 4",
+                          "date":  "2026-06-01T00:00:00",
+                          "status":  "upcoming"
+                      },
+                      {
+                          "title":  "Final Submission of Discrepancy Free PhD Scholar File Title to the CoE Office",
+                          "date":  "2026-08-24T00:00:00",
+                          "status":  "upcoming"
+                      },
+                      {
+                          "title":  "Lab Assignment # 1",
+                          "date":  "2026-04-13T00:00:00",
+                          "status":  "passed"
+                      }
+                  ],
+    "library_schedule":  {
+                             "open":  "8:00 AM (Mon-Fri)",
+                             "break":  "12:45 PM - 1:40 PM",
+                             "close":  "4:30 PM"
+                         },
+    "transport_routes":  [
+                             {
+                                 "route":  "Arifwala Route 1",
+                                 "driver":  {
+                                                "name":  "Muhammad Ramzan",
+                                                "phone":  "0302-4227430"
+                                            },
+                                 "helper":  {
+                                                "name":  "Muhammad Rizwan",
+                                                "phone":  "0302-4898480"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Go Pump",
+                                                   "time":  "6:45 AM"
+                                               },
+                                               {
+                                                   "point":  "Agriculture University",
+                                                   "time":  "6:36 AM"
+                                               },
+                                               {
+                                                   "point":  "Rest House",
+                                                   "time":  "6:38 AM"
+                                               },
+                                               {
+                                                   "point":  "Faisal Town",
+                                                   "time":  "6:40 AM"
+                                               },
+                                               {
+                                                   "point":  "Kumharan Walla Chowk",
+                                                   "time":  "6:42 AM"
+                                               },
+                                               {
+                                                   "point":  "Pathak",
+                                                   "time":  "6:45 AM"
+                                               },
+                                               {
+                                                   "point":  "Fatima Jinnah Park",
+                                                   "time":  "6:47 AM"
+                                               },
+                                               {
+                                                   "point":  "LRBT Hospital",
+                                                   "time":  "6:53 AM"
+                                               },
+                                               {
+                                                   "point":  "Wahab Colony",
+                                                   "time":  "6:56 AM"
+                                               },
+                                               {
+                                                   "point":  "Mota Colony",
+                                                   "time":  "6:57 AM"
+                                               },
+                                               {
+                                                   "point":  "College Chowk",
+                                                   "time":  "6:58 AM"
+                                               },
+                                               {
+                                                   "point":  "TMA Chowk",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Gol Chaker",
+                                                   "time":  "7:01 AM"
+                                               },
+                                               {
+                                                   "point":  "Shafi Shadi Chowk",
+                                                   "time":  "7:03 AM"
+                                               },
+                                               {
+                                                   "point":  "Ansari Chowk",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Car Stand",
+                                                   "time":  "7:06 AM"
+                                               },
+                                               {
+                                                   "point":  "Police Station",
+                                                   "time":  "7:08 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Arifwala Route 2",
+                                 "driver":  {
+                                                "name":  "Fiaz Mehmood",
+                                                "phone":  "0301-4192946"
+                                            },
+                                 "helper":  {
+                                                "name":  "Waqas Mehmood",
+                                                "phone":  "0301-1374346"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Go Pump 149/E.B",
+                                                   "time":  "6:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Bahar Wala Adda Arifwala",
+                                                   "time":  "6:50 AM"
+                                               },
+                                               {
+                                                   "point":  "Pakistan Go Pump",
+                                                   "time":  "6:51 AM"
+                                               },
+                                               {
+                                                   "point":  "Tarikhnee Mor",
+                                                   "time":  "6:54 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak -149/EB",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak -134/EB",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak -38/EB",
+                                                   "time":  "7:10 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak -26/EB",
+                                                   "time":  "7:11 AM"
+                                               },
+                                               {
+                                                   "point":  "Adda Kameer Shareef",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "Khawaja Arif",
+                                                   "time":  "7:22 AM"
+                                               },
+                                               {
+                                                   "point":  "Shabil Adda",
+                                                   "time":  "7:26 AM"
+                                               },
+                                               {
+                                                   "point":  "Hi Ã¢â‚¬â€œ Tack",
+                                                   "time":  "7:32 AM"
+                                               },
+                                               {
+                                                   "point":  "Pasha Hotel",
+                                                   "time":  "7:38 AM"
+                                               },
+                                               {
+                                                   "point":  "Ajwa City",
+                                                   "time":  "7:47 AM"
+                                               },
+                                               {
+                                                   "point":  "Haseeb Town",
+                                                   "time":  "7:50 AM"
+                                               },
+                                               {
+                                                   "point":  "Chungi 90",
+                                                   "time":  "7:51 AM"
+                                               },
+                                               {
+                                                   "point":  "Baba Farid Park",
+                                                   "time":  "7:53 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "ChichaWattni (Bus # SLJ-46)",
+                                 "driver":  {
+                                                "name":  "Abid Ali",
+                                                "phone":  "0300-7839994"
+                                            },
+                                 "helper":  {
+                                                "name":  "Waqas Ali",
+                                                "phone":  "0301-3788008"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Bus Parking",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Huma Bashir Clinic",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Housing Colony",
+                                                   "time":  "7:01 AM"
+                                               },
+                                               {
+                                                   "point":  "Ayesha Clinic",
+                                                   "time":  "7:02 AM"
+                                               },
+                                               {
+                                                   "point":  "Makkah Masjid Chowk",
+                                                   "time":  "7:04 AM"
+                                               },
+                                               {
+                                                   "point":  "Bismillah Chowk",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Kabana Foods",
+                                                   "time":  "7:06 AM"
+                                               },
+                                               {
+                                                   "point":  "Degree College",
+                                                   "time":  "7:08 AM"
+                                               },
+                                               {
+                                                   "point":  "Tower Stop",
+                                                   "time":  "7:09 AM"
+                                               },
+                                               {
+                                                   "point":  "Shopo City",
+                                                   "time":  "7:11 AM"
+                                               },
+                                               {
+                                                   "point":  "Shawal Timber",
+                                                   "time":  "7:12 AM"
+                                               },
+                                               {
+                                                   "point":  "AL-Ghanni Pump",
+                                                   "time":  "7:13 AM"
+                                               },
+                                               {
+                                                   "point":  "39 Chungi Bypass",
+                                                   "time":  "7:14 AM"
+                                               },
+                                               {
+                                                   "point":  "Superior College",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "Dad Fatyana Pull",
+                                                   "time":  "7:22 AM"
+                                               },
+                                               {
+                                                   "point":  "9 Bambai",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "6 Chak/11-L",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "187/9-L",
+                                                   "time":  "7:40 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI Sahiwal Campus",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "ChichaWattni (SLJ-025)",
+                                 "driver":  {
+                                                "name":  "Sadat Mand",
+                                                "phone":  "0301-6379625"
+                                            },
+                                 "helper":  {
+                                                "name":  "Waheed Ahmad",
+                                                "phone":  "0307-4991483"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Bus Parking",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Raja Petrol Pump",
+                                                   "time":  "6:55 AM"
+                                               },
+                                               {
+                                                   "point":  "Taaj Mehal",
+                                                   "time":  "6:56 AM"
+                                               },
+                                               {
+                                                   "point":  "Nadra Office",
+                                                   "time":  "6:57 AM"
+                                               },
+                                               {
+                                                   "point":  "Rescue 1122",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Taaj Petrol Pump",
+                                                   "time":  "7:03 AM"
+                                               },
+                                               {
+                                                   "point":  "Ray Hospital",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Lakar Mandi",
+                                                   "time":  "7:07 AM"
+                                               },
+                                               {
+                                                   "point":  "City Pull",
+                                                   "time":  "7:10 AM"
+                                               },
+                                               {
+                                                   "point":  "Lari Adda",
+                                                   "time":  "7:12 AM"
+                                               },
+                                               {
+                                                   "point":  "Over Head Bridge",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "Garden Town",
+                                                   "time":  "7:17 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak 7/11-L",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak 5/11-L",
+                                                   "time":  "7:35 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak 3/10-L",
+                                                   "time":  "7:38 AM"
+                                               },
+                                               {
+                                                   "point":  "Nai Wala Bypass",
+                                                   "time":  "7:40 AM"
+                                               },
+                                               {
+                                                   "point":  "138/9-L",
+                                                   "time":  "7:50 AM"
+                                               },
+                                               {
+                                                   "point":  "Fatoo Mor",
+                                                   "time":  "7:55 AM"
+                                               },
+                                               {
+                                                   "point":  "136/9-L",
+                                                   "time":  "7:58 AM"
+                                               },
+                                               {
+                                                   "point":  "134/9-L Bypass",
+                                                   "time":  "8:08 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI Sahiwal Campus",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Harrappa City",
+                                 "driver":  {
+                                                "name":  "Fiyaz Mehmood",
+                                                "phone":  "0301-4192946"
+                                            },
+                                 "helper":  {
+                                                "name":  null,
+                                                "phone":  null
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Bus Parking",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Ajwa Markee",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "GO Pump",
+                                                   "time":  "7:18 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak 102/6-AR",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak 02/10-L",
+                                                   "time":  "7:22 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak 01/10-L",
+                                                   "time":  "7:24 AM"
+                                               },
+                                               {
+                                                   "point":  "Harrappa Pathak",
+                                                   "time":  "7:28 AM"
+                                               },
+                                               {
+                                                   "point":  "Harrappa Station",
+                                                   "time":  "7:31 AM"
+                                               },
+                                               {
+                                                   "point":  "KFC",
+                                                   "time":  "7:50 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI Sahiwal Campus",
+                                                   "time":  "8:15 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Okara (SLJ-45)",
+                                 "driver":  {
+                                                "name":  "Ghulam Mustafa",
+                                                "phone":  "0300-6961554"
+                                            },
+                                 "helper":  {
+                                                "name":  "Asghar Ali",
+                                                "phone":  "0303-2237351"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Total Pump Bypass",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Kissan Adda",
+                                                   "time":  "6:37 AM"
+                                               },
+                                               {
+                                                   "point":  "Chak 55/2L Punjab College",
+                                                   "time":  "6:40 AM"
+                                               },
+                                               {
+                                                   "point":  "Jawad Avenue",
+                                                   "time":  "6:43 AM"
+                                               },
+                                               {
+                                                   "point":  "Allied Pump",
+                                                   "time":  "6:45 AM"
+                                               },
+                                               {
+                                                   "point":  "1 Chak Pathak",
+                                                   "time":  "6:46 AM"
+                                               },
+                                               {
+                                                   "point":  "Hassan Block",
+                                                   "time":  "6:48 AM"
+                                               },
+                                               {
+                                                   "point":  "Green City",
+                                                   "time":  "6:49 AM"
+                                               },
+                                               {
+                                                   "point":  "Sardar Chowk",
+                                                   "time":  "6:50 AM"
+                                               },
+                                               {
+                                                   "point":  "Crown City",
+                                                   "time":  "6:55 AM"
+                                               },
+                                               {
+                                                   "point":  "Govt Colony",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Ali Raza Hotel",
+                                                   "time":  "7:07 AM"
+                                               },
+                                               {
+                                                   "point":  "Sikandar Chowk",
+                                                   "time":  "7:12 AM"
+                                               },
+                                               {
+                                                   "point":  "Venus Chowk",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "Kababash Hotel",
+                                                   "time":  "7:17 AM"
+                                               },
+                                               {
+                                                   "point":  "Ashraf Sohna Petrol Pump",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Yousaf Wala",
+                                                   "time":  "8:00 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Okara Route 2",
+                                 "driver":  {
+                                                "name":  "Haji Arshad Ali",
+                                                "phone":  "0304-8821115"
+                                            },
+                                 "helper":  {
+                                                "name":  "Zaheer Abbas",
+                                                "phone":  "0305-5445211"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Okara Cantt",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Tabrook Adda",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "AL Barak Check Post",
+                                                   "time":  "7:27 AM"
+                                               },
+                                               {
+                                                   "point":  "Runway",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Cantt Stop",
+                                                   "time":  "7:32 AM"
+                                               },
+                                               {
+                                                   "point":  "AL Jehad Check Post",
+                                                   "time":  "7:33 AM"
+                                               },
+                                               {
+                                                   "point":  "HBL Gamber",
+                                                   "time":  "7:34 AM"
+                                               },
+                                               {
+                                                   "point":  "55/5-L",
+                                                   "time":  "7:45 AM"
+                                               },
+                                               {
+                                                   "point":  "Qadrabad",
+                                                   "time":  "7:50 AM"
+                                               },
+                                               {
+                                                   "point":  "Yousaf Wala",
+                                                   "time":  "7:55 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Okara Route 3",
+                                 "driver":  {
+                                                "name":  "Muhammad Iqbal",
+                                                "phone":  "0301-7861386"
+                                            },
+                                 "helper":  {
+                                                "name":  "Sajid Mehmood",
+                                                "phone":  "0305-1629656"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Kissan Adda Total Pump",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Depalpurr Bypass",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Rana Basit Pump",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Mai Wali Masjid",
+                                                   "time":  "7:07 AM"
+                                               },
+                                               {
+                                                   "point":  "Punjab Bank",
+                                                   "time":  "7:09 AM"
+                                               },
+                                               {
+                                                   "point":  "Depalpurr Chowk",
+                                                   "time":  "7:10 AM"
+                                               },
+                                               {
+                                                   "point":  "Mia Cash Carry",
+                                                   "time":  "7:14 AM"
+                                               },
+                                               {
+                                                   "point":  "King Ways",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "Pairus Club",
+                                                   "time":  "7:17 AM"
+                                               },
+                                               {
+                                                   "point":  "Ravi Book Depo",
+                                                   "time":  "7:18 AM"
+                                               },
+                                               {
+                                                   "point":  "Mehboob Alam Chowk",
+                                                   "time":  "7:23 AM"
+                                               },
+                                               {
+                                                   "point":  "Harni Wala Chowk",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "Sonehri Bank",
+                                                   "time":  "7:27 AM"
+                                               },
+                                               {
+                                                   "point":  "Dehli Sweet",
+                                                   "time":  "7:29 AM"
+                                               },
+                                               {
+                                                   "point":  "Stylo Shoes",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Okara Route 4",
+                                 "driver":  {
+                                                "name":  "Sana Ullah",
+                                                "phone":  "0305-7376120"
+                                            },
+                                 "helper":  {
+                                                "name":  "Abbad Ali",
+                                                "phone":  "0307-6029129"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "By pass Pump",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "11 Chak Pathak",
+                                                   "time":  "6:35 AM"
+                                               },
+                                               {
+                                                   "point":  "Nadra Office",
+                                                   "time":  "6:40 AM"
+                                               },
+                                               {
+                                                   "point":  "Kalma Chowk",
+                                                   "time":  "6:55 AM"
+                                               },
+                                               {
+                                                   "point":  "City Court",
+                                                   "time":  "6:57 AM"
+                                               },
+                                               {
+                                                   "point":  "Degree College",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Shaukat abbad Mor",
+                                                   "time":  "7:01 AM"
+                                               },
+                                               {
+                                                   "point":  "10 Chak By Pass",
+                                                   "time":  "7:02 AM"
+                                               },
+                                               {
+                                                   "point":  "Sahara City",
+                                                   "time":  "7:04 AM"
+                                               },
+                                               {
+                                                   "point":  "21 Chak",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Lari Adda",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Honda Show Room",
+                                                   "time":  "7:22 AM"
+                                               },
+                                               {
+                                                   "point":  "Chungi No. 07",
+                                                   "time":  "7:23 AM"
+                                               },
+                                               {
+                                                   "point":  "Shahbaz Crockery",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "Chungi No. 06",
+                                                   "time":  "7:27 AM"
+                                               },
+                                               {
+                                                   "point":  "Makkah CNG",
+                                                   "time":  "7:28 AM"
+                                               },
+                                               {
+                                                   "point":  "Garden Town",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "TCS",
+                                                   "time":  "7:31 AM"
+                                               },
+                                               {
+                                                   "point":  "Cotton Factory",
+                                                   "time":  "7:33 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Okara Route 5",
+                                 "driver":  {
+                                                "name":  "Muhammad Afzal",
+                                                "phone":  "0321-6966304"
+                                            },
+                                 "helper":  {
+                                                "name":  "Shahid Imran",
+                                                "phone":  "0321-7582721"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Total Pump By Pass",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Attock Petrol Pump",
+                                                   "time":  "7:10 AM"
+                                               },
+                                               {
+                                                   "point":  "Zaiqa Sweets",
+                                                   "time":  "7:12 AM"
+                                               },
+                                               {
+                                                   "point":  "Khan Colony Ã¢â‚¬â€œ 1",
+                                                   "time":  "7:14 AM"
+                                               },
+                                               {
+                                                   "point":  "Bismillah Petrol Pump",
+                                                   "time":  "7:16 AM"
+                                               },
+                                               {
+                                                   "point":  "Rehmat-ullah Town",
+                                                   "time":  "7:18 AM"
+                                               },
+                                               {
+                                                   "point":  "Dehli Sweets",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Ghalla Mandi",
+                                                   "time":  "7:24 AM"
+                                               },
+                                               {
+                                                   "point":  "Canal Bridge",
+                                                   "time":  "7:28 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Pakpattan Route 1",
+                                 "driver":  {
+                                                "name":  "Ijaz Ahmad",
+                                                "phone":  "0322-6918035"
+                                            },
+                                 "helper":  {
+                                                "name":  "Irfan Ali",
+                                                "phone":  "0305-2135757"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Jamal Chowk Factory",
+                                                   "time":  "6:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Madina Town",
+                                                   "time":  "6:55 AM"
+                                               },
+                                               {
+                                                   "point":  "Kameer Chungi Masjid Stop",
+                                                   "time":  "6:56 AM"
+                                               },
+                                               {
+                                                   "point":  "Petrol Pump Stop",
+                                                   "time":  "6:57 AM"
+                                               },
+                                               {
+                                                   "point":  "Malak Purr Rajbah Pull",
+                                                   "time":  "6:59 AM"
+                                               },
+                                               {
+                                                   "point":  "Bypass Hota Road",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Halaal Book Depo",
+                                                   "time":  "7:02 AM"
+                                               },
+                                               {
+                                                   "point":  "Thana City",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Machli Chowk",
+                                                   "time":  "7:07 AM"
+                                               },
+                                               {
+                                                   "point":  "Kalma Chowk",
+                                                   "time":  "7:08 AM"
+                                               },
+                                               {
+                                                   "point":  "Town Hall",
+                                                   "time":  "7:09 AM"
+                                               },
+                                               {
+                                                   "point":  "Nagina Chowk",
+                                                   "time":  "7:10 AM"
+                                               },
+                                               {
+                                                   "point":  "Konica Lab",
+                                                   "time":  "7:11 AM"
+                                               },
+                                               {
+                                                   "point":  "Lari Adda (Old Phatak)",
+                                                   "time":  "7:13 AM"
+                                               },
+                                               {
+                                                   "point":  "PSO Pump",
+                                                   "time":  "7:14 AM"
+                                               },
+                                               {
+                                                   "point":  "1122 Office Stop",
+                                                   "time":  "7:16 AM"
+                                               },
+                                               {
+                                                   "point":  "Adda Chanwat",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Bahiwal Pull",
+                                                   "time":  "7:22 AM"
+                                               },
+                                               {
+                                                   "point":  "8 th wa Mile",
+                                                   "time":  "7:50 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:00 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Pakpattan Route 2",
+                                 "driver":  {
+                                                "name":  "Mujahid Ali",
+                                                "phone":  "0304-6952275"
+                                            },
+                                 "helper":  {
+                                                "name":  "Muhammad Tayyab",
+                                                "phone":  "0307-7787791"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "Jamal Chowk Factory",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Bijli Chowk",
+                                                   "time":  "7:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Juma Bazar Chowk",
+                                                   "time":  "7:01 AM"
+                                               },
+                                               {
+                                                   "point":  "Gulshan Fareed Colony",
+                                                   "time":  "7:03 AM"
+                                               },
+                                               {
+                                                   "point":  "Tehsil Office",
+                                                   "time":  "7:04 AM"
+                                               },
+                                               {
+                                                   "point":  "Freed Nagar Chowk",
+                                                   "time":  "7:05 AM"
+                                               },
+                                               {
+                                                   "point":  "Freed Nagar Rice Mill",
+                                                   "time":  "7:06 AM"
+                                               },
+                                               {
+                                                   "point":  "City Courts",
+                                                   "time":  "7:07 AM"
+                                               },
+                                               {
+                                                   "point":  "Thana Farid Nagar",
+                                                   "time":  "7:08 AM"
+                                               },
+                                               {
+                                                   "point":  "Oxford College",
+                                                   "time":  "7:09 AM"
+                                               },
+                                               {
+                                                   "point":  "AL- Fareed Garden (PSO)",
+                                                   "time":  "7:10 AM"
+                                               },
+                                               {
+                                                   "point":  "Green Town",
+                                                   "time":  "7:12 AM"
+                                               },
+                                               {
+                                                   "point":  "19.SP Pull",
+                                                   "time":  "7:13 AM"
+                                               },
+                                               {
+                                                   "point":  "Jamal Chowk",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "Bahi wall Pull",
+                                                   "time":  "7:23 AM"
+                                               },
+                                               {
+                                                   "point":  "Malka Haance",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "Noor Jhang",
+                                                   "time":  "7:26 AM"
+                                               },
+                                               {
+                                                   "point":  "Noor Purr HBL",
+                                                   "time":  "7:43 AM"
+                                               },
+                                               {
+                                                   "point":  "Noor Purr ABL",
+                                                   "time":  "7:44 AM"
+                                               },
+                                               {
+                                                   "point":  "Shugar Mill",
+                                                   "time":  "7:45 AM"
+                                               },
+                                               {
+                                                   "point":  "Petroling Check Post",
+                                                   "time":  "7:48 AM"
+                                               },
+                                               {
+                                                   "point":  "8th Meel Stop",
+                                                   "time":  "7:52 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Sahiwal (Route 2)",
+                                 "driver":  {
+                                                "name":  "Farrukh Bashir",
+                                                "phone":  "0300-2955498"
+                                            },
+                                 "helper":  {
+                                                "name":  "Iftikhar Ali",
+                                                "phone":  "0300-6925560"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "86 - Chowk",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Shadman Chowk",
+                                                   "time":  "7:21 AM"
+                                               },
+                                               {
+                                                   "point":  "Gate No. 04 Civil Hospital Gate",
+                                                   "time":  "7:22 AM"
+                                               },
+                                               {
+                                                   "point":  "Nawaz Sharif Park",
+                                                   "time":  "7:23 AM"
+                                               },
+                                               {
+                                                   "point":  "Mall Mandi Chowk",
+                                                   "time":  "7:24 AM"
+                                               },
+                                               {
+                                                   "point":  "Excise Office",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "The Educator School",
+                                                   "time":  "7:26 AM"
+                                               },
+                                               {
+                                                   "point":  "City Mart",
+                                                   "time":  "7:27 AM"
+                                               },
+                                               {
+                                                   "point":  "Kashti Chowk",
+                                                   "time":  "7:28 AM"
+                                               },
+                                               {
+                                                   "point":  "Nizami Masjid Chowk",
+                                                   "time":  "7:29 AM"
+                                               },
+                                               {
+                                                   "point":  "Madina Chowk",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Faridia Park Gate",
+                                                   "time":  "7:31 AM"
+                                               },
+                                               {
+                                                   "point":  "Bilal Colony",
+                                                   "time":  "7:31 AM"
+                                               },
+                                               {
+                                                   "point":  "Bhutta Petrol Pump",
+                                                   "time":  "7:32 AM"
+                                               },
+                                               {
+                                                   "point":  "Mazdor Pulli",
+                                                   "time":  "7:33 AM"
+                                               },
+                                               {
+                                                   "point":  "Dawood Chowk",
+                                                   "time":  "7:35 AM"
+                                               },
+                                               {
+                                                   "point":  "Tana Bana",
+                                                   "time":  "7:36 AM"
+                                               },
+                                               {
+                                                   "point":  "Lasani",
+                                                   "time":  "7:38 AM"
+                                               },
+                                               {
+                                                   "point":  "Decent Bakery",
+                                                   "time":  "7:39 AM"
+                                               },
+                                               {
+                                                   "point":  "Tanki Chowk",
+                                                   "time":  "7:40 AM"
+                                               },
+                                               {
+                                                   "point":  "Joggi Chowk",
+                                                   "time":  "7:41 AM"
+                                               },
+                                               {
+                                                   "point":  "Creascent CNG",
+                                                   "time":  "7:43 AM"
+                                               },
+                                               {
+                                                   "point":  "Pakpattan Chowk",
+                                                   "time":  "7:44 AM"
+                                               },
+                                               {
+                                                   "point":  "Johar Town",
+                                                   "time":  "7:46 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI ,Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Sahiwal (Shuttle Route 1)",
+                                 "driver":  {
+                                                "name":  "Adnan Bashir",
+                                                "phone":  "0306-1590699"
+                                            },
+                                 "helper":  {
+                                                "name":  "Sajid Latif",
+                                                "phone":  "0303-7995005"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:00 AM"
+                                               },
+                                               {
+                                                   "point":  "Girls Hostel",
+                                                   "time":  "8:45 AM"
+                                               },
+                                               {
+                                                   "point":  "HBL Bank",
+                                                   "time":  "8:50 AM"
+                                               },
+                                               {
+                                                   "point":  "Attok Pump",
+                                                   "time":  "8:55 AM"
+                                               },
+                                               {
+                                                   "point":  "Peer Bukhari",
+                                                   "time":  "9:00 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "9:15 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Sahiwal City (Shuttle Route 2)",
+                                 "driver":  {
+                                                "name":  "M. Iqbal Gill",
+                                                "phone":  "0300-6907685"
+                                            },
+                                 "helper":  {
+                                                "name":  "Abdul Khaliq",
+                                                "phone":  "0325-9962711"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Bhutta Pump",
+                                                   "time":  "8:21 AM"
+                                               },
+                                               {
+                                                   "point":  "Faridia Park",
+                                                   "time":  "8:22 AM"
+                                               },
+                                               {
+                                                   "point":  "Girls College Chowk",
+                                                   "time":  "8:23 AM"
+                                               },
+                                               {
+                                                   "point":  "Bin Shafiq",
+                                                   "time":  "8:24 AM"
+                                               },
+                                               {
+                                                   "point":  "Mission Chowk",
+                                                   "time":  "8:26 AM"
+                                               },
+                                               {
+                                                   "point":  "Mall Mandi Chowk",
+                                                   "time":  "8:28 AM"
+                                               },
+                                               {
+                                                   "point":  "Civil Hospital",
+                                                   "time":  "8:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Go Pump",
+                                                   "time":  "8:32 AM"
+                                               },
+                                               {
+                                                   "point":  "Anti Corruption",
+                                                   "time":  "8:33 AM"
+                                               },
+                                               {
+                                                   "point":  "Ganj Shakar Chowk",
+                                                   "time":  "8:34 AM"
+                                               },
+                                               {
+                                                   "point":  "Speed Braker",
+                                                   "time":  "8:35 AM"
+                                               },
+                                               {
+                                                   "point":  "A - Mart",
+                                                   "time":  "8:36 AM"
+                                               },
+                                               {
+                                                   "point":  "Tasty Pizza",
+                                                   "time":  "8:37 AM"
+                                               },
+                                               {
+                                                   "point":  "Daig Wala Chowk",
+                                                   "time":  "8:38 AM"
+                                               },
+                                               {
+                                                   "point":  "Daig Wala Kothi",
+                                                   "time":  "8:40 AM"
+                                               },
+                                               {
+                                                   "point":  "College Chowk",
+                                                   "time":  "8:45 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "9:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Sahiwal Route 1",
+                                 "driver":  {
+                                                "name":  "M Iqbal Gill",
+                                                "phone":  "0300-6907685"
+                                            },
+                                 "helper":  {
+                                                "name":  null,
+                                                "phone":  null
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Old Sui Gas Office",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "Daigh Wali Kothi",
+                                                   "time":  "7:26 AM"
+                                               },
+                                               {
+                                                   "point":  "Stop No, 03",
+                                                   "time":  "7:27 AM"
+                                               },
+                                               {
+                                                   "point":  "Daigh Wala Chowk",
+                                                   "time":  "7:28 AM"
+                                               },
+                                               {
+                                                   "point":  "Tasty Pizza",
+                                                   "time":  "7:29 AM"
+                                               },
+                                               {
+                                                   "point":  "Beauty Parlor",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "A-Mart",
+                                                   "time":  "7:31 AM"
+                                               },
+                                               {
+                                                   "point":  "Medical College Chowk",
+                                                   "time":  "7:33 AM"
+                                               },
+                                               {
+                                                   "point":  "Jump Wala Chowk",
+                                                   "time":  "7:37 AM"
+                                               },
+                                               {
+                                                   "point":  "Dubai Chowk",
+                                                   "time":  "7:38 AM"
+                                               },
+                                               {
+                                                   "point":  "Population Welfare",
+                                                   "time":  "7:40 AM"
+                                               },
+                                               {
+                                                   "point":  "Anti Corruption Office",
+                                                   "time":  "7:41 AM"
+                                               },
+                                               {
+                                                   "point":  "Education Office",
+                                                   "time":  "7:42 AM"
+                                               },
+                                               {
+                                                   "point":  "College Chowk",
+                                                   "time":  "7:46 AM"
+                                               },
+                                               {
+                                                   "point":  "Ghora Chowk",
+                                                   "time":  "7:48 AM"
+                                               },
+                                               {
+                                                   "point":  "Jahaz Chowk",
+                                                   "time":  "7:49 AM"
+                                               },
+                                               {
+                                                   "point":  "HBL",
+                                                   "time":  "7:50 AM"
+                                               },
+                                               {
+                                                   "point":  "Attock Pump",
+                                                   "time":  "7:52 AM"
+                                               },
+                                               {
+                                                   "point":  "Peer Bukhari",
+                                                   "time":  "7:55 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Sahiwal Route 2",
+                                 "driver":  {
+                                                "name":  "Adnan Bashir",
+                                                "phone":  "0306-1590699"
+                                            },
+                                 "helper":  {
+                                                "name":  "Sajid Latif",
+                                                "phone":  "0303-7995005"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Bilaly Masjid",
+                                                   "time":  "7:15 AM"
+                                               },
+                                               {
+                                                   "point":  "Officer Colony",
+                                                   "time":  "7:18 AM"
+                                               },
+                                               {
+                                                   "point":  "Daray Wala Khokha",
+                                                   "time":  "7:19 AM"
+                                               },
+                                               {
+                                                   "point":  "PSO Pump",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Law Colony",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "Jahaz Ground",
+                                                   "time":  "7:27 AM"
+                                               },
+                                               {
+                                                   "point":  "Girls Hostel",
+                                                   "time":  "7:35 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:15 AM"
+                                               }
+                                           ]
+                             },
+                             {
+                                 "route":  "Sahiwal Route 3",
+                                 "driver":  {
+                                                "name":  "Naveed Ahmad",
+                                                "phone":  "0300-8535462"
+                                            },
+                                 "helper":  {
+                                                "name":  "Rana Sajid",
+                                                "phone":  "0305-8287941"
+                                            },
+                                 "stops":  [
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "6:30 AM"
+                                               },
+                                               {
+                                                   "point":  "88 Neky Wala",
+                                                   "time":  "7:20 AM"
+                                               },
+                                               {
+                                                   "point":  "Darbar",
+                                                   "time":  "7:22 AM"
+                                               },
+                                               {
+                                                   "point":  "Rafi Garden Gate - 1",
+                                                   "time":  "7:23 AM"
+                                               },
+                                               {
+                                                   "point":  "Rafi Garden Main Gate",
+                                                   "time":  "7:25 AM"
+                                               },
+                                               {
+                                                   "point":  "G - 1, City",
+                                                   "time":  "7:27 AM"
+                                               },
+                                               {
+                                                   "point":  "MCB Bank",
+                                                   "time":  "7:29 AM"
+                                               },
+                                               {
+                                                   "point":  "Nor Bakery",
+                                                   "time":  "7:30 AM"
+                                               },
+                                               {
+                                                   "point":  "Shadman Chowk",
+                                                   "time":  "7:33 AM"
+                                               },
+                                               {
+                                                   "point":  "Go Pump",
+                                                   "time":  "7:34 AM"
+                                               },
+                                               {
+                                                   "point":  "Girls Hostel",
+                                                   "time":  "7:40 AM"
+                                               },
+                                               {
+                                                   "point":  "CUI, Sahiwal",
+                                                   "time":  "8:20 AM"
+                                               }
+                                           ]
+                             }
+                         ]
+}

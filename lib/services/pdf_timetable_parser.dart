@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-import 'package:student_organizer/core/format_guard.dart';
-import 'package:student_organizer/core/models.dart';
+import 'package:iris/core/format_guard.dart';
+import 'package:iris/core/models.dart';
 
 class PDFTimetableParser {
   /// Parse timetable from PDF file and extract class sessions

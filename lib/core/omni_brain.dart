@@ -1,4 +1,20 @@
 import 'models.dart';
+import 'package:flutter/material.dart';
+
+// ============ LECTURE DURATION HELPER ============
+/// Helper functions to handle 1-hour lecture duration calculations
+bool _isOneHourLecture(String subject) {
+  return subject.toLowerCase().contains('(1 hr)') ||
+         subject.toLowerCase().contains('(1hr)') ||
+         subject.toLowerCase().contains('1 hr)');
+}
+
+double _getActualEndTime(ClassSession session) {
+  if (_isOneHourLecture(session.subject)) {
+    return session.safeStartVal + 1.0; // 1 hour after start
+  }
+  return session.safeEndVal;
+}
 
 class TemporalInsight {
   final String headline;
@@ -70,6 +86,66 @@ class TeacherLocatorResult {
   });
 }
 
+/// Represents a free time slot
+class FreeSlot {
+  final int dayIndex;
+  final double startTime;
+  final double endTime;
+
+  FreeSlot({
+    required this.dayIndex,
+    required this.startTime,
+    required this.endTime,
+  });
+
+  String get dayName {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return dayIndex >= 1 && dayIndex <= 7 ? days[dayIndex - 1] : 'Day $dayIndex';
+  }
+
+  String timeRangeString(BuildContext? context) {
+    final startHour = startTime.toInt();
+    final startMin = ((startTime - startHour) * 60).toInt();
+    final endHour = endTime.toInt();
+    final endMin = ((endTime - endHour) * 60).toInt();
+    return '${startHour.toString().padLeft(2, '0')}:${startMin.toString().padLeft(2, '0')} - ${endHour.toString().padLeft(2, '0')}:${endMin.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Makeup class suggestion with available rooms
+class MakeupSlotSuggestion {
+  final int dayIndex;
+  final double startTime;
+  final double endTime;
+  final double durationHours;
+  final List<String>? availableRooms;
+
+  MakeupSlotSuggestion({
+    required this.dayIndex,
+    required this.startTime,
+    required this.endTime,
+    required this.durationHours,
+    this.availableRooms,
+  });
+
+  String get dayName {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return dayIndex >= 1 && dayIndex <= 7 ? days[dayIndex - 1] : 'Day $dayIndex';
+  }
+
+  String timeRangeString() {
+    return '${_format12Hour(startTime)} - ${_format12Hour(endTime)}';
+  }
+
+  String _format12Hour(double time) {
+    final hour24 = time.floor().clamp(0, 23);
+    final min = ((time - time.floor()) * 60).round().clamp(0, 59);
+    final hour12 = hour24 == 0 ? 12 : (hour24 > 12 ? hour24 - 12 : hour24);
+    final period = hour24 >= 12 ? 'PM' : 'AM';
+    return '$hour12:${min.toString().padLeft(2, '0')} $period';
+  }
+}
+
 class OmniBrain {
   final UniversityMemory memory;
 
@@ -77,6 +153,13 @@ class OmniBrain {
 
   List<ClassSession> scheduleFor(String batch) {
     return memory.byBatch()[batch] ?? [];
+  }
+
+  List<ClassSession> scheduleForTeacher(String teacherName) {
+    final name = teacherName.trim().toLowerCase();
+    return memory.sessions
+        .where((s) => s.teacher.trim().toLowerCase() == name)
+        .toList();
   }
 
   // Get merged lecture sessions (consecutive slots of same lecture)
@@ -174,7 +257,8 @@ class OmniBrain {
     final schedule = scheduleFor(batch);
     
     for (final s in schedule) {
-      if (s.dayIndex == now.weekday && currentT >= s.safeStartVal && currentT < s.safeEndVal) {
+      final actualEnd = _getActualEndTime(s);
+      if (s.dayIndex == now.weekday && currentT >= s.safeStartVal && currentT < actualEnd) {
         // Return merged session to handle consecutive slots
         return getMergedSession(s, schedule);
       }
@@ -209,6 +293,44 @@ class OmniBrain {
     return null;
   }
 
+  ClassSession? getCurrentClassForTeacher(String teacherName, DateTime now) {
+    final currentT = now.hour + (now.minute / 60.0);
+    final schedule = scheduleForTeacher(teacherName);
+
+    for (final s in schedule) {
+      final actualEnd = _getActualEndTime(s);
+      if (s.dayIndex == now.weekday && currentT >= s.safeStartVal && currentT < actualEnd) {
+        return getMergedSession(s, schedule);
+      }
+    }
+    return null;
+  }
+
+  ClassSession? getNextClassForTeacher(String teacherName, DateTime now) {
+    final currentT = now.hour + (now.minute / 60.0);
+    final schedule = scheduleForTeacher(teacherName);
+
+    final today = schedule
+        .where((s) => s.dayIndex == now.weekday && s.safeStartVal > currentT)
+        .toList()
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+    if (today.isNotEmpty) {
+      return getMergedSession(today.first, schedule);
+    }
+
+    for (int daysAhead = 1; daysAhead <= 6; daysAhead++) {
+      final nextDay = ((now.weekday + daysAhead - 1) % 7) + 1;
+      final candidates = schedule.where((s) => s.dayIndex == nextDay).toList()
+        ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+      if (candidates.isNotEmpty) {
+        return getMergedSession(candidates.first, schedule);
+      }
+    }
+
+    return null;
+  }
+
   List<String> findEmptyRooms(DateTime now) {
     final rooms = <String>{};
     for (final session in memory.sessions) {
@@ -218,12 +340,43 @@ class OmniBrain {
     final occupied = <String>{};
     final currentT = now.hour + (now.minute / 60.0);
     for (final session in memory.sessions) {
-      if (session.dayIndex == now.weekday && currentT >= session.safeStartVal && currentT < session.safeEndVal) {
+      final actualEnd = _getActualEndTime(session);
+      if (session.dayIndex == now.weekday && currentT >= session.safeStartVal && currentT < actualEnd) {
         occupied.add(session.room);
       }
     }
 
     final available = rooms.difference(occupied).toList()..sort();
+    return available;
+  }
+
+  /// Find empty rooms for a specific time slot (used for makeup scheduling)
+  List<String> findEmptyRoomsForSlot(int dayIndex, double startTime, double endTime) {
+    // Get all unique rooms
+    final allRooms = <String>{};
+    for (final session in memory.sessions) {
+      if (session.room.isNotEmpty && session.room.toLowerCase() != 'unknown') {
+        allRooms.add(session.room);
+      }
+    }
+
+    // Find occupied rooms during this slot
+    final occupied = <String>{};
+    for (final session in memory.sessions) {
+      if (session.dayIndex == dayIndex) {
+        // Check if there's any overlap
+        final sessionEnd = session.safeEndVal;
+        final sessionStart = session.safeStartVal;
+        
+        // Overlap if: session starts before slot ends AND session ends after slot starts
+        if (sessionStart < endTime && sessionEnd > startTime) {
+          occupied.add(session.room);
+        }
+      }
+    }
+
+    // Return available rooms, sorted
+    final available = allRooms.difference(occupied).toList()..sort();
     return available;
   }
 
@@ -303,7 +456,7 @@ class OmniBrain {
 
       final isLive = session.dayIndex == weekday &&
           currentT >= session.safeStartVal &&
-          currentT < session.safeEndVal;
+          currentT < _getActualEndTime(session);
       final isUpcoming = session.dayIndex == weekday &&
           session.safeStartVal > currentT;
 
@@ -386,8 +539,9 @@ class OmniBrain {
       ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
 
     if (current != null) {
-      // Time remaining calculation for merged lecture
-      final minutesLeft = ((current.safeEndVal - currentT) * 60).round();
+      // Time remaining calculation accounting for 1-hour lectures
+      final actualEndTime = _getActualEndTime(current);
+      final minutesLeft = ((actualEndTime - currentT) * 60).round();
       final timeLeft = minutesLeft > 60 
           ? '${(minutesLeft / 60).floor()}h ${minutesLeft % 60}m left'
           : '$minutesLeft mins left';
@@ -404,14 +558,14 @@ class OmniBrain {
 
     if (today.isNotEmpty) {
       final previous = today.lastWhere(
-        (s) => s.safeEndVal <= currentT,
+        (s) => _getActualEndTime(s) <= currentT,
         orElse: () => today.first,
       );
       final upcoming = today.firstWhere(
         (s) => s.safeStartVal > currentT,
         orElse: () => today.first,
       );
-      if (previous.safeEndVal <= currentT && upcoming.safeStartVal > currentT) {
+      if (_getActualEndTime(previous) <= currentT && upcoming.safeStartVal > currentT) {
         // Get merged version of upcoming class for accurate time display
         final mergedUpcoming = getMergedSession(upcoming, schedule);
         
@@ -492,5 +646,360 @@ class OmniBrain {
       subline: 'Enjoy the free time',
       isLive: false,
     );
+  }
+
+  TemporalInsight buildTeacherTemporalInsight(String teacherName, DateTime now) {
+    final current = getCurrentClassForTeacher(teacherName, now);
+    final next = getNextClassForTeacher(teacherName, now);
+    final currentT = now.hour + (now.minute / 60.0);
+    final schedule = scheduleForTeacher(teacherName);
+    final today = schedule
+        .where((s) => s.dayIndex == now.weekday)
+        .toList()
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+    if (current != null) {
+      final actualEndTime = _getActualEndTime(current);
+      final minutesLeft = ((actualEndTime - currentT) * 60).round();
+      final timeLeft = minutesLeft > 60
+          ? '${(minutesLeft / 60).floor()}h ${minutesLeft % 60}m left'
+          : '$minutesLeft mins left';
+
+      return TemporalInsight(
+        headline: 'Teaching Now',
+        subline: '${current.subject} · ${current.room}',
+        timeInfo: timeLeft,
+        teacherInfo: teacherName,
+        isLive: true,
+        isUrgent: false,
+      );
+    }
+
+    if (today.isNotEmpty) {
+      final hasCompletedClass = today.any((s) => _getActualEndTime(s) <= currentT);
+      final upcoming = today.firstWhere(
+        (s) => s.safeStartVal > currentT,
+        orElse: () => today.first,
+      );
+      if (hasCompletedClass && upcoming.safeStartVal > currentT) {
+        final mergedUpcoming = getMergedSession(upcoming, schedule);
+        final breakMinutes = ((mergedUpcoming.safeStartVal - currentT) * 60).round();
+        final breakDuration = breakMinutes > 60
+            ? '${(breakMinutes / 60).floor()}h ${breakMinutes % 60}m break'
+            : '$breakMinutes min break';
+
+        return TemporalInsight(
+          headline: 'Break',
+          subline: '${mergedUpcoming.subject} at ${mergedUpcoming.startTime} · ${mergedUpcoming.room}',
+          timeInfo: breakDuration,
+          teacherInfo: teacherName,
+          isLive: false,
+        );
+      }
+    }
+
+    if (next != null) {
+      final dayDiff = (next.dayIndex - now.weekday) % 7;
+      final label = dayDiff == 0 ? 'Next Up' : 'Next Day';
+      final isStartingSoon = dayDiff == 0 &&
+          now.hour + (now.minute / 60.0) >= (next.safeStartVal - 0.084);
+
+      String timeInfo = '';
+      if (dayDiff == 0) {
+        final nextMinutes = ((next.safeStartVal - now.hour - (now.minute / 60.0)) * 60).round();
+        if (nextMinutes > 0) {
+          timeInfo = nextMinutes > 60
+              ? 'in ${(nextMinutes / 60).floor()}h ${nextMinutes % 60}m'
+              : 'in $nextMinutes mins';
+        }
+      } else if (dayDiff > 0) {
+        final daysUntil = dayDiff == 1 ? 1 : dayDiff;
+        final hoursUntilMidnight = 24 - now.hour;
+        final minutesUntilMidnight = 60 - now.minute;
+        final totalMinutesUntilMidnight = (hoursUntilMidnight * 60) + minutesUntilMidnight - 60;
+        final classStartMinutes = (next.safeStartVal * 60).round();
+        final totalMinutes = totalMinutesUntilMidnight + classStartMinutes + ((daysUntil - 1) * 24 * 60);
+        final hours = totalMinutes ~/ 60;
+        final mins = totalMinutes % 60;
+        if (hours > 24) {
+          final days = hours ~/ 24;
+          final remainingHours = hours % 24;
+          timeInfo = remainingHours > 0
+              ? 'in ${days}d ${remainingHours}h'
+              : 'in ${days}d';
+        } else if (hours > 0) {
+          timeInfo = mins > 0 ? 'in ${hours}h ${mins}m' : 'in ${hours}h';
+        } else {
+          timeInfo = 'in ${mins}m';
+        }
+      }
+
+      return TemporalInsight(
+        headline: label,
+        subline: '${next.subject} at ${next.startTime} · ${next.room}',
+        timeInfo: timeInfo,
+        teacherInfo: teacherName,
+        isLive: false,
+        isUrgent: isStartingSoon,
+      );
+    }
+
+    return TemporalInsight(
+      headline: 'No Classes',
+      subline: 'No schedule for $teacherName',
+      isLive: false,
+    );
+  }
+
+  /// Get actual operating hours from timetable (earliest start and latest end)
+  /// Returns a map of dayIndex -> (minTime, maxTime)
+  Map<int, (double, double)> _getOperatingHours() {
+    final operatingHours = <int, (double, double)>{};
+    
+    for (final session in memory.sessions) {
+      final day = session.dayIndex;
+      final start = session.safeStartVal;
+      final end = session.safeEndVal;
+      
+      if (operatingHours.containsKey(day)) {
+        final current = operatingHours[day]!;
+        operatingHours[day] = (
+          start < current.$1 ? start : current.$1,  // min
+          end > current.$2 ? end : current.$2,      // max
+        );
+      } else {
+        operatingHours[day] = (start, end);
+      }
+    }
+    
+    return operatingHours;
+  }
+
+  /// Find free slots for a batch across a week
+  /// Returns list of {day, start_time, end_time} when the batch has no classes
+  List<FreeSlot> findFreeSlotsForBatch(String batch) {
+    final schedule = scheduleFor(batch);
+    if (schedule.isEmpty) return [];
+
+    final freeSlots = <FreeSlot>[];
+    final daySlots = <int, List<ClassSession>>{};
+    final operatingHours = _getOperatingHours();
+
+    // Group by day
+    for (final session in schedule) {
+      daySlots.putIfAbsent(session.dayIndex, () => []).add(session);
+    }
+
+    // For each weekday (1-7)
+    for (int dayIndex = 1; dayIndex <= 7; dayIndex++) {
+      // Skip days when university doesn't operate
+      if (!operatingHours.containsKey(dayIndex)) continue;
+      
+      final (dayStart, dayEnd) = operatingHours[dayIndex]!;
+      final daySessions = daySlots[dayIndex] ?? [];
+      
+      if (daySessions.isEmpty) {
+        // Batch has no classes but university operates - entire day is free
+        freeSlots.add(FreeSlot(
+          dayIndex: dayIndex,
+          startTime: dayStart,
+          endTime: dayEnd,
+        ));
+        continue;
+      }
+
+      // Sort by start time
+      daySessions.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+      // Check before first class (only if within operating hours)
+      if (daySessions.first.safeStartVal > dayStart) {
+        freeSlots.add(FreeSlot(
+          dayIndex: dayIndex,
+          startTime: dayStart,
+          endTime: daySessions.first.safeStartVal,
+        ));
+      }
+
+      // Check between consecutive classes
+      for (int i = 0; i < daySessions.length - 1; i++) {
+        final endTime = daySessions[i].safeEndVal;
+        final nextStartTime = daySessions[i + 1].safeStartVal;
+        if (endTime < nextStartTime) {
+          freeSlots.add(FreeSlot(
+            dayIndex: dayIndex,
+            startTime: endTime,
+            endTime: nextStartTime,
+          ));
+        }
+      }
+
+      // Check after last class (only if within operating hours)
+      if (daySessions.last.safeEndVal < dayEnd) {
+        freeSlots.add(FreeSlot(
+          dayIndex: dayIndex,
+          startTime: daySessions.last.safeEndVal,
+          endTime: dayEnd,
+        ));
+      }
+    }
+
+    return freeSlots;
+  }
+
+  /// Find free slots for a teacher across a week
+  List<FreeSlot> findFreeSlotsForTeacher(String teacherName) {
+    final schedule = scheduleForTeacher(teacherName);
+    if (schedule.isEmpty) return [];
+
+    final freeSlots = <FreeSlot>[];
+    final daySlots = <int, List<ClassSession>>{};
+    final operatingHours = _getOperatingHours();
+
+    // Group by day
+    for (final session in schedule) {
+      daySlots.putIfAbsent(session.dayIndex, () => []).add(session);
+    }
+
+    // For each weekday (1-7)
+    for (int dayIndex = 1; dayIndex <= 7; dayIndex++) {
+      // Skip days when university doesn't operate
+      if (!operatingHours.containsKey(dayIndex)) continue;
+      
+      final (dayStart, dayEnd) = operatingHours[dayIndex]!;
+      final daySessions = daySlots[dayIndex] ?? [];
+      
+      if (daySessions.isEmpty) {
+        // Teacher has no classes but university operates - entire day is free
+        freeSlots.add(FreeSlot(
+          dayIndex: dayIndex,
+          startTime: dayStart,
+          endTime: dayEnd,
+        ));
+        continue;
+      }
+
+      daySessions.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+      if (daySessions.first.safeStartVal > dayStart) {
+        freeSlots.add(FreeSlot(
+          dayIndex: dayIndex,
+          startTime: dayStart,
+          endTime: daySessions.first.safeStartVal,
+        ));
+      }
+
+      for (int i = 0; i < daySessions.length - 1; i++) {
+        final endTime = daySessions[i].safeEndVal;
+        final nextStartTime = daySessions[i + 1].safeStartVal;
+        if (endTime < nextStartTime) {
+          freeSlots.add(FreeSlot(
+            dayIndex: dayIndex,
+            startTime: endTime,
+            endTime: nextStartTime,
+          ));
+        }
+      }
+
+      if (daySessions.last.safeEndVal < dayEnd) {
+        freeSlots.add(FreeSlot(
+          dayIndex: dayIndex,
+          startTime: daySessions.last.safeEndVal,
+          endTime: dayEnd,
+        ));
+      }
+    }
+
+    return freeSlots;
+  }
+
+  /// Find common free slots between batch and teacher
+  /// Returns list of slots where BOTH are free, with available rooms
+  List<MakeupSlotSuggestion> findMakeupSlots(String batch, String teacherName) {
+    final batchSlots = findFreeSlotsForBatch(batch);
+    final teacherSlots = findFreeSlotsForTeacher(teacherName);
+
+    if (batchSlots.isEmpty || teacherSlots.isEmpty) return [];
+
+    final suggestions = <MakeupSlotSuggestion>[];
+
+    // Find intersections
+    for (final bSlot in batchSlots) {
+      for (final tSlot in teacherSlots) {
+        // Same day
+        if (bSlot.dayIndex == tSlot.dayIndex) {
+          // Check overlap
+          final overlapStart = bSlot.startTime > tSlot.startTime
+              ? bSlot.startTime
+              : tSlot.startTime;
+          final overlapEnd =
+              bSlot.endTime < tSlot.endTime ? bSlot.endTime : tSlot.endTime;
+
+          if (overlapStart < overlapEnd) {
+            final duration = overlapEnd - overlapStart;
+            
+            // Split long free periods into reasonable 1-hour makeup slots
+            // Typical makeup class should be 1-1.5 hours, not 4+ hours
+            if (duration <= 1.5) {
+              // Short period - use as is
+              final availableRooms = findEmptyRoomsForSlot(
+                bSlot.dayIndex,
+                overlapStart,
+                overlapEnd,
+              );
+              
+              suggestions.add(MakeupSlotSuggestion(
+                dayIndex: bSlot.dayIndex,
+                startTime: overlapStart,
+                endTime: overlapEnd,
+                durationHours: duration,
+                availableRooms: availableRooms,
+              ));
+            } else {
+              // Long period - split into 1-hour slots
+              double currentStart = overlapStart;
+              while (currentStart + 1.0 <= overlapEnd) {
+                final slotEnd = currentStart + 1.0;
+                
+                final availableRooms = findEmptyRoomsForSlot(
+                  bSlot.dayIndex,
+                  currentStart,
+                  slotEnd,
+                );
+                
+                suggestions.add(MakeupSlotSuggestion(
+                  dayIndex: bSlot.dayIndex,
+                  startTime: currentStart,
+                  endTime: slotEnd,
+                  durationHours: 1.0,
+                  availableRooms: availableRooms,
+                ));
+                
+                currentStart += 1.0;
+              }
+              
+              // Add remaining time if >= 30 minutes (0.5 hours)
+              final remaining = overlapEnd - currentStart;
+              if (remaining >= 0.5) {
+                final availableRooms = findEmptyRoomsForSlot(
+                  bSlot.dayIndex,
+                  currentStart,
+                  overlapEnd,
+                );
+                
+                suggestions.add(MakeupSlotSuggestion(
+                  dayIndex: bSlot.dayIndex,
+                  startTime: currentStart,
+                  endTime: overlapEnd,
+                  durationHours: remaining,
+                  availableRooms: availableRooms,
+                ));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return suggestions;
   }
 }

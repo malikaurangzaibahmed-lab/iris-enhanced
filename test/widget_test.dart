@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:student_organizer/main.dart';
+import 'package:iris/main.dart';
 
 void main() {
   testWidgets('App boots', (WidgetTester tester) async {
