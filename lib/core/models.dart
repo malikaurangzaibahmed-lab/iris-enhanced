@@ -169,3 +169,115 @@ class UniversityMemory {
     return items;
   }
 }
+
+class Room {
+  final String id;
+  final String building;
+  final int capacity;
+  final List<String> amenities;
+  final DateTime registeredAt;
+
+  Room({
+    required this.id,
+    required this.building,
+    required this.capacity,
+    required this.amenities,
+    required this.registeredAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'building': building,
+        'capacity': capacity,
+        'amenities': amenities,
+        'registeredAt': registeredAt.toIso8601String(),
+      };
+
+  factory Room.fromJson(Map<String, dynamic> json) => Room(
+        id: json['id'] as String,
+        building: json['building'] as String,
+        capacity: json['capacity'] as int,
+        amenities: List<String>.from(json['amenities'] as List),
+        registeredAt: DateTime.parse(json['registeredAt'] as String),
+      );
+}
+
+class Department {
+  final String id;
+  final String name;
+  final DateTime registeredAt;
+
+  Department({
+    required this.id,
+    required this.name,
+    required this.registeredAt,
+  });
+}
+
+class RoomAvailability {
+  final String roomId;
+  final String building;
+  final int capacity;
+  final List<String> amenities;
+  final bool isAvailable;
+  final double? occupiedUntil;
+  final String? occupiedBy;
+  final String? occupiedByTeacher;
+  final double? nextSessionAt;
+  final String? nextSessionSubject;
+  final int? minulesFreeUntilNextSession;
+  final double studyScore;
+
+  RoomAvailability({
+    required this.roomId,
+    required this.building,
+    required this.capacity,
+    required this.amenities,
+    required this.isAvailable,
+    this.occupiedUntil,
+    this.occupiedBy,
+    this.occupiedByTeacher,
+    this.nextSessionAt,
+    this.nextSessionSubject,
+    this.minulesFreeUntilNextSession,
+    required this.studyScore,
+  });
+}
+
+class RoomConflict {
+  final String room;
+  final ClassSession session1;
+  final ClassSession session2;
+  final int overlapMinutes;
+  final String severity; // HIGH, MEDIUM, LOW
+
+  RoomConflict({
+    required this.room,
+    required this.session1,
+    required this.session2,
+    required this.overlapMinutes,
+    required this.severity,
+  });
+}
+
+class RoomRecommendation {
+  final RoomAvailability? recommended;
+  final String reason;
+  final List<RoomAvailability> alternatives;
+
+  RoomRecommendation({
+    required this.recommended,
+    required this.reason,
+    required this.alternatives,
+  });
+}
+
+// Lightweight compatibility helper
+class LectureDuration {
+  static double getActualDuration(ClassSession session) {
+    return (session.safeEndVal - session.safeStartVal).abs();
+  }
+  static double getActualEndTime(ClassSession session) {
+    return session.safeEndVal;
+  }
+}

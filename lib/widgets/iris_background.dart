@@ -12,17 +12,17 @@ class IrisAppBackdrop extends StatelessWidget {
         ? const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF060814), Color(0xFF0B1020), Color(0xFF101427)],
+            colors: [Color(0xFF000000), Color(0xFF0A0A0A), Color(0xFF111111)],
           )
         : const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFF5F7FB), Color(0xFFF9FBFF), Color(0xFFEFF4FF)],
+            colors: [Color(0xFFF2F2F7), Color(0xFFF9FBFF), Color(0xFFFFFFFF)],
           );
 
-    final orbA = isDark ? const Color(0xFF5B7FFF) : const Color(0xFF7EA2FF);
-    final orbB = isDark ? const Color(0xFF12D6C5) : const Color(0xFF20C7A6);
-    final orbC = isDark ? const Color(0xFFFF8FB1) : const Color(0xFFFFB87A);
+    final orbA = const Color(0xFFE0E7FF); // Soft Blue
+    final orbB = const Color(0xFFF5F3FF); // Soft Purple
+    final orbC = const Color(0xFFECFDF5); // Soft Green
 
     return DecoratedBox(
       decoration: BoxDecoration(gradient: background),

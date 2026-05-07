@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
 import android.widget.RemoteViews
+import android.os.Build
 
 class ClassTrackerWidget : AppWidgetProvider() {
     companion object {
@@ -55,6 +56,38 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 } catch (e: Exception) {
                     Log.e(TAG, "Widget layout inflate failed: ${e.message}", e)
                     return
+                }
+
+                // Apply Liquid Glass effect if supported (Android 13+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Log.d(TAG, "Attempting to generate LiquidGlass effect for widget $appWidgetId")
+                    try {
+                        val bgRes = if (widgetDarkMode) R.drawable.widget_fluffy_dark_bg else R.drawable.widget_fluffy_bg
+                        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+                        var width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+                        var height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+                        
+                        if (width <= 0) width = 160 // Fallback
+                        if (height <= 0) height = 100 // Fallback
+
+                        val displayMetrics = context.resources.displayMetrics
+                        val widthPx = (width * displayMetrics.density).toInt()
+                        val heightPx = (height * displayMetrics.density).toInt()
+
+                        val glassBitmap = LiquidGlassBitmapGenerator.generateGlassBitmap(
+                            context, widthPx, heightPx, bgRes, widgetDarkMode
+                        )
+                        if (glassBitmap != null) {
+                            Log.d(TAG, "Successfully generated glass bitmap: ${glassBitmap.width}x${glassBitmap.height}")
+                            views.setImageViewBitmap(R.id.widget_glass_bg, glassBitmap)
+                        } else {
+                            Log.w(TAG, "Generated glass bitmap is null")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "LiquidGlass effect generation failed: ${e.message}", e)
+                    }
+                } else {
+                    Log.d(TAG, "LiquidGlass effect skipped: API level ${Build.VERSION.SDK_INT} < 33")
                 }
 
                 views.setTextViewText(R.id.widget_headline, headline)

@@ -1,0 +1,1347 @@
+import 'package:flutter/material.dart';
+import '../services/ui_feedback.dart';
+import '../core/tokens.dart';
+import '../core/animations.dart';
+import 'smart_widgets.dart';
+
+class IrisComponents {
+  /// Build a status badge (LIVE, NEXT, etc.)
+  static Widget statusBadge({
+    required String label,
+    required Color color,
+    required bool isDark,
+    bool pulse = false,
+  }) {
+    final widget = Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: IrisTokens.space12,
+        vertical: IrisTokens.space8 - 2,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color, color.withValues(alpha: 0.85)],
+        ),
+        borderRadius: BorderRadius.circular(IrisTokens.radius12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.28),
+            blurRadius: 8,
+            spreadRadius: -2,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.8,
+          color: Colors.white,
+          height: 1.0,
+        ),
+      ),
+    );
+
+    if (pulse) {
+      return TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.95, end: 1.05),
+        duration: const Duration(milliseconds: 768),
+        curve: IrisMotion.standard,
+        builder: (context, scale, child) =>
+            Transform.scale(scale: scale, child: child),
+        onEnd: () {},
+        child: widget,
+      );
+    }
+
+    return widget;
+  }
+
+  /// Build a time badge
+  static Widget timeBadge({required String time, required bool isDark}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: IrisTokens.space12,
+        vertical: IrisTokens.space8 - 2,
+      ),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.20)
+            : Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(IrisTokens.radius12),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.24)
+              : Colors.black.withValues(alpha: 0.12),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        time,
+        style: TextStyle(
+          fontSize: 11,
+          letterSpacing: 0.3,
+          fontWeight: FontWeight.w700,
+          height: 1.0,
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.86),
+        ),
+      ),
+    );
+  }
+
+  /// Build an icon badge
+  static Widget iconBadge({
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+    double size = 32,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(size * 0.25),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.32 : 0.16),
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.2),
+      ),
+      child: Icon(icon, size: size * 0.65, color: color),
+    );
+  }
+
+  /// Build a loading spinner
+  static Widget loadingSpinner({
+    Color? color,
+    double size = 24,
+    double strokeWidth = 2.0,
+  }) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CircularProgressIndicator(
+        strokeWidth: strokeWidth,
+        valueColor: color != null ? AlwaysStoppedAnimation<Color>(color) : null,
+      ),
+    );
+  }
+
+  /// Build a Quick Action Button for the iOS 18 style grid
+  static Widget quickActionButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return AnimatedButton(
+      onPressed: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.white.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.9),
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class RippleEffect extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final Color? rippleColor;
+  final BorderRadius? borderRadius;
+
+  const RippleEffect({
+    required this.child,
+    this.onTap,
+    this.rippleColor,
+    this.borderRadius,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: rippleColor ?? IrisTokens.brand.withValues(alpha: 0.12),
+        highlightColor: Colors.transparent,
+        borderRadius: borderRadius ?? BorderRadius.circular(IrisTokens.radius16),
+        child: child,
+      ),
+    );
+  }
+}
+
+class AnimatedButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onPressed;
+  final Duration duration;
+
+  const AnimatedButton({
+    required this.child,
+    this.onPressed,
+    this.duration = const Duration(milliseconds: 150),
+    super.key,
+  });
+
+  @override
+  State<AnimatedButton> createState() => _AnimatedButtonState();
+}
+
+class _AnimatedButtonState extends State<AnimatedButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    _scale = Tween<double>(begin: 1.0, end: 0.94).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        _controller.forward();
+        IrisHaptics.actionSoft();
+      },
+      onTapUp: (_) => _controller.reverse(),
+      onTapCancel: () => _controller.reverse(),
+      onTap: () {
+        IrisSfx.click();
+        widget.onPressed?.call();
+      },
+      child: ScaleTransition(scale: _scale, child: widget.child),
+    );
+  }
+}
+
+class StaggeredListItem extends StatelessWidget {
+  final int index;
+  final Widget child;
+  final Duration? delay;
+
+  const StaggeredListItem({
+    required this.index,
+    required this.child,
+    this.delay,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedListItem(index: index, child: child);
+  }
+}
+class AppBackButton extends StatelessWidget {
+  final bool isDark;
+  final VoidCallback? onPressed;
+
+  const AppBackButton({required this.isDark, this.onPressed, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12),
+      child: IconButton(
+        onPressed: onPressed ?? () => Navigator.of(context).pop(),
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          child: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NavActiveHalo extends StatefulWidget {
+  final double size;
+  final Color color;
+
+  const NavActiveHalo({required this.size, required this.color, super.key});
+
+  @override
+  State<NavActiveHalo> createState() => _NavActiveHaloState();
+}
+
+class _NavActiveHaloState extends State<NavActiveHalo>
+    with TickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _pulse;
+  late final AnimationController _entranceCtrl;
+  late final Animation<double> _entrance;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1536),
+    )..repeat(reverse: true);
+    _pulse = CurvedAnimation(parent: _controller, curve: IrisMotion.standard);
+
+    _entranceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 576),
+    );
+    _entrance = CurvedAnimation(
+      parent: _entranceCtrl,
+      curve: IrisMotion.entrance,
+    );
+    _entranceCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _entranceCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_pulse, _entrance]),
+      builder: (context, _) {
+        final t = _pulse.value;
+        final e = _entrance.value;
+        return Transform.scale(
+          scale: e * (0.97 + (t * 0.04)),
+          child: Opacity(
+            opacity: e.clamp(0.0, 1.0),
+            child: Container(
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    widget.color.withValues(alpha: 0.14 + (t * 0.05)),
+                    widget.color.withValues(alpha: 0.05 + (t * 0.02)),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.72, 1.0],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class BouncyNavButton extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool isDark;
+  final bool isSelected;
+  final bool enabled;
+  final bool showLabelAlways;
+  final bool showIndicator;
+  final int? indicatorCount;
+  final Color? indicatorColor;
+  final Color activeColor;
+  final VoidCallback onTap;
+  final GlobalKey? launchIconKey;
+
+  const BouncyNavButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.isSelected,
+    this.enabled = true,
+    this.showLabelAlways = false,
+    this.showIndicator = false,
+    this.indicatorCount,
+    this.indicatorColor,
+    required this.activeColor,
+    required this.onTap,
+    this.launchIconKey,
+  });
+
+  @override
+  State<BouncyNavButton> createState() => _BouncyNavButtonState();
+}
+
+class _BouncyNavButtonState extends State<BouncyNavButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _selectCtrl;
+  late final Animation<double> _scaleCurve;
+  late final Animation<double> _slideCurve;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _scaleCurve = Tween<double>(
+      begin: 1.0,
+      end: 1.04,
+    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.entrance));
+    _slideCurve = Tween<double>(
+      begin: 0.0,
+      end: -0.85,
+    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.entrance));
+    if (widget.isSelected) _selectCtrl.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(BouncyNavButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSelected && !oldWidget.isSelected) {
+      _selectCtrl.forward(from: 0.0);
+    } else if (!widget.isSelected && oldWidget.isSelected) {
+      _selectCtrl.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _selectCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = widget.isSelected
+        ? widget.activeColor
+        : (widget.isDark ? Colors.white38 : Colors.black38);
+    final color = widget.enabled
+        ? baseColor
+        : baseColor.withValues(alpha: widget.isDark ? 0.48 : 0.42);
+    final showLabel = widget.isSelected || widget.showLabelAlways;
+    final indicatorColor = widget.indicatorColor ?? widget.activeColor;
+    final badgeCount = widget.indicatorCount ?? 0;
+    final showCountBadge = badgeCount > 0 && !widget.isSelected;
+    final badgeText = badgeCount > 9 ? '9+' : '$badgeCount';
+
+    Widget buildIcon(double size, bool veryCompact) {
+      return Container(
+        key: widget.launchIconKey,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 192),
+              switchInCurve: IrisMotion.entrance,
+              switchOutCurve: IrisMotion.standard,
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
+              child: Icon(
+                widget.icon,
+                key: ValueKey('${widget.icon.codePoint}_${widget.isSelected}'),
+                color: color,
+                size: size,
+              ),
+            ),
+            if (widget.showIndicator && !widget.isSelected)
+              Positioned(
+                right: showCountBadge ? -8 : -2,
+                top: showCountBadge ? -6 : -1,
+                child: showCountBadge
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 1,
+                        ),
+                        constraints: const BoxConstraints(minWidth: 14),
+                        decoration: BoxDecoration(
+                          color: indicatorColor,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: widget.isDark
+                                ? IrisTokens.surfaceDarkElevated
+                                : Colors.white,
+                            width: 1.1,
+                          ),
+                        ),
+                        child: Text(
+                          badgeText,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 7,
+                            fontWeight: FontWeight.w800,
+                            height: 1.0,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        width: veryCompact ? 7 : 8,
+                        height: veryCompact ? 7 : 8,
+                        decoration: BoxDecoration(
+                          color: indicatorColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: widget.isDark
+                                ? IrisTokens.surfaceDarkElevated
+                                : Colors.white,
+                            width: 1.1,
+                          ),
+                        ),
+                      ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final slotWidth = constraints.maxWidth;
+        final veryCompact = slotWidth < 56;
+        final compact = slotWidth < 74;
+        final roomy = slotWidth > 108;
+
+        return AnimatedBuilder(
+          animation: _selectCtrl,
+          builder: (context, child) {
+            final yOffset = widget.showLabelAlways
+                ? (_slideCurve.value * 0.32)
+                : _slideCurve.value;
+            final scale = widget.showLabelAlways
+                ? (1.0 + ((_scaleCurve.value - 1.0) * 0.32))
+                : _scaleCurve.value;
+            return Transform.translate(
+              offset: Offset(0, yOffset),
+              child: Transform.scale(scale: scale, child: child),
+            );
+          },
+          child: SpringButton(
+            onTap: widget.enabled ? widget.onTap : () {},
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: widget.showLabelAlways
+                    ? (veryCompact ? 2 : (compact ? 3 : 6))
+                    : (veryCompact ? 3 : (compact ? 4 : (roomy ? 10 : 7))),
+                vertical: widget.showLabelAlways
+                    ? (veryCompact ? 4 : 5)
+                    : (veryCompact ? 4 : (compact ? 5 : 7)),
+              ),
+              decoration: widget.isSelected
+                  ? BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          widget.activeColor.withValues(alpha: 0.24),
+                          widget.activeColor.withValues(alpha: 0.12),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: widget.activeColor.withValues(alpha: 0.14),
+                        width: 1.2,
+                      ),
+                    )
+                  : null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  buildIcon(
+                    veryCompact ? 18 : (compact ? 20 : (roomy ? 24 : 22)),
+                    veryCompact,
+                  ),
+                  if (showLabel) ...[
+                    SizedBox(width: veryCompact ? 4 : (compact ? 6 : 10)),
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: veryCompact ? 10 : (compact ? 11 : 13),
+                          fontWeight: widget.isSelected
+                              ? FontWeight.w900
+                              : FontWeight.w700,
+                          letterSpacing: widget.isSelected ? 0.3 : 0.1,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class DaySwitcher extends StatelessWidget {
+  final int? selectedDayIndex;
+  final ValueChanged<int?> onSelected;
+
+  const DaySwitcher({
+    required this.selectedDayIndex,
+    required this.onSelected,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final today = DateTime.now().weekday; // 1=Mon
+    final autoSelected = selectedDayIndex == null;
+    return GlassCard(
+      child: SizedBox(
+        height: 50,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          physics: const ButterScrollPhysics(),
+          children: [
+            const SizedBox(width: 6),
+            AnimatedSlide(
+              duration: IrisMotion.fast,
+              curve: IrisMotion.standard,
+              offset: autoSelected ? const Offset(0, -0.02) : Offset.zero,
+              child: AnimatedScale(
+                duration: IrisMotion.fast,
+                curve: IrisMotion.standard,
+                scale: autoSelected ? 1.025 : 1.0,
+                child: AnimatedContainer(
+                  duration: IrisMotion.fast,
+                  curve: IrisMotion.standard,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: const [],
+                  ),
+                  child: ChoiceChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.auto_awesome,
+                          size: 13,
+                          color: autoSelected
+                              ? IrisTokens.brand
+                              : isDark
+                              ? Colors.white.withValues(alpha: 0.5)
+                              : Colors.black.withValues(alpha: 0.4),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Auto',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    selected: autoSelected,
+                    onSelected: (_) {
+                      IrisHaptics.chipSelect();
+                      onSelected(null);
+                    },
+                    selectedColor: IrisTokens.brand.withValues(alpha: 0.20),
+                    backgroundColor: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.04),
+                    side: BorderSide(
+                      color: autoSelected
+                          ? IrisTokens.brand.withValues(alpha: 0.56)
+                          : isDark
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : Colors.black.withValues(alpha: 0.10),
+                      width: autoSelected ? 1.4 : 1.0,
+                    ),
+                    labelStyle: TextStyle(
+                      color: autoSelected
+                          ? IrisTokens.brand
+                          : isDark
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.black.withValues(alpha: 0.65),
+                    ),
+                    elevation: autoSelected ? 0.6 : 0,
+                    pressElevation: 1,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ...List.generate(days.length, (index) {
+              final dayIndex = index + 1;
+              final isSelected = selectedDayIndex == dayIndex;
+              final isToday = dayIndex == today;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: AnimatedSlide(
+                  duration: IrisMotion.fast,
+                  curve: IrisMotion.standard,
+                  offset: isSelected ? const Offset(0, -0.02) : Offset.zero,
+                  child: AnimatedScale(
+                    duration: IrisMotion.fast,
+                    curve: IrisMotion.standard,
+                    scale: isSelected ? 1.03 : 1.0,
+                    child: AnimatedContainer(
+                      duration: IrisMotion.fast,
+                      curve: IrisMotion.standard,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: const [],
+                      ),
+                      child: ChoiceChip(
+                        avatar: isToday && !isSelected
+                            ? Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: IrisTokens.success,
+                                ),
+                              )
+                            : null,
+                        label: Text(
+                          days[index],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          IrisHaptics.chipSelect();
+                          onSelected(dayIndex == today ? null : dayIndex);
+                        },
+                        selectedColor: IrisTokens.brand.withValues(alpha: 0.20),
+                        backgroundColor: isDark
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.black.withValues(alpha: 0.04),
+                        side: BorderSide(
+                          color: isSelected
+                              ? IrisTokens.brand.withValues(alpha: 0.56)
+                              : isToday
+                              ? IrisTokens.success.withValues(alpha: 0.28)
+                              : isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : Colors.black.withValues(alpha: 0.10),
+                          width: isSelected ? 1.4 : 1.0,
+                        ),
+                        labelStyle: TextStyle(
+                          color: isSelected
+                              ? IrisTokens.brand
+                              : isDark
+                              ? Colors.white.withValues(alpha: 0.8)
+                              : Colors.black.withValues(alpha: 0.65),
+                        ),
+                        elevation: isSelected ? 0.6 : 0,
+                        pressElevation: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(width: 6),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ClassCard extends StatefulWidget {
+  final ClassSession session;
+  final ClassSession? nextSession;
+  final bool isFacultyView;
+  final VoidCallback? onRemoveMakeup;
+
+  const ClassCard({
+    super.key,
+    required this.session,
+    this.nextSession,
+    this.isFacultyView = false,
+    this.onRemoveMakeup,
+  });
+
+  @override
+  State<ClassCard> createState() => _ClassCardState();
+}
+
+class _ClassCardState extends State<ClassCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _nextPulseAnimation;
+  bool _pulseRunning = false;
+
+  void _syncPulse(bool shouldPulse) {
+    if (shouldPulse && !_pulseRunning) {
+      _pulseController.repeat(reverse: true);
+      _pulseRunning = true;
+    } else if (!shouldPulse && _pulseRunning) {
+      _pulseController.stop();
+      _pulseController.value = 0.0;
+      _pulseRunning = false;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final isLive = widget.session.isLive(now);
+
+    _pulseController = AnimationController(
+      duration: IrisMotion.slow,
+      vsync: this,
+    );
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
+      CurvedAnimation(parent: _pulseController, curve: IrisMotion.standard),
+    );
+
+    _nextPulseAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
+      CurvedAnimation(parent: _pulseController, curve: IrisMotion.standard),
+    );
+
+    _syncPulse(isLive);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final now = DateTime.now();
+    final live = widget.session.isLive(now);
+    final currentTime = now.hour + (now.minute / 60.0);
+    final isUpcoming =
+        !live &&
+        widget.session.dayIndex == now.weekday &&
+        widget.session.safeStartVal > currentTime &&
+        widget.session.safeStartVal - currentTime <= 0.75;
+
+    _syncPulse(live || isUpcoming);
+
+    final timeLabel = '${widget.session.startTime} - ${widget.session.endTime}';
+
+    final accentColor = live
+        ? IrisTokens.success
+        : isUpcoming
+        ? IrisTokens.brand
+        : IrisTokens.purple;
+    final textPrimary = isDark ? Colors.white : IrisTokens.surfaceDark;
+    final textSecondary = (isDark ? Colors.white : Colors.black).withValues(
+      alpha: 0.68,
+    );
+
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: IrisMotion.medium,
+          curve: IrisMotion.entrance,
+          builder: (context, bounceval, child) => Transform.scale(
+            scale: 0.96 + (bounceval * 0.04),
+            child: GlassCard(
+              glow: live,
+              shimmer: false,
+              enableBlur: true,
+              enableShadow: true,
+              enableOverlay: true,
+              padding: const EdgeInsets.all(22),
+              borderRadius: 32.0, // Larger corner radius for iOS 18 style
+              elevation: live ? 3 : 2,
+              accentColor: accentColor,
+              tilt: live,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.session.subject,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 20,
+                            letterSpacing: -0.2,
+                            height: 1.1,
+                            color: live ? IrisTokens.success : textPrimary,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: live 
+                              ? IrisTokens.brand.withValues(alpha: 0.85)
+                              : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          timeLabel,
+                          style: TextStyle(
+                            fontSize: 12,
+                            letterSpacing: 0.3,
+                            fontWeight: FontWeight.w800,
+                            height: 1.0,
+                            color: live ? Colors.white : textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 16,
+                            color: textSecondary.withValues(alpha: 0.6),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            widget.session.room,
+                            style: TextStyle(
+                              fontSize: 15,
+                              letterSpacing: 0.1,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        widget.isFacultyView
+                            ? widget.session.batchKey.batch
+                            : widget.session.teacher,
+                        style: TextStyle(
+                          fontSize: 14,
+                          letterSpacing: 0.1,
+                          fontWeight: FontWeight.w600,
+                          color: textSecondary.withValues(alpha: 0.7),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  
+                  if (live &&
+                      widget.nextSession != null &&
+                      widget.nextSession!.dayIndex ==
+                          widget.session.dayIndex) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.keyboard_arrow_right_rounded,
+                            size: 16,
+                            color: textSecondary.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Next: ${widget.nextSession!.room}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                              color: textSecondary.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  if (live) ...[
+                    const SizedBox(height: 22),
+                    Builder(
+                      builder: (context) {
+                        final currentTime = now.hour + (now.minute / 60.0);
+                        final duration = LectureDuration.getActualDuration(widget.session);
+                        final actualEndTime = LectureDuration.getActualEndTime(widget.session);
+                        final progress = ((currentTime - widget.session.safeStartVal) / duration).clamp(0.0, 1.0);
+                        final minutesLeft = ((actualEndTime - currentTime) * 60).toInt().clamp(0, (duration * 60).toInt());
+
+                        return Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(99),
+                              child: Container(
+                                height: 8,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                                ),
+                                child: FractionallySizedBox(
+                                  alignment: Alignment.centerLeft,
+                                  widthFactor: progress,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [IrisTokens.success, IrisTokens.successDark],
+                                      ),
+                                      borderRadius: BorderRadius.circular(99),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${(progress * 100).toInt()}% Done',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: textSecondary.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                                Text(
+                                  '${minutesLeft}m left',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: IrisTokens.success,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GlassShimmer extends StatefulWidget {
+  const GlassShimmer({super.key});
+
+  @override
+  State<GlassShimmer> createState() => _GlassShimmerState();
+}
+
+class _GlassShimmerState extends State<GlassShimmer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _curve;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3456),
+    )..repeat();
+    _curve = CurvedAnimation(parent: _controller, curve: IrisMotion.standard);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final shift = (_curve.value * 2) - 1;
+            return FractionalTranslation(
+              translation: Offset(shift, 0),
+              child: child,
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.0),
+                  Colors.white.withValues(alpha: 0.25),
+                  Colors.white.withValues(alpha: 0.0),
+                ],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+class SectionHeader extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final Color statusIndicator;
+
+  const SectionHeader({
+    required this.title,
+    required this.subtitle,
+    required this.statusIndicator,
+    super.key,
+  });
+
+  @override
+  State<SectionHeader> createState() => _SectionHeaderState();
+}
+
+class _SectionHeaderState extends State<SectionHeader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      duration: IrisMotion.slow,
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _bounceAnimation = Tween<double>(begin: -1.0, end: 1.0).animate(
+      CurvedAnimation(parent: _bounceController, curve: IrisMotion.standard),
+    );
+    _glowAnimation = Tween<double>(begin: 0.05, end: 0.09).animate(
+      CurvedAnimation(parent: _bounceController, curve: IrisMotion.standard),
+    );
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: IrisMotion.medium,
+        curve: IrisMotion.bouncy,
+        builder: (context, animValue, child) => Transform.translate(
+          offset: Offset(-36 * (1 - animValue), 8 * (1 - animValue)),
+          child: Transform.scale(
+            scale: 0.96 + (0.04 * animValue),
+            child: Opacity(opacity: animValue, child: child),
+          ),
+        ),
+        child: AnimatedBuilder(
+          animation: _bounceController,
+          builder: (context, _) {
+            return Container(
+              padding: const EdgeInsets.all(IrisTokens.space20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    widget.statusIndicator.withValues(
+                      alpha: isDark ? 0.26 : 0.18,
+                    ),
+                    widget.statusIndicator.withValues(
+                      alpha: isDark ? 0.14 : 0.10,
+                    ),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(IrisTokens.radius24),
+                border: Border.all(
+                  color: widget.statusIndicator.withValues(
+                    alpha: isDark ? 0.34 : 0.24,
+                  ),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.statusIndicator.withValues(
+                      alpha: _glowAnimation.value,
+                    ),
+                    offset: const Offset(0, 8),
+                    blurRadius: 20,
+                    spreadRadius: -14,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.05),
+                    offset: const Offset(0, 3),
+                    blurRadius: 12,
+                    spreadRadius: -6,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 304),
+                    switchInCurve: IrisMotion.entrance,
+                    switchOutCurve: IrisMotion.standard,
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: animation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    ),
+                    child: Transform.translate(
+                      key: ValueKey(widget.statusIndicator.value),
+                      offset: Offset(0, _bounceAnimation.value),
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: widget.statusIndicator.withValues(alpha: 0.95),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: widget.statusIndicator.withValues(
+                                alpha: 0.18,
+                              ),
+                              blurRadius: 6,
+                              spreadRadius: -3,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title.toUpperCase(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.8,
+                            fontSize: 10,
+                            height: 1.4,
+                            color: (isDark ? Colors.white : Colors.black)
+                                .withValues(alpha: 0.66),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.subtitle,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                            color: (isDark ? Colors.white : Colors.black)
+                                .withValues(alpha: 0.90),
+                            height: 1.22,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}

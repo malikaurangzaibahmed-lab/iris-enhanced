@@ -8,7 +8,7 @@ import android.app.DownloadManager
 import android.os.Environment
 import android.webkit.MimeTypeMap
 import android.webkit.URLUtil
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -18,12 +18,24 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlin.random.Random
 
-class MainActivity : FlutterActivity() {
+import io.flutter.plugin.platform.PlatformView
+import io.flutter.plugin.platform.PlatformViewFactory
+import io.flutter.plugin.common.StandardMessageCodec
+import android.content.Context
+import android.view.View
+import com.qmdeve.liquidglass.widget.LiquidGlassView
+
+class MainActivity : FlutterFragmentActivity() {
 	private var uiMediaPlayer: MediaPlayer? = null
 	private val uiAssetCache = mutableMapOf<String, String>()
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 		super.configureFlutterEngine(flutterEngine)
+
+		flutterEngine.platformViewsController.registry.registerViewFactory(
+			"android_liquid_glass",
+			LiquidGlassViewFactory()
+		)
 
 		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "iris_notification")
 			.setMethodCallHandler { call, result ->
@@ -394,4 +406,71 @@ class MainActivity : FlutterActivity() {
 
 		return cacheFile.absolutePath
 	}
+}
+
+class LiquidGlassPlatformView(val context: Context, id: Int, creationParams: Map<String?, Any?>?) : PlatformView {
+    private var liquidGlassView: LiquidGlassView? = null
+
+    init {
+        try {
+            // Android 13+ (Tiramisu) is required for AGSL RenderEffect support
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                liquidGlassView = LiquidGlassView(context).apply {
+                    val radius = (creationParams?.get("radius") as? Number)?.toFloat() ?: 30f
+                    val blur = (creationParams?.get("blurRadius") as? Number)?.toFloat() ?: 4.0f
+                    val rHeight = (creationParams?.get("refractionHeight") as? Number)?.toFloat() ?: 45f
+                    val rAmount = (creationParams?.get("refractionAmount") as? Number)?.toFloat() ?: 35f
+                    val tAlpha = (creationParams?.get("tintAlpha") as? Number)?.toFloat() ?: 0.08f
+                    
+                    setCornerRadius(radius)
+                    setBlurRadius(blur)
+                    setRefractionHeight(rHeight)
+                    // setRefractionAmount(rAmount) // commented out: method missing
+                    setTintAlpha(tAlpha)
+                    // setTintColor(android.graphics.Color.argb(255, 255, 255, 255)) // commented out: method missing
+                    setDispersion(0.65f)
+                    // setChromaMultiplier(1.12f) // commented out: method missing
+                    // setContrast(0.06f) // commented out: method missing
+                    // setChromaticAberration(0.45f) // commented out: method missing
+                    
+                    // REVOLUTIONARY FIX: Find the actual FlutterView surface
+                    (context as? android.app.Activity)?.let { activity ->
+                        val flutterView = findFlutterView(activity.findViewById(android.R.id.content))
+                        flutterView?.let { 
+                            bind(it as android.view.ViewGroup) 
+                            android.util.Log.d("IRIS_NATIVE", "Successfully bound LiquidGlass to Flutter Surface")
+                        } ?: run {
+                            // Fallback to root content if FlutterView detection fails
+                            val root = activity.findViewById<android.view.ViewGroup>(android.R.id.content)
+                            bind(root)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("IRIS_NATIVE", "Native LiquidGlass Critical Failure: ${e.message}")
+        }
+    }
+    
+    private fun findFlutterView(view: View?): View? {
+        if (view == null) return null
+        if (view.javaClass.name.contains("FlutterView")) return view
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val found = findFlutterView(view.getChildAt(i))
+                if (found != null) return found
+            }
+        }
+        return null
+    }
+    
+    override fun getView(): View = liquidGlassView ?: View(context)
+    override fun dispose() {}
+}
+
+class LiquidGlassViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
+    override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
+        val creationParams = args as? Map<String?, Any?>
+        return LiquidGlassPlatformView(context, viewId, creationParams)
+    }
 }

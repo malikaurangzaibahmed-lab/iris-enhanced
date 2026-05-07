@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "394156838314",
+    "project_id": "iris-138ef",
+    "storage_bucket": "iris-138ef.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394156838314:android:b1d858fa0c0ed58fc2afd3",
+        "android_client_info": {
+          "package_name": "com.example.student_organizer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAXqXhWVQs3yFiMyftafA4og8yN0LHHHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

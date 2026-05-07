@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'dart:convert';
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:html/parser.dart' as hp;
+import 'package:html/dom.dart' as hdom;
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +18,12 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/ui_feedback.dart';
+import 'services/portal_sync_service.dart';
+import 'services/headless_portal_sync.dart';
 import 'widgets/iris_background.dart';
+import 'core/tokens.dart';
+import 'core/animations.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 /// Portal session metadata persisted across app restarts
 class DownloadRecord {
@@ -114,6 +122,108 @@ class DownloadRecord {
   }
 }
 
+/// Represents a student task (Assignment or Quiz) from the portal
+class PortalTask {
+  final String type; // Assignment, Quiz, etc.
+  final String title;
+  final String subject;
+  final String dueDate;
+  final int scrapedAt;
+  final bool isCompleted;
+  final String status;
+  final String? courseId;
+
+  const PortalTask({
+    required this.type,
+    required this.title,
+    required this.subject,
+    required this.dueDate,
+    required this.scrapedAt,
+    this.isCompleted = false,
+    this.status = "",
+    this.courseId,
+  });
+
+  factory PortalTask.fromJson(dynamic json) {
+    final data = (json is Map) ? Map<String, dynamic>.from(json) : <String, dynamic>{};
+    return PortalTask(
+      type: data['type']?.toString() ?? 'Task',
+      title: data['title']?.toString() ?? '',
+      subject: data['subject']?.toString() ?? 'Unknown Subject',
+      dueDate: data['dueDate']?.toString() ?? '',
+      scrapedAt: (data['scrapedAt'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
+      isCompleted: data['isCompleted'] == true,
+      status: data['status']?.toString() ?? "",
+      courseId: data['courseId']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'type': type,
+    'title': title,
+    'subject': subject,
+    'dueDate': dueDate,
+    'scrapedAt': scrapedAt,
+    'isCompleted': isCompleted,
+    'status': status,
+    'courseId': courseId,
+  };
+
+  bool get isUrgent {
+    final diff = daysRemaining;
+    return diff >= 0 && diff <= 2;
+  }
+
+  int get daysRemaining {
+    try {
+      // First try ISO parsing (New System)
+      final isoDate = DateTime.tryParse(dueDate);
+      if (isoDate != null) {
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final target = DateTime(isoDate.year, isoDate.month, isoDate.day);
+        return target.difference(today).inDays;
+      }
+
+      // Fallback to manual parsing (Old System)
+      final parts = dueDate.split(RegExp(r'[/\-]'));
+      if (parts.length < 3) return 999;
+      
+      int day = int.parse(parts[0]);
+      int month = int.parse(parts[1]);
+      
+      if (month > 12) {
+         final temp = day;
+         day = month;
+         month = temp;
+      }
+      
+      final yearText = parts[2].split(' ').first;
+      final year = int.parse(yearText.length == 2 ? '20$yearText' : yearText);
+      
+      final date = DateTime(year, month, day);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      return date.difference(today).inDays;
+    } catch (_) {
+      return 999;
+    }
+  }
+
+  PortalTask copyWith({bool? isCompleted, String? status}) {
+    return PortalTask(
+      type: type,
+      title: title,
+      subject: subject,
+      dueDate: dueDate,
+      scrapedAt: scrapedAt,
+      isCompleted: isCompleted ?? this.isCompleted,
+      status: status ?? this.status,
+      courseId: courseId,
+    );
+  }
+}
+
 class PortalSession {
   final String host;
   final String title;
@@ -135,7 +245,12 @@ class PortalSession {
     this.hasValidCookies = false,
     this.recentDownloads = const [],
     this.recentUploads = const [],
+    this.tasks = const [],
+    this.lastSyncAt,
   });
+
+  final List<PortalTask> tasks;
+  final int? lastSyncAt;
 
   factory PortalSession.fromJson(Map<String, dynamic> json) {
     return PortalSession(
@@ -151,6 +266,10 @@ class PortalSession {
           .map(DownloadRecord.fromJson)
           .toList(),
       recentUploads: List<String>.from(json['recentUploads'] ?? []),
+      tasks: (json['tasks'] as List<dynamic>? ?? const [])
+          .map(PortalTask.fromJson)
+          .toList(),
+      lastSyncAt: json['lastSyncAt'],
     );
   }
 
@@ -162,8 +281,10 @@ class PortalSession {
     'createdAt': createdAt,
     'lastAccessedAt': lastAccessedAt,
     'hasValidCookies': hasValidCookies,
-    'recentDownloads': recentDownloads.map((entry) => entry.toJson()).toList(),
+    'recentDownloads': recentDownloads.map((d) => d.toJson()).toList(),
     'recentUploads': recentUploads,
+    'tasks': tasks.map((t) => t.toJson()).toList(),
+    'lastSyncAt': lastSyncAt,
   };
 
   String get prettyLastAccessed {
@@ -177,26 +298,28 @@ class PortalSession {
   }
 
   PortalSession copyWith({
-    String? host,
     String? title,
     String? url,
     String? savedUsername,
-    int? createdAt,
     int? lastAccessedAt,
     bool? hasValidCookies,
     List<DownloadRecord>? recentDownloads,
     List<String>? recentUploads,
+    List<PortalTask>? tasks,
+    int? lastSyncAt,
   }) {
     return PortalSession(
-      host: host ?? this.host,
+      host: host,
       title: title ?? this.title,
       url: url ?? this.url,
       savedUsername: savedUsername ?? this.savedUsername,
-      createdAt: createdAt ?? this.createdAt,
+      createdAt: createdAt,
       lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
       hasValidCookies: hasValidCookies ?? this.hasValidCookies,
       recentDownloads: recentDownloads ?? this.recentDownloads,
       recentUploads: recentUploads ?? this.recentUploads,
+      tasks: tasks ?? this.tasks,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
     );
   }
 }
@@ -222,7 +345,7 @@ class PortalScreen extends StatefulWidget {
 class _PortalScreenState extends State<PortalScreen>
     with SingleTickerProviderStateMixin {
   static const String _portalUserAgent =
-      'Mozilla/5.0 (Linux; Android 14; IRIS) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36';
+      'Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UD1A.230805.019) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.165 Mobile Safari/537.36';
   static const MethodChannel _androidDownloadChannel = MethodChannel(
     'iris/download',
   );
@@ -232,6 +355,7 @@ class _PortalScreenState extends State<PortalScreen>
   late final AnimationController _animController;
   late final Animation<double> _scaleAnimation;
   bool _isLoading = true;
+  bool _isSyncing = false;
   bool _isDownloading = false;
   double _downloadProgress = -1;
   bool _canGoBack = false;
@@ -248,6 +372,7 @@ class _PortalScreenState extends State<PortalScreen>
   bool _isOffline = false;
   bool _isPullRefreshing = false;
   bool _isHeaderCollapsed = true;
+  bool _isPillPressed = false;
   bool _isEditingAddress = false;
   bool _showAutofillPrompt = false;
   Timer? _connectivityTimer;
@@ -1286,15 +1411,25 @@ class _PortalScreenState extends State<PortalScreen>
     final uri = Uri.tryParse(url);
     if (uri == null || uri.host.isEmpty) return;
     try {
-      final raw = await _controller.runJavaScriptReturningResult(
-        'document.cookie',
-      );
-      final cookieHeader = _normalizeJsResult(raw).trim();
-      final prefs = await SharedPreferences.getInstance();
-      if (cookieHeader.isEmpty) return;
-      await prefs.setString(_sessionCookieKeyForHost(uri.host), cookieHeader);
-    } catch (_) {
-      // Best-effort persistence only.
+      final host = uri.host;
+      // Note: webview_flutter 4.x doesn't have a direct getCookies() that sees HttpOnly.
+      // We use document.cookie for now as it captures the primary session identifiers.
+      final raw = await _controller.runJavaScriptReturningResult('document.cookie');
+      final cookieString = _normalizeJsResult(raw).trim();
+      
+      if (cookieString.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_sessionCookieKeyForHost(host), cookieString);
+        
+        // Also update background service global key if this is student scope
+        if (_scopeSanitized == 'student') {
+           await prefs.setString('iris_session_student_${host.toLowerCase()}_cookies', cookieString);
+        }
+        
+        print('🍪 Session cookies persisted for $host');
+      }
+    } catch (e) {
+      print('⚠️ Cookie persistence failed: $e');
     }
   }
 
@@ -2228,6 +2363,41 @@ class _PortalScreenState extends State<PortalScreen>
             _showMessage('Retrying download... attempt $attempt');
           }
         }
+      } else if (type == 'portal_sync_tasks') {
+        final List<dynamic> courseData = data['tasks'] as List<dynamic>? ?? [];
+        final List<PortalTask> flattenedTasks = [];
+        
+        for (final course in courseData) {
+          final courseName = course['courseName']?.toString() ?? 'Unknown';
+          final courseId = course['courseId']?.toString();
+          final tasks = course['tasks'] as List<dynamic>? ?? [];
+          
+          for (final t in tasks) {
+            flattenedTasks.add(PortalTask(
+              type: t['type']?.toString() ?? 'Assignment',
+              title: t['title']?.toString() ?? 'Untitled',
+              subject: courseName,
+              dueDate: t['deadline']?.toString() ?? '',
+              status: t['status']?.toString() ?? '',
+              courseId: courseId,
+              isCompleted: t['status']?.toString().toLowerCase().contains('submitted') ?? false,
+              scrapedAt: DateTime.now().millisecondsSinceEpoch,
+            ));
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _currentSession = _currentSession.copyWith(
+              tasks: flattenedTasks,
+              lastSyncAt: DateTime.now().millisecondsSinceEpoch,
+            );
+          });
+          _savePortalSession();
+          PortalSyncService.notifyUpdate();
+          _showMessage('✓ Scoped ${flattenedTasks.length} portal tasks');
+          IrisSfx.tick();
+        }
       }
     } catch (_) {}
   }
@@ -2374,6 +2544,9 @@ class _PortalScreenState extends State<PortalScreen>
 })();
 ''';
 
+  /// Universal Extraction Engine for COMSATS Portal (Mobile Optimized)
+  // Shared with HeadlessPortalSync
+
   Future<void> _updateNavState() async {
     final canBack = await _controller.canGoBack();
     final canForward = await _controller.canGoForward();
@@ -2425,6 +2598,41 @@ class _PortalScreenState extends State<PortalScreen>
     await _controller.loadRequest(uri);
     await _updateNavState();
     _cancelAddressEdit();
+  }
+
+  Future<void> _syncPortalTasks({bool silent = false}) async {
+    if (_isSyncing || _isLoading) return;
+    if (!mounted) return;
+    
+    setState(() => _isSyncing = true);
+    if (!silent) {
+      _showTopPill(
+        text: 'Syncing assignments...',
+        icon: Icons.sync_rounded,
+        tone: IrisTokens.brand,
+      );
+      IrisSfx.pillTap();
+    }
+    
+    try {
+      await _controller.runJavaScript(HeadlessPortalSync.syncPortalScript);
+    } catch (e) {
+      if (!silent) {
+        _showTopPill(
+          text: 'Sync failed',
+          icon: Icons.error_outline_rounded,
+          tone: IrisTokens.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSyncing = false);
+        // Pill will clear itself or we can clear it after a delay
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) _clearTopPillOverlay();
+        });
+      }
+    }
   }
 
   void _toggleHeaderCollapsed() {
@@ -2603,6 +2811,8 @@ class _PortalScreenState extends State<PortalScreen>
   @override
   void initState() {
     super.initState();
+    // Pause background sync while the user is actively in the portal
+    PortalSyncService.isSyncPaused.value = true;
 
     _animController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -2670,14 +2880,21 @@ class _PortalScreenState extends State<PortalScreen>
             _checkConnectivity();
           },
           onPageFinished: (url) async {
+            if (!mounted) return;
             _currentUrl = url;
             await _controller.runJavaScript(_modernizeFormScript);
             await _controller.runJavaScript(_savePasswordScript);
             await _controller.runJavaScript(_downloadInterceptScript);
+            
+            // Sync cookies aggressively
             await _persistSessionCookiesForUrl(url);
             await _updateSessionMetadata();
-            if (!mounted) return;
-            setState(() => _isLoading = false);
+            
+            setState(() {
+              _isLoading = false;
+              _progress = 100;
+            });
+            
             await _updateNavState();
             _startLoginFocusWatch();
             await _checkConnectivity();
@@ -2740,6 +2957,8 @@ class _PortalScreenState extends State<PortalScreen>
 
   @override
   void dispose() {
+    // Resume background sync when the user leaves the portal
+    PortalSyncService.isSyncPaused.value = false;
     _connectivityTimer?.cancel();
     _stopLoginFocusWatch();
     _clearTopPillOverlay();
@@ -2755,29 +2974,40 @@ class _PortalScreenState extends State<PortalScreen>
     required VoidCallback onTap,
     bool primary = false,
   }) {
-    final accent = const Color(0xFFFE7A2C);
-    final textColor = isDark ? Colors.white : const Color(0xFF3A2A1A);
-    final chipColor = primary
-        ? accent.withValues(alpha: isDark ? 0.26 : 0.18)
-        : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08);
+    final accent = IrisTokens.brand;
+    final textColor = isDark ? Colors.white : IrisTokens.surfaceDarkElevated;
+    
+    // Use IrisVibrancy for a more glassmorphic feel
+    final opacity = primary ? 0.18 : 0.08;
+    final chipColor = (isDark ? Colors.white : Colors.black).withValues(alpha: opacity);
     final borderColor = primary
         ? accent.withValues(alpha: 0.36)
         : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12);
+    
+    final radius = BorderRadius.circular(IrisTokens.radiusFull);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(999),
+      borderRadius: radius,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           color: chipColor,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: borderColor),
+          borderRadius: radius,
+          border: Border.all(color: borderColor, width: 0.8),
+          boxShadow: [
+            if (primary)
+              BoxShadow(
+                color: accent.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: textColor.withValues(alpha: 0.92)),
+            Icon(icon, size: 14, color: textColor.withValues(alpha: 0.88)),
             const SizedBox(width: 6),
             Text(
               label,
@@ -2785,6 +3015,7 @@ class _PortalScreenState extends State<PortalScreen>
                 color: textColor,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
                 decoration: TextDecoration.none,
               ),
             ),
@@ -2835,6 +3066,8 @@ class _PortalScreenState extends State<PortalScreen>
         ),
       );
     }
+
+    // Smart Sync chip detection removed - background service handles this now.
 
     if (_hasFileUpload) {
       chips.add(
@@ -2964,7 +3197,7 @@ class _PortalScreenState extends State<PortalScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final addressLabel = addressLabelSafe;
     final compact = screenSize.width < 380;
-    final accent = const Color(0xFFFE7A2C);
+    final accent = IrisTokens.brand;
     final edgeInset = isTablet ? 18.0 : 10.0;
     final headerInset = isTablet ? 18.0 : 14.0;
     final maxHeaderWidth = math.min(
@@ -3015,9 +3248,9 @@ class _PortalScreenState extends State<PortalScreen>
     );
 
     return Scaffold(
-      body: IrisAppBackdrop(
-        child: Stack(
-          children: [
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
             SafeArea(
               child: ScaleTransition(
                 scale: _scaleAnimation,
@@ -3062,6 +3295,43 @@ class _PortalScreenState extends State<PortalScreen>
                                   child: RepaintBoundary(
                                     child: WebViewWidget(
                                       controller: _controller,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 12,
+                                  top: 12,
+                                  child: Opacity(
+                                    opacity: 0.92,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        try {
+                                          debugPrint('Manual: triggering headless script from PortalScreen');
+                                          await _controller.runJavaScript(HeadlessPortalSync.syncPortalScript);
+                                          await _showMessage('Manual scraper triggered');
+                                        } catch (e) {
+                                          debugPrint('Manual scraper error: $e');
+                                          await _showMessage('Scraper run failed');
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: accent,
+                                          borderRadius: BorderRadius.circular(8),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.18),
+                                              blurRadius: 6,
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.bug_report,
+                                          size: 18,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -3126,89 +3396,86 @@ class _PortalScreenState extends State<PortalScreen>
                       right: 0,
                       top: 10,
                       child: Center(
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 320),
-                          curve: Curves.easeOutCubic,
-                          width: targetHeaderWidth,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              _isHeaderCollapsed ? 999 : 24,
-                            ),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(
-                                    _isHeaderCollapsed ? 999 : 24,
-                                  ),
-                                  onTap: _pillActive && _pillAction != null
-                                      ? _pillAction
-                                      : _toggleHeaderCollapsed,
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 320),
-                                    curve: Curves.easeOutCubic,
-                                    padding: EdgeInsets.fromLTRB(
-                                      _isHeaderCollapsed ? 12 : 14,
-                                      _isHeaderCollapsed ? 8 : 10,
-                                      _isHeaderCollapsed ? 12 : 14,
-                                      _isHeaderCollapsed ? 8 : 10,
+                        child: GestureDetector(
+                          onTapDown: (_) => setState(() => _isPillPressed = true),
+                          onTapUp: (_) {
+                            setState(() => _isPillPressed = false);
+                            if (_pillActive && _pillAction != null) {
+                              _pillAction!();
+                            } else {
+                              _toggleHeaderCollapsed();
+                            }
+                          },
+                          onTapCancel: () => setState(() => _isPillPressed = false),
+                          child: AnimatedScale(
+                            scale: _isPillPressed ? 0.96 : 1.0,
+                            duration: const Duration(milliseconds: 160),
+                            curve: _isPillPressed ? IrisMotion.emphasized : IrisMotion.spring,
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween<double>(
+                                begin: _isHeaderCollapsed ? 0.0 : 1.0,
+                                end: _isHeaderCollapsed ? 0.0 : 1.0,
+                              ),
+                              duration: const Duration(milliseconds: 380),
+                              curve: IrisMotion.fluid,
+                              builder: (context, expansion, child) {
+                                final currentWidth = collapsedHeaderWidth + (maxHeaderWidth - collapsedHeaderWidth) * expansion;
+                                final currentRadius = 999.0 + (22.0 - 999.0) * expansion;
+                                final currentVPadding = 8.0 + (10.0 - 8.0) * expansion;
+                                final currentHPadding = 12.0 + (14.0 - 12.0) * expansion;
+                                
+                                return SizedBox(
+                                  width: currentWidth,
+                                  child: LiquidGlassLayer(
+                                    settings: LiquidGlassSettings(
+                                      blur: 16,
+                                      ambientStrength: 0.65,
+                                      lightAngle: 0.15 * math.pi,
+                                      glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
+                                          .withValues(alpha: isDark ? 0.42 : 0.45),
+                                      thickness: 20,
                                     ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: isDark
-                                            ? [
-                                                const Color(
-                                                  0xFF1B2638,
-                                                ).withValues(alpha: 0.96),
-                                                const Color(
-                                                  0xFF111827,
-                                                ).withValues(alpha: 0.92),
-                                              ]
-                                            : [
-                                                const Color(
-                                                  0xFFFFE7C6,
-                                                ).withValues(alpha: 0.94),
-                                                const Color(
-                                                  0xFFFFF5E6,
-                                                ).withValues(alpha: 0.90),
-                                              ],
+                                    child: LiquidGlass.inLayer(
+                                      shape: LiquidRoundedSuperellipse(
+                                        borderRadius: Radius.circular(currentRadius),
                                       ),
-                                      borderRadius: BorderRadius.circular(
-                                        _isHeaderCollapsed ? 999 : 24,
-                                      ),
-                                      border: Border.all(
-                                        color: (isDark ? Colors.white : accent)
-                                            .withValues(
-                                              alpha: isDark ? 0.18 : 0.22,
-                                            ),
-                                        width: 1.2,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color:
-                                              (isDark
-                                                      ? Colors.black
-                                                      : const Color(0xFF8A5E2D))
-                                                  .withValues(
-                                                    alpha: isDark ? 0.46 : 0.22,
-                                                  ),
-                                          blurRadius: 24,
-                                          offset: const Offset(0, 12),
-                                          spreadRadius: -8,
-                                        ),
-                                        BoxShadow(
-                                          color: _pillTone.withValues(
-                                            alpha: _pillActive ? 0.16 : 0.0,
+                                      glassContainsChild: false,
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: currentVPadding,
+                                            horizontal: currentHPadding,
                                           ),
-                                          blurRadius: 14,
-                                          offset: const Offset(0, 4),
-                                          spreadRadius: -8,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(currentRadius),
+                                            border: Border.all(
+                                              color: (isDark ? Colors.white : accent)
+                                                  .withValues(alpha: isDark ? 0.14 : 0.18),
+                                              width: 1.5,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: (isDark ? Colors.black : accent).withValues(alpha: isDark ? 0.35 : 0.12),
+                                                blurRadius: 20,
+                                                offset: const Offset(0, 10),
+                                                spreadRadius: -6,
+                                              ),
+                                              if (_pillActive)
+                                                BoxShadow(
+                                                  color: _pillTone.withValues(alpha: 0.25),
+                                                  blurRadius: 12,
+                                                  spreadRadius: 2,
+                                                ),
+                                            ],
+                                          ),
+                                          child: child,
                                         ),
-                                      ],
+                                      ),
                                     ),
+                                  ),
+                                );
+                              },
                                     child: AnimatedSize(
                                       duration: const Duration(
                                         milliseconds: 320,
@@ -3574,12 +3841,15 @@ class _PortalScreenState extends State<PortalScreen>
                                                               width: 9,
                                                               height: 9,
                                                               decoration:
-                                                                  const BoxDecoration(
-                                                                    color: Color(
-                                                                      0xFF10B981,
-                                                                    ),
-                                                                    shape: BoxShape
-                                                                        .circle,
+                                                                  BoxDecoration(
+                                                                    color: IrisTokens.success,
+                                                                    shape: BoxShape.circle,
+                                                                    boxShadow: [
+                                                                      BoxShadow(
+                                                                        color: IrisTokens.success.withValues(alpha: 0.4),
+                                                                        blurRadius: 4,
+                                                                      ),
+                                                                    ],
                                                                   ),
                                                             ),
                                                           if (_isOffline)
@@ -3619,22 +3889,16 @@ class _PortalScreenState extends State<PortalScreen>
                                                                     vertical: 8,
                                                                   ),
                                                               decoration: BoxDecoration(
-                                                                color: Colors
-                                                                    .white
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.08,
-                                                                    ),
+                                                                color: (isDark ? Colors.white : Colors.black).withValues(
+                                                                  alpha: 0.08,
+                                                                ),
                                                                 borderRadius:
                                                                     BorderRadius.circular(
-                                                                      16,
+                                                                      IrisTokens.radius16,
                                                                     ),
                                                                 border: Border.all(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.16,
+                                                                  color: (isDark ? Colors.white : accent).withValues(
+                                                                        alpha: 0.12,
                                                                       ),
                                                                 ),
                                                               ),
@@ -3753,18 +4017,15 @@ class _PortalScreenState extends State<PortalScreen>
                                                       ),
                                                     ],
                                                   ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                                          ), // AnimatedSwitcher
+                                        ], // Column children
+                                      ), // Column
+                                    ), // AnimatedSize
+                                  ), // TweenAnimationBuilder
+                                ), // AnimatedScale
+                              ), // GestureDetector
+                            ), // Center
+                          ), // Positioned
                     Positioned.fill(
                       child: IgnorePointer(
                         child: Align(
@@ -3785,7 +4046,6 @@ class _PortalScreenState extends State<PortalScreen>
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }

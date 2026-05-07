@@ -22,6 +22,10 @@ class RoomOccupancyService {
     );
   }
 
+  void registerRoomModel(Room room) {
+    _rooms[room.id] = room;
+  }
+
   /// Get all available rooms right now
   List<RoomAvailability> getAvailableRoomsNow(
     List<ClassSession> allSessions,
@@ -30,10 +34,9 @@ class RoomOccupancyService {
     final currentHour = now.hour + (now.minute / 60.0);
     final dayIndex = now.weekday;
 
-    final availability = <RoomAvailability>[];
-
+    // First pass to build raw availability
+    final rawAvailability = <RoomAvailability>[];
     for (final room in _rooms.values) {
-      // Find all sessions in this room at current time
       final occupyingSessions = allSessions.where((s) =>
           s.room == room.id &&
           s.dayIndex == dayIndex &&
@@ -41,9 +44,8 @@ class RoomOccupancyService {
           currentHour < s.safeEndVal);
 
       if (occupyingSessions.isEmpty) {
-        // Room is free now
         final nextSession = _getNextSession(room.id, allSessions, dayIndex, currentHour);
-        availability.add(RoomAvailability(
+        rawAvailability.add(RoomAvailability(
           roomId: room.id,
           building: room.building,
           capacity: room.capacity,
@@ -55,12 +57,11 @@ class RoomOccupancyService {
           minulesFreeUntilNextSession: nextSession != null
               ? ((nextSession.safeStartVal - currentHour) * 60).toInt()
               : null,
-          studyScore: _calculateStudyScore(room, nextSession),
+          studyScore: 0, // Placeholder
         ));
       } else {
-        // Room is occupied
         final session = occupyingSessions.first;
-        availability.add(RoomAvailability(
+        rawAvailability.add(RoomAvailability(
           roomId: room.id,
           building: room.building,
           capacity: room.capacity,
@@ -75,6 +76,25 @@ class RoomOccupancyService {
       }
     }
 
+    // Second pass to calculate study score with building context
+    final availability = rawAvailability.map((a) {
+      if (!a.isAvailable) return a;
+      final room = _rooms[a.roomId]!;
+      final nextSession = _getNextSession(room.id, allSessions, dayIndex, currentHour);
+      return RoomAvailability(
+        roomId: a.roomId,
+        building: a.building,
+        capacity: a.capacity,
+        amenities: a.amenities,
+        isAvailable: true,
+        occupiedUntil: null,
+        nextSessionAt: a.nextSessionAt,
+        nextSessionSubject: a.nextSessionSubject,
+        minulesFreeUntilNextSession: a.minulesFreeUntilNextSession,
+        studyScore: _calculateStudyScore(room, nextSession, rawAvailability),
+      );
+    }).toList();
+
     // Sort by study score (best spaces first)
     availability.sort((a, b) => b.studyScore.compareTo(a.studyScore));
     return availability;
@@ -86,8 +106,7 @@ class RoomOccupancyService {
     double targetHour,
     int dayIndex,
   ) {
-    final availability = <RoomAvailability>[];
-
+    final rawAvailability = <RoomAvailability>[];
     for (final room in _rooms.values) {
       final occupyingSessions = allSessions.where((s) =>
           s.room == room.id &&
@@ -100,7 +119,7 @@ class RoomOccupancyService {
           ? _getNextSession(room.id, allSessions, dayIndex, targetHour)
           : null;
 
-      availability.add(RoomAvailability(
+      rawAvailability.add(RoomAvailability(
         roomId: room.id,
         building: room.building,
         capacity: room.capacity,
@@ -112,9 +131,27 @@ class RoomOccupancyService {
         minulesFreeUntilNextSession: nextSession != null
             ? ((nextSession.safeStartVal - targetHour) * 60).toInt()
             : null,
-        studyScore: isAvailable ? _calculateStudyScore(room, nextSession) : 0,
+        studyScore: 0,
       ));
     }
+
+    final availability = rawAvailability.map((a) {
+      if (!a.isAvailable) return a;
+      final room = _rooms[a.roomId]!;
+      final nextSession = _getNextSession(room.id, allSessions, dayIndex, targetHour);
+      return RoomAvailability(
+        roomId: a.roomId,
+        building: a.building,
+        capacity: a.capacity,
+        amenities: a.amenities,
+        isAvailable: true,
+        occupiedUntil: null,
+        nextSessionAt: a.nextSessionAt,
+        nextSessionSubject: a.nextSessionSubject,
+        minulesFreeUntilNextSession: a.minulesFreeUntilNextSession,
+        studyScore: _calculateStudyScore(room, nextSession, rawAvailability),
+      );
+    }).toList();
 
     availability.sort((a, b) => b.studyScore.compareTo(a.studyScore));
     return availability;
@@ -266,11 +303,22 @@ class RoomOccupancyService {
     final best = scored.first.$1;
     final alternatives = scored.skip(1).take(2).map((e) => e.$1).toList();
 
+    String reason = 'Currently available';
+    if (best.minulesFreeUntilNextSession != null) {
+      if (best.minulesFreeUntilNextSession! > 120) {
+        reason = 'Available for a long study session';
+      } else {
+        reason = 'Free for the next ${best.minulesFreeUntilNextSession} minutes';
+      }
+    }
+    
+    if (best.studyScore > 85) {
+      reason += ' • Ideal for focused study';
+    }
+
     return RoomRecommendation(
       recommended: best,
-      reason: best.minulesFreeUntilNextSession != null
-          ? 'Free for ${best.minulesFreeUntilNextSession} minutes'
-          : 'Currently available',
+      reason: reason,
       alternatives: alternatives,
     );
   }
@@ -291,12 +339,36 @@ class RoomOccupancyService {
                 : prev);
   }
 
-  double _calculateStudyScore(Room room, ClassSession? nextSession) {
+  double _calculateStudyScore(Room room, ClassSession? nextSession, List<RoomAvailability> allAvailability) {
     double score = 100.0;
-    score -= room.amenities.isEmpty ? 10 : 0;
+    
+    // 1. Duration Bonus: Longer free time is better for study
     if (nextSession != null) {
-      score -= ((nextSession.safeStartVal * 10).toInt()).toDouble();
+      final now = DateTime.now();
+      final currentHour = now.hour + (now.minute / 60.0);
+      final freeMinutes = (nextSession.safeStartVal - currentHour) * 60;
+      
+      if (freeMinutes < 30) score -= 40; // Too short
+      else if (freeMinutes < 60) score -= 20;
+      else score += 10; // Good duration
+    } else {
+      score += 20; // Free for the rest of the day
     }
+    
+    // 2. Noise Level Estimation: How many occupied rooms are in the same building?
+    final buildingOccupancy = allAvailability.where((a) => a.building == room.building && !a.isAvailable).length;
+    final buildingTotal = allAvailability.where((a) => a.building == room.building).length;
+    
+    if (buildingTotal > 0) {
+      double density = buildingOccupancy / buildingTotal;
+      score -= (density * 30); // Higher density = lower study score (potential noise)
+    }
+    
+    // 3. Amenity Bonus
+    if (room.amenities.contains('AC')) score += 15;
+    if (room.amenities.contains('PC')) score += 10;
+    if (room.amenities.contains('Internet')) score += 5;
+    
     return score.clamp(0, 100);
   }
 
@@ -310,90 +382,4 @@ class RoomOccupancyService {
 
   double _getMinTime(double a, double b) => a < b ? a : b;
   double _getMaxTime(double a, double b) => a > b ? a : b;
-}
-
-class Room {
-  final String id;
-  final String building;
-  final int capacity;
-  final List<String> amenities;
-  final DateTime registeredAt;
-
-  Room({
-    required this.id,
-    required this.building,
-    required this.capacity,
-    required this.amenities,
-    required this.registeredAt,
-  });
-}
-
-class Department {
-  final String id;
-  final String name;
-  final DateTime registeredAt;
-
-  Department({
-    required this.id,
-    required this.name,
-    required this.registeredAt,
-  });
-}
-
-class RoomAvailability {
-  final String roomId;
-  final String building;
-  final int capacity;
-  final List<String> amenities;
-  final bool isAvailable;
-  final double? occupiedUntil;
-  final String? occupiedBy;
-  final String? occupiedByTeacher;
-  final double? nextSessionAt;
-  final String? nextSessionSubject;
-  final int? minulesFreeUntilNextSession;
-  final double studyScore;
-
-  RoomAvailability({
-    required this.roomId,
-    required this.building,
-    required this.capacity,
-    required this.amenities,
-    required this.isAvailable,
-    this.occupiedUntil,
-    this.occupiedBy,
-    this.occupiedByTeacher,
-    this.nextSessionAt,
-    this.nextSessionSubject,
-    this.minulesFreeUntilNextSession,
-    required this.studyScore,
-  });
-}
-
-class RoomConflict {
-  final String room;
-  final ClassSession session1;
-  final ClassSession session2;
-  final int overlapMinutes;
-  final String severity; // HIGH, MEDIUM, LOW
-
-  RoomConflict({
-    required this.room,
-    required this.session1,
-    required this.session2,
-    required this.overlapMinutes,
-    required this.severity,
-  });
-}
-
-class RoomRecommendation {
-  final RoomAvailability? recommended;
-  final String reason;
-  final List<RoomAvailability> alternatives;
-
-  RoomRecommendation({
-    required this.recommended,
-    required this.reason,
-    required this.alternatives,
-  });
 }

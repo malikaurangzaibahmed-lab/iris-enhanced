@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.3
   url_launcher: ^6.3.1
+  liquid_glass_renderer: ^0.1.1-dev.17
   home_widget: ^0.6.0
   webview_flutter: ^4.8.0
   webview_flutter_android: ^4.0.0
@@ -47,6 +48,11 @@ dependencies:
   path_provider: ^2.1.4
   open_filex: ^4.6.0
   syncfusion_flutter_pdf: ^26.2.13
+  firebase_core: ^3.1.0
+  firebase_auth: ^5.1.0
+  cloud_firestore: ^5.0.0
+  firebase_messaging: ^15.0.0
+  html: ^0.15.6
 
 dev_dependencies:
   flutter_test:
@@ -125,3 +131,6 @@ flutter_icons:
   android: true
   ios: true
   image_path: "assets/iris_logo.png"
+
+  shaders:
+    - shaders/liquidglass.frag

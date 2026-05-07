@@ -1,13 +1,25 @@
-﻿import 'dart:async';
+import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'dart:convert';
 import 'dart:math' as math;
-
-import 'package:flutter/material.dart';
+import 'screens/setup_screens.dart';
+import 'services/notification_service.dart';
+import 'core/animations.dart';
+import 'widgets/spring_button.dart';
+import 'widgets/dashboard_dock.dart';
+import 'widgets/neural_aura.dart';
+import 'widgets/smooth_scroll.dart';
+import 'widgets/batch_selector.dart';
+import 'screens/about_screen.dart';
+import 'screens/faculty_dashboard_screen.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'widgets/iris_components.dart';
+import 'widgets/glass_card.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
     hide NotificationVisibility;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,2284 +27,33 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'core/tokens.dart';
 import 'core/format_guard.dart';
 import 'core/animations.dart';
 import 'core/models.dart';
 import 'core/omni_brain.dart';
 import 'core/university_memory.dart';
 import 'portal_screen.dart';
+import 'widgets/portal_sync_card.dart';
+import 'screens/room_finder_screen.dart';
 import 'services/helpdesk_campus_feed_service.dart';
 import 'services/helpdesk_faculty_service.dart';
 import 'services/helpdesk_schedule_data_service.dart';
 import 'services/timetable_ota_service.dart';
 import 'services/ui_feedback.dart';
 import 'widget_service.dart';
+import 'widgets/spring_button.dart';
+import 'widgets/dashboard_dock.dart';
+import 'widgets/neural_aura.dart';
+import 'widgets/smooth_scroll.dart';
+import 'widgets/batch_selector.dart';
+import 'screens/about_screen.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:open_filex/open_filex.dart';
 
-const MethodChannel _notificationChannel = MethodChannel(
-  'iris/notification_channel',
-);
+const MethodChannel _notificationChannel = MethodChannel('iris/notification_channel');
 
-class IrisTokens {
-  static const Color brand = Color(0xFF5B7FFF);
-  static const Color brandLight = Color(0xFF8BB5FF);
-  static const Color brandDark = Color(0xFF4259D6);
-  static const Color surfaceDark = Color(0xFF11131A);
-  static const Color surfaceLightElevated = Color(0xFFFFFFFF);
-  static const List<Color> brandGradient = [brand, brandLight];
 
-  static const List<Color> sunsetGradient = [
-    Color(0xFFFF6B9D),
-    Color(0xFFC239B3),
-  ];
-  static const List<Color> oceanGradient = [
-    Color(0xFF00C9FF),
-    Color(0xFF92FE9D),
-  ];
-  static const List<Color> successGradient = [
-    Color(0xFF00E5A0),
-    Color(0xFF00D9F5),
-  ];
-
-  // Surface Colors - Depth & Layers
-  static const Color surfaceLight = Color(0xFFF5F7FE);
-  static const Color surfaceDarkElevated = Color(0xFF1A1A24);
-
-  // Semantic Colors - Vibrant
-  static const Color success = Color(0xFF00E5A0);
-  static const Color successDark = Color(0xFF00D9F5);
-  static const Color warning = Color(0xFFFFB800);
-  static const Color warningDark = Color(0xFFFF8A00);
-  static const Color error = Color(0xFFFF6B6B);
-  static const Color errorDark = Color(0xFFFF4757);
-  static const Color info = Color(0xFF5B7FFF);
-
-  // Accent Colors - Playful & Expressive
-  static const Color purple = Color(0xFF8B6EFF);
-  static const Color purpleLight = Color(0xFFB794F6);
-  static const Color blue = Color(0xFF5B9EFF);
-  static const Color blueLight = Color(0xFF8BB5FF);
-  static const Color pink = Color(0xFFFF6B9D);
-  static const Color pinkLight = Color(0xFFFFB3C6);
-  static const Color teal = Color(0xFF00D9F5);
-  static const Color tealLight = Color(0xFF7FEFFF);
-
-  static const String fontFamily = 'SF Pro Display';
-
-  // Spacing
-  static const double space4 = 4.0;
-  static const double space8 = 8.0;
-  static const double space12 = 12.0;
-  static const double space16 = 16.0;
-  static const double space20 = 20.0;
-  static const double space24 = 24.0;
-  static const double space28 = 28.0;
-  static const double space32 = 32.0;
-  static const double space40 = 40.0;
-  static const double space48 = 48.0;
-  static const double space56 = 56.0;
-  static const double space64 = 64.0;
-
-  // Radius
-  static const double radius8 = 8.0;
-  static const double radius12 = 12.0;
-  static const double radius16 = 16.0;
-  static const double radius20 = 20.0;
-  static const double radius24 = 24.0;
-  static const double radius28 = 28.0;
-  static const double radius32 = 32.0;
-  static const double radius36 = 36.0;
-  static const double radiusFull = 9999.0;
-
-  static const BorderRadius cardRadius = BorderRadius.all(Radius.circular(28));
-  static const BorderRadius buttonRadius = BorderRadius.all(
-    Radius.circular(24),
-  );
-  static const BorderRadius chipRadius = BorderRadius.all(Radius.circular(20));
-
-  static const PageTransitionsTheme pageTransitions = PageTransitionsTheme(
-    builders: {
-      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-    },
-  );
-}
-
-class IrisTextStyles {
-  static TextStyle display(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextStyle(
-      fontSize: 40,
-      fontWeight: FontWeight.w200,
-      letterSpacing: -0.5,
-      height: 1.1,
-      color: isDark ? Colors.white : Colors.black,
-    );
-  }
-
-  static TextStyle title(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextStyle(
-      fontSize: 28,
-      fontWeight: FontWeight.w300,
-      letterSpacing: 0.5,
-      height: 1.2,
-      color: isDark ? Colors.white : Colors.black,
-    );
-  }
-
-  static TextStyle headline(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.2,
-      height: 1.3,
-      color: isDark ? Colors.white : Colors.black,
-    );
-  }
-
-  static TextStyle body(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.1,
-      height: 1.5,
-      color: isDark
-          ? Colors.white.withValues(alpha: 0.88)
-          : Colors.black.withValues(alpha: 0.87),
-    );
-  }
-
-  static TextStyle label(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.3,
-      height: 1.4,
-      color: isDark
-          ? Colors.white.withValues(alpha: 0.82)
-          : Colors.black.withValues(alpha: 0.78),
-    );
-  }
-
-  static TextStyle caption(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w500,
-      letterSpacing: 0.4,
-      height: 1.3,
-      color: isDark
-          ? Colors.white.withValues(alpha: 0.64)
-          : Colors.black.withValues(alpha: 0.6),
-    );
-  }
-
-  static TextStyle overline(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextStyle(
-      fontSize: 11,
-      fontWeight: FontWeight.w700,
-      letterSpacing: 1.5,
-      height: 1.2,
-      color: isDark
-          ? Colors.white.withValues(alpha: 0.58)
-          : Colors.black.withValues(alpha: 0.54),
-    );
-  }
-}
-
-class IrisElevation {
-  static List<BoxShadow> level1(Color color, {bool isDark = false}) {
-    return [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-        offset: const Offset(0, 2),
-        blurRadius: 8,
-        spreadRadius: -2,
-      ),
-    ];
-  }
-
-  static List<BoxShadow> level2(Color color, {bool isDark = false}) {
-    return [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.08),
-        offset: const Offset(0, 6),
-        blurRadius: 18,
-        spreadRadius: -6,
-      ),
-    ];
-  }
-
-  static List<BoxShadow> level3(Color color, {bool isDark = false}) {
-    return [
-      BoxShadow(
-        color: color.withValues(alpha: 0.24),
-        offset: const Offset(0, 10),
-        blurRadius: 30,
-        spreadRadius: -12,
-      ),
-      BoxShadow(
-        color: Colors.black.withValues(alpha: isDark ? 0.17 : 0.06),
-        offset: const Offset(0, 4),
-        blurRadius: 14,
-      ),
-    ];
-  }
-
-  static List<BoxShadow> level4(Color color, {bool isDark = false}) {
-    return [
-      BoxShadow(
-        color: color.withValues(alpha: 0.30),
-        offset: const Offset(0, 16),
-        blurRadius: 44,
-        spreadRadius: -16,
-      ),
-      BoxShadow(
-        color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.08),
-        offset: const Offset(0, 6),
-        blurRadius: 18,
-      ),
-    ];
-  }
-}
-
-// Component Builders
-class IrisComponents {
-  /// Build a status badge (LIVE, NEXT, etc.)
-  static Widget statusBadge({
-    required String label,
-    required Color color,
-    required bool isDark,
-    bool pulse = false,
-  }) {
-    final widget = Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: IrisTokens.space12,
-        vertical: IrisTokens.space8 - 2,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color, color.withValues(alpha: 0.85)],
-        ),
-        borderRadius: BorderRadius.circular(IrisTokens.radius12),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.28),
-            blurRadius: 8,
-            spreadRadius: -2,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.8,
-          color: Colors.white,
-          height: 1.0,
-        ),
-      ),
-    );
-
-    if (pulse) {
-      return TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.95, end: 1.05),
-        duration: const Duration(milliseconds: 768),
-        curve: IrisMotion.standard,
-        builder: (context, scale, child) =>
-            Transform.scale(scale: scale, child: child),
-        onEnd: () {},
-        child: widget,
-      );
-    }
-
-    return widget;
-  }
-
-  /// Build a time badge
-  static Widget timeBadge({required String time, required bool isDark}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: IrisTokens.space12,
-        vertical: IrisTokens.space8 - 2,
-      ),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.20)
-            : Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(IrisTokens.radius12),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.24)
-              : Colors.black.withValues(alpha: 0.12),
-          width: 1,
-        ),
-      ),
-      child: Text(
-        time,
-        style: TextStyle(
-          fontSize: 11,
-          letterSpacing: 0.3,
-          fontWeight: FontWeight.w700,
-          height: 1.0,
-          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.86),
-        ),
-      ),
-    );
-  }
-
-  /// Build an icon badge
-  static Widget iconBadge({
-    required IconData icon,
-    required Color color,
-    required bool isDark,
-    double size = 32,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(size * 0.25),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.32 : 0.16),
-        shape: BoxShape.circle,
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.2),
-      ),
-      child: Icon(icon, size: size * 0.65, color: color),
-    );
-  }
-
-  /// Build a loading spinner
-  static Widget loadingSpinner({
-    Color? color,
-    double size = 24,
-    double strokeWidth = 2.0,
-  }) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CircularProgressIndicator(
-        strokeWidth: strokeWidth,
-        valueColor: color != null ? AlwaysStoppedAnimation<Color>(color) : null,
-      ),
-    );
-  }
-}
-
-class IrisMotion {
-  static const Duration fast = Duration(milliseconds: 176);
-  static const Duration normal = Duration(milliseconds: 288);
-  static const Duration medium = Duration(milliseconds: 432);
-  static const Duration slow = Duration(milliseconds: 720);
-
-  // Global performance toggles for low-jank rendering on large widget trees.
-  static const bool reduceMotion = false;
-  static const bool reduceBlur = true;
-
-  static const Curve entrance = Cubic(0.18, 0.88, 0.22, 1.0);
-  static const Curve standard = Cubic(0.2, 0.82, 0.2, 1.0);
-  static const Curve emphasized = Cubic(0.22, 1.0, 0.36, 1.0);
-  static const Curve bouncy = Cubic(0.3, 1.35, 0.45, 1.0);
-}
-
-// UI feedback classes moved to services/ui_feedback.dart
-// Imported above as:
-// import 'services/ui_feedback.dart';
-
-class IrisTheme {
-  static ThemeData light() {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: IrisTokens.brand,
-      brightness: Brightness.light,
-    );
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: IrisTokens.surfaceLight,
-      fontFamily: IrisTokens.fontFamily,
-      pageTransitionsTheme: IrisTokens.pageTransitions,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      splashColor: IrisTokens.brand.withValues(alpha: 0.08),
-      highlightColor: IrisTokens.brand.withValues(alpha: 0.05),
-      dividerColor: Colors.black.withValues(alpha: 0.05),
-      appBarTheme: AppBarTheme(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black.withValues(alpha: 0.90),
-        titleTextStyle: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
-        ).copyWith(color: Colors.black.withValues(alpha: 0.90)),
-        iconTheme: IconThemeData(
-          color: Colors.black.withValues(alpha: 0.75),
-          size: 26,
-        ),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        color: Colors.white.withValues(alpha: 0.85),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IrisTokens.radius28),
-        ),
-      ),
-      dialogTheme: DialogThemeData(
-        elevation: 0,
-        backgroundColor: Colors.white.withValues(alpha: 0.96),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IrisTokens.radius32),
-        ),
-        titleTextStyle: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
-        ).copyWith(color: Colors.black.withValues(alpha: 0.90)),
-        contentTextStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0.1,
-          height: 1.6,
-        ).copyWith(color: Colors.black.withValues(alpha: 0.70)),
-      ),
-      snackBarTheme: SnackBarThemeData(
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-      ),
-      popupMenuTheme: PopupMenuThemeData(
-        color: Colors.white.withValues(alpha: 0.90),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
-        ),
-      ),
-      menuTheme: MenuThemeData(
-        style: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(
-            Colors.white.withValues(alpha: 0.90),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
-            ),
-          ),
-        ),
-      ),
-      dropdownMenuTheme: DropdownMenuThemeData(
-        menuStyle: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(
-            Colors.white.withValues(alpha: 0.90),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
-            ),
-          ),
-        ),
-      ),
-      chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IrisTokens.radius20),
-        ),
-        side: BorderSide(
-          color: IrisTokens.brand.withValues(alpha: 0.24),
-          width: 1.5,
-        ),
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
-        selectedColor: IrisTokens.brand.withValues(alpha: 0.26),
-        labelStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.1,
-        ).copyWith(color: Colors.black.withValues(alpha: 0.72)),
-        secondaryLabelStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.1,
-        ).copyWith(color: IrisTokens.brand),
-        padding: const EdgeInsets.symmetric(
-          horizontal: IrisTokens.space12,
-          vertical: IrisTokens.space8,
-        ),
-        elevation: 0,
-        pressElevation: 0,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(IrisTokens.radius24),
-          ),
-          elevation: 0,
-          shadowColor: IrisTokens.brand.withValues(alpha: 0.35),
-          padding: const EdgeInsets.symmetric(
-            horizontal: IrisTokens.space24,
-            vertical: IrisTokens.space20,
-          ),
-          backgroundColor: IrisTokens.brand,
-          foregroundColor: Colors.white,
-          animationDuration: const Duration(milliseconds: 192),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ),
-    );
-  }
-
-  static ThemeData dark() {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: IrisTokens.brandDark,
-      brightness: Brightness.dark,
-    );
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: IrisTokens.surfaceDark,
-      brightness: Brightness.dark,
-      fontFamily: IrisTokens.fontFamily,
-      pageTransitionsTheme: IrisTokens.pageTransitions,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      splashColor: IrisTokens.brandDark.withValues(alpha: 0.14),
-      highlightColor: IrisTokens.brandDark.withValues(alpha: 0.08),
-      dividerColor: Colors.white.withValues(alpha: 0.06),
-      appBarTheme: AppBarTheme(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white.withValues(alpha: 0.95),
-        titleTextStyle: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
-        ).copyWith(color: Colors.white.withValues(alpha: 0.95)),
-        iconTheme: IconThemeData(
-          color: Colors.white.withValues(alpha: 0.85),
-          size: 26,
-        ),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        color: Colors.white.withValues(alpha: 0.12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IrisTokens.radius28),
-        ),
-      ),
-      dialogTheme: DialogThemeData(
-        elevation: 0,
-        backgroundColor: IrisTokens.surfaceDarkElevated.withValues(alpha: 0.98),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IrisTokens.radius32),
-        ),
-        titleTextStyle: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
-        ).copyWith(color: Colors.white.withValues(alpha: 0.95)),
-        contentTextStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0.1,
-          height: 1.6,
-        ).copyWith(color: Colors.white.withValues(alpha: 0.80)),
-      ),
-      snackBarTheme: const SnackBarThemeData(
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-      ),
-      popupMenuTheme: PopupMenuThemeData(
-        color: const Color(0xFF111827).withValues(alpha: 0.90),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-        ),
-      ),
-      menuTheme: MenuThemeData(
-        style: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(
-            const Color(0xFF111827).withValues(alpha: 0.90),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-            ),
-          ),
-        ),
-      ),
-      dropdownMenuTheme: DropdownMenuThemeData(
-        menuStyle: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(
-            const Color(0xFF111827).withValues(alpha: 0.90),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-            ),
-          ),
-        ),
-      ),
-      chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IrisTokens.radius20),
-        ),
-        side: BorderSide(
-          color: Colors.white.withValues(alpha: 0.26),
-          width: 1.5,
-        ),
-        backgroundColor: Colors.white.withValues(alpha: 0.22),
-        selectedColor: IrisTokens.brandDark.withValues(alpha: 0.42),
-        labelStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.1,
-        ).copyWith(color: Colors.white.withValues(alpha: 0.85)),
-        secondaryLabelStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.1,
-        ).copyWith(color: Colors.white),
-        padding: const EdgeInsets.symmetric(
-          horizontal: IrisTokens.space12,
-          vertical: IrisTokens.space8,
-        ),
-        elevation: 0,
-        pressElevation: 0,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          shape: const RoundedRectangleBorder(
-            borderRadius: IrisTokens.buttonRadius,
-          ),
-          elevation: 0,
-          shadowColor: IrisTokens.brandDark.withValues(alpha: 0.4),
-          padding: const EdgeInsets.symmetric(
-            horizontal: IrisTokens.space20,
-            vertical: IrisTokens.space16,
-          ),
-          backgroundColor: IrisTokens.brandDark,
-          foregroundColor: Colors.white,
-          animationDuration: const Duration(milliseconds: 192),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ),
-    );
-  }
-}
-
-// ============ LECTURE DURATION HELPER ============
-/// Helper to calculate actual lecture duration accounting for "(1 hr)" markers
-class LectureDuration {
-  /// Check if a subject is marked as a 1-hour lecture
-  static bool isOneHourLecture(String subject) {
-    return subject.toLowerCase().contains('(1 hr)') ||
-        subject.toLowerCase().contains('(1hr)') ||
-        subject.toLowerCase().contains('1 hr)');
-  }
-
-  /// Get the actual duration of a lecture in decimal hours
-  /// Returns 1.0 for 1-hour lectures, otherwise the full slot duration
-  static double getActualDuration(ClassSession session) {
-    if (isOneHourLecture(session.subject)) {
-      return 1.0; // 1 hour in decimal time
-    }
-    return session.safeEndVal - session.safeStartVal;
-  }
-
-  /// Get the actual end time of a lecture
-  /// For 1-hour lectures, returns startTime + 1 hour instead of the slot end time
-  static double getActualEndTime(ClassSession session) {
-    if (isOneHourLecture(session.subject)) {
-      return session.safeStartVal + 1.0;
-    }
-    return session.safeEndVal;
-  }
-}
-
-// ============ FOREGROUND TASK HANDLER ============
-@pragma('vm:entry-point')
-void startClassNotificationTask() {
-  FlutterForegroundTask.setTaskHandler(ClassNotificationTaskHandler());
-}
-
-class ClassNotificationTaskHandler extends TaskHandler {
-  @override
-  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    // Task started
-  }
-
-  @override
-  void onRepeatEvent(DateTime timestamp) {
-    // Calculate current class info from stored timetable data
-    SharedPreferences.getInstance().then((prefs) {
-      try {
-        final role = prefs.getString('user_role') ?? 'student';
-        final batch = prefs.getString('student_batch');
-        final teacherName = prefs.getString('faculty_teacher');
-        final timetableJson = prefs.getString('timetable_data');
-
-        // Always initialize default message
-        String notifTitle = role == 'faculty'
-            ? 'IRIS Faculty Tracker'
-            : 'IRIS Class Tracker';
-        String notifBody = 'No classes scheduled';
-
-        // Validate role and data consistency - but still update notification
-        if (role == 'faculty' && (teacherName == null || teacherName.isEmpty)) {
-          print(
-            '⚠️ Faculty mode but no teacher - showing default notification',
-          );
-          notifBody = 'Select a teacher to view your schedule';
-          FlutterForegroundTask.updateService(
-            notificationTitle: notifTitle,
-            notificationText: notifBody,
-            notificationButtons: [
-              NotificationButton(id: 'open', text: 'Open IRIS'),
-            ],
-          );
-          return;
-        }
-        if (role == 'student' && (batch == null || batch.isEmpty)) {
-          print('⚠️ Student mode but no batch - showing default notification');
-          notifBody = 'Select a batch to view your schedule';
-          FlutterForegroundTask.updateService(
-            notificationTitle: notifTitle,
-            notificationText: notifBody,
-            notificationButtons: [
-              NotificationButton(id: 'open', text: 'Open IRIS'),
-            ],
-          );
-          return;
-        }
-
-        if (timetableJson == null) {
-          print('⚠️ Foreground task: Missing timetable data');
-          FlutterForegroundTask.updateService(
-            notificationTitle: role == 'faculty'
-                ? 'IRIS Faculty Tracker'
-                : 'IRIS Class Tracker',
-            notificationText: 'No schedule data available • Open app to reload',
-            notificationButtons: [
-              NotificationButton(id: 'open', text: 'Open IRIS'),
-            ],
-          );
-          return;
-        }
-
-        // Parse timetable data
-        final data = jsonDecode(timetableJson) as Map<String, dynamic>;
-        final rawSessions = (data['sessions'] as List)
-            .map((s) => ClassSession.fromJson(s))
-            .where(
-              (s) => role == 'faculty'
-                  ? s.teacher.trim().toLowerCase() ==
-                        teacherName!.trim().toLowerCase()
-                  : s.batchKey.batch == batch,
-            )
-            .toList();
-
-        // Merge consecutive sessions (same subject/teacher/room back-to-back)
-        final sorted = List<ClassSession>.from(rawSessions)
-          ..sort((a, b) {
-            final d = a.dayIndex.compareTo(b.dayIndex);
-            return d != 0 ? d : a.safeStartVal.compareTo(b.safeStartVal);
-          });
-        final sessions = <ClassSession>[];
-        ClassSession? merging;
-        for (final s in sorted) {
-          if (merging == null) {
-            merging = s;
-            continue;
-          }
-          if (merging.isConsecutiveWith(s)) {
-            merging = ClassSession(
-              id: merging.id,
-              batchKey: merging.batchKey,
-              dayIndex: merging.dayIndex,
-              startTime: merging.startTime,
-              endTime: s.endTime,
-              subject: merging.subject,
-              teacher: merging.teacher,
-              room: merging.room,
-            );
-          } else {
-            sessions.add(merging);
-            merging = s;
-          }
-        }
-        if (merging != null) sessions.add(merging);
-
-        // Calculate current/next class
-        final now = DateTime.now();
-        final currentTime = now.hour + (now.minute / 60.0);
-        final dayIndex = now.weekday;
-        double actualEndFor(ClassSession s) => LectureDuration.getActualEndTime(s);
-
-        ClassSession? current;
-        ClassSession? next;
-
-        for (var session in sessions) {
-          final actualEnd = actualEndFor(session);
-          if (session.dayIndex == dayIndex &&
-              currentTime >= session.safeStartVal &&
-              currentTime < actualEnd) {
-            current = session;
-            break;
-          }
-        }
-
-        if (current == null) {
-          // Find next class: today (later) or next days (with week wrapping)
-          for (var session in sessions) {
-            if (session.dayIndex == dayIndex &&
-                currentTime < session.safeStartVal) {
-              // Later today
-              if (next == null ||
-                  session.dayIndex < next.dayIndex ||
-                  (session.dayIndex == next.dayIndex &&
-                      session.safeStartVal < next.safeStartVal)) {
-                next = session;
-              }
-            }
-          }
-          if (next == null) {
-            // Search upcoming days (wrap around week)
-            for (int daysAhead = 1; daysAhead <= 6; daysAhead++) {
-              final checkDay = ((dayIndex + daysAhead - 1) % 7) + 1;
-              final candidates =
-                  sessions.where((s) => s.dayIndex == checkDay).toList()
-                    ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-              if (candidates.isNotEmpty) {
-                next = candidates.first;
-                break;
-              }
-            }
-          }
-        }
-
-        String nativeLine1 = notifBody;
-        String nativeLine2 = '';
-        int nativeProgress = 0;
-        bool nativeIsLive = false;
-
-        // Build an animated, colored progress indicator
-        String _progressBar(double p) {
-          const total = 8;
-          final filled = (p * total).round().clamp(0, total);
-          // Use colored square emojis for a glowing, animated look
-          final progressEmoji = '🟦'; // filled blue
-          final emptyEmoji = '⬜'; // empty white
-          return progressEmoji * filled + emptyEmoji * (total - filled);
-        }
-
-        String _formatStart(double val) {
-          final hour = val.floor();
-          final minute = ((val - hour) * 60).round();
-          final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-          final amPm = hour >= 12 ? 'PM' : 'AM';
-          return '$displayHour:${minute.toString().padLeft(2, '0')} $amPm';
-        }
-
-        // Count total classes today
-        final todayAll = sessions.where((s) => s.dayIndex == dayIndex).toList();
-
-        if (current != null) {
-          final duration = LectureDuration.getActualDuration(current);
-          final actualEndTime = LectureDuration.getActualEndTime(current);
-          final progress = ((currentTime - current.safeStartVal) / duration)
-              .clamp(0.0, 1.0);
-          final progressPercent = (progress * 100).toInt();
-
-          // Calculate time remaining based on actual lecture duration
-          final minutesRemaining = ((actualEndTime - currentTime) * 60)
-              .round()
-              .clamp(0, (duration * 60).round());
-          final hoursRemaining = minutesRemaining ~/ 60;
-          final minsRemaining = minutesRemaining % 60;
-
-          String timeLeft = '';
-          if (hoursRemaining > 0) {
-            timeLeft = '${hoursRemaining}h ${minsRemaining}m left';
-          } else if (minsRemaining > 0) {
-            timeLeft = '${minsRemaining}m left';
-          } else {
-            timeLeft = 'Ending now';
-          }
-
-          // Smart status with animated progress bar and glow effect
-          final bar = _progressBar(progress);
-          final remaining = todayAll
-              .where((s) => s.safeStartVal > currentTime)
-              .length;
-          final classCount = remaining > 0
-              ? ' • $remaining more today'
-              : ' • Last one';
-
-          ClassSession? nextAfterCurrent;
-          for (final session in todayAll) {
-            if (session.safeStartVal > currentTime) {
-              if (nextAfterCurrent == null ||
-                  session.safeStartVal < nextAfterCurrent.safeStartVal) {
-                nextAfterCurrent = session;
-              }
-            }
-          }
-          final nextLine = nextAfterCurrent == null
-              ? ''
-              : ' • Next: ${nextAfterCurrent.subject} ${_formatStart(nextAfterCurrent.safeStartVal)}';
-
-          final statusLine = 'Now • ${current.room} • $timeLeft$classCount';
-          final batchLine = role == 'faculty'
-              ? '📚 ${current.batchKey.batch}$nextLine'
-              : '👤 ${current.teacher}$nextLine';
-          notifTitle = '🎓 ${current.subject}';
-          notifBody = '$statusLine\n$bar $progressPercent% • $batchLine';
-          nativeLine1 = statusLine;
-          nativeLine2 = batchLine;
-          nativeProgress = progressPercent;
-          nativeIsLive = true;
-        } else if (next != null) {
-          // Calculate time until next class, handling multi-day gaps
-          int daysAhead = 0;
-          if (next.dayIndex != dayIndex) {
-            daysAhead = (next.dayIndex - dayIndex + 7) % 7;
-            if (daysAhead == 0) daysAhead = 7;
-          }
-          final totalMinutesUntil = daysAhead > 0
-              ? ((24.0 - currentTime) * 60 +
-                        (daysAhead - 1) * 24 * 60 +
-                        next.safeStartVal * 60)
-                    .round()
-              : ((next.safeStartVal - currentTime) * 60).round();
-          final hoursUntil = totalMinutesUntil ~/ 60;
-          final minsUntil = totalMinutesUntil % 60;
-
-          String timeUntil = '';
-          String emoji = '📌';
-          if (daysAhead > 0) {
-            const dayNames = [
-              '',
-              'Mon',
-              'Tue',
-              'Wed',
-              'Thu',
-              'Fri',
-              'Sat',
-              'Sun',
-            ];
-            final nextDayName = dayNames[next.dayIndex];
-            final startHour = next.safeStartVal.floor();
-            final startMin = ((next.safeStartVal - startHour) * 60).round();
-            final displayHour = startHour > 12 ? startHour - 12 : startHour;
-            final amPm = startHour >= 12 ? 'PM' : 'AM';
-            timeUntil =
-                '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
-            emoji = '📅';
-          } else if (hoursUntil > 0) {
-            timeUntil = '${hoursUntil}h ${minsUntil}m';
-            emoji = '⏳';
-          } else if (minsUntil > 10) {
-            timeUntil = '${minsUntil} min';
-            emoji = '⏳';
-          } else if (minsUntil > 0) {
-            timeUntil = '${minsUntil} min';
-            emoji = '⚡';
-          } else {
-            timeUntil = 'now';
-            emoji = '🔔';
-          }
-
-          // Count remaining classes today
-          final remainingToday = sessions
-              .where(
-                (s) => s.dayIndex == dayIndex && s.safeStartVal > currentTime,
-              )
-              .length;
-
-          // Smart break info
-          String breakInfo = '';
-          if (daysAhead == 0) {
-            // Calculate break duration until next
-            // Find previous class end time
-            final prevClasses = todayAll
-                .where((s) => actualEndFor(s) <= currentTime)
-                .toList();
-            if (prevClasses.isNotEmpty) {
-              prevClasses.sort(
-                (a, b) => actualEndFor(b).compareTo(actualEndFor(a)),
-              );
-              final breakMins =
-                  ((next.safeStartVal - actualEndFor(prevClasses.first)) * 60)
-                      .round();
-              if (breakMins > 0 && breakMins < 180) {
-                breakInfo = ' · ${breakMins}m break';
-              }
-            }
-          }
-
-          String classInfo;
-          if (daysAhead > 0) {
-            classInfo = 'Done for today ✓';
-          } else if (remainingToday > 1) {
-            classInfo = '$remainingToday classes left';
-          } else {
-            classInfo = 'Last class today';
-          }
-
-          notifTitle = '$emoji ${next.subject} • $timeUntil';
-          final nextBatchLine = role == 'faculty'
-              ? '📚 ${next.batchKey.batch} • $classInfo$breakInfo'
-              : '👤 ${next.teacher} • $classInfo$breakInfo';
-          notifBody = 'Up next • ${next.room}\n$nextBatchLine';
-          nativeLine1 = 'Up next • ${next.room}';
-          nativeLine2 = nextBatchLine;
-          nativeProgress = 0;
-          nativeIsLive = false;
-        } else {
-          // Check what day it is for smarter idle message
-          final weekday = DateTime.now().weekday;
-          if (weekday == 6 || weekday == 7) {
-            notifTitle = '🌤 Weekend Mode';
-            notifBody = 'No classes • recharge and relax';
-          } else {
-            notifTitle = '✅ All done for today';
-            notifBody = 'No more classes • see you tomorrow';
-          }
-          nativeLine1 = notifBody;
-          nativeLine2 = '';
-          nativeProgress = 0;
-          nativeIsLive = false;
-        }
-
-        FlutterForegroundTask.updateService(
-          notificationTitle: notifTitle,
-          notificationText: notifBody,
-          notificationButtons: [
-            NotificationButton(id: 'open', text: 'Open IRIS'),
-          ],
-        );
-
-        if (Platform.isAndroid) {
-          try {
-            _notificationChannel
-                .invokeMethod('updateNotification', {
-                  'title': notifTitle,
-                  'line1': nativeLine1,
-                  'line2': nativeLine2,
-                  'progress': nativeProgress,
-                  'isLive': nativeIsLive,
-                })
-                .catchError((_) {});
-          } catch (_) {}
-        }
-      } catch (e) {
-        print('⚠️ Foreground task error: $e');
-        FlutterForegroundTask.updateService(
-          notificationTitle: 'IRIS Class Tracker',
-          notificationText: 'Error loading schedule • Open app to reload',
-          notificationButtons: [
-            NotificationButton(id: 'open', text: 'Open IRIS'),
-          ],
-        );
-        if (Platform.isAndroid) {
-          try {
-            _notificationChannel
-                .invokeMethod('updateNotification', {
-                  'title': 'IRIS Class Tracker',
-                  'line1': 'Error loading schedule • Open app to reload',
-                  'line2': '',
-                  'progress': 0,
-                  'isLive': false,
-                })
-                .catchError((_) {});
-          } catch (_) {}
-        }
-      }
-    });
-  }
-
-  @override
-  Future<void> onDestroy(DateTime timestamp) async {
-    // Save state before destruction
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('last_service_stop', timestamp.millisecondsSinceEpoch);
-      print('📌 Foreground service stopped at $timestamp');
-    } catch (e) {
-      print('⚠️ Error saving service state: $e');
-    }
-  }
-
-  @override
-  void onNotificationButtonPressed(String id) {
-    if (id == 'open') {
-      FlutterForegroundTask.launchApp("/");
-    }
-  }
-
-  @override
-  void onNotificationPressed() {
-    // Open app when notification is tapped
-    FlutterForegroundTask.launchApp("/");
-  }
-}
-
-// ============ NOTIFICATION SERVICE ============
-class NotificationService {
-  static final NotificationService _instance = NotificationService._();
-  static const String _classReminderPayload = 'class_reminder';
-  static const String _classReminderSignatureKey =
-      'class_reminder_signature';
-
-  factory NotificationService() {
-    return _instance;
-  }
-
-  NotificationService._();
-
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
-  bool _isSchedulingReminders = false;
-
-  Future<void> init() async {
-    try {
-      const androidSettings = AndroidInitializationSettings(
-        '@mipmap/ic_launcher',
-      );
-      const iosSettings = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-      );
-      const initSettings = InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      );
-
-      await _localNotifications.initialize(initSettings);
-
-      // Request Android 13+ notification permission
-      if (Platform.isAndroid) {
-        final plugin = _localNotifications
-            .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >();
-        await plugin?.requestNotificationsPermission();
-        await plugin?.requestExactAlarmsPermission();
-      }
-      
-      debugPrint('✅ Notification service initialized');
-    } catch (e) {
-      debugPrint('⚠️ Notification service init failed (non-critical): $e');
-      // Continue anyway
-    }
-  }
-
-  Future<void> showClassReminder({
-    required String subject,
-    required String teacher,
-    required String room,
-    required String timeUntil,
-  }) async {
-    final bigText = BigTextStyleInformation(
-      '$subject with $teacher in $room ($timeUntil)',
-      contentTitle: '⏰ Class Starting',
-      summaryText: 'IRIS',
-    );
-    final androidDetails = AndroidNotificationDetails(
-      'class_reminder_channel',
-      'Class Reminders',
-      channelDescription: 'Notifications for upcoming classes',
-      importance: Importance.high,
-      priority: Priority.high,
-      enableVibration: true,
-      playSound: true,
-      styleInformation: bigText,
-      color: IrisTokens.brand,
-      colorized: true,
-      category: AndroidNotificationCategory.reminder,
-      visibility: NotificationVisibility.public,
-    );
-
-    final platformDetails = NotificationDetails(android: androidDetails);
-
-    await _localNotifications.show(
-      DateTime.now().millisecond,
-      '⏰ Class Starting',
-      '$subject with $teacher in $room ($timeUntil)',
-      platformDetails,
-      payload: _classReminderPayload,
-    );
-  }
-
-  Future<void> cancelScheduledClassReminders() async {
-    try {
-      final pending = await _localNotifications.pendingNotificationRequests();
-      for (final req in pending) {
-        if (req.payload == _classReminderPayload) {
-          await _localNotifications.cancel(req.id);
-        }
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_classReminderSignatureKey);
-    } catch (e) {
-      debugPrint('⚠️ Failed to cancel class reminders: $e');
-    }
-  }
-
-  // Schedule notifications for upcoming classes (run periodically)
-  Future<void> scheduleClassReminders(List<ClassSession> sessions) async {
-    if (_isSchedulingReminders) {
-      return;
-    }
-
-    _isSchedulingReminders = true;
-    final now = DateTime.now();
-    try {
-      final reminderKeys = sessions
-          .map(_sessionReminderKey)
-          .toList()
-        ..sort();
-      final signature = reminderKeys.join('|');
-      final prefs = await SharedPreferences.getInstance();
-      final previousSignature = prefs.getString(_classReminderSignatureKey);
-
-      if (previousSignature == signature) {
-        return;
-      }
-
-      await cancelScheduledClassReminders();
-
-      for (final session in sessions) {
-        // Parse time from session (e.g., "09:00")
-        final parts = session.startTime.split(':');
-        if (parts.length != 2) continue;
-
-        final hour = int.tryParse(parts[0]);
-        final minute = int.tryParse(parts[1]);
-        if (hour == null || minute == null) continue;
-
-        // Compute the next valid occurrence, then set reminder 5 minutes before.
-        final classDateTime = _nextWeeklyOccurrence(
-          now: now,
-          weekday: session.dayIndex,
-          hour: hour,
-          minute: minute,
-        );
-
-        // Schedule notification 5 minutes before class
-        final notifyTime = classDateTime.subtract(const Duration(minutes: 5));
-
-        if (notifyTime.isAfter(now)) {
-          try {
-            final bigText = BigTextStyleInformation(
-              '${session.subject} with ${session.teacher} in ${session.room}',
-              contentTitle: '⏰ Class in 5 minutes',
-              summaryText: 'IRIS',
-            );
-            final androidDetails = AndroidNotificationDetails(
-              'class_reminder_channel',
-              'Class Reminders',
-              channelDescription: 'Notifications for upcoming classes',
-              importance: Importance.high,
-              priority: Priority.high,
-              enableVibration: true,
-              styleInformation: bigText,
-              color: IrisTokens.brand,
-              colorized: true,
-              category: AndroidNotificationCategory.reminder,
-              visibility: NotificationVisibility.public,
-            );
-
-            final platformDetails = NotificationDetails(android: androidDetails);
-
-            await _localNotifications.zonedSchedule(
-              _stableReminderNotificationId(session),
-              '⏰ Class in 5 minutes',
-              '${session.subject} with ${session.teacher} in ${session.room}',
-              tz.TZDateTime.from(notifyTime, tz.local),
-              platformDetails,
-              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-              uiLocalNotificationDateInterpretation:
-                  UILocalNotificationDateInterpretation.absoluteTime,
-              payload: _classReminderPayload,
-            );
-          } catch (e) {
-            // Silently handle scheduling errors
-          }
-        }
-      }
-
-      await prefs.setString(_classReminderSignatureKey, signature);
-    } finally {
-      _isSchedulingReminders = false;
-    }
-  }
-
-  String _sessionReminderKey(ClassSession session) {
-    return '${session.batchKey.batch}|${session.dayIndex}|${session.startTime}|'
-        '${session.subject}|${session.teacher}|${session.room}';
-  }
-
-  int _stableReminderNotificationId(ClassSession session) {
-    final key = _sessionReminderKey(session);
-    var hash = 0;
-    for (final unit in key.codeUnits) {
-      hash = ((hash * 31) + unit) & 0x7fffffff;
-    }
-    return hash;
-  }
-
-  DateTime _nextWeeklyOccurrence({
-    required DateTime now,
-    required int weekday,
-    required int hour,
-    required int minute,
-  }) {
-    final todayAtTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-    final daysAhead = (weekday - now.weekday + 7) % 7;
-    var candidate = todayAtTime.add(Duration(days: daysAhead));
-
-    if (!candidate.isAfter(now)) {
-      candidate = candidate.add(const Duration(days: 7));
-    }
-
-    return candidate;
-  }
-
-  Future<void> syncClassRemindersFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool('lecture_reminders_enabled') ?? false;
-
-    await cancelScheduledClassReminders();
-    if (!enabled) return;
-
-    final timetableJson = prefs.getString('timetable_data');
-    if (timetableJson == null || timetableJson.isEmpty) return;
-
-    try {
-      final role = prefs.getString('user_role') ?? 'student';
-      final batch = prefs.getString('student_batch');
-      final teacher = prefs.getString('faculty_teacher');
-      final data = jsonDecode(timetableJson) as Map<String, dynamic>;
-      final all = (data['sessions'] as List<dynamic>)
-          .map((s) => ClassSession.fromJson(s as Map<String, dynamic>))
-          .toList();
-
-      final today = DateTime.now().weekday;
-      final sessions = all.where((s) {
-        if (s.dayIndex != today) return false;
-        if (role == 'faculty') {
-          return teacher != null &&
-              teacher.isNotEmpty &&
-              s.teacher.trim().toLowerCase() == teacher.trim().toLowerCase();
-        }
-        return batch != null && batch.isNotEmpty && s.batchKey.batch == batch;
-      }).toList();
-
-      if (sessions.isNotEmpty) {
-        await scheduleClassReminders(sessions);
-      }
-    } catch (e) {
-      debugPrint('⚠️ Failed to sync class reminders from prefs: $e');
-    }
-  }
-
-  // Update persistent notification showing current/next class
-  // Update persistent notification showing current/next class
-  Future<void> updatePersistentNotification({
-    required String title,
-    required String body,
-    bool isOngoing = true,
-  }) async {
-    try {
-      final androidDetails = AndroidNotificationDetails(
-        'persistent_class_channel',
-        'Current Class',
-        channelDescription: 'Shows current or next class information',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
-        enableVibration: false,
-        playSound: false,
-        ongoing: true, // Always ongoing to prevent dismissal
-        autoCancel: false, // Never auto-cancel
-        showWhen: true, // Show timestamp
-        usesChronometer: false,
-        color: IrisTokens.brand, // Brand color
-        colorized: false,
-        category: AndroidNotificationCategory.status,
-        visibility: NotificationVisibility.public,
-        ticker: title, // For accessibility
-      );
-
-      final platformDetails = NotificationDetails(android: androidDetails);
-
-      await _localNotifications.show(
-        999, // Fixed ID for persistent notification
-        title,
-        body,
-        platformDetails,
-        payload: 'persistent_class',
-      );
-    } catch (e) {
-      debugPrint('⚠️ Persistent notification update failed: $e');
-    }
-  }
-
-  // Dismiss persistent notification
-  Future<void> dismissPersistentNotification() async {
-    try {
-      await _localNotifications.cancel(999);
-    } catch (e) {
-      debugPrint('⚠️ Failed to dismiss persistent notification: $e');
-    }
-  }
-
-  Future<void> cancelAll() async {
-    await _localNotifications.cancelAll();
-  }
-}
-
-final Map<String, int> _irisSnackLastShownMs = <String, int>{};
-OverlayEntry? _irisPillOverlayEntry;
-Timer? _irisPillExpandTimer;
-Timer? _irisPillContentTimer;
-Timer? _irisPillCollapseTimer;
-Timer? _irisPillDotTimer;
-Timer? _irisPillDotPulseTimer;
-Timer? _irisPillFadeTimer;
-Timer? _irisPillDisposeTimer;
-
-void _clearIrisPillOverlay() {
-  _irisPillExpandTimer?.cancel();
-  _irisPillContentTimer?.cancel();
-  _irisPillCollapseTimer?.cancel();
-  _irisPillDotTimer?.cancel();
-  _irisPillDotPulseTimer?.cancel();
-  _irisPillFadeTimer?.cancel();
-  _irisPillDisposeTimer?.cancel();
-  _irisPillExpandTimer = null;
-  _irisPillContentTimer = null;
-  _irisPillCollapseTimer = null;
-  _irisPillDotTimer = null;
-  _irisPillDotPulseTimer = null;
-  _irisPillFadeTimer = null;
-  _irisPillDisposeTimer = null;
-
-  _irisPillOverlayEntry?.remove();
-  _irisPillOverlayEntry = null;
-}
-
-String _extractIrisSnackText(Widget widget) {
-  if (widget is Text) {
-    return widget.data ?? widget.textSpan?.toPlainText() ?? '';
-  }
-  if (widget is RichText) {
-    return widget.text.toPlainText();
-  }
-  if (widget is DefaultTextStyle) {
-    return _extractIrisSnackText(widget.child);
-  }
-  if (widget is Expanded) {
-    return _extractIrisSnackText(widget.child);
-  }
-  if (widget is Flexible) {
-    return _extractIrisSnackText(widget.child);
-  }
-  if (widget is Padding) {
-    final child = widget.child;
-    if (child != null) {
-      return _extractIrisSnackText(child);
-    }
-    return '';
-  }
-  if (widget is SizedBox && widget.child != null) {
-    return _extractIrisSnackText(widget.child!);
-  }
-  if (widget is Row) {
-    return widget.children.map(_extractIrisSnackText).where((s) => s.isNotEmpty).join(' ');
-  }
-  if (widget is Column) {
-    return widget.children
-        .map(_extractIrisSnackText)
-        .where((s) => s.isNotEmpty)
-        .join(' ');
-  }
-  if (widget is Wrap) {
-    return widget.children
-        .map(_extractIrisSnackText)
-        .where((s) => s.isNotEmpty)
-        .join(' ');
-  }
-  return '';
-}
-
-String _compactIrisSnackText(String raw) {
-  final compact = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
-  if (compact.isEmpty) return 'Updated';
-  if (compact.length <= 62) return compact;
-  return '${compact.substring(0, 59)}...';
-}
-
-void _showIrisTopPill(
-  BuildContext context, {
-  required String text,
-  Duration duration = const Duration(seconds: 3),
-  Color? tint,
-  SnackBarAction? action,
-  bool clearExisting = true,
-}) {
-  final overlay = Overlay.maybeOf(context, rootOverlay: true);
-  if (overlay == null) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-      _showIrisTopPill(
-        context,
-        text: text,
-        duration: duration,
-        tint: tint,
-        action: action,
-        clearExisting: clearExisting,
-      );
-    });
-    return;
-  }
-
-  if (clearExisting) {
-    _clearIrisPillOverlay();
-  }
-
-  final tone = tint ?? Colors.white;
-
-  bool expanded = false;
-  bool contentVisible = false;
-  bool collapsing = false;
-  bool dotMode = false;
-  bool dotPulse = false;
-  bool visible = true;
-
-  late final OverlayEntry entry;
-  entry = OverlayEntry(
-    builder: (overlayContext) {
-      final media = MediaQuery.of(overlayContext);
-      final availableWidth = media.size.width - 24;
-      final targetWidth = math.min(
-        346.0,
-        math.max(152.0, 66.0 + (text.length * 6.0)),
-      ).clamp(108.0, availableWidth);
-
-      final width = dotMode
-          ? 10.0
-          : (collapsing
-            ? 44.0
-                : (expanded ? targetWidth.toDouble() : 30.0));
-      final height = dotMode ? 10.0 : 40.0;
-        final scale = dotMode
-          ? (dotPulse ? 1.08 : 0.88)
-          : (expanded ? 1.0 : 0.86);
-        final cornerRadius = dotMode
-          ? 999.0
-          : (collapsing ? 16.0 : 24.0);
-
-      return Positioned(
-        top: media.padding.top + 6,
-        left: 0,
-        right: 0,
-        child: IgnorePointer(
-          ignoring: dotMode,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeInOutCubic,
-            opacity: visible ? 1 : 0,
-            child: AnimatedSlide(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeInOutCubic,
-              offset: visible ? Offset.zero : const Offset(0, -0.18),
-              child: Center(
-                child: GestureDetector(
-                  onTap: action != null
-                      ? () {
-                          IrisSfx.pillTap();
-                          action.onPressed();
-                        }
-                      : null,
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.fastOutSlowIn,
-                    scale: scale,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.fastOutSlowIn,
-                      width: width,
-                      height: height,
-                      padding: dotMode
-                          ? EdgeInsets.zero
-                          : const EdgeInsets.symmetric(horizontal: 14),
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFF10131A).withValues(alpha: 0.96),
-                            const Color(0xFF07080D).withValues(alpha: 0.92),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(cornerRadius),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.18),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.46),
-                            blurRadius: 24,
-                            spreadRadius: -8,
-                            offset: const Offset(0, 12),
-                          ),
-                          BoxShadow(
-                            color: tone.withValues(alpha: dotMode ? 0.0 : 0.16),
-                            blurRadius: 14,
-                            spreadRadius: -8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 160),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        child: dotMode
-                            ? const SizedBox.shrink(key: ValueKey('dot'))
-                            : AnimatedOpacity(
-                                key: const ValueKey('pill'),
-                                duration: const Duration(milliseconds: 180),
-                                curve: Curves.easeOutCubic,
-                                opacity: (contentVisible && !collapsing) ? 1 : 0,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 9,
-                                      height: 9,
-                                      decoration: BoxDecoration(
-                                        color: tone.withValues(alpha: 0.92),
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: tone.withValues(alpha: 0.55),
-                                            blurRadius: 8,
-                                            spreadRadius: -1,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        text,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.18,
-                                          decoration: TextDecoration.none,
-                                        ),
-                                      ),
-                                    ),
-                                    if (action != null)
-                                      Container(
-                                        margin: const EdgeInsets.only(left: 8),
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(999),
-                                          border: Border.all(
-                                            color: Colors.white.withValues(alpha: 0.18),
-                                            width: 0.8,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          action.label,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.14,
-                                            decoration: TextDecoration.none,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    },
-  );
-
-  _irisPillOverlayEntry = entry;
-  overlay.insert(entry);
-
-  void mark() {
-    _irisPillOverlayEntry?.markNeedsBuild();
-  }
-
-  _irisPillExpandTimer = Timer(const Duration(milliseconds: 16), () {
-    expanded = true;
-    mark();
-  });
-
-  _irisPillContentTimer = Timer(const Duration(milliseconds: 120), () {
-    contentVisible = true;
-    mark();
-  });
-
-  final adaptiveHoldMs = (900 + (text.length * 22)).clamp(1200, 3400);
-  final holdMs = math.min(duration.inMilliseconds, adaptiveHoldMs).clamp(
-    1100,
-    3400,
-  );
-  _irisPillCollapseTimer = Timer(Duration(milliseconds: holdMs), () {
-    collapsing = true;
-    contentVisible = false;
-    mark();
-  });
-
-  _irisPillDotTimer = Timer(Duration(milliseconds: holdMs + 220), () {
-    dotMode = true;
-    mark();
-  });
-
-  _irisPillDotPulseTimer = Timer(Duration(milliseconds: holdMs + 280), () {
-    dotPulse = true;
-    mark();
-  });
-
-  _irisPillFadeTimer = Timer(Duration(milliseconds: holdMs + 340), () {
-    visible = false;
-    mark();
-  });
-
-  _irisPillDisposeTimer = Timer(Duration(milliseconds: holdMs + 460), () {
-    if (_irisPillOverlayEntry == entry) {
-      _clearIrisPillOverlay();
-    }
-  });
-}
-
-void showIrisFrostedSnackBar(
-  BuildContext context, {
-  required Widget content,
-  SnackBarAction? action,
-  Duration duration = const Duration(seconds: 3),
-  Color? tint,
-  EdgeInsetsGeometry? margin,
-  String? dedupeKey,
-  Duration dedupeWindow = const Duration(milliseconds: 1400),
-  bool clearExisting = true,
-}) {
-  if (!context.mounted) return;
-
-  if (dedupeKey != null && dedupeKey.isNotEmpty) {
-    final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final lastMs = _irisSnackLastShownMs[dedupeKey] ?? 0;
-    if (nowMs - lastMs < dedupeWindow.inMilliseconds) {
-      return;
-    }
-    _irisSnackLastShownMs[dedupeKey] = nowMs;
-  }
-
-  final text = _compactIrisSnackText(_extractIrisSnackText(content));
-  _showIrisTopPill(
-    context,
-    text: text,
-    duration: duration,
-    tint: tint,
-    action: action,
-    clearExisting: clearExisting,
-  );
-}
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize timezone database
-  tz.initializeTimeZones();
-
-  runApp(const IrisApp());
-
-  unawaited(_bootstrapStartupServices());
-}
-
-Future<void> _bootstrapStartupServices() async {
-  try {
-    await WidgetService.initialize();
-  } catch (e) {
-    debugPrint('Widget service init failed: $e');
-  }
-
-  try {
-    await WidgetService.initializeWidgetDefaults();
-  } catch (e) {
-    debugPrint('Widget defaults init failed: $e');
-  }
-
-  try {
-    await NotificationService().init();
-  } catch (e) {
-    debugPrint('Notification init failed: $e');
-  }
-
-  try {
-    await IrisSfx.init();
-  } catch (e) {
-    debugPrint('UI sound init failed: $e');
-  }
-
-  try {
-    await IrisHaptics.init();
-  } catch (e) {
-    debugPrint('Haptics init failed: $e');
-  }
-
-  try {
-    FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(
-        channelId: 'persistent_class_foreground',
-        channelName: 'IRIS Class Tracker',
-        channelDescription: 'Shows your current and upcoming classes',
-        channelImportance: NotificationChannelImportance.DEFAULT,
-        priority: NotificationPriority.DEFAULT,
-      ),
-      iosNotificationOptions: const IOSNotificationOptions(
-        showNotification: true,
-        playSound: false,
-      ),
-      foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(
-          30000,
-        ), // Update every 30 seconds
-        autoRunOnBoot: true,
-        allowWakeLock: true,
-        allowWifiLock: false,
-      ),
-    );
-  } catch (e) {
-    debugPrint('Foreground task init failed: $e');
-  }
-
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final persistentEnabled =
-        prefs.getBool('persistent_notification_enabled') ?? false;
-    final userRole = prefs.getString('user_role') ?? 'student';
-
-    final hasStudentData =
-        prefs.containsKey('student_batch') && prefs.containsKey('timetable_data');
-
-    if (persistentEnabled &&
-        userRole == 'student' &&
-        hasStudentData &&
-        !(await FlutterForegroundTask.isRunningService)) {
-      await FlutterForegroundTask.startService(
-        serviceId: 256,
-        notificationTitle: 'IRIS Class Tracker',
-        notificationText: 'Loading your schedule...',
-        notificationIcon: null,
-        notificationButtons: [NotificationButton(id: 'open', text: 'Open IRIS')],
-        callback: startClassNotificationTask,
-      );
-    }
-  } catch (e) {
-    debugPrint('Foreground service restore failed: $e');
-  }
-
-  try {
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  } catch (e) {
-    debugPrint('System UI mode update failed: $e');
-  }
-
-  try {
-    unawaited(
-      TimetableOTAService.checkForUpdatesOnStartup().catchError((e) {
-        debugPrint('OTA check failed on startup: $e');
-      }),
-    );
-  } catch (e) {
-    debugPrint('OTA bootstrap failed: $e');
-  }
-
-  try {
-    await NotificationService().syncClassRemindersFromPrefs();
-  } catch (e) {
-    debugPrint('Reminder sync failed: $e');
-  }
-}
-
-class IrisApp extends StatefulWidget {
-  const IrisApp({super.key});
-
-  @override
-  State<IrisApp> createState() => _IrisAppState();
-}
-
-class _IrisAppState extends State<IrisApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  String get _themeModeKey {
-    switch (_themeMode) {
-      case ThemeMode.light:
-        return 'light';
-      case ThemeMode.dark:
-        return 'dark';
-      case ThemeMode.system:
-        return 'system';
-    }
-  }
-
-  ThemeMode _themeModeFromKey(String mode) {
-    switch (mode) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      case 'system':
-      default:
-        return ThemeMode.system;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTheme();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      IrisSfx.click();
-    });
-  }
-
-  Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedMode = prefs.getString('themeMode');
-    final legacyMode = prefs.getString('appearance_mode');
-    final mode = savedMode ?? legacyMode ?? 'system';
-
-    if (savedMode == null && legacyMode != null) {
-      await prefs.setString('themeMode', mode);
-    }
-    if (legacyMode != mode) {
-      await prefs.setString('appearance_mode', mode);
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _themeMode = _themeModeFromKey(mode);
-    });
-  }
-
-  Future<void> _setThemeMode(String mode) async {
-    IrisSfx.tick();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('themeMode', mode);
-    await prefs.setString('appearance_mode', mode);
-
-    if (!mounted) return;
-    setState(() {
-      _themeMode = _themeModeFromKey(mode);
-    });
-  }
-
-  Future<void> _toggleTheme() async {
-    final platformBrightness =
-        WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    final isEffectivelyDark =
-        _themeMode == ThemeMode.dark ||
-        (_themeMode == ThemeMode.system &&
-            platformBrightness == Brightness.dark);
-    final next = isEffectivelyDark ? 'light' : 'dark';
-    await _setThemeMode(next);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Set system overlay styles based on theme
-    final isDark =
-        _themeMode == ThemeMode.dark ||
-        (_themeMode == ThemeMode.system &&
-            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
-    SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: isDark
-            ? Brightness.light
-            : Brightness.dark,
-      ),
-    );
-    return MaterialApp(
-      title: 'IRIS',
-      debugShowCheckedModeBanner: false,
-      scrollBehavior: const SmoothScrollBehavior(),
-      themeMode: _themeMode,
-      themeAnimationDuration: const Duration(milliseconds: 384),
-      themeAnimationCurve: IrisMotion.standard,
-      theme: IrisTheme.light(),
-      darkTheme: IrisTheme.dark(),
-      home: FutureBuilder<UniversityMemory>(
-        future: UniversityMemoryLoader.loadFromAssets(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const _BootScreen();
-          }
-          return _AppRoot(
-            memory: snapshot.data!,
-            onToggleTheme: _toggleTheme,
-            onSetThemeMode: _setThemeMode,
-            currentThemeMode: _themeModeKey,
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _BootScreen extends StatefulWidget {
-  const _BootScreen();
-
-  @override
-  State<_BootScreen> createState() => _BootScreenState();
-}
-
-class _BootScreenState extends State<_BootScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late AnimationController _rotateController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _rotateAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _pulseController = AnimationController(
-      duration: IrisMotion.slow,
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseController, curve: IrisMotion.standard),
-    );
-
-    _rotateController = AnimationController(
-      duration: const Duration(milliseconds: 2880),
-      vsync: this,
-    )..repeat();
-
-    _rotateAnimation = Tween<double>(
-      begin: 0,
-      end: 2 * 3.14159,
-    ).animate(CurvedAnimation(parent: _rotateController, curve: Curves.linear));
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    _rotateController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      body: Stack(
-        children: [
-          _NeuralAura(background: isDark),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    ScaleTransition(
-                      scale: _pulseAnimation,
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              IrisTokens.brand.withValues(alpha: 0.18),
-                              IrisTokens.brand.withValues(alpha: 0.04),
-                              Colors.transparent,
-                            ],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: IrisTokens.brand.withValues(alpha: 0.16),
-                              offset: const Offset(0, 8),
-                              blurRadius: 22,
-                              spreadRadius: -8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    RotationTransition(
-                      turns: _rotateAnimation,
-                      child: Container(
-                        width: 135,
-                        height: 135,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: IrisTokens.brand.withValues(alpha: 0.25),
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    RotationTransition(
-                      turns: Tween<double>(begin: 0, end: -1).animate(
-                        CurvedAnimation(
-                          parent: _rotateController,
-                          curve: Curves.linear,
-                        ),
-                      ),
-                      child: Container(
-                        width: 110,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: IrisTokens.purple.withValues(alpha: 0.25),
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Main logo container
-                    SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: IrisTokens.warning,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: IrisTokens.warning.withValues(alpha: 0.3),
-                            width: 0.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: IrisTokens.warning.withValues(alpha: 0.22),
-                              offset: const Offset(0, 6),
-                              blurRadius: 14,
-                              spreadRadius: -4,
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              offset: const Offset(0, 2),
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/iris_logo.png',
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                Text(
-                  'IRIS',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w200,
-                    letterSpacing: 6.0,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'INTELLIGENT ROUTINE & INSIGHT SYSTEM',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 3.0,
-                    color:
-                        (Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black)
-                            .withValues(alpha: 0.40),
-                  ),
-                ),
-                const SizedBox(height: 44),
-                SizedBox(
-                  width: 38,
-                  height: 38,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(IrisTokens.brand),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _AppRoot extends StatefulWidget {
   final UniversityMemory memory;
@@ -2315,6 +76,7 @@ class _AppRootState extends State<_AppRoot> {
   late final OmniBrain _brain;
   String? _selectedBatch;
   String? _userRole;
+  String? _userName;
 
   @override
   void initState() {
@@ -2322,6 +84,7 @@ class _AppRootState extends State<_AppRoot> {
     _brain = OmniBrain(widget.memory);
     _loadUserRole();
     _loadBatch();
+    _loadUserName();
 
     // Show Darood e Pak reminder on app boot with haptic pulse
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2420,6 +183,21 @@ class _AppRootState extends State<_AppRoot> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _selectedBatch = prefs.getString('selectedBatch');
+    });
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userName = prefs.getString('student_user_name');
+    });
+  }
+
+  Future<void> _saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('student_user_name', name);
+    setState(() {
+      _userName = name;
     });
   }
 
@@ -2724,6 +502,10 @@ class _AppRootState extends State<_AppRoot> {
       return SetupBot(memory: widget.memory, onComplete: _saveBatch);
     }
 
+    if (_userName == null) {
+      return _NameCaptureScreen(onComplete: _saveUserName);
+    }
+
     return Dashboard(
       memory: widget.memory,
       brain: _brain,
@@ -2731,7 +513,8 @@ class _AppRootState extends State<_AppRoot> {
       onToggleTheme: widget.onToggleTheme,
       onSetThemeMode: widget.onSetThemeMode,
       currentThemeMode: widget.currentThemeMode,
-      onRoleChanged: _saveUserRole,
+      userName: _userName,
+      onUserNameChanged: (name) => setState(() => _userName = name),
       onChangeBatch: () async {
         final result = await showModalBottomSheet<String>(
           context: context,
@@ -2747,6 +530,165 @@ class _AppRootState extends State<_AppRoot> {
           IrisHaptics.chipSelect();
         }
       },
+    );
+  }
+}
+
+class _NameCaptureScreen extends StatefulWidget {
+  final ValueChanged<String> onComplete;
+
+  const _NameCaptureScreen({required this.onComplete});
+
+  @override
+  State<_NameCaptureScreen> createState() => _NameCaptureScreenState();
+}
+
+class _NameCaptureScreenState extends State<_NameCaptureScreen> {
+  final TextEditingController _controller = TextEditingController();
+  bool _isValid = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          NeuralAura(background: isDark),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(28.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 60),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: IrisTokens.brand.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: IrisTokens.brand.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: const Center(
+                      child: Text('👋', style: TextStyle(fontSize: 32)),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Welcome to IRIS',
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.0,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'To personalize your experience, please let us know what to call you.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: (isDark ? Colors.white : Colors.black)
+                          .withValues(alpha: 0.55),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    borderRadius: 24,
+                    child: TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Your Name',
+                        hintStyle: TextStyle(
+                          color: (isDark ? Colors.white : Colors.black)
+                              .withValues(alpha: 0.25),
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          _isValid = val.trim().length >= 2;
+                        });
+                      },
+                      onSubmitted: (val) {
+                        if (_isValid) {
+                          IrisHaptics.actionHeavy();
+                          widget.onComplete(val.trim());
+                        }
+                      },
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AnimatedButton(
+                      onPressed: _isValid
+                          ? () {
+                              IrisHaptics.actionHeavy();
+                              widget.onComplete(_controller.text.trim());
+                            }
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: BoxDecoration(
+                          gradient: _isValid
+                              ? const LinearGradient(
+                                  colors: [IrisTokens.brand, IrisTokens.purple],
+                                )
+                              : null,
+                          color: _isValid ? null : (isDark ? Colors.white10 : Colors.black12),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: _isValid
+                              ? [
+                                  BoxShadow(
+                                    color: IrisTokens.brand.withValues(alpha: 0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Continue',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: _isValid
+                                  ? Colors.white
+                                  : (isDark ? Colors.white24 : Colors.black26),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2772,7 +714,7 @@ class RoleSelectorScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -2877,7 +819,7 @@ class _RoleCardState extends State<_RoleCard>
 
   @override
   Widget build(BuildContext context) {
-    return _MotionSlideFade(
+    return MotionSlideFade(
       beginOffset: const Offset(100, 0),
       duration: IrisMotion.medium,
       curve: IrisMotion.entrance,
@@ -2991,13 +933,13 @@ class _RoleCardState extends State<_RoleCard>
   }
 }
 
-class _MotionSlideFade extends StatelessWidget {
+class MotionSlideFade extends StatelessWidget {
   final Widget child;
   final Offset beginOffset;
   final Duration duration;
   final Curve curve;
 
-  const _MotionSlideFade({
+  const MotionSlideFade({
     required this.child,
     required this.beginOffset,
     this.duration = IrisMotion.medium,
@@ -3022,13 +964,13 @@ class _MotionSlideFade extends StatelessWidget {
   }
 }
 
-class _MotionScaleFade extends StatelessWidget {
+class MotionScaleFade extends StatelessWidget {
   final Widget child;
   final double beginScale;
   final Duration duration;
   final Curve curve;
 
-  const _MotionScaleFade({
+  const MotionScaleFade({
     required this.child,
     this.beginScale = 0.9,
     this.duration = IrisMotion.medium,
@@ -3062,7 +1004,7 @@ class _SetupBotState extends State<SetupBot> {
     _loadNotificationSetting();
   }
 
-  // Static method to show widget setup guide from SetupBot
+  // SetupBot and related screens moved to screens/setup_screens.dart
   static Future<void> _showWidgetSetupGuideFromSetup(
     BuildContext context,
   ) async {
@@ -3391,7 +1333,7 @@ class _SetupBotState extends State<SetupBot> {
     return Scaffold(
       body: Stack(
         children: [
-          _NeuralAura(
+          NeuralAura(
             background: Theme.of(context).brightness == Brightness.dark,
           ),
           SafeArea(
@@ -3922,7 +1864,8 @@ class Dashboard extends StatefulWidget {
   final Future<void> Function(String mode) onSetThemeMode;
   final String currentThemeMode;
   final VoidCallback onChangeBatch;
-  final ValueChanged<String> onRoleChanged;
+  final String? userName;
+  final ValueChanged<String>? onUserNameChanged;
 
   const Dashboard({
     required this.memory,
@@ -3932,7 +1875,8 @@ class Dashboard extends StatefulWidget {
     required this.onSetThemeMode,
     required this.currentThemeMode,
     required this.onChangeBatch,
-    required this.onRoleChanged,
+    this.userName,
+    this.onUserNameChanged,
     super.key,
   });
 
@@ -4548,7 +2492,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   Widget _buildFacultyTabContent() {
     switch (_bottomNavIndex) {
       case 1:
-        return _TeacherLocatorScreen(
+        return TeacherLocatorScreen(
           key: const PageStorageKey<String>('faculty_tab_teacher'),
           brain: widget.brain,
           onTeacherSelected: (teacherName) {
@@ -4618,24 +2562,24 @@ class _FacultyDashboardState extends State<FacultyDashboard>
               horizontalPadding,
               10,
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: IrisMotion.reduceBlur
-                      ? 6
-                      : (_bottomNavIndex == 0 ? 16 : 20),
-                  sigmaY: IrisMotion.reduceBlur
-                      ? 6
-                      : (_bottomNavIndex == 0 ? 16 : 20),
+            child: LiquidGlassLayer(
+              settings: LiquidGlassSettings(
+                blur: (_bottomNavIndex == 0 ? 16 : 20),
+                ambientStrength: 0.65,
+                lightAngle: 0.15 * math.pi,
+                glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
+                    .withValues(alpha: 0.38),
+                thickness: 20,
+              ),
+              child: LiquidGlass.inLayer(
+                shape: LiquidRoundedSuperellipse(
+                  borderRadius: Radius.circular(radius),
                 ),
+                glassContainsChild: false,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 304),
                   curve: IrisMotion.standard,
                   decoration: BoxDecoration(
-                    color:
-                        (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                            .withValues(alpha: 0.38),
                     borderRadius: BorderRadius.circular(radius),
                     border: Border.all(
                       color: (isDark ? Colors.white : IrisTokens.purple)
@@ -4692,7 +2636,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                               left: haloLeft,
                               top: veryCompact ? 9 : (compact ? 8 : 7),
                               child: IgnorePointer(
-                                child: _NavActiveHalo(
+                                child: NavActiveHalo(
                                   size: haloSize,
                                   color: trailColor,
                                 ),
@@ -4731,7 +2675,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: _BouncyNavButton(
+                                      child: BouncyNavButton(
                                       icon: _bottomNavIndex == 0
                                           ? Icons.home_filled
                                           : Icons.home_rounded,
@@ -4743,7 +2687,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                                     ),
                                   ),
                                   Expanded(
-                                    child: _BouncyNavButton(
+                                      child: BouncyNavButton(
                                       launchIconKey: _facultyTeacherNavKey,
                                       icon: _bottomNavIndex == 1
                                           ? Icons.badge_rounded
@@ -4756,7 +2700,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                                     ),
                                   ),
                                   Expanded(
-                                    child: _BouncyNavButton(
+                                      child: BouncyNavButton(
                                       launchIconKey: _facultyPortalNavKey,
                                       icon: Icons.public_rounded,
                                       label: 'Portal',
@@ -4767,7 +2711,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                                     ),
                                   ),
                                   Expanded(
-                                    child: _BouncyNavButton(
+                                    child: BouncyNavButton(
                                       launchIconKey: _facultyAboutNavKey,
                                       icon: _bottomNavIndex == 3
                                           ? Icons.info_rounded
@@ -5017,7 +2961,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
     return Scaffold(
       body: Stack(
         children: [
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           SafeArea(
             child: teacher == null || teacher.isEmpty
                 ? _buildTeacherSelectionView(isDark)
@@ -5048,7 +2992,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Enhanced premium header card with staggered animation
-          _MotionSlideFade(
+          MotionSlideFade(
             beginOffset: const Offset(0, 20),
             duration: IrisMotion.medium,
             curve: IrisMotion.entrance,
@@ -5208,7 +3152,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
           const SizedBox(height: 28),
 
           // Enhanced instructions card with staggered animation
-          _MotionSlideFade(
+          MotionSlideFade(
             beginOffset: const Offset(0, 30),
             duration: IrisMotion.medium,
             curve: IrisMotion.entrance,
@@ -5910,7 +3854,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _MotionScaleFade(
+              child: MotionScaleFade(
                 beginScale: 0.85,
                 duration: IrisMotion.medium,
                 curve: IrisMotion.emphasized,
@@ -5948,7 +3892,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                         horizontal: 20,
                         vertical: 24,
                       ),
-                      child: _MotionScaleFade(
+                      child: MotionScaleFade(
                         beginScale: 0.9,
                         duration: IrisMotion.medium,
                         curve: IrisMotion.emphasized,
@@ -6072,7 +4016,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                             ? schedule[fullIndex + 1]
                             : null;
                         return RepaintBoundary(
-                          child: _ClassCard(
+                          child: ClassCard(
                             key: ValueKey(
                               'faculty_class_${session.subject}_${session.startTime}_${session.batchKey.batch}',
                             ),
@@ -6843,7 +4787,7 @@ class _FacultyFullScheduleScreenState
         elevation: 0,
         scrolledUnderElevation: 0,
         shadowColor: Colors.transparent,
-        leading: _AppBackButton(isDark: isDark),
+        leading: AppBackButton(isDark: isDark),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10),
@@ -6874,7 +4818,7 @@ class _FacultyFullScheduleScreenState
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           SafeArea(
             child: CustomScrollView(
               physics: const ButterScrollPhysics(),
@@ -7135,7 +5079,7 @@ class _FacultyFullScheduleScreenState
                               return StaggeredListItem(
                                 index: index,
                                 child: RepaintBoundary(
-                                  child: _ClassCard(
+                                  child: ClassCard(
                                     key: ValueKey(
                                       'faculty_class_${session.subject}_${session.startTime}_${session.batchKey.batch}',
                                     ),
@@ -7162,12 +5106,12 @@ class _FacultyFullScheduleScreenState
             bottom: 0,
             child: SafeArea(
               top: false,
-              child: _SmartScreenDock(
+              child: DashboardDock(
                 showFacultySet: true,
                 selectedIndex: 1,
                 onTeacher: () => pushIconLaunchRoute(
                   context,
-                  page: _TeacherLocatorScreen(brain: widget.brain),
+                  page: TeacherLocatorScreen(brain: widget.brain),
                 ),
                 onPortal: () => pushIconLaunchRoute(
                   context,
@@ -7681,11 +5625,22 @@ class _DashboardState extends State<Dashboard>
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: AlertDialog(
-          backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
-              .withValues(alpha: isDark ? 0.88 : 0.92),
+      builder: (ctx) => LiquidGlassLayer(
+        settings: LiquidGlassSettings(
+          blur: 16,
+          ambientStrength: 0.70,
+          lightAngle: 0.15 * math.pi,
+          glassColor: Colors.black.withValues(alpha: 0.05),
+          thickness: 15,
+        ),
+        child: LiquidGlass.inLayer(
+          shape: const LiquidRoundedSuperellipse(
+            borderRadius: Radius.circular(20),
+          ),
+          glassContainsChild: false,
+          child: AlertDialog(
+            backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
+                .withValues(alpha: isDark ? 0.88 : 0.92),
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -7716,7 +5671,8 @@ class _DashboardState extends State<Dashboard>
           ],
         ),
       ),
-    );
+    ),
+  );
 
     if (confirm == true) {
       await _removeMakeupSession(session);
@@ -8361,6 +6317,7 @@ class _DashboardState extends State<Dashboard>
         onRoleChanged: widget.onRoleChanged,
         onSetThemeMode: widget.onSetThemeMode,
         currentThemeMode: widget.currentThemeMode,
+        onUserNameChanged: widget.onUserNameChanged,
       ),
     );
 
@@ -8391,7 +6348,7 @@ class _DashboardState extends State<Dashboard>
     await pushIconLaunchRoute(
       context,
       originKey: originKey,
-      page: _TeacherLocatorScreen(
+      page: TeacherLocatorScreen(
         brain: widget.brain,
         onRoleChanged: widget.onRoleChanged,
         memory: widget.memory,
@@ -8537,29 +6494,30 @@ class _DashboardState extends State<Dashboard>
               horizontalPadding,
               10,
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: IrisMotion.reduceBlur
-                      ? 6
-                      : (_bottomNavIndex == 0 ? 16 : 20),
-                  sigmaY: IrisMotion.reduceBlur
-                      ? 6
-                      : (_bottomNavIndex == 0 ? 16 : 20),
+            child: LiquidGlassLayer(
+              settings: LiquidGlassSettings(
+                blur: 18.0,
+                ambientStrength: 0.75,
+                lightAngle: 0.15 * math.pi,
+                glassColor: isDark 
+                    ? const Color(0xFF020617).withValues(alpha: 0.10) 
+                    : Colors.white.withValues(alpha: 0.18),
+                thickness: 12,
+              ),
+              child: LiquidGlass.inLayer(
+                shape: LiquidRoundedSuperellipse(
+                  borderRadius: Radius.circular(radius),
                 ),
+                glassContainsChild: false,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 304),
                   curve: IrisMotion.standard,
                   decoration: BoxDecoration(
-                    color:
-                        (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                            .withValues(alpha: 0.38),
                     borderRadius: BorderRadius.circular(radius),
                     border: Border.all(
                       color: (isDark ? Colors.white : navPriorityColor)
-                          .withValues(alpha: navActive ? 0.14 : 0.08),
-                      width: 1.1,
+                          .withValues(alpha: navActive ? 0.12 : 0.06),
+                      width: 1.8,
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -8841,7 +6799,7 @@ class _DashboardState extends State<Dashboard>
     return Scaffold(
       body: Stack(
         children: [
-          RepaintBoundary(child: _NeuralAura(background: isDark)),
+          RepaintBoundary(child: NeuralAura(background: isDark)),
           SafeArea(
             child: RefreshIndicator(
               onRefresh: _handleRefresh,
@@ -8851,209 +6809,108 @@ class _DashboardState extends State<Dashboard>
                   : Colors.white,
               child: CustomScrollView(
                 physics: const ButterScrollPhysics(),
-                cacheExtent: 500, // Preload items 500px ahead
+                cacheExtent: 500,
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                       child: GlassCard(
+                        padding: const EdgeInsets.all(24),
+                        borderRadius: 36.0,
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [IrisTokens.brand, IrisTokens.purple],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: IrisTokens.brand.withValues(alpha: 0.2),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'AM',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 22,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
                             Expanded(
-                              child: RippleEffect(
-                                onTap: widget.onChangeBatch,
-                                borderRadius: 16,
-                                rippleColor: IrisTokens.brand,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 5,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                IrisTokens.brand,
-                                                IrisTokens.brandLight,
-                                                IrisTokens.purpleLight,
-                                              ],
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: IrisTokens.brand
-                                                    .withValues(alpha: 0.4),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 3),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Image.asset(
-                                                'assets/iris_logo.png',
-                                                width: 11,
-                                                height: 11,
-                                                fit: BoxFit.cover,
-                                              ),
-                                              const SizedBox(width: 5),
-                                              Text(
-                                                'IRIS',
-                                                style: const TextStyle(
-                                                  letterSpacing: 2.5,
-                                                  fontSize: 9,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w900,
-                                                ),
-                                              ),
-                                            ],
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _getSmartGreeting(now.hour),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    widget.userName ?? 'Student',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(99),
+                                          border: Border.all(
+                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
                                           ),
                                         ),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          _getSmartGreeting(now.hour),
+                                        child: Text(
+                                          widget.batch,
                                           style: TextStyle(
                                             fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.8,
-                                            color:
-                                                (isDark
-                                                        ? Colors.white
-                                                        : Colors.black)
-                                                    .withValues(alpha: 0.35),
+                                            fontWeight: FontWeight.w800,
+                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? Colors.white.withValues(
-                                                alpha: 0.08,
-                                              )
-                                            : Colors.black.withValues(
-                                                alpha: 0.05,
-                                              ),
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
-                                        border: Border.all(
-                                          color: isDark
-                                              ? Colors.white.withValues(
-                                                  alpha: 0.12,
-                                                )
-                                              : Colors.black.withValues(
-                                                  alpha: 0.08,
-                                                ),
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.calendar_today_rounded,
-                                            size: 12,
-                                            color:
-                                                (isDark
-                                                        ? Colors.white
-                                                        : Colors.black)
-                                                    .withValues(alpha: 0.5),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            dateLabel,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              letterSpacing: 0.2,
-                                              color:
-                                                  (isDark
-                                                          ? Colors.white
-                                                          : Colors.black)
-                                                      .withValues(alpha: 0.7),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            widget.batch,
-                                            style: const TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 0.4,
-                                              height: 1.2,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 2,
-                                          ),
-                                          child: Icon(
-                                            Icons.swap_horiz_rounded,
-                                            size: 16,
-                                            color: IrisTokens.brand.withValues(
-                                              alpha: 0.5,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                             Container(
                               decoration: BoxDecoration(
-                                color:
-                                    (isDark ? Colors.white : IrisTokens.brand)
-                                        .withValues(alpha: 0.10),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color:
-                                      (isDark ? Colors.white : IrisTokens.brand)
-                                          .withValues(alpha: 0.12),
-                                ),
+                                color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
+                                shape: BoxShape.circle,
                               ),
                               child: IconButton(
                                 onPressed: widget.onToggleTheme,
                                 icon: Icon(
-                                  isDark
-                                      ? Icons.light_mode_rounded
-                                      : Icons.dark_mode_rounded,
-                                  size: 22,
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.8)
-                                      : IrisTokens.brand,
+                                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                                  size: 24,
+                                  color: isDark ? Colors.white : IrisTokens.brand,
                                 ),
-                                tooltip: isDark
-                                    ? 'Switch to light mode'
-                                    : 'Switch to dark mode',
-                                padding: const EdgeInsets.all(10),
-                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(12),
                               ),
                             ),
                           ],
@@ -9439,13 +7296,69 @@ class _DashboardState extends State<Dashboard>
                       ),
                     ),
                   ),
+                  SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
+                  
+                  // Quick Actions Grid (Image 1)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quick Actions',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IrisComponents.quickActionButton(
+                                label: 'Attend',
+                                icon: Icons.fingerprint_rounded,
+                                color: const Color(0xFF6366F1),
+                                isDark: isDark,
+                                onTap: () {},
+                              ),
+                              IrisComponents.quickActionButton(
+                                label: 'Finder',
+                                icon: Icons.map_rounded,
+                                color: const Color(0xFF10B981),
+                                isDark: isDark,
+                                onTap: () {},
+                              ),
+                              IrisComponents.quickActionButton(
+                                label: 'Portal',
+                                icon: Icons.language_rounded,
+                                color: const Color(0xFFF59E0B),
+                                isDark: isDark,
+                                onTap: () {},
+                              ),
+                              IrisComponents.quickActionButton(
+                                label: 'Grades',
+                                icon: Icons.auto_graph_rounded,
+                                color: const Color(0xFFEC4899),
+                                isDark: isDark,
+                                onTap: () {},
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 8,
                       ),
-                      child: _DaySwitcher(
+                        child: DaySwitcher(
                         selectedDayIndex: _overrideDayIndex,
                         onSelected: (value) => setState(() {
                           _overrideDayIndex = value;
@@ -9570,7 +7483,7 @@ class _DashboardState extends State<Dashboard>
                                 return StaggeredListItem(
                                   index: index,
                                   child: RepaintBoundary(
-                                    child: _ClassCard(
+                                    child: ClassCard(
                                       key: ValueKey(
                                         'class_${session.subject}_${session.startTime}',
                                       ),
@@ -9806,1585 +7719,10 @@ class _DashboardState extends State<Dashboard>
   }
 }
 
-class _DaySwitcher extends StatelessWidget {
-  final int? selectedDayIndex;
-  final ValueChanged<int?> onSelected;
+// DaySwitcher, ClassCard, and GlassShimmer moved to widgets/iris_components.dart
 
-  const _DaySwitcher({
-    required this.selectedDayIndex,
-    required this.onSelected,
-  });
+// SectionHeader moved to widgets/iris_components.dart
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final days = const ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    final today = DateTime.now().weekday; // 1=Mon
-    final autoSelected = selectedDayIndex == null;
-    return GlassCard(
-      child: SizedBox(
-        height: 50,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          physics: const ButterScrollPhysics(),
-          children: [
-            const SizedBox(width: 6),
-            AnimatedSlide(
-              duration: IrisMotion.fast,
-              curve: IrisMotion.standard,
-              offset: autoSelected ? const Offset(0, -0.02) : Offset.zero,
-              child: AnimatedScale(
-                duration: IrisMotion.fast,
-                curve: IrisMotion.standard,
-                scale: autoSelected ? 1.025 : 1.0,
-                child: AnimatedContainer(
-                  duration: IrisMotion.fast,
-                  curve: IrisMotion.standard,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    boxShadow: const [],
-                  ),
-                  child: ChoiceChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          size: 13,
-                          color: autoSelected
-                              ? IrisTokens.brand
-                              : isDark
-                              ? Colors.white.withValues(alpha: 0.5)
-                              : Colors.black.withValues(alpha: 0.4),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Auto',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                    selected: autoSelected,
-                    onSelected: (_) {
-                      IrisHaptics.chipSelect();
-                      onSelected(null);
-                    },
-                    selectedColor: IrisTokens.brand.withValues(alpha: 0.20),
-                    backgroundColor: isDark
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : Colors.black.withValues(alpha: 0.04),
-                    side: BorderSide(
-                      color: autoSelected
-                          ? IrisTokens.brand.withValues(alpha: 0.56)
-                          : isDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : Colors.black.withValues(alpha: 0.10),
-                      width: autoSelected ? 1.4 : 1.0,
-                    ),
-                    labelStyle: TextStyle(
-                      color: autoSelected
-                          ? IrisTokens.brand
-                          : isDark
-                          ? Colors.white.withValues(alpha: 0.8)
-                          : Colors.black.withValues(alpha: 0.65),
-                    ),
-                    elevation: autoSelected ? 0.6 : 0,
-                    pressElevation: 1,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ...List.generate(days.length, (index) {
-              final dayIndex = index + 1;
-              final isSelected = selectedDayIndex == dayIndex;
-              final isToday = dayIndex == today;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: AnimatedSlide(
-                  duration: IrisMotion.fast,
-                  curve: IrisMotion.standard,
-                  offset: isSelected ? const Offset(0, -0.02) : Offset.zero,
-                  child: AnimatedScale(
-                    duration: IrisMotion.fast,
-                    curve: IrisMotion.standard,
-                    scale: isSelected ? 1.03 : 1.0,
-                    child: AnimatedContainer(
-                      duration: IrisMotion.fast,
-                      curve: IrisMotion.standard,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [],
-                      ),
-                      child: ChoiceChip(
-                        avatar: isToday && !isSelected
-                            ? Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: IrisTokens.success,
-                                ),
-                              )
-                            : null,
-                        label: Text(
-                          days[index],
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        selected: isSelected,
-                        onSelected: (_) {
-                          IrisHaptics.chipSelect();
-                          onSelected(dayIndex == today ? null : dayIndex);
-                        },
-                        selectedColor: IrisTokens.brand.withValues(alpha: 0.20),
-                        backgroundColor: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : Colors.black.withValues(alpha: 0.04),
-                        side: BorderSide(
-                          color: isSelected
-                              ? IrisTokens.brand.withValues(alpha: 0.56)
-                              : isToday
-                              ? IrisTokens.success.withValues(alpha: 0.28)
-                              : isDark
-                              ? Colors.white.withValues(alpha: 0.12)
-                              : Colors.black.withValues(alpha: 0.10),
-                          width: isSelected ? 1.4 : 1.0,
-                        ),
-                        labelStyle: TextStyle(
-                          color: isSelected
-                              ? IrisTokens.brand
-                              : isDark
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : Colors.black.withValues(alpha: 0.65),
-                        ),
-                        elevation: isSelected ? 0.6 : 0,
-                        pressElevation: 1,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-            const SizedBox(width: 6),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ClassCard extends StatefulWidget {
-  final ClassSession session;
-  final ClassSession? nextSession;
-  final bool isFacultyView;
-  final VoidCallback? onRemoveMakeup;
-
-  const _ClassCard({
-    super.key,
-    required this.session,
-    this.nextSession,
-    this.isFacultyView = false,
-    this.onRemoveMakeup,
-  });
-
-  @override
-  State<_ClassCard> createState() => _ClassCardState();
-}
-
-class _ClassCardState extends State<_ClassCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _nextPulseAnimation;
-  bool _pulseRunning = false;
-
-  void _syncPulse(bool shouldPulse) {
-    if (shouldPulse && !_pulseRunning) {
-      _pulseController.repeat(reverse: true);
-      _pulseRunning = true;
-    } else if (!shouldPulse && _pulseRunning) {
-      _pulseController.stop();
-      _pulseController.value = 0.0;
-      _pulseRunning = false;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    final isLive = widget.session.isLive(now);
-
-    _pulseController = AnimationController(
-      duration: IrisMotion.slow,
-      vsync: this,
-    );
-
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(parent: _pulseController, curve: IrisMotion.standard),
-    );
-
-    _nextPulseAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(parent: _pulseController, curve: IrisMotion.standard),
-    );
-
-    _syncPulse(isLive);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final now = DateTime.now();
-    final live = widget.session.isLive(now);
-    final currentTime = now.hour + (now.minute / 60.0);
-    final isUpcoming =
-        !live &&
-        widget.session.dayIndex == now.weekday &&
-        widget.session.safeStartVal > currentTime &&
-        widget.session.safeStartVal - currentTime <= 0.75;
-
-    _syncPulse(live || isUpcoming);
-
-    // Calculate actual lecture duration accounting for "(1 hr)" markers
-    final duration = LectureDuration.getActualDuration(widget.session);
-    final actualEndTime = LectureDuration.getActualEndTime(widget.session);
-
-    // Calculate progress and label based on actual lecture duration
-    double progress = 0.0;
-    String progressLabel = '';
-
-    if (live) {
-      // Calculate progress using actual duration (1 hour for 1hr lectures, full slot otherwise)
-      progress = ((currentTime - widget.session.safeStartVal) / duration).clamp(
-        0.0,
-        1.0,
-      );
-      final minutesLeft = ((actualEndTime - currentTime) * 60).toInt().clamp(
-        0,
-        (duration * 60).toInt(),
-      );
-
-      if (minutesLeft >= 60) {
-        final hours = minutesLeft ~/ 60;
-        final mins = minutesLeft % 60;
-        progressLabel = mins > 0 ? '${hours}h ${mins}m left' : '${hours}h left';
-      } else {
-        progressLabel = '${minutesLeft}m left';
-      }
-    }
-
-    final timeLabel = '${widget.session.startTime} - ${widget.session.endTime}';
-
-    final accentColor = live
-        ? IrisTokens.success
-        : isUpcoming
-        ? IrisTokens.brand
-        : IrisTokens.purple;
-    final textPrimary = isDark ? Colors.white : IrisTokens.surfaceDark;
-    final textSecondary = (isDark ? Colors.white : Colors.black).withValues(
-      alpha: 0.68,
-    );
-
-    return RepaintBoundary(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: 1.0),
-          duration: IrisMotion.medium,
-          curve: IrisMotion.entrance,
-          builder: (context, bounceval, child) => Transform.scale(
-            scale: 0.96 + (bounceval * 0.04),
-            child: GlassCard(
-              glow: live,
-              shimmer: false,
-              enableBlur: true,
-              enableShadow: true,
-              enableOverlay: true,
-              padding: const EdgeInsets.all(20),
-              borderRadius: 22.0,
-              elevation: live ? 3 : 2,
-              accentColor: accentColor,
-              tilt: live,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.session.subject,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 20,
-                            letterSpacing: 0.0,
-                            height: 1.1,
-                            color: textPrimary,
-                          ),
-                        ),
-                      ),
-                      if (live) ...[
-                        AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) => Transform.scale(
-                            scale: _pulseAnimation.value,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: IrisTokens.space12,
-                                vertical: IrisTokens.space8 - 1,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    accentColor,
-                                    accentColor.withValues(alpha: 0.88),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  IrisTokens.radius12,
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.24),
-                                  width: 1.0,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: accentColor.withValues(alpha: 0.22),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                    spreadRadius: -2,
-                                  ),
-                                ],
-                              ),
-                              child: const Text(
-                                'LIVE',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.8,
-                                  color: Colors.white,
-                                  height: 1.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: IrisTokens.space8),
-                      ] else if (isUpcoming) ...[
-                        AnimatedBuilder(
-                          animation: _nextPulseAnimation,
-                          builder: (context, child) => Transform.scale(
-                            scale: _nextPulseAnimation.value,
-                            child: child,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: IrisTokens.space12,
-                              vertical: IrisTokens.space8 - 2,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  IrisTokens.brand,
-                                  IrisTokens.brand.withValues(alpha: 0.85),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                IrisTokens.radius12,
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.24),
-                                width: 1.0,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: IrisTokens.brand.withValues(
-                                    alpha: 0.18,
-                                  ),
-                                  blurRadius: 7,
-                                  spreadRadius: -2,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Text(
-                              'NEXT',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
-                                color: Colors.white,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: IrisTokens.space8),
-                      ],
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: IrisTokens.space12,
-                          vertical: IrisTokens.space8 - 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.white.withValues(alpha: 0.68),
-                          borderRadius: BorderRadius.circular(
-                            IrisTokens.radius12,
-                          ),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.14)
-                                : Colors.black.withValues(alpha: 0.07),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          timeLabel,
-                          style: TextStyle(
-                            fontSize: 11,
-                            letterSpacing: 0.3,
-                            fontWeight: FontWeight.w700,
-                            height: 1.0,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ),
-                      if (widget.onRemoveMakeup != null) ...[
-                        const SizedBox(width: IrisTokens.space8),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(
-                              IrisTokens.radius12,
-                            ),
-                            onTap: widget.onRemoveMakeup,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: IrisTokens.space12,
-                                vertical: IrisTokens.space8 - 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: IrisTokens.error.withValues(
-                                  alpha: isDark ? 0.22 : 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  IrisTokens.radius12,
-                                ),
-                                border: Border.all(
-                                  color: IrisTokens.error.withValues(
-                                    alpha: 0.30,
-                                  ),
-                                  width: 1,
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.remove_circle_outline_rounded,
-                                    size: 14,
-                                    color: IrisTokens.error,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Remove',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      letterSpacing: 0.2,
-                                      fontWeight: FontWeight.w700,
-                                      color: IrisTokens.error,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(IrisTokens.space8 - 2),
-                        decoration: BoxDecoration(
-                          color: accentColor.withValues(
-                            alpha: isDark ? 0.32 : 0.16,
-                          ),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: accentColor.withValues(alpha: 0.4),
-                            width: 1.2,
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.room_outlined,
-                          size: 16,
-                          color: accentColor,
-                        ),
-                      ),
-                      const SizedBox(width: IrisTokens.space12),
-                      Expanded(
-                        child: Text(
-                          widget.session.room,
-                          style: TextStyle(
-                            fontSize: 14,
-                            letterSpacing: 0.1,
-                            fontWeight: FontWeight.w700,
-                            color: textPrimary,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: textSecondary.withValues(alpha: 0.55),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Flexible(
-                        child: widget.isFacultyView
-                            ? Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: IrisTokens.space12,
-                                  vertical: IrisTokens.space8 - 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      accentColor.withValues(
-                                        alpha: isDark ? 0.26 : 0.16,
-                                      ),
-                                      accentColor.withValues(
-                                        alpha: isDark ? 0.20 : 0.12,
-                                      ),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    IrisTokens.radius12,
-                                  ),
-                                  border: Border.all(
-                                    color: accentColor.withValues(alpha: 0.30),
-                                    width: 1.0,
-                                  ),
-                                ),
-                                child: Text(
-                                  widget.session.batchKey.batch,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    letterSpacing: 0.3,
-                                    fontWeight: FontWeight.w700,
-                                    color: textPrimary,
-                                    height: 1.0,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              )
-                            : Text(
-                                widget.session.teacher,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  letterSpacing: 0.1,
-                                  fontWeight: FontWeight.w600,
-                                  color: textSecondary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                      ),
-                    ],
-                  ),
-                  if (live &&
-                      widget.nextSession != null &&
-                      widget.nextSession!.dayIndex ==
-                          widget.session.dayIndex) ...[
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: IrisTokens.brand.withValues(
-                          alpha: isDark ? 0.20 : 0.10,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: IrisTokens.brand.withValues(alpha: 0.26),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 14,
-                            color: IrisTokens.brand,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Next: ${widget.nextSession!.room}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2,
-                              color: IrisTokens.brand,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  if (live) ...[
-                    const SizedBox(height: 18),
-                    Container(
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : Colors.black.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: TweenAnimationBuilder<double>(
-                        duration: IrisMotion.medium,
-                        curve: IrisMotion.standard,
-                        tween: Tween<double>(begin: 0.0, end: progress),
-                        builder: (context, value, child) {
-                          final clamped = value.clamp(0.0, 1.0);
-                          return LayoutBuilder(
-                            builder: (context, constraints) {
-                              final maxWidth = constraints.maxWidth;
-                              final dotSize = 10.0;
-                              final left =
-                                  ((maxWidth * clamped) - (dotSize / 2)).clamp(
-                                    0.0,
-                                    maxWidth - dotSize,
-                                  );
-                              return Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: clamped,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            accentColor,
-                                            accentColor.withValues(alpha: 0.78),
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    left: left,
-                                    top: -1,
-                                    child: Container(
-                                      width: dotSize,
-                                      height: dotSize,
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? Colors.white.withValues(
-                                                alpha: 0.95,
-                                              )
-                                            : accentColor.withValues(
-                                                alpha: 0.85,
-                                              ),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isDark
-                                              ? accentColor.withValues(
-                                                  alpha: 0.35,
-                                                )
-                                              : Colors.white.withValues(
-                                                  alpha: 0.85,
-                                                ),
-                                          width: 1,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: accentColor.withValues(
-                                              alpha: 0.22,
-                                            ),
-                                            blurRadius: 5,
-                                            spreadRadius: -1,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          progressLabel,
-                          style: TextStyle(
-                            fontSize: 13,
-                            letterSpacing: 0.2,
-                            fontWeight: FontWeight.w700,
-                            color: textPrimary,
-                          ),
-                        ),
-                        TweenAnimationBuilder<int>(
-                          tween: IntTween(
-                            begin: 0,
-                            end: (progress * 100).toInt(),
-                          ),
-                          duration: IrisMotion.medium,
-                          curve: IrisMotion.standard,
-                          builder: (context, value, child) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: IrisTokens.space8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: accentColor.withValues(
-                                alpha: isDark ? 0.30 : 0.16,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                IrisTokens.radius8,
-                              ),
-                              border: Border.all(
-                                color: accentColor.withValues(alpha: 0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              '$value%',
-                              style: TextStyle(
-                                fontSize: 11,
-                                letterSpacing: 0.3,
-                                fontWeight: FontWeight.w800,
-                                color: accentColor,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class GlassCard extends StatelessWidget {
-  final Widget child;
-  final bool glow;
-  final bool shimmer;
-  final bool enableBlur;
-  final bool enableShadow;
-  final bool enableOverlay;
-  final EdgeInsetsGeometry? padding;
-  final double? borderRadius;
-  final int elevation;
-  final Color? accentColor;
-  final bool tilt;
-
-  const GlassCard({
-    required this.child,
-    this.glow = false,
-    this.shimmer = false,
-    this.enableBlur = true,
-    this.enableShadow = true,
-    this.enableOverlay = false,
-    this.padding,
-    this.borderRadius,
-    this.elevation = 2,
-    this.accentColor,
-    this.tilt = false,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectivePadding =
-        padding ?? const EdgeInsets.all(IrisTokens.space24);
-    final effectiveRadius = borderRadius ?? 28.0; // More fluid radius
-    final tintColor =
-        accentColor ?? (isDark ? IrisTokens.brandDark : IrisTokens.brand);
-
-    // Stronger, more readable surfaces with controlled translucency.
-    final baseColor = isDark
-        ? IrisTokens.surfaceDarkElevated.withValues(alpha: glow ? 0.94 : 0.90)
-        : Colors.white.withValues(alpha: glow ? 0.985 : 0.96);
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: glow ? 0.24 : 0.18)
-        : Colors.black.withValues(alpha: glow ? 0.10 : 0.07);
-
-    // Softer, more diffused shadows for depth
-    final softShadow = isDark
-        ? Colors.black.withValues(alpha: 0.34)
-        : IrisTokens.surfaceDark.withValues(alpha: 0.08);
-    final glowShadow = tintColor.withValues(alpha: isDark ? 0.12 : 0.08);
-
-    final tiltAngle = tilt ? 0.006 : 0.0;
-    final blurSigma = enableBlur ? (IrisMotion.reduceBlur ? 6.0 : 14.0) : 0.0;
-
-    // Enhanced elevation with softer shadows
-    final shadowOffsetY = elevation == 1
-        ? 4.0
-        : elevation == 2
-        ? 8.0
-        : elevation == 3
-        ? 14.0
-        : 20.0;
-    final shadowBlur = elevation == 1
-        ? 12.0
-        : elevation == 2
-        ? 24.0
-        : elevation == 3
-        ? 36.0
-        : 48.0;
-    final shadowSpread = elevation == 1
-        ? -4.0
-        : elevation == 2
-        ? -8.0
-        : elevation == 3
-        ? -12.0
-        : -16.0;
-
-    final cardBody = Container(
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(effectiveRadius),
-        boxShadow: enableShadow
-            ? [
-                BoxShadow(
-                  color: softShadow,
-                  offset: Offset(0, shadowOffsetY),
-                  blurRadius: shadowBlur,
-                  spreadRadius: shadowSpread,
-                ),
-                if (glow)
-                  BoxShadow(
-                    color: glowShadow,
-                    offset: const Offset(0, 0),
-                    blurRadius: 12,
-                    spreadRadius: -16,
-                  ),
-              ]
-            : const [],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(effectiveRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-          child: Container(
-            padding: effectivePadding,
-            decoration: BoxDecoration(
-              color: baseColor,
-              borderRadius: BorderRadius.circular(effectiveRadius),
-              border: Border.all(color: borderColor, width: 1.5),
-              // Aquamorphic gradient overlay - fluid and dynamic
-              gradient: enableOverlay
-                  ? LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withValues(alpha: isDark ? 0.10 : 0.30),
-                        Colors.white.withValues(alpha: isDark ? 0.03 : 0.12),
-                      ],
-                      stops: const [0.0, 1.0],
-                    )
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withValues(alpha: isDark ? 0.04 : 0.10),
-                        Colors.transparent,
-                      ],
-                    ),
-              // Inner glow for depth
-              boxShadow: glow
-                  ? [
-                      BoxShadow(
-                        color: tintColor.withValues(alpha: 0.05),
-                        blurRadius: 12,
-                        spreadRadius: -8,
-                        offset: const Offset(0, 0),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: child,
-          ),
-        ),
-      ),
-    );
-
-    if (IrisMotion.reduceMotion) {
-      return Transform.rotate(angle: tiltAngle, child: cardBody);
-    }
-
-    return Transform.rotate(
-      angle: tiltAngle,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: IrisMotion.medium,
-        curve: IrisMotion.entrance,
-        builder: (context, animValue, child) =>
-            Transform.scale(scale: 0.97 + (animValue * 0.03), child: child),
-        child: cardBody,
-      ),
-    );
-  }
-
-  // Removed - neobrutalism uses flat offset shadows only
-}
-
-class _GlassShimmer extends StatefulWidget {
-  const _GlassShimmer();
-
-  @override
-  State<_GlassShimmer> createState() => _GlassShimmerState();
-}
-
-class _GlassShimmerState extends State<_GlassShimmer>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _curve;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3456),
-    )..repeat();
-    _curve = CurvedAnimation(parent: _controller, curve: IrisMotion.standard);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: RepaintBoundary(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            final shift = (_curve.value * 2) - 1;
-            return FractionalTranslation(
-              translation: Offset(shift, 0),
-              child: child,
-            );
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.0),
-                  Colors.white.withValues(alpha: 0.25),
-                  Colors.white.withValues(alpha: 0.0),
-                ],
-                stops: const [0.0, 0.5, 1.0],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SectionHeader extends StatefulWidget {
-  final String title;
-  final String subtitle;
-  final Color statusIndicator;
-
-  const SectionHeader({
-    required this.title,
-    required this.subtitle,
-    required this.statusIndicator,
-    super.key,
-  });
-
-  @override
-  State<SectionHeader> createState() => _SectionHeaderState();
-}
-
-class _SectionHeaderState extends State<SectionHeader>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _bounceController;
-  late Animation<double> _bounceAnimation;
-  late Animation<double> _glowAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _bounceController = AnimationController(
-      duration: IrisMotion.slow,
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _bounceAnimation = Tween<double>(begin: -1.0, end: 1.0).animate(
-      CurvedAnimation(parent: _bounceController, curve: IrisMotion.standard),
-    );
-    _glowAnimation = Tween<double>(begin: 0.05, end: 0.09).animate(
-      CurvedAnimation(parent: _bounceController, curve: IrisMotion.standard),
-    );
-  }
-
-  @override
-  void dispose() {
-    _bounceController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: IrisMotion.medium,
-        curve: IrisMotion.bouncy,
-        builder: (context, animValue, child) => Transform.translate(
-          offset: Offset(-36 * (1 - animValue), 8 * (1 - animValue)),
-          child: Transform.scale(
-            scale: 0.96 + (0.04 * animValue),
-            child: Opacity(opacity: animValue, child: child),
-          ),
-        ),
-        child: AnimatedBuilder(
-          animation: _bounceController,
-          builder: (context, _) {
-            return Container(
-              padding: const EdgeInsets.all(IrisTokens.space20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    widget.statusIndicator.withValues(
-                      alpha: isDark ? 0.26 : 0.18,
-                    ),
-                    widget.statusIndicator.withValues(
-                      alpha: isDark ? 0.14 : 0.10,
-                    ),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(IrisTokens.radius24),
-                border: Border.all(
-                  color: widget.statusIndicator.withValues(
-                    alpha: isDark ? 0.34 : 0.24,
-                  ),
-                  width: 1.2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.statusIndicator.withValues(
-                      alpha: _glowAnimation.value,
-                    ),
-                    offset: const Offset(0, 8),
-                    blurRadius: 20,
-                    spreadRadius: -14,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.05),
-                    offset: const Offset(0, 3),
-                    blurRadius: 12,
-                    spreadRadius: -6,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 304),
-                    switchInCurve: IrisMotion.entrance,
-                    switchOutCurve: IrisMotion.standard,
-                    transitionBuilder: (child, animation) => ScaleTransition(
-                      scale: animation,
-                      child: FadeTransition(opacity: animation, child: child),
-                    ),
-                    child: Transform.translate(
-                      key: ValueKey(widget.statusIndicator.value),
-                      offset: Offset(0, _bounceAnimation.value),
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: widget.statusIndicator.withValues(alpha: 0.95),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: widget.statusIndicator.withValues(
-                                alpha: 0.18,
-                              ),
-                              blurRadius: 6,
-                              spreadRadius: -3,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.title.toUpperCase(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.8,
-                            fontSize: 10,
-                            height: 1.4,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.66),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.subtitle,
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.2,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.90),
-                            height: 1.22,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _NavActiveHalo extends StatefulWidget {
-  final double size;
-  final Color color;
-
-  const _NavActiveHalo({required this.size, required this.color});
-
-  @override
-  State<_NavActiveHalo> createState() => _NavActiveHaloState();
-}
-
-class _NavActiveHaloState extends State<_NavActiveHalo>
-    with TickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _pulse;
-  late final AnimationController _entranceCtrl;
-  late final Animation<double> _entrance;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1536),
-    )..repeat(reverse: true);
-    _pulse = CurvedAnimation(parent: _controller, curve: IrisMotion.standard);
-
-    _entranceCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 576),
-    );
-    _entrance = CurvedAnimation(
-      parent: _entranceCtrl,
-      curve: IrisMotion.entrance,
-    );
-    _entranceCtrl.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _entranceCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_pulse, _entrance]),
-      builder: (context, _) {
-        final t = _pulse.value;
-        final e = _entrance.value;
-        return Transform.scale(
-          scale: e * (0.97 + (t * 0.04)),
-          child: Opacity(
-            opacity: e.clamp(0.0, 1.0),
-            child: Container(
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    widget.color.withValues(alpha: 0.14 + (t * 0.05)),
-                    widget.color.withValues(alpha: 0.05 + (t * 0.02)),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.72, 1.0],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class SpringButton extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTap;
-  final bool isHeavy;
-
-  const SpringButton({
-    super.key,
-    required this.child,
-    required this.onTap,
-    this.isHeavy = false,
-  });
-
-  @override
-  State<SpringButton> createState() => _SpringButtonState();
-}
-
-class _SpringButtonState extends State<SpringButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  final SpringDescription _spring = const SpringDescription(
-    mass: 0.9,
-    stiffness: 150.0,
-    damping: 16.0,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, upperBound: 1.0)
-      ..value = 0.0;
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _runAnimation(double target) {
-    final simulation = SpringSimulation(
-      _spring,
-      _controller.value,
-      target,
-      0.0,
-    );
-    _controller.animateWith(simulation);
-  }
-
-  void _onTapDown(TapDownDetails details) {
-    _runAnimation(0.15);
-    IrisHaptics.actionSoft();
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    _runAnimation(0.0);
-    if (widget.isHeavy) {
-      IrisHaptics.actionHeavy();
-    } else {
-      IrisHaptics.chipSelect();
-    }
-    widget.onTap();
-  }
-
-  void _onTapCancel() {
-    _runAnimation(0.0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _controller,
-        child: widget.child,
-        builder: (context, child) {
-          return Transform.scale(scale: 1.0 - _controller.value, child: child);
-        },
-      ),
-    );
-  }
-}
-
-class _BouncyNavButton extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final bool isDark;
-  final bool isSelected;
-  final bool enabled;
-  final bool showLabelAlways;
-  final bool showIndicator;
-  final int? indicatorCount;
-  final Color? indicatorColor;
-  final Color activeColor;
-  final VoidCallback onTap;
-  final GlobalKey? launchIconKey;
-
-  const _BouncyNavButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.isDark,
-    required this.isSelected,
-    this.enabled = true,
-    this.showLabelAlways = false,
-    this.showIndicator = false,
-    this.indicatorCount,
-    this.indicatorColor,
-    required this.activeColor,
-    required this.onTap,
-    this.launchIconKey,
-  });
-
-  @override
-  State<_BouncyNavButton> createState() => _BouncyNavButtonState();
-}
-
-class _BouncyNavButtonState extends State<_BouncyNavButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _selectCtrl;
-  late final Animation<double> _scaleCurve;
-  late final Animation<double> _slideCurve;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    );
-    _scaleCurve = Tween<double>(
-      begin: 1.0,
-      end: 1.04,
-    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.entrance));
-    _slideCurve = Tween<double>(
-      begin: 0.0,
-      end: -0.85,
-    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.entrance));
-    if (widget.isSelected) _selectCtrl.value = 1.0;
-  }
-
-  @override
-  void didUpdateWidget(_BouncyNavButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected && !oldWidget.isSelected) {
-      _selectCtrl.forward(from: 0.0);
-    } else if (!widget.isSelected && oldWidget.isSelected) {
-      _selectCtrl.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _selectCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final baseColor = widget.isSelected
-        ? widget.activeColor
-        : (widget.isDark ? Colors.white38 : Colors.black38);
-    final color = widget.enabled
-        ? baseColor
-        : baseColor.withValues(alpha: widget.isDark ? 0.48 : 0.42);
-    final showLabel = widget.isSelected || widget.showLabelAlways;
-    final indicatorColor = widget.indicatorColor ?? widget.activeColor;
-    final badgeCount = widget.indicatorCount ?? 0;
-    final showCountBadge = badgeCount > 0 && !widget.isSelected;
-    final badgeText = badgeCount > 9 ? '9+' : '$badgeCount';
-
-    Widget buildIcon(double size, bool veryCompact) {
-      return Container(
-        key: widget.launchIconKey,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 192),
-              switchInCurve: IrisMotion.entrance,
-              switchOutCurve: IrisMotion.standard,
-              transitionBuilder: (child, animation) =>
-                  ScaleTransition(scale: animation, child: child),
-              child: Icon(
-                widget.icon,
-                key: ValueKey('${widget.icon.codePoint}_${widget.isSelected}'),
-                color: color,
-                size: size,
-              ),
-            ),
-            if (widget.showIndicator && !widget.isSelected)
-              Positioned(
-                right: showCountBadge ? -8 : -2,
-                top: showCountBadge ? -6 : -1,
-                child: showCountBadge
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 1,
-                        ),
-                        constraints: const BoxConstraints(minWidth: 14),
-                        decoration: BoxDecoration(
-                          color: indicatorColor,
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: widget.isDark
-                                ? IrisTokens.surfaceDarkElevated
-                                : Colors.white,
-                            width: 1.1,
-                          ),
-                        ),
-                        child: Text(
-                          badgeText,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 7,
-                            fontWeight: FontWeight.w800,
-                            height: 1.0,
-                            letterSpacing: 0.1,
-                          ),
-                        ),
-                      )
-                    : Container(
-                        width: veryCompact ? 7 : 8,
-                        height: veryCompact ? 7 : 8,
-                        decoration: BoxDecoration(
-                          color: indicatorColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: widget.isDark
-                                ? IrisTokens.surfaceDarkElevated
-                                : Colors.white,
-                            width: 1.1,
-                          ),
-                        ),
-                      ),
-              ),
-          ],
-        ),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final slotWidth = constraints.maxWidth;
-        final veryCompact = slotWidth < 56;
-        final compact = slotWidth < 74;
-        final roomy = slotWidth > 108;
-
-        return AnimatedBuilder(
-          animation: _selectCtrl,
-          builder: (context, child) {
-            final yOffset = widget.showLabelAlways
-                ? (_slideCurve.value * 0.32)
-                : _slideCurve.value;
-            final scale = widget.showLabelAlways
-                ? (1.0 + ((_scaleCurve.value - 1.0) * 0.32))
-                : _scaleCurve.value;
-            return Transform.translate(
-              offset: Offset(0, yOffset),
-              child: Transform.scale(scale: scale, child: child),
-            );
-          },
-          child: SpringButton(
-            onTap: widget.enabled ? widget.onTap : () {},
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: widget.showLabelAlways
-                    ? (veryCompact ? 2 : (compact ? 3 : 6))
-                    : (veryCompact ? 3 : (compact ? 4 : (roomy ? 10 : 7))),
-                vertical: widget.showLabelAlways
-                    ? (veryCompact ? 4 : 5)
-                    : (veryCompact ? 4 : (compact ? 5 : 7)),
-              ),
-              decoration: widget.isSelected
-                  ? BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          widget.activeColor.withValues(alpha: 0.24),
-                          widget.activeColor.withValues(alpha: 0.12),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(veryCompact ? 16 : (compact ? 20 : 24)),
-                      border: Border.all(
-                        color: widget.activeColor.withValues(alpha: 0.20),
-                        width: 1.0,
-                      ),
-                      boxShadow: [
                         BoxShadow(
                           color: widget.activeColor.withValues(alpha: 0.16),
                           blurRadius: 16,
@@ -11459,296 +7797,6 @@ class _BouncyNavButtonState extends State<_BouncyNavButton>
   }
 }
 
-class _SmartScreenDock extends StatelessWidget {
-  final VoidCallback? onHome;
-  final VoidCallback? onTeacher;
-  final VoidCallback? onPortal;
-  final VoidCallback? onClasses;
-  final VoidCallback? onTools;
-  final VoidCallback? onMakeup;
-  final VoidCallback? onAbout;
-  final bool showFacultySet;
-  final int selectedIndex;
-
-  const _SmartScreenDock({
-    this.onHome,
-    this.onTeacher,
-    this.onPortal,
-    this.onClasses,
-    this.onTools,
-    this.onMakeup,
-    this.onAbout,
-    this.showFacultySet = false,
-    this.selectedIndex = 0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final width = MediaQuery.of(context).size.width;
-    final compact = width < (showFacultySet ? 420 : 470);
-    final veryCompact = width < (showFacultySet ? 360 : 400);
-    final navHeight = showFacultySet
-      ? (veryCompact ? 48.0 : (compact ? 52.0 : 56.0))
-      : (veryCompact ? 54.0 : (compact ? 58.0 : 62.0));
-    final horizontalPadding = showFacultySet
-      ? (veryCompact ? 10.0 : (compact ? 12.0 : 20.0))
-      : (veryCompact ? 8.0 : (compact ? 10.0 : 14.0));
-    final radius = showFacultySet
-      ? (veryCompact ? 18.0 : (compact ? 22.0 : 28.0))
-      : (veryCompact ? 18.0 : (compact ? 20.0 : 24.0));
-    final itemCount = showFacultySet ? 4 : 7;
-    final safeSelected = selectedIndex.clamp(0, itemCount - 1);
-    final activeColor = showFacultySet ? IrisTokens.purple : IrisTokens.brand;
-    final navActive = safeSelected != 0;
-    final activeGlow = safeSelected == 0
-        ? Colors.transparent
-        : activeColor.withValues(alpha: isDark ? 0.18 : 0.13);
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 6),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: IrisMotion.reduceBlur ? 6 : (safeSelected == 0 ? 16 : 20),
-            sigmaY: IrisMotion.reduceBlur ? 6 : (safeSelected == 0 ? 16 : 20),
-          ),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 304),
-            curve: IrisMotion.standard,
-            decoration: BoxDecoration(
-              color: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                  .withValues(alpha: 0.38),
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(
-                color: (isDark ? Colors.white : activeColor).withValues(
-                  alpha: navActive ? 0.14 : 0.08,
-                ),
-                width: 1.1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-                BoxShadow(
-                  color: activeGlow,
-                  blurRadius: 18,
-                  spreadRadius: -4,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: SizedBox(
-              height: navHeight,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final itemWidth = constraints.maxWidth / itemCount;
-                  final ultraDense = itemWidth < 48;
-                  final dense = itemWidth < 56;
-                  final trailWidth = showFacultySet
-                      ? (veryCompact ? 16.0 : (compact ? 20.0 : 26.0))
-                      : (ultraDense
-                            ? 9.0
-                            : (dense ? 12.0 : (veryCompact ? 14.0 : 18.0)));
-                  final haloSize = showFacultySet
-                      ? (veryCompact ? 30.0 : (compact ? 38.0 : 46.0))
-                      : (ultraDense
-                            ? 20.0
-                            : (dense ? 24.0 : (veryCompact ? 28.0 : 34.0)));
-                  final left =
-                      (itemWidth * safeSelected) +
-                      ((itemWidth - trailWidth) / 2);
-                  final haloLeft =
-                      (itemWidth * safeSelected) + ((itemWidth - haloSize) / 2);
-                  final trailColor = isDark
-                      ? Colors.white.withValues(alpha: 0.70)
-                      : activeColor.withValues(alpha: 0.80);
-
-                  return Stack(
-                    children: [
-                      Positioned(
-                        left: haloLeft,
-                        top: ultraDense ? 11 : (veryCompact ? 9 : (compact ? 8 : 7)),
-                        child: IgnorePointer(
-                          child: _NavActiveHalo(
-                            size: haloSize,
-                            color: trailColor,
-                          ),
-                        ),
-                      ),
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 360),
-                        curve: IrisMotion.standard,
-                        left: left,
-                        top: 0,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 360),
-                          curve: IrisMotion.standard,
-                          width: trailWidth,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: trailColor,
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: [
-                              BoxShadow(
-                                color: trailColor.withValues(alpha: 0.20),
-                                blurRadius: 8,
-                                spreadRadius: -2,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          ultraDense ? 1 : (veryCompact ? 3 : (compact ? 5 : 6)),
-                          ultraDense ? 1 : (veryCompact ? 2 : (compact ? 3 : 4)),
-                          ultraDense ? 1 : (veryCompact ? 3 : (compact ? 5 : 6)),
-                          ultraDense ? 1 : (veryCompact ? 2 : (compact ? 3 : 4)),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _BouncyNavButton(
-                                icon: safeSelected == 0
-                                    ? Icons.home_filled
-                                    : Icons.home_rounded,
-                                label: 'Home',
-                                isDark: isDark,
-                                isSelected: safeSelected == 0,
-                                activeColor: activeColor,
-                                onTap:
-                                    onHome ??
-                                    () => Navigator.of(
-                                      context,
-                                    ).popUntil((route) => route.isFirst),
-                              ),
-                            ),
-                            Expanded(
-                              child: _BouncyNavButton(
-                                icon: showFacultySet
-                                    ? (safeSelected == 1
-                                          ? Icons.badge_rounded
-                                          : Icons.badge_outlined)
-                                    : Icons.search_rounded,
-                                label: 'Teacher',
-                                isDark: isDark,
-                                isSelected: safeSelected == 1,
-                                activeColor: activeColor,
-                                onTap: onTeacher ?? () {},
-                              ),
-                            ),
-                            Expanded(
-                              child: _BouncyNavButton(
-                                icon: Icons.public_rounded,
-                                label: 'Portal',
-                                isDark: isDark,
-                                isSelected: safeSelected == 2,
-                                activeColor: activeColor,
-                                onTap: onPortal ?? () {},
-                              ),
-                            ),
-                            if (showFacultySet)
-                              Expanded(
-                                child: _BouncyNavButton(
-                                  icon: safeSelected == 3
-                                      ? Icons.info_rounded
-                                      : Icons.info_outline_rounded,
-                                  label: 'About',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 3,
-                                  activeColor: activeColor,
-                                  onTap: onAbout ?? () {},
-                                ),
-                              )
-                            else ...[
-                              Expanded(
-                                child: _BouncyNavButton(
-                                  icon: safeSelected == 3
-                                      ? Icons.school_rounded
-                                      : Icons.school_outlined,
-                                  label: 'Classes',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 3,
-                                  activeColor: activeColor,
-                                  onTap: onClasses ?? () {},
-                                ),
-                              ),
-                              Expanded(
-                                child: _BouncyNavButton(
-                                  icon: safeSelected == 4
-                                      ? Icons.build_rounded
-                                      : Icons.build_outlined,
-                                  label: 'Tools',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 4,
-                                  activeColor: activeColor,
-                                  onTap:
-                                      onTools ??
-                                      () {
-                                        showIrisFrostedSnackBar(
-                                          context,
-                                          dedupeKey: 'tools_unavailable_from_screen',
-                                          content: Text(
-                                            'Tools are unavailable from this screen.',
-                                          ),
-                                        );
-                                      },
-                                ),
-                              ),
-                              Expanded(
-                                child: _BouncyNavButton(
-                                  icon: safeSelected == 5
-                                      ? Icons.event_repeat_rounded
-                                      : Icons.event_repeat_outlined,
-                                  label: 'Makeup',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 5,
-                                  activeColor: activeColor,
-                                  onTap: onMakeup ?? () {},
-                                ),
-                              ),
-                              Expanded(
-                                child: _BouncyNavButton(
-                                  icon: safeSelected == 6
-                                      ? Icons.info_rounded
-                                      : Icons.info_outline_rounded,
-                                  label: 'About',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 6,
-                                  activeColor: activeColor,
-                                  onTap: onAbout ?? () {},
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AppBackButton extends StatelessWidget {
-  final bool isDark;
-  final VoidCallback? onTap;
-
-  const _AppBackButton({required this.isDark, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 10),
       child: SpringButton(
         onTap: onTap ?? () => Navigator.pop(context),
         child: Container(
@@ -12646,6 +8694,7 @@ class _ToolsScreen extends StatelessWidget {
     final universalTools = _prioritizeTool(_getUniversalTools(), recommendedId);
     final deptTools = _getDepartmentTools(department);
     const quickIds = {
+      'find_rooms',
       'teacher_locator',
       'browse_classes',
       'makeup_scheduler',
@@ -12843,7 +8892,12 @@ class _ToolsScreen extends StatelessWidget {
         _showFeatureComingSoon(context, 'Schedule Export');
         break;
       case 'find_rooms':
-        _showFeatureComingSoon(context, 'Room Finder');
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => RoomFinderScreen(
+            memory: memory,
+            brain: brain,
+          )),
+        );
         break;
       case 'teacher_directory':
         Navigator.of(context).push(
@@ -12860,7 +8914,7 @@ class _ToolsScreen extends StatelessWidget {
       case 'teacher_locator':
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => _TeacherLocatorScreen(
+            builder: (_) => TeacherLocatorScreen(
               brain: brain,
               onRoleChanged: onRoleChanged,
               memory: memory,
@@ -13754,7 +9808,7 @@ class _CampusScheduleFeedScreenState extends State<_CampusScheduleFeedScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           RefreshIndicator(
             onRefresh: _load,
             color: IrisTokens.brand,
@@ -13990,7 +10044,7 @@ class _UnitConverterScreenState extends State<_UnitConverterScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'core'),
+          NeuralAura(background: isDark, tone: 'core'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -14272,7 +10326,7 @@ class _UniversalCalculatorScreenState extends State<_UniversalCalculatorScreen> 
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'core'),
+          NeuralAura(background: isDark, tone: 'core'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -14614,7 +10668,7 @@ class _BaseConverterScreenState extends State<_BaseConverterScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'core'),
+          NeuralAura(background: isDark, tone: 'core'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -14908,7 +10962,7 @@ class _EquationSolverScreenState extends State<_EquationSolverScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'core'),
+          NeuralAura(background: isDark, tone: 'core'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -15266,7 +11320,7 @@ class _MolecularWeightCalculatorScreenState
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'learning'),
+          NeuralAura(background: isDark, tone: 'learning'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -15478,7 +11532,7 @@ class _HealthToolsScreenState extends State<_HealthToolsScreen>
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'health'),
+          NeuralAura(background: isDark, tone: 'health'),
           TabBarView(
             controller: _tabController,
             children: [
@@ -15784,7 +11838,7 @@ class _ResistorColorDecoderScreenState extends State<_ResistorColorDecoderScreen
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'engineering'),
+          NeuralAura(background: isDark, tone: 'engineering'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -16011,7 +12065,7 @@ class _DepartmentSmartKitScreenState extends State<_DepartmentSmartKitScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'analytics'),
+          NeuralAura(background: isDark, tone: 'analytics'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -16439,7 +12493,7 @@ class _PrintTimetableScreenState extends State<_PrintTimetableScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'analytics'),
+          NeuralAura(background: isDark, tone: 'analytics'),
           Padding(
             padding: EdgeInsets.only(top: topInset),
             child: Center(
@@ -16678,7 +12732,7 @@ class _OfflineFormulaLibraryScreenState
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'learning'),
+          NeuralAura(background: isDark, tone: 'learning'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -16982,7 +13036,7 @@ class _ProgrammingToolsScreenState extends State<_ProgrammingToolsScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'cs'),
+          NeuralAura(background: isDark, tone: 'cs'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -17233,7 +13287,7 @@ class _WordCounterScreenState extends State<_WordCounterScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'core'),
+          NeuralAura(background: isDark, tone: 'core'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -17358,7 +13412,7 @@ class _ClassAnalyticsScreen extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark, tone: 'analytics'),
+          NeuralAura(background: isDark, tone: 'analytics'),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -17503,7 +13557,7 @@ class _CgpaCalculatorScreenState extends State<_CgpaCalculatorScreen> {
       body: Stack(
         children: [
           // Neural aura background
-          _NeuralAura(background: isDark, tone: 'learning'),
+          NeuralAura(background: isDark, tone: 'learning'),
           ListView(
         padding: EdgeInsets.fromLTRB(
           20,
@@ -17885,6 +13939,7 @@ class AboutScreen extends StatefulWidget {
   final ValueChanged<String>? onRoleChanged;
   final Future<void> Function(String mode)? onSetThemeMode;
   final String? currentThemeMode;
+  final ValueChanged<String>? onUserNameChanged;
   final bool showDock;
   final bool showCloseButton;
 
@@ -17892,6 +13947,7 @@ class AboutScreen extends StatefulWidget {
     this.onRoleChanged,
     this.onSetThemeMode,
     this.currentThemeMode,
+    this.onUserNameChanged,
     this.showDock = true,
     this.showCloseButton = true,
     super.key,
@@ -17917,7 +13973,26 @@ class _AboutScreenState extends State<AboutScreen> {
   bool _isRefreshing = false;
   bool _isSwitchingRole = false;
   String _userRole = 'student';
-  bool _showChangeLog = false;
+  String? _userName;
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userName = prefs.getString('student_user_name');
+    });
+  }
+
+  Future<void> _saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('student_user_name', name);
+    setState(() {
+      _userName = name;
+    });
+    if (widget.onUserNameChanged != null) {
+      widget.onUserNameChanged!(name);
+    }
+    IrisHaptics.actionHeavy();
+  }
 
   @override
   void initState() {
@@ -17931,6 +14006,7 @@ class _AboutScreenState extends State<AboutScreen> {
     _loadWidgetDarkModeSetting();
     _loadOTAStatus();
     _loadUserRole();
+    _loadUserName();
     if (widget.currentThemeMode == null) {
       _loadAppearanceMode();
     }
@@ -18730,7 +14806,7 @@ class _AboutScreenState extends State<AboutScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           SafeArea(
             child: ScrollConfiguration(
               behavior: const SmoothScrollBehavior(),
@@ -18807,6 +14883,14 @@ class _AboutScreenState extends State<AboutScreen> {
                     // Profile Section (About Developer)
                     _buildProfileHeader(isDark),
                     const SizedBox(height: 28),
+
+                    // User Identity Section (For Students)
+                    if (_userRole == 'student') ...[
+                      _buildSectionLabel(isDark, 'User Identity'),
+                      const SizedBox(height: 12),
+                      _buildUserNameCard(isDark),
+                      const SizedBox(height: 28),
+                    ],
 
                     // Interface Section
                     _buildSectionLabel(isDark, 'Interface'),
@@ -18886,7 +14970,7 @@ class _AboutScreenState extends State<AboutScreen> {
               bottom: 0,
               child: SafeArea(
                 top: false,
-                child: _SmartScreenDock(
+                child: DashboardDock(
                   showFacultySet: _userRole == 'faculty',
                   selectedIndex: _userRole == 'faculty' ? 3 : 6,
                   onPortal: () => pushIconLaunchRoute(
@@ -18918,6 +15002,261 @@ class _AboutScreenState extends State<AboutScreen> {
           fontWeight: FontWeight.w800,
           letterSpacing: 1.5,
           color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserNameCard(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.black.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.black.withValues(alpha: 0.08),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+            offset: const Offset(0, 3),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: IrisTokens.brand.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.face_rounded,
+                  color: IrisTokens.brand,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'YOUR NAME',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.4),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _userName ?? 'Not Set',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AnimatedButton(
+                onPressed: () async {
+                  final result = await showDialog<String>(
+                    context: context,
+                    builder: (ctx) => _NameEditDialog(initialName: _userName),
+                  );
+                  if (result != null && result.isNotEmpty) {
+                    _saveUserName(result);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: IrisTokens.brand.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: IrisTokens.brand.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    'Edit',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: IrisTokens.brand,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NameEditDialog extends StatefulWidget {
+  final String? initialName;
+
+  const _NameEditDialog({this.initialName});
+
+  @override
+  State<_NameEditDialog> createState() => _NameEditDialogState();
+}
+
+class _NameEditDialogState extends State<_NameEditDialog> {
+  late final TextEditingController _controller;
+  bool _isValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+    _isValid = _controller.text.trim().length >= 2;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: GlassCard(
+        padding: const EdgeInsets.all(28),
+        borderRadius: 28,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Update Name',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This is how you will be greeted on the dashboard.',
+              style: TextStyle(
+                fontSize: 13,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                ),
+              ),
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Your Name',
+                  hintStyle: TextStyle(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.25),
+                  ),
+                  border: InputBorder.none,
+                ),
+                onChanged: (val) {
+                  setState(() {
+                    _isValid = val.trim().length >= 2;
+                  });
+                },
+                onSubmitted: (val) {
+                  if (_isValid) {
+                    IrisHaptics.actionHeavy();
+                    Navigator.pop(context, val.trim());
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 28),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: AnimatedButton(
+                    onPressed: _isValid
+                        ? () {
+                            IrisHaptics.actionHeavy();
+                            Navigator.pop(context, _controller.text.trim());
+                          }
+                        : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: _isValid
+                            ? const LinearGradient(
+                                colors: [IrisTokens.brand, IrisTokens.purple],
+                              )
+                            : null,
+                        color: _isValid ? null : (isDark ? Colors.white10 : Colors.black12),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Update',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: _isValid
+                                ? Colors.white
+                                : (isDark ? Colors.white24 : Colors.black26),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -20239,1675 +16578,12 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 }
 
-class BatchSelectorSheet extends StatefulWidget {
-  final UniversityMemory memory;
-  final String selected;
+// BatchSelectorSheet and its sub-widgets moved to widgets/batch_selector.dart
 
-  const BatchSelectorSheet({
-    required this.memory,
-    required this.selected,
-    super.key,
-  });
+// NeuralAura moved to widgets/neural_aura.dart
 
-  @override
-  State<BatchSelectorSheet> createState() => _BatchSelectorSheetState();
-}
+// SmoothScrollBehavior moved to widgets/smooth_scroll.dart
 
-class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
-  String? program;
-  int? semester;
-  String? section;
-
-  @override
-  void initState() {
-    super.initState();
-    final key = BatchKey.parse(widget.selected);
-    program = key.program;
-    semester = key.semester;
-    section = key.section;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Filter out batch-like programs (FA##, SP##, etc.) - show only actual programs
-    final programs = widget.memory
-        .programs()
-        .where((p) => !RegExp(r'^(FA|SP)\\d{2}$').hasMatch(p))
-        .toList();
-    final semesters = program == null
-        ? <int>[]
-        : widget.memory.semesters(program!);
-    final sections = (program != null && semester != null)
-        ? widget.memory.sections(program!, semester!)
-        : <String>[];
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      Colors.white.withValues(alpha: 0.14),
-                      Colors.white.withValues(alpha: 0.07),
-                    ]
-                  : [
-                      Colors.white.withValues(alpha: 0.80),
-                      Colors.white.withValues(alpha: 0.60),
-                    ],
-            ),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.18)
-                  : Colors.white.withValues(alpha: 0.70),
-              width: isDark ? 1.5 : 2.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: IrisTokens.brand.withValues(alpha: isDark ? 0.14 : 0.10),
-                blurRadius: 18,
-                spreadRadius: -4,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: (isDark ? Colors.black : Colors.black.withValues(alpha: 0.5))
-                    .withValues(alpha: 0.18),
-                blurRadius: 28,
-                spreadRadius: -10,
-                offset: const Offset(0, 16),
-              ),
-              if (isDark)
-                BoxShadow(
-                  color: IrisTokens.brand.withValues(alpha: 0.06),
-                  blurRadius: 20,
-                  spreadRadius: -8,
-                ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                top: -12,
-                left: -12,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withValues(alpha: isDark ? 0.16 : 0.24),
-                          Colors.white.withValues(alpha: 0.0),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -16,
-                right: -16,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withValues(alpha: isDark ? 0.14 : 0.20),
-                          Colors.white.withValues(alpha: 0.0),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [IrisTokens.brand, IrisTokens.brandLight],
-                          ),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: IrisTokens.brand.withValues(alpha: 0.5),
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.tune_rounded,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Batch Resolver',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 22,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            SizedBox(height: 3),
-                            Text(
-                              'Configure your academic profile',
-                              style: TextStyle(
-                                fontSize: 14,
-                                letterSpacing: 0.3,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _EnhancedDropDownRow(
-                    label: 'Program',
-                    value: program,
-                    items: programs,
-                    icon: Icons.school_rounded,
-                    onChanged: (value) => setState(() {
-                      program = value;
-                      semester = null;
-                      section = null;
-                    }),
-                  ),
-                  const SizedBox(height: 12),
-                  _EnhancedDropDownRow(
-                    label: 'Semester',
-                    value: semester?.toString(),
-                    items: semesters.map((e) => e.toString()).toList(),
-                    icon: Icons.calendar_month_rounded,
-                    onChanged: (value) => setState(() {
-                      semester = int.tryParse(value ?? '');
-                      section = null;
-                    }),
-                  ),
-                  const SizedBox(height: 12),
-                  _EnhancedDropDownRow(
-                    label: 'Section',
-                    value: section,
-                    items: sections,
-                    icon: Icons.group_rounded,
-                    onChanged: (value) => setState(() => section = value),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient:
-                                (program != null &&
-                                    semester != null &&
-                                    section != null)
-                                ? const LinearGradient(
-                                    colors: [
-                                      IrisTokens.brand,
-                                      IrisTokens.brandLight,
-                                    ],
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow:
-                                (program != null &&
-                                    semester != null &&
-                                    section != null)
-                                ? [
-                                    BoxShadow(
-                                      color: IrisTokens.brand.withValues(alpha: 0.4),
-                                      blurRadius: 5,
-                                      spreadRadius: 0,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: ElevatedButton(
-                            onPressed:
-                                (program != null &&
-                                    semester != null &&
-                                    section != null)
-                                ? () {
-                                    final batch = widget.memory.allBatches
-                                        .firstWhere((b) {
-                                          final key = BatchKey.parse(b);
-                                          return key.program == program &&
-                                              key.semester == semester &&
-                                              key.section == section;
-                                        }, orElse: () => widget.selected);
-                                    Navigator.pop(context, batch);
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
-                              disabledBackgroundColor: isDark
-                                  ? Colors.white.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.08),
-                              shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.check_circle_rounded, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Apply Changes',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EnhancedDropDownRow extends StatelessWidget {
-  final String label;
-  final String? value;
-  final List<String> items;
-  final IconData icon;
-  final ValueChanged<String?> onChanged;
-
-  const _EnhancedDropDownRow({
-    required this.label,
-    required this.value,
-    required this.items,
-    required this.icon,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.14)
-              : Colors.black.withValues(alpha: 0.10),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isDark ? Colors.black : Colors.black.withValues(alpha: 0.5))
-                .withValues(alpha: 0.08),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: IrisTokens.brand.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: IrisTokens.brand, size: 20),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 90,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                isExpanded: true,
-                hint: Text(
-                  'Select',
-                  style: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.black45,
-                  ),
-                ),
-                dropdownColor: isDark
-                    ? IrisTokens.surfaceDarkElevated
-                    : Colors.white,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-                icon: Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: isDark ? Colors.white54 : Colors.black54,
-                ),
-                items: items
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: onChanged,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NeuralAura extends StatefulWidget {
-  final bool background;
-  final String tone;
-
-  const _NeuralAura({required this.background, this.tone = 'default'});
-
-  @override
-  State<_NeuralAura> createState() => _NeuralAuraState();
-}
-
-class _NeuralAuraState extends State<_NeuralAura>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 7600),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  List<Color> _lerpColorLists(List<Color> a, List<Color> b, double t) {
-    final count = math.min(a.length, b.length);
-    if (count == 0) return const [];
-    return List<Color>.generate(
-      count,
-      (index) => Color.lerp(a[index], b[index], t) ?? a[index],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final h = MediaQuery.of(context).size.height;
-    final w = MediaQuery.of(context).size.width;
-
-    List<Color> toneStopsDark() {
-      switch (widget.tone) {
-        case 'core':
-          return [
-            IrisTokens.surfaceDark,
-            IrisTokens.brand.withValues(alpha: 0.14),
-            IrisTokens.surfaceDarkElevated,
-          ];
-        case 'cs':
-          return [
-            IrisTokens.surfaceDark,
-            IrisTokens.blue.withValues(alpha: 0.18),
-            IrisTokens.surfaceDarkElevated,
-          ];
-        case 'health':
-          return [
-            IrisTokens.surfaceDark,
-            IrisTokens.teal.withValues(alpha: 0.18),
-            IrisTokens.surfaceDarkElevated,
-          ];
-        case 'engineering':
-          return [
-            IrisTokens.surfaceDark,
-            IrisTokens.warningDark.withValues(alpha: 0.18),
-            IrisTokens.surfaceDarkElevated,
-          ];
-        case 'analytics':
-          return [
-            IrisTokens.surfaceDark,
-            IrisTokens.purple.withValues(alpha: 0.18),
-            IrisTokens.surfaceDarkElevated,
-          ];
-        default:
-          return [
-            IrisTokens.surfaceDark,
-            IrisTokens.surfaceDark,
-            IrisTokens.surfaceDarkElevated,
-            IrisTokens.surfaceDarkElevated,
-          ];
-      }
-    }
-
-    List<Color> toneStopsDarkAlt() {
-      switch (widget.tone) {
-        case 'core':
-          return [
-            IrisTokens.surfaceDarkElevated,
-            IrisTokens.teal.withValues(alpha: 0.13),
-            IrisTokens.surfaceDark,
-          ];
-        case 'cs':
-          return [
-            IrisTokens.surfaceDarkElevated,
-            IrisTokens.brand.withValues(alpha: 0.14),
-            IrisTokens.surfaceDark,
-          ];
-        case 'health':
-          return [
-            IrisTokens.surfaceDarkElevated,
-            IrisTokens.success.withValues(alpha: 0.14),
-            IrisTokens.surfaceDark,
-          ];
-        case 'engineering':
-          return [
-            IrisTokens.surfaceDarkElevated,
-            IrisTokens.warning.withValues(alpha: 0.13),
-            IrisTokens.surfaceDark,
-          ];
-        case 'analytics':
-          return [
-            IrisTokens.surfaceDarkElevated,
-            IrisTokens.blue.withValues(alpha: 0.13),
-            IrisTokens.surfaceDark,
-          ];
-        default:
-          return [
-            IrisTokens.surfaceDarkElevated,
-            IrisTokens.brand.withValues(alpha: 0.10),
-            IrisTokens.surfaceDark,
-            IrisTokens.surfaceDark,
-          ];
-      }
-    }
-
-    List<Color> toneStopsLight() {
-      switch (widget.tone) {
-        case 'core':
-          return [
-            IrisTokens.surfaceLight,
-            IrisTokens.brandLight.withValues(alpha: 0.18),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.teal.withValues(alpha: 0.10),
-            IrisTokens.surfaceLight,
-            IrisTokens.surfaceLightElevated,
-          ];
-        case 'cs':
-          return [
-            IrisTokens.surfaceLight,
-            IrisTokens.blueLight.withValues(alpha: 0.16),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.brandLight.withValues(alpha: 0.10),
-            IrisTokens.surfaceLight,
-            IrisTokens.surfaceLightElevated,
-          ];
-        case 'health':
-          return [
-            IrisTokens.surfaceLight,
-            IrisTokens.teal.withValues(alpha: 0.16),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.success.withValues(alpha: 0.10),
-            IrisTokens.surfaceLight,
-            IrisTokens.surfaceLightElevated,
-          ];
-        case 'engineering':
-          return [
-            IrisTokens.surfaceLight,
-            IrisTokens.warning.withValues(alpha: 0.14),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.pinkLight.withValues(alpha: 0.09),
-            IrisTokens.surfaceLight,
-            IrisTokens.surfaceLightElevated,
-          ];
-        case 'analytics':
-          return [
-            IrisTokens.surfaceLight,
-            IrisTokens.purpleLight.withValues(alpha: 0.16),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.blueLight.withValues(alpha: 0.10),
-            IrisTokens.surfaceLight,
-            IrisTokens.surfaceLightElevated,
-          ];
-        case 'learning':
-          return [
-            IrisTokens.surfaceLight,
-            IrisTokens.pinkLight.withValues(alpha: 0.14),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.teal.withValues(alpha: 0.08),
-            IrisTokens.surfaceLight,
-            IrisTokens.surfaceLightElevated,
-          ];
-        default:
-          return [
-            IrisTokens.surfaceLight,
-            IrisTokens.brandLight.withValues(alpha: 0.15),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.pinkLight.withValues(alpha: 0.09),
-            IrisTokens.surfaceLight,
-            IrisTokens.surfaceLightElevated,
-          ];
-      }
-    }
-
-    List<Color> toneStopsLightAlt() {
-      switch (widget.tone) {
-        case 'core':
-          return [
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.teal.withValues(alpha: 0.14),
-            IrisTokens.surfaceLight,
-            IrisTokens.brandLight.withValues(alpha: 0.11),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.surfaceLight,
-          ];
-        case 'cs':
-          return [
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.brandLight.withValues(alpha: 0.14),
-            IrisTokens.surfaceLight,
-            IrisTokens.blueLight.withValues(alpha: 0.10),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.surfaceLight,
-          ];
-        case 'health':
-          return [
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.success.withValues(alpha: 0.14),
-            IrisTokens.surfaceLight,
-            IrisTokens.teal.withValues(alpha: 0.10),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.surfaceLight,
-          ];
-        case 'engineering':
-          return [
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.pinkLight.withValues(alpha: 0.12),
-            IrisTokens.surfaceLight,
-            IrisTokens.warning.withValues(alpha: 0.10),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.surfaceLight,
-          ];
-        case 'analytics':
-          return [
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.blueLight.withValues(alpha: 0.13),
-            IrisTokens.surfaceLight,
-            IrisTokens.purpleLight.withValues(alpha: 0.10),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.surfaceLight,
-          ];
-        case 'learning':
-          return [
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.teal.withValues(alpha: 0.12),
-            IrisTokens.surfaceLight,
-            IrisTokens.pinkLight.withValues(alpha: 0.09),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.surfaceLight,
-          ];
-        default:
-          return [
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.pinkLight.withValues(alpha: 0.12),
-            IrisTokens.surfaceLight,
-            IrisTokens.brandLight.withValues(alpha: 0.09),
-            IrisTokens.surfaceLightElevated,
-            IrisTokens.surfaceLight,
-          ];
-      }
-    }
-
-    List<Color> toneMeshLight() {
-      switch (widget.tone) {
-        case 'core':
-          return [
-            IrisTokens.brandLight.withValues(alpha: 0.11),
-            Colors.transparent,
-            IrisTokens.teal.withValues(alpha: 0.06),
-          ];
-        case 'cs':
-          return [
-            IrisTokens.blueLight.withValues(alpha: 0.10),
-            Colors.transparent,
-            IrisTokens.brandLight.withValues(alpha: 0.08),
-          ];
-        case 'health':
-          return [
-            IrisTokens.teal.withValues(alpha: 0.10),
-            Colors.transparent,
-            IrisTokens.success.withValues(alpha: 0.07),
-          ];
-        case 'engineering':
-          return [
-            IrisTokens.warning.withValues(alpha: 0.09),
-            Colors.transparent,
-            IrisTokens.pinkLight.withValues(alpha: 0.05),
-          ];
-        case 'analytics':
-          return [
-            IrisTokens.purpleLight.withValues(alpha: 0.10),
-            Colors.transparent,
-            IrisTokens.blueLight.withValues(alpha: 0.06),
-          ];
-        case 'learning':
-          return [
-            IrisTokens.pinkLight.withValues(alpha: 0.08),
-            Colors.transparent,
-            IrisTokens.teal.withValues(alpha: 0.05),
-          ];
-        default:
-          return [
-            IrisTokens.brandLight.withValues(alpha: 0.09),
-            Colors.transparent,
-            IrisTokens.pinkLight.withValues(alpha: 0.06),
-          ];
-      }
-    }
-
-    List<Color> toneMeshLightAlt() {
-      switch (widget.tone) {
-        case 'core':
-          return [
-            IrisTokens.teal.withValues(alpha: 0.10),
-            Colors.transparent,
-            IrisTokens.brandLight.withValues(alpha: 0.07),
-          ];
-        case 'cs':
-          return [
-            IrisTokens.brandLight.withValues(alpha: 0.10),
-            Colors.transparent,
-            IrisTokens.blueLight.withValues(alpha: 0.06),
-          ];
-        case 'health':
-          return [
-            IrisTokens.success.withValues(alpha: 0.09),
-            Colors.transparent,
-            IrisTokens.teal.withValues(alpha: 0.06),
-          ];
-        case 'engineering':
-          return [
-            IrisTokens.pinkLight.withValues(alpha: 0.08),
-            Colors.transparent,
-            IrisTokens.warning.withValues(alpha: 0.06),
-          ];
-        case 'analytics':
-          return [
-            IrisTokens.blueLight.withValues(alpha: 0.09),
-            Colors.transparent,
-            IrisTokens.purpleLight.withValues(alpha: 0.06),
-          ];
-        case 'learning':
-          return [
-            IrisTokens.teal.withValues(alpha: 0.08),
-            Colors.transparent,
-            IrisTokens.pinkLight.withValues(alpha: 0.05),
-          ];
-        default:
-          return [
-            IrisTokens.pinkLight.withValues(alpha: 0.08),
-            Colors.transparent,
-            IrisTokens.brandLight.withValues(alpha: 0.05),
-          ];
-      }
-    }
-
-    Color darkPrimaryAccent() {
-      switch (widget.tone) {
-        case 'core':
-          return IrisTokens.brand.withValues(alpha: 0.12);
-        case 'cs':
-          return IrisTokens.blue.withValues(alpha: 0.10);
-        case 'health':
-          return IrisTokens.teal.withValues(alpha: 0.10);
-        case 'engineering':
-          return IrisTokens.warning.withValues(alpha: 0.10);
-        case 'analytics':
-          return IrisTokens.purple.withValues(alpha: 0.10);
-        default:
-          return IrisTokens.brand.withValues(alpha: 0.08);
-      }
-    }
-
-    Color darkSecondaryAccent() {
-      switch (widget.tone) {
-        case 'core':
-          return IrisTokens.teal.withValues(alpha: 0.07);
-        case 'cs':
-          return IrisTokens.brand.withValues(alpha: 0.08);
-        case 'health':
-          return IrisTokens.success.withValues(alpha: 0.08);
-        case 'engineering':
-          return IrisTokens.pink.withValues(alpha: 0.07);
-        case 'analytics':
-          return IrisTokens.blue.withValues(alpha: 0.07);
-        default:
-          return IrisTokens.purple.withValues(alpha: 0.06);
-      }
-    }
-
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final t = _controller.value;
-        final phase = t * 2 * math.pi;
-        final wave = 0.5 + (0.5 * math.sin(phase));
-        final waveSlow = 0.5 + (0.5 * math.sin((phase * 0.72) + 0.9));
-        final driftX = 0.30 * math.sin(phase + 1.0);
-        final driftY = 0.22 * math.cos((phase * 0.86) + 0.6);
-        final shimmer = 0.5 + (0.5 * math.sin((phase * 2.3) + 2.2));
-        final pulse = 0.5 + (0.5 * math.sin((phase * 1.45) + 0.4));
-
-        final baseColors = widget.background
-            ? _lerpColorLists(toneStopsDark(), toneStopsDarkAlt(), wave)
-            : _lerpColorLists(toneStopsLight(), toneStopsLightAlt(), wave);
-
-        final meshColors = widget.background
-            ? _lerpColorLists(
-                [darkPrimaryAccent(), Colors.transparent, darkSecondaryAccent()],
-                [darkSecondaryAccent(), Colors.transparent, darkPrimaryAccent()],
-                wave,
-              )
-            : _lerpColorLists(toneMeshLight(), toneMeshLightAlt(), wave);
-
-        return Stack(
-          children: [
-        // Base gradient — deeper, richer
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment(-1.0 + driftX, -1.0 + driftY),
-              end: Alignment(1.0 - driftX, 1.0 - driftY),
-              colors: baseColors,
-              stops: widget.background
-                  ? const [0.0, 0.3, 0.7, 1.0]
-                  : const [0.0, 0.15, 0.35, 0.55, 0.78, 1.0],
-            ),
-          ),
-        ),
-
-        // Mesh overlay for premium depth
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment(1.0 - driftY, -1.0 + driftX),
-                  end: Alignment(-1.0 + driftY, 1.0 - driftX),
-                  colors: meshColors,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Sweeping highlight layer for livelier movement
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: widget.background ? (0.06 + (shimmer * 0.05)) : (0.05 + (shimmer * 0.06)),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment(-1.2 + (waveSlow * 1.6), -1.0),
-                    end: Alignment(-0.2 + (waveSlow * 1.6), 1.0),
-                    colors: [
-                      Colors.transparent,
-                      (widget.background ? Colors.white : IrisTokens.brand).withValues(alpha: 0.28),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Counter sweep to avoid static directional feel
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: widget.background ? (0.04 + (pulse * 0.05)) : (0.03 + (pulse * 0.05)),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment(1.1 - (waveSlow * 1.5), -1.0),
-                    end: Alignment(0.1 - (waveSlow * 1.5), 1.0),
-                    colors: [
-                      Colors.transparent,
-                      (widget.background ? IrisTokens.blue : IrisTokens.purple).withValues(alpha: 0.20),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Moving pulse core for energetic depth
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(-0.5 + (wave * 1.0), -0.2 + ((1 - wave) * 0.8)),
-                  radius: 0.9 + (pulse * 0.2),
-                  colors: [
-                    (widget.background ? IrisTokens.teal : IrisTokens.brand).withValues(alpha: 0.10 + (pulse * 0.08)),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        if (widget.background)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(0.9 - driftX, -0.9 + (driftY * 0.6)),
-                    radius: 1.0,
-                    colors: [
-                      darkPrimaryAccent(),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-        if (widget.background)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(-0.9 + (driftY * 0.6), 0.9 - driftX),
-                    radius: 1.0,
-                    colors: [
-                      darkSecondaryAccent(),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-        if (!widget.background)
-          Positioned(
-            top: -160,
-            left: -120,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.brand.withValues(alpha: 0.14),
-                IrisTokens.brandLight.withValues(alpha: 0.08),
-                IrisTokens.brandLight.withValues(alpha: 0.03),
-              ],
-              size: 460,
-            ),
-          ),
-
-        if (!widget.background)
-          Positioned(
-            top: -60,
-            right: -100,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.pink.withValues(alpha: 0.10),
-                IrisTokens.pink.withValues(alpha: 0.05),
-                IrisTokens.pinkLight.withValues(alpha: 0.02),
-              ],
-              size: 320,
-            ),
-          ),
-
-        // Bottom-right — deep purple
-        if (!widget.background)
-          Positioned(
-            bottom: -140,
-            right: -120,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.purple.withValues(alpha: 0.12),
-                IrisTokens.purpleLight.withValues(alpha: 0.06),
-                IrisTokens.purpleLight.withValues(alpha: 0.03),
-              ],
-              size: 500,
-            ),
-          ),
-
-        if (widget.background)
-          Positioned(
-            top: -120,
-            left: -120,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.brand.withValues(alpha: 0.08),
-                IrisTokens.brand.withValues(alpha: 0.04),
-                Colors.transparent,
-              ],
-              size: 440,
-            ),
-          ),
-
-        if (widget.background)
-          Positioned(
-            top: 20,
-            right: -110,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.purple.withValues(alpha: 0.08),
-                IrisTokens.purpleLight.withValues(alpha: 0.04),
-                Colors.transparent,
-              ],
-              size: 360,
-            ),
-          ),
-
-        if (widget.background)
-          Positioned(
-            bottom: -130,
-            left: -90,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.teal.withValues(alpha: 0.07),
-                IrisTokens.success.withValues(alpha: 0.04),
-                Colors.transparent,
-              ],
-              size: 380,
-            ),
-          ),
-
-        if (widget.background)
-          Positioned(
-            bottom: -150,
-            right: -140,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.warning.withValues(alpha: 0.06),
-                IrisTokens.warningDark.withValues(alpha: 0.03),
-                Colors.transparent,
-              ],
-              size: 420,
-            ),
-          ),
-
-        if (!widget.background)
-          Positioned(
-            top: h * 0.32,
-            right: -90,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.warning.withValues(alpha: 0.07),
-                IrisTokens.warning.withValues(alpha: 0.04),
-                IrisTokens.warningDark.withValues(alpha: 0.02),
-              ],
-              size: 300,
-            ),
-          ),
-
-        if (!widget.background)
-          Positioned(
-            bottom: h * 0.12,
-            left: -80,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.teal.withValues(alpha: 0.08),
-                IrisTokens.success.withValues(alpha: 0.04),
-                IrisTokens.successDark.withValues(alpha: 0.02),
-              ],
-              size: 320,
-            ),
-          ),
-
-        if (!widget.background)
-          Positioned(
-            top: h * 0.18,
-            left: w * 0.25,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.blue.withValues(alpha: 0.05),
-                IrisTokens.blueLight.withValues(alpha: 0.03),
-                IrisTokens.brandLight.withValues(alpha: 0.01),
-              ],
-              size: 240,
-            ),
-          ),
-
-        if (!widget.background)
-          Positioned(
-            top: h * 0.6,
-            left: w * 0.4,
-            child: _AuraBlob(
-              colors: [
-                IrisTokens.purple.withValues(alpha: 0.06),
-                IrisTokens.purple.withValues(alpha: 0.03),
-                IrisTokens.purpleLight.withValues(alpha: 0.01),
-              ],
-              size: 260,
-            ),
-          ),
-
-        // Subtle grain/noise overlay for depth
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment(0, -1.0 + (driftX * 0.7)),
-                  end: Alignment(0, 1.0 - (driftY * 0.7)),
-                  colors: [
-                    Colors.transparent,
-                    (widget.background ? Colors.black : Colors.white).withValues(alpha: 
-                      0.03,
-                    ),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class SmoothScrollBehavior extends MaterialScrollBehavior {
-  const SmoothScrollBehavior();
-
-  @override
-  Widget buildOverscrollIndicator(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) {
-    return child;
-  }
-
-  @override
-  ScrollPhysics getScrollPhysics(BuildContext context) {
-    // Use platform-native physics for better performance
-    // Android: ClampingScrollPhysics (native feel, better performance)
-    // iOS/macOS: BouncingScrollPhysics (native feel)
-    switch (Theme.of(context).platform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        return const BouncingScrollPhysics(
-          parent: RangeMaintainingScrollPhysics(),
-        );
-      case TargetPlatform.android:
-      default:
-        return const ClampingScrollPhysics(
-          parent: RangeMaintainingScrollPhysics(),
-        );
-    }
-  }
-
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.stylus,
-    PointerDeviceKind.trackpad,
-  };
-}
-
-class _AuraBlob extends StatefulWidget {
-  final List<Color> colors;
-  final double size;
-
-  const _AuraBlob({required this.colors, required this.size});
-
-  @override
-  State<_AuraBlob> createState() => _AuraBlobState();
-}
-
-class _AuraBlobState extends State<_AuraBlob>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    final durationMs = (3200 + (widget.size * 4)).round();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: durationMs),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final phase = (widget.size % 97) / 97;
-    final travel = (widget.size / 280.0).clamp(0.95, 2.2);
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final t = _controller.value;
-        final p = (t + phase) * 2 * math.pi;
-        final floatY = (math.sin(p) * 10.5 + math.sin((p * 0.68) + 0.8) * 5.0) * travel;
-        final floatX = (math.cos((p * 0.94) + 0.5) * 6.2 + math.sin((p * 0.42) + 1.1) * 2.6) * travel;
-        final scale = 0.975 + (math.sin((p * 0.82) + 0.3) * 0.022);
-
-        return Transform.translate(
-          offset: Offset(floatX, floatY),
-          child: Transform.scale(
-            scale: scale,
-            child: Container(
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: widget.colors,
-                  stops: widget.colors.length == 3
-                      ? const [0.0, 0.6, 1.0]
-                      : const [0.0, 1.0],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: (widget.colors.first).withValues(alpha: 0.16),
-                    blurRadius: widget.size * 0.15,
-                    spreadRadius: widget.size * -0.08,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _TeacherLocatorScreen extends StatefulWidget {
-  final OmniBrain brain;
-  final ValueChanged<String>? onTeacherSelected;
-  final ValueChanged<String>? onRoleChanged;
-  final UniversityMemory? memory;
-  final String? currentBatch;
-  final String? initialTeacherQuery;
-  final bool autoSearchInitial;
-  final bool showDock;
-  final bool showBackButton;
-  final bool closeOnTeacherSelect;
-
-  const _TeacherLocatorScreen({
-    required this.brain,
-    this.onTeacherSelected,
-    this.onRoleChanged,
-    this.memory,
-    this.currentBatch,
-    this.initialTeacherQuery,
-    this.autoSearchInitial = false,
-    this.showDock = true,
-    this.showBackButton = true,
-    this.closeOnTeacherSelect = true,
-    super.key,
-  });
-
-  @override
-  State<_TeacherLocatorScreen> createState() => _TeacherLocatorScreenState();
-}
-
-class _TeacherLocatorScreenState extends State<_TeacherLocatorScreen> {
-  static const String _helpdeskBackendBase =
-      'https://cui-helpdesk-backend.onrender.com';
-
-  final HelpdeskFacultyService _facultyService = HelpdeskFacultyService();
-  late TextEditingController _controller;
-  TeacherLocatorResult? _result;
-  bool _searching = false;
-  bool _facultyProfilesLoading = false;
-  HelpdeskFacultySource _facultyProfilesSource = HelpdeskFacultySource.none;
-  List<String> _suggestions = [];
-  List<String> _quickPicks = [];
-  List<FacultyProfile> _facultyProfiles = const [];
-
-  String _normalizeTeacherName(String value) {
-    return value
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-  }
-
-  int _levenshteinDistance(String a, String b) {
-    if (a == b) return 0;
-    if (a.isEmpty) return b.length;
-    if (b.isEmpty) return a.length;
-
-    final previous = List<int>.generate(b.length + 1, (i) => i);
-    final current = List<int>.filled(b.length + 1, 0);
-
-    for (var i = 1; i <= a.length; i++) {
-      current[0] = i;
-      for (var j = 1; j <= b.length; j++) {
-        final cost = a.codeUnitAt(i - 1) == b.codeUnitAt(j - 1) ? 0 : 1;
-        current[j] = math.min(
-          math.min(current[j - 1] + 1, previous[j] + 1),
-          previous[j - 1] + cost,
-        );
-      }
-      for (var j = 0; j <= b.length; j++) {
-        previous[j] = current[j];
-      }
-    }
-    return previous[b.length];
-  }
-
-  String? _bestTeacherMatch(String query) {
-    final normalizedQuery = _normalizeTeacherName(query);
-    if (normalizedQuery.isEmpty) return null;
-
-    String? best;
-    var bestDistance = 1 << 30;
-    for (final teacher in widget.brain.allTeachers()) {
-      final normalizedTeacher = _normalizeTeacherName(teacher);
-      if (normalizedTeacher.isEmpty) continue;
-
-      if (normalizedTeacher.contains(normalizedQuery) ||
-          normalizedQuery.contains(normalizedTeacher)) {
-        return teacher;
-      }
-
-      final distance = _levenshteinDistance(normalizedQuery, normalizedTeacher);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        best = teacher;
-      }
-    }
-
-    final threshold = math.max(2, (normalizedQuery.length * 0.35).round());
-    if (best != null && bestDistance <= threshold) return best;
-    return null;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-    final initial = widget.initialTeacherQuery?.trim() ?? '';
-    if (initial.isNotEmpty) {
-      _controller.text = initial;
-      if (widget.autoSearchInitial) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _performSearch(initial);
-        });
-      }
-    }
-    _quickPicks = widget.brain.allTeachers().take(4).toList();
-    unawaited(_loadFacultyProfiles());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadFacultyProfiles() async {
-    _facultyProfilesLoading = true;
-    final payload = await _facultyService.fetchLiveFirstWithFallbackPayload();
-    if (!mounted) return;
-    setState(() {
-      _facultyProfiles = payload.items;
-      _facultyProfilesSource = payload.source;
-      _facultyProfilesLoading = false;
-    });
-  }
-
-  String _facultySourceLabel(HelpdeskFacultySource source) {
-    switch (source) {
-      case HelpdeskFacultySource.live:
-        return 'LIVE';
-      case HelpdeskFacultySource.cache:
-        return 'CACHE';
-      case HelpdeskFacultySource.backup:
-        return 'BACKUP';
-      case HelpdeskFacultySource.none:
-        return 'OFFLINE';
-    }
-  }
-
-  FacultyProfile? _matchFacultyProfile(String teacherName) {
-    return HelpdeskFacultyService.matchFacultyProfile(
-      teacherName,
-      _facultyProfiles,
-    );
-  }
-
-  String _resolveFacultyImageUrl(String image) {
-    final raw = image.trim();
-    if (raw.isEmpty) return '';
-    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-    if (raw.startsWith('/')) return '$_helpdeskBackendBase$raw';
-    return '$_helpdeskBackendBase/$raw';
-  }
-
-  Future<void> _launchFacultyPhone(String phone) async {
-    final normalized = phone.trim();
-    if (normalized.isEmpty || normalized.toLowerCase() == 'not available') {
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'teacher_locator_phone_unavailable',
-        content: const Text('Phone number unavailable for this teacher.'),
-      );
-      return;
-    }
-    final uri = Uri.parse('tel:$normalized');
-    if (await canLaunchUrl(uri)) {
-      IrisSfx.pillTap();
-      await launchUrl(uri);
-      return;
-    }
-    if (!mounted) return;
-    showIrisFrostedSnackBar(
-      context,
-      dedupeKey: 'teacher_locator_phone_launch_failed',
-      content: const Text('Unable to open dialer on this device.'),
-    );
-  }
-
-  Future<void> _launchFacultyEmail(String email) async {
-    final normalized = email.trim();
-    if (normalized.isEmpty || normalized.toLowerCase() == 'not available') {
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'teacher_locator_email_unavailable',
-        content: const Text('Email unavailable for this teacher.'),
-      );
-      return;
-    }
-    final uri = Uri.parse('mailto:$normalized');
-    if (await canLaunchUrl(uri)) {
-      IrisSfx.pillTap();
-      await launchUrl(uri);
-      return;
-    }
-    if (!mounted) return;
-    showIrisFrostedSnackBar(
-      context,
-      dedupeKey: 'teacher_locator_email_launch_failed',
-      content: const Text('Unable to open email client on this device.'),
-    );
-  }
-
-  void _updateSuggestions(String query) {
-    if (query.trim().isEmpty) {
-      setState(() => _suggestions = []);
-      return;
-    }
-    final q = query.toLowerCase().trim();
-    final all = widget.brain.allTeachers();
-    final directMatches = all
-        .where((t) => t.toLowerCase().contains(q))
-        .toList();
-    if (directMatches.isNotEmpty) {
-      setState(() => _suggestions = directMatches.take(5).toList());
-      return;
-    }
-
-    final normalizedQuery = _normalizeTeacherName(query);
-    final scored =
-        all
-            .map(
-              (name) => MapEntry(
-                name,
-                _levenshteinDistance(
-                  normalizedQuery,
-                  _normalizeTeacherName(name),
-                ),
-              ),
-            )
-            .toList()
-          ..sort((a, b) => a.value.compareTo(b.value));
-    final fuzzy = scored.take(5).map((e) => e.key).toList();
-    final threshold = math.max(2, (normalizedQuery.length * 0.45).round());
-    final filteredFuzzy = scored
-        .where((e) => e.value <= threshold)
-        .take(5)
-        .map((e) => e.key)
-        .toList();
-    final matches = filteredFuzzy.isNotEmpty ? filteredFuzzy : fuzzy;
-    setState(() => _suggestions = matches);
-  }
-
-  void _performSearch([String? override]) {
-    final query = override ?? _controller.text.trim();
-    if (query.isEmpty) return;
-
-    setState(() {
-      _searching = true;
-      _suggestions = [];
-    });
-
-    Future.delayed(const Duration(milliseconds: 120), () {
-      if (mounted) {
-        var effectiveQuery = query;
-        var result = widget.brain.locateTeacher(query, DateTime.now());
-
-        if (result.status == 'not_found' || result.status == 'empty') {
-          final bestMatch = _bestTeacherMatch(query);
-          if (bestMatch != null) {
-            effectiveQuery = bestMatch;
-            result = widget.brain.locateTeacher(bestMatch, DateTime.now());
-          }
-        }
-
-        setState(() {
-          _result = result;
-          _searching = false;
-          if (result.status != 'not_found' && result.status != 'empty') {
-            _controller.text = result.teacherName;
-          }
-        });
-
-        if (effectiveQuery != query &&
-            result.status != 'not_found' &&
-            result.status != 'empty') {
-          showIrisFrostedSnackBar(
-            context,
-            dedupeKey: 'teacher_closest_match_${result.teacherName}',
-            content: Text('Showing closest match: ${result.teacherName}'),
-          );
-        }
-        IrisHaptics.actionMedium();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isFacultySelection = widget.onTeacherSelected != null;
-    const purple = IrisTokens.purple;
-    const purpleLight = IrisTokens.purpleLight;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-        leading: widget.showBackButton ? _AppBackButton(isDark: isDark) : null,
-      ),
-      body: Stack(
-        children: [
-          // Neural aura background
-          _NeuralAura(background: isDark),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 118),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  // Header
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [purple, purpleLight, purpleLight],
-                          ),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: purple.withValues(alpha: 0.18),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                              spreadRadius: -2,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.person_search_rounded,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) => const LinearGradient(
-                                colors: [purple, purpleLight],
-                              ).createShader(bounds),
-                              child: Text(
-                                isFacultySelection
-                                    ? 'Select Teacher'
-                                    : 'Teacher Locator',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 26,
-                                  letterSpacing: 0.3,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isFacultySelection
-                                  ? 'Choose a teacher to load your faculty schedule'
-                                  : 'Find any teacher\'s real-time location & schedule',
-                              style: TextStyle(
-                                fontSize: 13,
-                                letterSpacing: 0.1,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.55),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Search card
-                  GlassCard(
-                    enableOverlay: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
                         // Search field
                         AnimatedContainer(
                           duration: IrisMotion.fast,
@@ -22302,7 +16978,7 @@ class _TeacherLocatorScreenState extends State<_TeacherLocatorScreen> {
               bottom: 0,
               child: SafeArea(
                 top: false,
-                child: _SmartScreenDock(
+                child: DashboardDock(
                   showFacultySet: isFacultySelection,
                   selectedIndex: 1,
                   onPortal: () => pushIconLaunchRoute(
@@ -23406,7 +18082,7 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
 
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _TeacherLocatorScreen(
+        builder: (_) => TeacherLocatorScreen(
           brain: widget.brain!,
           onRoleChanged: widget.onRoleChanged,
           memory: widget.memory,
@@ -23764,7 +18440,7 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           SafeArea(
             child: Column(
               children: [
@@ -24085,11 +18761,11 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         shadowColor: Colors.transparent,
-        leading: widget.showBackButton ? _AppBackButton(isDark: isDark) : null,
+        leading: widget.showBackButton ? AppBackButton(isDark: isDark) : null,
       ),
       body: Stack(
         children: [
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           SafeArea(
             child: CustomScrollView(
               physics: const ButterScrollPhysics(),
@@ -24102,7 +18778,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                       children: [
                         const SizedBox(height: 10),
                         // Header
-                        _MotionSlideFade(
+                        MotionSlideFade(
                           beginOffset: const Offset(0, 14),
                           duration: IrisMotion.medium,
                           curve: IrisMotion.entrance,
@@ -24178,7 +18854,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                         const SizedBox(height: 24),
 
                         // Filters card
-                        _MotionSlideFade(
+                        MotionSlideFade(
                           beginOffset: const Offset(0, 18),
                           duration: IrisMotion.medium,
                           curve: IrisMotion.entrance,
@@ -24661,12 +19337,12 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
               bottom: 0,
               child: SafeArea(
                 top: false,
-                child: _SmartScreenDock(
+                child: DashboardDock(
                   selectedIndex: 3,
                   onTeacher: widget.brain != null
                       ? () => pushIconLaunchRoute(
                           context,
-                          page: _TeacherLocatorScreen(
+                          page: TeacherLocatorScreen(
                             brain: widget.brain!,
                             onRoleChanged: widget.onRoleChanged,
                             memory: widget.memory,
@@ -25191,7 +19867,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       lightweight: true,
       transitionDuration: const Duration(milliseconds: 304),
       reverseTransitionDuration: const Duration(milliseconds: 240),
-      page: _TeacherLocatorScreen(
+      page: TeacherLocatorScreen(
         brain: widget.brain,
         onRoleChanged: widget.onRoleChanged,
         memory: widget.memory,
@@ -25331,12 +20007,12 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
         elevation: 0,
         scrolledUnderElevation: 0,
         shadowColor: Colors.transparent,
-        leading: widget.showBackButton ? _AppBackButton(isDark: isDark) : null,
+        leading: widget.showBackButton ? AppBackButton(isDark: isDark) : null,
       ),
       body: Stack(
         children: [
           // Neural aura background
-          _NeuralAura(background: isDark),
+          NeuralAura(background: isDark),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 108),
@@ -26013,7 +20689,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
               bottom: 0,
               child: SafeArea(
                 top: false,
-                child: _SmartScreenDock(
+                child: DashboardDock(
                   selectedIndex: 5,
                   onTeacher: _openTeacherFromMakeup,
                   onPortal: _openPortalFromMakeup,
@@ -26512,11 +21188,22 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
   void _showDayFilter(bool isDark) {
     showDialog(
       context: context,
-      builder: (ctx) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: AlertDialog(
-          backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
-              .withValues(alpha: isDark ? 0.88 : 0.92),
+      builder: (ctx) => LiquidGlassLayer(
+        settings: LiquidGlassSettings(
+          blur: 16,
+          ambientStrength: 0.70,
+          lightAngle: 0.15 * math.pi,
+          glassColor: Colors.black.withValues(alpha: 0.05),
+          thickness: 15,
+        ),
+        child: LiquidGlass.inLayer(
+          shape: const LiquidRoundedSuperellipse(
+            borderRadius: Radius.circular(20),
+          ),
+          glassContainsChild: false,
+          child: AlertDialog(
+            backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
+                .withValues(alpha: isDark ? 0.88 : 0.92),
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -26573,17 +21260,29 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showSortOptions(bool isDark) {
     showDialog(
       context: context,
-      builder: (ctx) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: AlertDialog(
-          backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
-              .withValues(alpha: isDark ? 0.88 : 0.92),
+      builder: (ctx) => LiquidGlassLayer(
+        settings: LiquidGlassSettings(
+          blur: 16,
+          ambientStrength: 0.70,
+          lightAngle: 0.15 * math.pi,
+          glassColor: Colors.black.withValues(alpha: 0.05),
+          thickness: 15,
+        ),
+        child: LiquidGlass.inLayer(
+          shape: const LiquidRoundedSuperellipse(
+            borderRadius: Radius.circular(20),
+          ),
+          glassContainsChild: false,
+          child: AlertDialog(
+            backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
+                .withValues(alpha: isDark ? 0.88 : 0.92),
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -26643,6 +21342,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

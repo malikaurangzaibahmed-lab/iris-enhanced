@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'services/pdf_debug_parser.dart';
-import 'widgets/liquid_glass_effect.dart';
+import 'widgets/native_liquid_glass.dart';
 
 /// Debug screen for testing PDF parser
 class PDFDebugScreen extends StatefulWidget {
@@ -75,7 +75,9 @@ class _PDFDebugScreenState extends State<PDFDebugScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LiquidGlassEffect(
+    return NativeLiquidGlass(
+      radius: 0,
+      blurRadius: 10,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('PDF Parser Debug'),

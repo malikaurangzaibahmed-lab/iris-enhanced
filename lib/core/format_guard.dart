@@ -56,4 +56,18 @@ class FormatGuard {
     ];
     return days[max(1, min(7, dayIndex)) - 1];
   }
+
+  static String formatDecimalTime(double decimal) {
+    int hour = decimal.toInt();
+    int minutes = ((decimal - hour) * 60).round();
+    
+    String period = 'AM';
+    if (hour >= 12) {
+      period = 'PM';
+      if (hour > 12) hour -= 12;
+    }
+    if (hour == 0) hour = 12;
+    
+    return '${hour.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')} $period';
+  }
 }

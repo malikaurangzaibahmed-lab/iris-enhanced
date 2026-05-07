@@ -1,0 +1,12 @@
+- [x] Register `shaders/liquidglass.frag` in `pubspec.yaml`.
+- [x] Integrate `LiquidGlassLayer` in `main.dart` for:
+    - [x] Standard Bottom Navigation Bar.
+    - [x] Faculty Bottom Navigation Bar.
+    - [x] `GlassCard` component.
+    - [x] Makeup Class Confirmation dialog.
+    - [x] Sort & Filter dialogs.
+- [x] Verify `portal_screen.dart` "Smart Pill" glass settings.
+- [x] Fix build errors (int to double, syntax, imports).
+- [x] Execute successful debug build (`flutter build apk --debug`).
+- [x] Execute successful release build with split APKs (`flutter build apk --split-per-abi --release`).
+- [x] Re-verify build output for user assurance.

@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ---------------------------------------------------------
+    // ZERO-COST QUOTA SHIELD & PROOF-OF-ADMIN RULES
+    // ---------------------------------------------------------
+
+    // 1. Basic Auth Validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 2. The Quota-Shield Admin Check
+    // Instead of querying collections, this performs a targeted check using 'exists()'.
+    // If the requesting UID exists in the 'admins' collection, they are granted God-Mode.
+    function isAdmin() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ---------------------------------------------------------
+    // COLLECTION RULES
+    // ---------------------------------------------------------
+
+    // Admin Collection itself
+    // A regular user cannot read this, protecting admin identities.
+    match /admins/{userId} {
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow write: if isAdmin();
+    }
+
+    // Announcements
+    // Students pull announcements, but only admins can broadcast/write them.
+    match /announcements/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // User Profiles
+    // Students can read/write their own profile settings. Admins have full control.
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+    
+    // Public Timetable / Class Data
+    // Anyone logged in can read the timetable structure. Only admins (or the OTA Cloudflare worker) modify it.
+    match /timetables/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Global Catch-all (Default Deny)
+    // Closes the massive security gap that previously left the database entirely open until May 2026.
+    // If a collection isn't explicitly defined above, ONLY Admins can touch it.
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
