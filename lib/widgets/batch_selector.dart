@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
+import '../services/ui_feedback.dart';
 
 class BatchSelectorSheet extends StatefulWidget {
   final UniversityMemory memory;
@@ -24,10 +25,30 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
   @override
   void initState() {
     super.initState();
-    final key = BatchKey.parse(widget.selected);
+    final seed = widget.selected.trim().isNotEmpty
+        ? widget.selected.trim()
+        : (widget.memory.allBatches.isNotEmpty ? widget.memory.allBatches.first : '');
+    final key = BatchKey.parse(seed);
     program = key.program;
     semester = key.semester;
     section = key.section;
+  }
+
+  String? _resolveBatch() {
+    if (program == null || semester == null || section == null) {
+      return null;
+    }
+
+    for (final batch in widget.memory.allBatches) {
+      final key = BatchKey.parse(batch);
+      if (key.program == program &&
+          key.semester == semester &&
+          key.section == section) {
+        return batch;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -279,13 +300,9 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
                                     semester != null &&
                                     section != null)
                                 ? () {
-                                    final batch = widget.memory.allBatches
-                                        .firstWhere((b) {
-                                          final key = BatchKey.parse(b);
-                                          return key.program == program &&
-                                              key.semester == semester &&
-                                              key.section == section;
-                                        }, orElse: () => widget.selected);
+                                    final batch = _resolveBatch();
+                                    if (batch == null) return;
+                                    IrisHaptics.chipSelect();
                                     Navigator.pop(context, batch);
                                   }
                                 : null,

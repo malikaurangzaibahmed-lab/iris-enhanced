@@ -4,7 +4,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../core/animations.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
-import '../widgets/neural_aura.dart';
+import '../core/vital_theme.dart';
 import '../widgets/glass_card.dart';
 import '../services/ui_feedback.dart';
 import '../services/notification_service.dart';
@@ -20,7 +20,7 @@ class RoleSelectorScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -259,6 +259,27 @@ class _SetupBotState extends State<SetupBot> {
   void initState() {
     super.initState();
     _loadNotificationSetting();
+    _loadInitialBatchSelection();
+  }
+
+  Future<void> _loadInitialBatchSelection() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedBatch = prefs.getString('selectedBatch')?.trim();
+
+    final fallbackBatch = savedBatch != null && savedBatch.isNotEmpty
+        ? savedBatch
+        : (widget.memory.allBatches.isNotEmpty ? widget.memory.allBatches.first : null);
+
+    if (fallbackBatch == null || !mounted) {
+      return;
+    }
+
+    final key = BatchKey.parse(fallbackBatch);
+    setState(() {
+      _program = key.program;
+      _semester = key.semester == 0 ? null : key.semester;
+      _section = key.section;
+    });
   }
 
   // Static method to show widget setup guide from SetupBot
@@ -463,6 +484,23 @@ class _SetupBotState extends State<SetupBot> {
     );
   }
 
+  String? _resolveBatch() {
+    if (_program == null || _semester == null || _section == null) {
+      return null;
+    }
+
+    for (final batch in widget.memory.allBatches) {
+      final key = BatchKey.parse(batch);
+      if (key.program == _program &&
+          key.semester == _semester &&
+          key.section == _section) {
+        return batch;
+      }
+    }
+
+    return null;
+  }
+
   static Widget _buildStepStatic(bool isDark, String number, String text) {
     return Row(
       children: [
@@ -586,12 +624,14 @@ class _SetupBotState extends State<SetupBot> {
     final sections = (_program != null && _semester != null)
         ? widget.memory.sections(_program!, _semester!)
         : <String>[];
+    final resolvedBatch = _resolveBatch();
+    final smartBatchLabel = resolvedBatch ?? (widget.memory.allBatches.isNotEmpty ? widget.memory.allBatches.first : null);
 
     return Scaffold(
       body: Stack(
         children: [
-          NeuralAura(
-            background: Theme.of(context).brightness == Brightness.dark,
+          ObsidianPulse(
+            isDark: Theme.of(context).brightness == Brightness.dark,
           ),
           SafeArea(
             child: Padding(
@@ -696,6 +736,45 @@ class _SetupBotState extends State<SetupBot> {
                             : Colors.black.withValues(alpha: 0.78)),
                       ),
                     ),
+                    if (smartBatchLabel != null) ...[
+                      const SizedBox(height: 14),
+                      GlassCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Smart default',
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: 0.92)),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      smartBatchLabel,
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.72)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     _SelectorCard(
                       label: 'Program',
@@ -724,6 +803,17 @@ class _SetupBotState extends State<SetupBot> {
                       selected: _section,
                       onSelected: (value) => setState(() => _section = value),
                     ),
+                    if (_program != null && _semester != null && _section != null && resolvedBatch == null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'No exact batch matches this combination yet.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.redAccent.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
 
                     // Persistent Notification Toggle
@@ -938,18 +1028,10 @@ class _SetupBotState extends State<SetupBot> {
                           child: ElevatedButton(
                             onPressed: isReady
                                 ? () {
-                                    final batch = widget.memory.allBatches
-                                        .firstWhere(
-                                          (b) {
-                                            final key = BatchKey.parse(b);
-                                            return key.program == _program &&
-                                                key.semester == _semester &&
-                                                key.section == _section;
-                                          },
-                                          orElse: () =>
-                                              widget.memory.allBatches.first,
-                                        );
-                                    widget.onComplete(batch);
+                                    final batch = _resolveBatch();
+                                    if (batch == null) return;
+                                    IrisHaptics.chipSelect();
+                                    widget.onComplete(batch.trim());
                                   }
                                 : null,
                             style: ElevatedButton.styleFrom(

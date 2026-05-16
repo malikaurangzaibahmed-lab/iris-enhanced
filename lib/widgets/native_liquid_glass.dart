@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/glass.dart';
 
 /// NativeLiquidGlass 
 /// =================
@@ -36,6 +37,19 @@ class _NativeLiquidGlassState extends State<NativeLiquidGlass> {
     // Only Android 13+ supports the AGSL RenderEffect pipeline
     final isSupported = defaultTargetPlatform == TargetPlatform.android;
 
+    final reduceEffects = IrisGlass.reduceEffects(context);
+    final effectiveBlur = IrisGlass.adaptiveBlur(
+      context,
+      widget.blurRadius,
+      min: 2.0,
+    );
+    final effectiveRefractionHeight =
+        reduceEffects ? widget.refractionHeight * 0.9 : widget.refractionHeight;
+    final effectiveRefractionAmount =
+        reduceEffects ? widget.refractionAmount * 0.9 : widget.refractionAmount;
+    final effectiveTintAlpha =
+        reduceEffects ? widget.tintAlpha * 0.85 : widget.tintAlpha;
+
     if (!isSupported) {
       return widget.child ?? const SizedBox();
     }
@@ -48,11 +62,11 @@ class _NativeLiquidGlassState extends State<NativeLiquidGlass> {
             viewType: 'android_liquid_glass',
             creationParams: {
               'radius': widget.radius,
-              'blurRadius': widget.blurRadius,
+              'blurRadius': effectiveBlur,
               'color': widget.color?.value,
-              'refractionHeight': widget.refractionHeight,
-              'refractionAmount': widget.refractionAmount,
-              'tintAlpha': widget.tintAlpha,
+              'refractionHeight': effectiveRefractionHeight,
+              'refractionAmount': effectiveRefractionAmount,
+              'tintAlpha': effectiveTintAlpha,
             },
             creationParamsCodec: const StandardMessageCodec(),
           ),

@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "name": "iris-code-analysis",
+  "description": "Automated code analysis hooks for IRIS to catch issues, improve docs, and maintain standards",
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "tools": ["replace_string_in_file", "create_file"],
+      "handler": "validate-documentation",
+      "config": {
+        "requiresDartdoc": true,
+        "requiresComments": true,
+        "checkLists": ["ListView", "StreamBuilder", "Provider"],
+        "checkMemoryLeaks": true
+      }
+    },
+    {
+      "event": "PostCompletion",
+      "handler": "generate-analysis-report",
+      "config": {
+        "generateMetrics": true,
+        "checkCoverage": true,
+        "validateRules": true
+      }
+    }
+  ],
+  "analyses": [
+    {
+      "name": "missing-dartdoc",
+      "patterns": {
+        "include": ["lib/**/*.dart"],
+        "exclude": ["lib/generated/**", "test/**"]
+      },
+      "check": "Ensure all public functions/classes have dartdoc comments starting with ///"
+    },
+    {
+      "name": "memory-leak-potential",
+      "patterns": ["StreamSubscription", "AnimationController", "TextEditingController"],
+      "check": "Verify these are disposed in dispose() method",
+      "severity": "warning"
+    },
+    {
+      "name": "performance-antipatterns",
+      "patterns": [
+        "ListView\\(",
+        "map\\(\\).*List\\(",
+        "setState\\(\\(\\).*Firestore"
+      ],
+      "check": "Use ListView.builder instead of ListView, chain operations efficiently, avoid setState in async operations",
+      "severity": "warning"
+    },
+    {
+      "name": "firestore-security",
+      "patterns": ["firestore.*collection.*get\\(\\)"],
+      "check": "Verify security rules allow this operation for current user context",
+      "file": "firestore.rules",
+      "severity": "error"
+    },
+    {
+      "name": "const-constructors",
+      "patterns": ["class.*Widget.*extends\\s+(Stateless|State)Widget"],
+      "check": "Widget constructors should use const when all fields are const-compatible",
+      "severity": "info"
+    },
+    {
+      "name": "error-handling",
+      "patterns": ["Future|async|await", "FirebaseException", "FirestoreException"],
+      "check": "Verify all Futures are caught with try-catch and exceptions are properly typed",
+      "severity": "warning"
+    },
+    {
+      "name": "documentation-sync",
+      "patterns": ["FEATURES_TODO\\.md", "IMPLEMENTATION_ROADMAP\\.md", "ARCHITECTURE\\.md"],
+      "check": "Verify documentation reflects current implementation state",
+      "severity": "warning"
+    },
+    {
+      "name": "firestore-query-indexes",
+      "patterns": ["where\\(.*where\\(", "where\\(.*orderBy\\("],
+      "check": "Complex queries require composite indexes in Firestore. Verify index exists in firestore.indexes.json",
+      "severity": "warning"
+    }
+  ]
+}

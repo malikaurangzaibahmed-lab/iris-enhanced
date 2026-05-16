@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import '../core/theme_signals.dart';
 import 'dart:math' as math;
 
 const MethodChannel _uiSoundChannel = MethodChannel('iris/ui_sound_channel');
@@ -519,21 +520,15 @@ void _showIrisTopPill(
           )
           .clamp(108.0, availableWidth);
 
-      final width = dotMode
-          ? 10.0
-          : (collapsing
-              ? 44.0
-              : (expanded ? targetWidth.toDouble() : 30.0));
+      final width = dotMode ? 10.0 : (collapsing ? 44.0 : (expanded ? targetWidth.toDouble() : 30.0));
       final height = dotMode ? 10.0 : 40.0;
-      final scale = dotMode
-          ? (dotPulse ? 1.08 : 0.88)
-          : (expanded ? 1.0 : 0.86);
+      final scale = dotMode ? (dotPulse ? 1.08 : 0.88) : (expanded ? 1.0 : 0.86);
       final cornerRadius = dotMode ? 999.0 : (collapsing ? 16.0 : 24.0);
 
       return Positioned(
         top: media.padding.top + 6,
-        left: 0,
-        right: 0,
+        left: 12,
+        right: 12,
         child: IgnorePointer(
           ignoring: dotMode,
           child: AnimatedOpacity(
@@ -556,7 +551,7 @@ void _showIrisTopPill(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.fastOutSlowIn,
                     scale: scale,
-                    child: LiquidGlassLayer(
+                    child: GlassSurface(
                       settings: LiquidGlassSettings(
                         blur: 15.0,
                         ambientStrength: 0.70,
@@ -566,20 +561,12 @@ void _showIrisTopPill(
                             : Colors.white.withValues(alpha: 0.28),
                         thickness: 12,
                       ),
-                      child: LiquidGlass.inLayer(
-                        shape: LiquidRoundedSuperellipse(
-                          borderRadius: Radius.circular(cornerRadius),
-                        ),
-                        glassContainsChild: false,
-                        child: AnimatedContainer(
+                      radius: cornerRadius,
+                      child: AnimatedContainer(
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.fastOutSlowIn,
                           width: width,
                           height: height,
-                          padding: dotMode
-                              ? EdgeInsets.zero
-                              : const EdgeInsets.symmetric(horizontal: 14),
-                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(cornerRadius),
                             border: Border.all(
@@ -688,7 +675,6 @@ void _showIrisTopPill(
               ),
             ),
           ),
-        ),
       );
     },
   );
@@ -711,10 +697,10 @@ void _showIrisTopPill(
   });
 
   final adaptiveHoldMs = (900 + (text.length * 22)).clamp(1200, 3400);
-  final holdMs = math.min(duration.inMilliseconds, adaptiveHoldMs).clamp(
-        1100,
-        3400,
-      );
+  final holdMs = math
+      .min(duration.inMilliseconds, adaptiveHoldMs)
+      .clamp(1100, 3400)
+      .toInt();
   _irisPillCollapseTimer = Timer(Duration(milliseconds: holdMs), () {
     collapsing = true;
     contentVisible = false;

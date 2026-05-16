@@ -23,6 +23,7 @@ import 'services/headless_portal_sync.dart';
 import 'widgets/iris_background.dart';
 import 'core/tokens.dart';
 import 'core/animations.dart';
+import 'core/theme_signals.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 /// Portal session metadata persisted across app restarts
@@ -128,8 +129,10 @@ class PortalTask {
   final String title;
   final String subject;
   final String dueDate;
+  final String startDate;
   final int scrapedAt;
   final bool isCompleted;
+  final bool isActionable;
   final String status;
   final String? courseId;
 
@@ -138,8 +141,10 @@ class PortalTask {
     required this.title,
     required this.subject,
     required this.dueDate,
+    this.startDate = "",
     required this.scrapedAt,
     this.isCompleted = false,
+    this.isActionable = false,
     this.status = "",
     this.courseId,
   });
@@ -151,8 +156,10 @@ class PortalTask {
       title: data['title']?.toString() ?? '',
       subject: data['subject']?.toString() ?? 'Unknown Subject',
       dueDate: data['dueDate']?.toString() ?? '',
+      startDate: data['startDate']?.toString() ?? '',
       scrapedAt: (data['scrapedAt'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
       isCompleted: data['isCompleted'] == true,
+      isActionable: data['isActionable'] == true,
       status: data['status']?.toString() ?? "",
       courseId: data['courseId']?.toString(),
     );
@@ -163,8 +170,10 @@ class PortalTask {
     'title': title,
     'subject': subject,
     'dueDate': dueDate,
+    'startDate': startDate,
     'scrapedAt': scrapedAt,
     'isCompleted': isCompleted,
+    'isActionable': isActionable,
     'status': status,
     'courseId': courseId,
   };
@@ -210,14 +219,16 @@ class PortalTask {
     }
   }
 
-  PortalTask copyWith({bool? isCompleted, String? status}) {
+  PortalTask copyWith({bool? isCompleted, bool? isActionable, String? status}) {
     return PortalTask(
       type: type,
       title: title,
       subject: subject,
       dueDate: dueDate,
+      startDate: startDate,
       scrapedAt: scrapedAt,
       isCompleted: isCompleted ?? this.isCompleted,
+      isActionable: isActionable ?? this.isActionable,
       status: status ?? this.status,
       courseId: courseId,
     );
@@ -375,6 +386,7 @@ class _PortalScreenState extends State<PortalScreen>
   bool _isPillPressed = false;
   bool _isEditingAddress = false;
   bool _showAutofillPrompt = false;
+  List<String> _scraperLogs = [];
   Timer? _connectivityTimer;
   Timer? _loginFocusTimer;
   Timer? _pillRevertTimer;
@@ -432,6 +444,18 @@ class _PortalScreenState extends State<PortalScreen>
     } catch (_) {
       await _showMessage('Could not open file. Path copied.');
       await _copyPath(path);
+    }
+  }
+
+  Future<void> _openSystemDownloads() async {
+    if (Platform.isAndroid) {
+      try {
+        await _androidDownloadChannel.invokeMethod('openSystemDownloads');
+      } catch (e) {
+        await _showMessage('Cannot open system downloads');
+      }
+    } else {
+      await _showMessage('System downloads only available on Android');
     }
   }
 
@@ -1902,65 +1926,7 @@ class _PortalScreenState extends State<PortalScreen>
         b.host.endsWith('.${a.host}');
   }
 
-  Future<void> _openSystemDownloads() async {
-    if (!Platform.isAndroid) return;
-    try {
-      await _androidDownloadChannel.invokeMethod('openSystemDownloads');
-    } catch (_) {}
-  }
 
-  Future<bool> _downloadFileWithSystemManager(Uri uri) async {
-    if (!Platform.isAndroid) return false;
-
-    final currentUri = Uri.tryParse(
-      _currentUrl.isEmpty ? widget.url : _currentUrl,
-    );
-    final sameHost = currentUri != null && _isSameHost(uri, currentUri);
-    final referer = sameHost && currentUri != null
-        ? currentUri.toString()
-        : '${uri.scheme}://${uri.host}/';
-    final cookieHeader = sameHost ? await _readPortalCookieHeader() : '';
-    final requestedName = _fileNameFromUrl(uri);
-
-    try {
-      final response = await _androidDownloadChannel
-          .invokeMapMethod<String, dynamic>('enqueueSystemDownload', {
-            'url': uri.toString(),
-            'userAgent': _portalUserAgent,
-            'referer': referer,
-            'cookie': cookieHeader,
-            'fileName': requestedName,
-          });
-      if (response == null) return false;
-
-      final fileName = response['fileName']?.toString() ?? requestedName;
-      final filePath = response['filePath']?.toString() ?? '';
-      if (filePath.isNotEmpty) {
-        await _trackDownload(
-          filename: fileName,
-          filePath: filePath,
-          sourceUrl: uri.toString(),
-          state: 'queued',
-          backend: 'system',
-          downloadId: response['downloadId']?.toString() ?? '',
-        );
-      }
-
-      if (mounted) {
-        await _showMessage(
-          'Download started in system manager',
-          duration: const Duration(seconds: 6),
-          action: SnackBarAction(
-            label: 'Manager',
-            onPressed: () async => _openSystemDownloads(),
-          ),
-        );
-      }
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
 
   Future<void> _downloadFileFast(Uri uri) async {
     final saveDir = await _resolveDownloadDirectory();
@@ -1980,29 +1946,39 @@ class _PortalScreenState extends State<PortalScreen>
     final referer = sameHost
         ? currentUri.toString()
         : '${uri.scheme}://${uri.host}/';
+
+    // Robust client with SSL bypass for university portals
     final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 18);
+      ..connectionTimeout = const Duration(seconds: 25)
+      ..badCertificateCallback = (cert, host, port) => true;
 
     IOSink? sink;
     File? tempFile;
     try {
       final request = await client
           .getUrl(uri)
-          .timeout(const Duration(seconds: 18));
+          .timeout(const Duration(seconds: 20));
       request.followRedirects = true;
-      request.maxRedirects = 5;
+      request.maxRedirects = 8;
       request.headers.set(HttpHeaders.userAgentHeader, _portalUserAgent);
       request.headers.set(HttpHeaders.acceptHeader, '*/*');
       request.headers.set(HttpHeaders.refererHeader, referer);
+      request.headers.set('Connection', 'keep-alive');
+
       if (sameHost && cookieHeader.isNotEmpty) {
         request.headers.set(HttpHeaders.cookieHeader, cookieHeader);
       }
 
       final response = await request.close().timeout(
-        const Duration(seconds: 75),
+        const Duration(seconds: 120),
       );
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw HttpException('HTTP ${response.statusCode}', uri: uri);
+
+      // Handle common portal status codes
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw HttpException('Access Denied (${response.statusCode})', uri: uri);
+      }
+      if (response.statusCode >= 400) {
+        throw HttpException('Server Error (${response.statusCode})', uri: uri);
       }
 
       final safeName = _filenameFromResponse(
@@ -2011,9 +1987,11 @@ class _PortalScreenState extends State<PortalScreen>
       );
       final finalFile = File('${saveDir.path}/$safeName');
       tempFile = File('${saveDir.path}/.$safeName.part');
+      
       if (await tempFile.exists()) {
-        await tempFile.delete();
+        try { await tempFile.delete(); } catch (_) {}
       }
+      
       sink = tempFile.openWrite();
 
       final total = response.contentLength;
@@ -2027,11 +2005,19 @@ class _PortalScreenState extends State<PortalScreen>
         if (total > 0) {
           final percent = ((loaded / total) * 100).clamp(0, 100).toInt();
           if (percent != lastPercent &&
-              (percent == 100 || percent - lastPercent >= 4)) {
+              (percent == 100 || percent - lastPercent >= 2)) {
             lastPercent = percent;
             setState(() {
               _isDownloading = true;
               _downloadProgress = loaded / total;
+            });
+          }
+        } else {
+          // Indeterminate progress
+          if (loaded % (100 * 1024) == 0) { // Every 100KB
+            setState(() {
+              _isDownloading = true;
+              _downloadProgress = -1;
             });
           }
         }
@@ -2042,7 +2028,7 @@ class _PortalScreenState extends State<PortalScreen>
       sink = null;
 
       if (await finalFile.exists()) {
-        await finalFile.delete();
+        try { await finalFile.delete(); } catch (_) {}
       }
       await tempFile.rename(finalFile.path);
 
@@ -2057,238 +2043,158 @@ class _PortalScreenState extends State<PortalScreen>
       IrisSfx.downloadSuccess();
 
       if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _downloadProgress = -1;
+        });
         await _showMessage(
           'Download complete: $safeName',
-          duration: const Duration(seconds: 6),
+          duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: 'Open',
             onPressed: () async => _openFilePath(finalFile.path),
           ),
         );
       }
-      return;
     } catch (e) {
       try {
         await sink?.flush();
         await sink?.close();
       } catch (_) {}
       if (tempFile != null && await tempFile.exists()) {
-        try {
-          await tempFile.delete();
-        } catch (_) {}
+        try { await tempFile.delete(); } catch (_) {}
       }
-
       rethrow;
     }
   }
 
-  String _downloadScript(String url) {
-    final encodedUrl = jsonEncode(url);
-    return '''
-(() => {
-  const targetUrl = $encodedUrl;
-  const fallbackBaseName = (() => {
-    try {
-      const parsed = new URL(targetUrl, window.location.href);
-      const part = parsed.pathname.split('/').filter(Boolean).pop() || 'download';
-      return decodeURIComponent(part || 'download');
-    } catch (_) {
-      return 'download';
-    }
-  })();
 
-  const extForMime = (contentType) => {
-    const mime = String(contentType || '').toLowerCase().split(';')[0].trim();
-    switch (mime) {
-      case 'application/pdf': return '.pdf';
-      case 'application/zip': return '.zip';
-      case 'application/x-zip-compressed': return '.zip';
-      case 'application/msword': return '.doc';
-      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': return '.docx';
-      case 'application/vnd.ms-powerpoint': return '.ppt';
-      case 'application/vnd.openxmlformats-officedocument.presentationml.presentation': return '.pptx';
-      case 'application/vnd.ms-excel': return '.xls';
-      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': return '.xlsx';
-      case 'application/vnd.android.package-archive': return '.apk';
-      case 'image/jpeg': return '.jpg';
-      case 'image/png': return '.png';
-      default: return '';
-    }
-  };
-
-  const ensureExt = (name, contentType) => {
-    const base = String(name || 'download').trim() || 'download';
-    if (/\.[a-z0-9]{1,6}\$/i.test(base)) return base;
-    const ext = extForMime(contentType);
-    return ext ? base + ext : base;
-  };
-
-  const send = (payload) => {
-    if (!window.IrisPortalChannel) return;
-    window.IrisPortalChannel.postMessage(JSON.stringify(payload));
-  };
-
-  const runAttempt = () => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', targetUrl, true);
-    xhr.responseType = 'blob';
-    xhr.withCredentials = true;
-    xhr.timeout = 60000;
-
-    let lastProgressSent = -1;
-    xhr.onprogress = function(event) {
-      const total = event.total || 0;
-      const loaded = event.loaded || 0;
-      if (total <= 0 || loaded < 0) return;
-      const percent = Math.max(0, Math.min(100, Math.round((loaded / total) * 100)));
-      if (percent === lastProgressSent) return;
-      if (percent < 100 && Math.abs(percent - lastProgressSent) < 4) return;
-      lastProgressSent = percent;
-      send({
-        type: 'download_progress',
-        loaded,
-        total,
-        sourceUrl: targetUrl,
-      });
-    };
-
-    xhr.onload = function() {
-      if (xhr.status < 200 || xhr.status >= 300) {
-        send({ type: 'download_error', error: 'HTTP ' + xhr.status, url: targetUrl, sourceUrl: targetUrl });
-        return;
-      }
-
-      const disposition = xhr.getResponseHeader('content-disposition') || '';
-      const contentType = xhr.getResponseHeader('content-type') || '';
-      const match = disposition.match(/filename[*]=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
-      const rawName = decodeURIComponent((match && (match[1] || match[2])) || fallbackBaseName);
-      const filename = ensureExt(rawName, contentType);
-      const blob = xhr.response;
-
-      const reader = new FileReader();
-      reader.onloadend = function() {
-        send({
-          type: 'download_data',
-          filename,
-          data: reader.result,
-          sourceUrl: targetUrl,
-        });
-      };
-      reader.onerror = function() {
-        send({ type: 'download_error', error: 'Failed to read file data', url: targetUrl, sourceUrl: targetUrl });
-      };
-      reader.readAsDataURL(blob);
-    };
-
-    const fail = (reason) => {
-      send({ type: 'download_error', error: reason, url: targetUrl, sourceUrl: targetUrl });
-    };
-
-    xhr.onerror = function() { fail('Network error'); };
-    xhr.onabort = function() { fail('Request aborted'); };
-    xhr.ontimeout = function() { fail('Request timed out'); };
-
-    xhr.send();
-  };
-
-  runAttempt();
-})();
-''';
-  }
-
-  /// Downloads [url] through the WebView session so authenticated portals work.
+  /// One-press reliable download flow
   Future<void> _downloadFile(String url) async {
     if (!mounted) return;
-    final uri = Uri.tryParse(url);
-    if (uri == null) {
-      await _showMessage('Invalid download URL');
+    
+    // Normalize and validate URL
+    final uri = Uri.tryParse(url.trim());
+    if (uri == null || (!uri.hasScheme && !url.startsWith('data:'))) {
+      await _showMessage('Invalid download link');
       return;
     }
 
+    // Debounce to prevent multiple triggers
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (_lastDownloadUrl == uri.toString() && (now - _lastDownloadAtMs) < 1200) {
-      await _showMessage('Download already starting...');
+    if (_lastDownloadUrl == url && (now - _lastDownloadAtMs) < 1500) return;
+    _lastDownloadUrl = url;
+    _lastDownloadAtMs = now;
+
+    // Handle Data URLs directly
+    if (url.startsWith('data:')) {
+      setState(() => _isDownloading = true);
+      await _showMessage('Saving generated file...');
+      try {
+        final commaIndex = url.indexOf(',');
+        if (commaIndex == -1) throw 'Invalid data URL';
+        final data = url.substring(commaIndex + 1);
+        final filename = 'download_${now % 10000}.bin';
+        await _saveDownloadData(filename, data, sourceUrl: 'data:...');
+      } catch (e) {
+        setState(() => _isDownloading = false);
+        await _showMessage('Failed to save data URL');
+      }
       return;
     }
-    _lastDownloadUrl = uri.toString();
-    _lastDownloadAtMs = now;
 
     setState(() {
       _isDownloading = true;
       _downloadProgress = 0;
     });
-    await _showMessage('Downloading...');
+    await _showMessage('Starting download...');
 
-    bool systemTried = false;
-    bool nativeTried = false;
-    bool jsTried = false;
     try {
-      // Try system download manager first (Android)
-      if (await _downloadFileWithSystemManager(uri)) {
-        systemTried = true;
-        if (mounted) {
-          setState(() {
-            _isDownloading = false;
-            _downloadProgress = -1;
-          });
-        }
-        return;
-      }
-    } catch (e) {
-      // System manager failed, will fallback
-      systemTried = true;
-    }
-    try {
-      // Try native download
+      // Execute the robust native download
       await _downloadFileFast(uri);
-      nativeTried = true;
-      if (mounted) {
-        setState(() {
-          _isDownloading = false;
-          _downloadProgress = -1;
-        });
-      }
-      return;
     } catch (e) {
-      nativeTried = true;
-      if (mounted) {
-        await _showMessage('Native download failed, trying compatibility mode...');
-      }
-    }
-    try {
-      // Try JS compatibility download
-      await _controller.runJavaScript(_downloadScript(uri.toString()));
-      jsTried = true;
-      // JS download will call _saveDownloadData via JS channel
-      return;
-    } catch (e) {
-      jsTried = true;
-    }
-    // All methods failed
-    if (mounted) {
+      if (!mounted) return;
       setState(() {
         _isDownloading = false;
         _downloadProgress = -1;
       });
-      _lastDownloadUrl = null;
+      
+      final errorMsg = e.toString().contains('HttpException') 
+          ? e.toString().split(':').last.trim() 
+          : 'Network error or access denied';
+          
       await _trackDownload(
         filename: _fileNameFromUrl(uri),
         filePath: '',
         sourceUrl: uri.toString(),
         state: 'failed',
-        backend: systemTried
-            ? (nativeTried ? (jsTried ? 'all' : 'native') : 'system')
-            : 'unknown',
+        backend: 'native',
       );
+      
       IrisSfx.error();
-      await _showMessage('Download failed: unable to start');
+      await _showMessage('Download failed: $errorMsg');
+    }
+  }
+
+  Future<void> _processScrapedTasks(Map<String, dynamic> data) async {
+    try {
+      final List<dynamic> courses = data['courses'] as List<dynamic>? ?? [];
+      final List<PortalTask> flattenedTasks = [];
+      
+      for (final course in courses) {
+        final courseName = course['name']?.toString() ?? 'Unknown';
+        final courseId = course['id']?.toString();
+        
+        final assignments = course['assignments'] as List<dynamic>? ?? [];
+        final quizzes = course['quizzes'] as List<dynamic>? ?? [];
+        
+        for (final t in [...assignments, ...quizzes]) {
+          flattenedTasks.add(PortalTask(
+            type: t['type']?.toString() ?? 'Task',
+            title: t['title']?.toString() ?? 'Untitled',
+            subject: courseName,
+            dueDate: t['dueDate']?.toString() ?? '',
+            startDate: t['startDate']?.toString() ?? '',
+            status: t['status']?.toString() ?? '',
+            isActionable: t['isActionable'] == true,
+            courseId: courseId,
+            scrapedAt: DateTime.now().millisecondsSinceEpoch,
+          ));
+        }
+      }
+
+      if (flattenedTasks.isNotEmpty) {
+        setState(() => _scraperLogs.add('[IRIS] Scrape successful! Saving ${flattenedTasks.length} tasks.'));
+        await PortalSyncService.updatePersistence(flattenedTasks);
+        PortalSyncService.notifyUpdate();
+      } else {
+        setState(() => _scraperLogs.add('[IRIS] Scrape completed, but no new tasks found.'));
+      }
+    } catch (e) {
+      setState(() => _scraperLogs.add('[ERROR] Task processing failed: $e'));
     }
   }
 
   // Handles messages from the injected JS channel
   void _handleJsMessage(JavaScriptMessage message) {
     try {
-      final data = jsonDecode(message.message) as Map<String, dynamic>;
+      final data = jsonDecode(message.message);
+      if (data['type'] == 'log') {
+        if (mounted) {
+          setState(() {
+            _scraperLogs.add(data['message']);
+            // Limit log size to 100 entries
+            if (_scraperLogs.length > 100) _scraperLogs.removeAt(0);
+          });
+        }
+        return;
+      }
+      
+      if (data['type'] == 'portal_sync_tasks') {
+        _processScrapedTasks(data);
+        return;
+      }
+      
       final type = data['type']?.toString() ?? '';
       if (type == 'login_submit') {
         _offerToSaveLogin(
@@ -2496,21 +2402,33 @@ class _PortalScreenState extends State<PortalScreen>
 (() => {
   if (window._irisDownloadWatcher) return;
   window._irisDownloadWatcher = true;
+  
+  const isDownloadUrl = (url, anchor) => {
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    if (anchor && anchor.hasAttribute('download')) return true;
+    
+    // Common download patterns in portals
+    const patterns = [
+      /\.(pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar|7z|apk|png|jpg|jpeg|txt|csv)(\?|$)/i,
+      /download/i, /getfile/i, /export/i, /attachment/i, /viewfile/i, /stream/i, /generate/i
+    ];
+    return patterns.some(p => p.test(lower));
+  };
+
   document.addEventListener('click', function(e) {
     const a = e.target.closest ? e.target.closest('a[href]') : null;
     if (!a) return;
+    
     const href = a.href || '';
-    const lower = href.toLowerCase();
-    const isDownload =
-      a.hasAttribute('download') ||
-      /\.(pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar)(\?|$)/i.test(lower) ||
-      lower.includes('/download') ||
-      lower.includes('getfile') ||
-      lower.includes('export');
-    if (isDownload && window.IrisPortalChannel) {
-      e.preventDefault();
-      e.stopPropagation();
-      window.IrisPortalChannel.postMessage(JSON.stringify({ type: 'download', url: href }));
+    if (href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+    
+    if (isDownloadUrl(href, a)) {
+      if (window.IrisPortalChannel) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.IrisPortalChannel.postMessage(JSON.stringify({ type: 'download', url: href }));
+      }
     }
   }, true);
 })();
@@ -2604,7 +2522,11 @@ class _PortalScreenState extends State<PortalScreen>
     if (_isSyncing || _isLoading) return;
     if (!mounted) return;
     
-    setState(() => _isSyncing = true);
+    setState(() {
+      _isSyncing = true;
+      _scraperLogs = ['[IRIS] Initializing Deep Sync...', '[IRIS] Using Session: ${_currentSession.host}'];
+    });
+
     if (!silent) {
       _showTopPill(
         text: 'Syncing assignments...',
@@ -2612,11 +2534,29 @@ class _PortalScreenState extends State<PortalScreen>
         tone: IrisTokens.brand,
       );
       IrisSfx.pillTap();
+      // Show the log sheet automatically when manual sync is triggered
+      _showScraperLogs();
     }
     
     try {
-      await _controller.runJavaScript(HeadlessPortalSync.syncPortalScript);
+      // Inject a script that overrides console.log to pipe back to IrisPortalChannel
+      const logOverride = r'''
+        (function() {
+          const oldLog = console.log;
+          const oldError = console.error;
+          console.log = function(...args) {
+            window.IrisPortalChannel.postMessage(JSON.stringify({ type: 'log', message: args.join(' ') }));
+            oldLog.apply(console, args);
+          };
+          console.error = function(...args) {
+            window.IrisPortalChannel.postMessage(JSON.stringify({ type: 'log', message: 'ERROR: ' + args.join(' ') }));
+            oldError.apply(console, args);
+          };
+        })();
+      ''';
+      await _controller.runJavaScript(logOverride + HeadlessPortalSync.syncPortalScript);
     } catch (e) {
+      setState(() => _scraperLogs.add('[ERROR] Sync failed: $e'));
       if (!silent) {
         _showTopPill(
           text: 'Sync failed',
@@ -2627,12 +2567,80 @@ class _PortalScreenState extends State<PortalScreen>
     } finally {
       if (mounted) {
         setState(() => _isSyncing = false);
-        // Pill will clear itself or we can clear it after a delay
         Future.delayed(const Duration(seconds: 3), () {
           if (mounted) _clearTopPillOverlay();
         });
       }
     }
+  }
+
+  void _showScraperLogs() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          // Listen to changes in logs
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.6,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: (isDark ? const Color(0xFF0F172A) : Colors.white).withValues(alpha: 0.95),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Scraper Engine Logs',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    if (_isSyncing)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                  ],
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _scraperLogs.length,
+                    itemBuilder: (ctx, i) {
+                      final log = _scraperLogs[i];
+                      final isError = log.contains('ERROR');
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          log,
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            color: isError ? Colors.redAccent : (isDark ? Colors.white70 : Colors.black87),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      ),
+    );
   }
 
   void _toggleHeaderCollapsed() {
@@ -3067,7 +3075,18 @@ class _PortalScreenState extends State<PortalScreen>
       );
     }
 
-    // Smart Sync chip detection removed - background service handles this now.
+    // Smart Sync chip detection
+    if (_currentUrl.contains('comsats.edu.pk')) {
+      chips.add(
+        _buildHeaderQuickActionChip(
+          isDark: isDark,
+          icon: _isSyncing ? Icons.sync_rounded : Icons.auto_awesome_rounded,
+          label: _isSyncing ? 'Syncing...' : 'Deep Sync',
+          primary: true,
+          onTap: () => _syncPortalTasks(),
+        ),
+      );
+    }
 
     if (_hasFileUpload) {
       chips.add(
@@ -3426,7 +3445,7 @@ class _PortalScreenState extends State<PortalScreen>
                                 
                                 return SizedBox(
                                   width: currentWidth,
-                                  child: LiquidGlassLayer(
+                                  child: GlassSurface(
                                     settings: LiquidGlassSettings(
                                       blur: 16,
                                       ambientStrength: 0.65,
@@ -3435,42 +3454,37 @@ class _PortalScreenState extends State<PortalScreen>
                                           .withValues(alpha: isDark ? 0.42 : 0.45),
                                       thickness: 20,
                                     ),
-                                    child: LiquidGlass.inLayer(
-                                      shape: LiquidRoundedSuperellipse(
-                                        borderRadius: Radius.circular(currentRadius),
-                                      ),
-                                      glassContainsChild: false,
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: currentVPadding,
-                                            horizontal: currentHPadding,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(currentRadius),
-                                            border: Border.all(
-                                              color: (isDark ? Colors.white : accent)
-                                                  .withValues(alpha: isDark ? 0.14 : 0.18),
-                                              width: 1.5,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: (isDark ? Colors.black : accent).withValues(alpha: isDark ? 0.35 : 0.12),
-                                                blurRadius: 20,
-                                                offset: const Offset(0, 10),
-                                                spreadRadius: -6,
-                                              ),
-                                              if (_pillActive)
-                                                BoxShadow(
-                                                  color: _pillTone.withValues(alpha: 0.25),
-                                                  blurRadius: 12,
-                                                  spreadRadius: 2,
-                                                ),
-                                            ],
-                                          ),
-                                          child: child,
+                                    radius: currentRadius,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: currentVPadding,
+                                          horizontal: currentHPadding,
                                         ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(currentRadius),
+                                          border: Border.all(
+                                            color: (isDark ? Colors.white : accent)
+                                                .withValues(alpha: isDark ? 0.14 : 0.18),
+                                            width: 1.5,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: (isDark ? Colors.black : accent).withValues(alpha: isDark ? 0.35 : 0.12),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 10),
+                                              spreadRadius: -6,
+                                            ),
+                                            if (_pillActive)
+                                              BoxShadow(
+                                                color: _pillTone.withValues(alpha: 0.25),
+                                                blurRadius: 12,
+                                                spreadRadius: 2,
+                                              ),
+                                          ],
+                                        ),
+                                        child: child,
                                       ),
                                     ),
                                   ),

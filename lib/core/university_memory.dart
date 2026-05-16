@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,7 +27,7 @@ class UniversityMemoryLoader {
       raw = await rootBundle.loadString('assets/timetable_seed.json');
     }
     
-    final data = jsonDecode(raw) as List<dynamic>;
+    final data = await compute(_decodeTimetableJson, raw);
     final sessions = data
       .whereType<Map<String, dynamic>>()
       .map((item) => ClassSession.fromJson(item))
@@ -35,4 +36,9 @@ class UniversityMemoryLoader {
     final merged = await TimetableStorage.mergeOverrides(sessions);
     return UniversityMemory(merged);
   }
+}
+
+List<Map<String, dynamic>> _decodeTimetableJson(String raw) {
+  final data = jsonDecode(raw) as List<dynamic>;
+  return data.whereType<Map<String, dynamic>>().toList();
 }

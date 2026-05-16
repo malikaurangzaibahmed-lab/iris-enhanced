@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
+import '../core/theme_signals.dart';
 
 class GlassCard extends StatelessWidget {
   final Widget child;
@@ -52,9 +53,14 @@ class GlassCard extends StatelessWidget {
         : Colors.black.withValues(alpha: 0.04);
 
     final tiltAngle = tilt ? 0.006 : 0.0;
-    final blurSigma = enableBlur ? (IrisMotion.reduceBlur ? 15.0 : 28.0) : 0.0;
 
-    final cardBody = Container(
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeSignals.useMinimalTheme,
+      builder: (context, useMinimal, _) {
+        final reduceBlur = IrisMotion.reduceBlur || useMinimal || MediaQuery.of(context).disableAnimations;
+        final blurSigma = enableBlur ? (reduceBlur ? 6.0 : 12.0) : 0.0;
+
+        final cardBody = Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(effectiveRadius),
         boxShadow: enableShadow
@@ -85,46 +91,78 @@ class GlassCard extends StatelessWidget {
               IrisSfx.tick();
               onTap!();
             } : null,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-              child: Container(
-                padding: effectivePadding,
-                decoration: BoxDecoration(
-                  color: glassColor,
-                  borderRadius: BorderRadius.circular(effectiveRadius),
-                  border: Border.all(color: borderColor, width: 1.2),
-                  // Subtle highlight gradient for premium depth
-                  gradient: glow ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withValues(alpha: isDark ? 0.04 : 0.12),
-                      Colors.transparent,
-                    ],
-                  ) : null,
-                ),
-                child: child,
-              ),
+            child: _buildGlassSurface(
+              blurSigma: blurSigma,
+              padding: effectivePadding,
+              glassColor: glassColor,
+              borderColor: borderColor,
+              radius: effectiveRadius,
+              glow: glow,
+              isDark: isDark,
+              child: child,
             ),
           ),
         ),
       ),
     );
 
-    if (IrisMotion.reduceMotion) {
-      return Transform.rotate(angle: tiltAngle, child: cardBody);
+        if (IrisMotion.reduceMotion || useMinimal) {
+          return Transform.rotate(angle: tiltAngle, child: cardBody);
+        }
+
+        return Transform.rotate(
+          angle: tiltAngle,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: IrisMotion.medium,
+            curve: IrisMotion.entrance,
+            builder: (context, animValue, child) =>
+                Transform.scale(scale: 0.97 + (animValue * 0.03), child: child),
+            child: cardBody,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGlassSurface({
+    required double blurSigma,
+    required EdgeInsetsGeometry padding,
+    required Color glassColor,
+    required Color borderColor,
+    required double radius,
+    required bool glow,
+    required bool isDark,
+    required Widget child,
+  }) {
+    final surface = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: glassColor,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: borderColor, width: 1.2),
+        // Subtle highlight gradient for premium depth
+        gradient: glow
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: isDark ? 0.04 : 0.12),
+                  Colors.transparent,
+                ],
+              )
+            : null,
+      ),
+      child: child,
+    );
+
+    if (blurSigma <= 0.0) {
+      return surface;
     }
 
-    return Transform.rotate(
-      angle: tiltAngle,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: IrisMotion.medium,
-        curve: IrisMotion.entrance,
-        builder: (context, animValue, child) =>
-            Transform.scale(scale: 0.97 + (animValue * 0.03), child: child),
-        child: cardBody,
-      ),
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+      child: surface,
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:math' as math;
 
 // ============ LECTURE DURATION HELPER ============
 /// Helper functions to handle 1-hour lecture duration calculations
@@ -146,6 +148,22 @@ class MakeupSlotSuggestion {
   }
 }
 
+class BatchVitalMetrics {
+  final double dayProgress;
+  final int completedClasses;
+  final int totalClassesToday;
+  final int remainingClasses;
+  final double attendanceHealth;
+
+  const BatchVitalMetrics({
+    required this.dayProgress,
+    required this.completedClasses,
+    required this.totalClassesToday,
+    required this.remainingClasses,
+    required this.attendanceHealth,
+  });
+}
+
 class OmniBrain {
   final UniversityMemory memory;
 
@@ -202,6 +220,41 @@ class OmniBrain {
     }
     
     return merged;
+  }
+
+  BatchVitalMetrics getVitalMetrics(String batch, DateTime now) {
+    final schedule = scheduleFor(batch);
+    final today = schedule.where((s) => s.dayIndex == now.weekday).toList();
+    final currentT = now.hour + (now.minute / 60.0);
+
+    if (today.isEmpty) {
+      return const BatchVitalMetrics(
+        dayProgress: 0.0,
+        completedClasses: 0,
+        totalClassesToday: 0,
+        remainingClasses: 0,
+        attendanceHealth: 1.0,
+      );
+    }
+
+    final mergedToday = getMergedConsecutiveSessions(today);
+    final completed = mergedToday.where((s) => _getActualEndTime(s) <= currentT).length;
+    final total = mergedToday.length;
+    final remaining = mergedToday.where((s) => s.safeStartVal > currentT).length;
+    
+    // Day progress based on completed classes vs total
+    final dayProgress = total > 0 ? completed / total : 0.0;
+    
+    // Simulated attendance health for now (ideally from a service)
+    final attendanceHealth = 0.85 + (math.Random(now.day).nextDouble() * 0.12);
+
+    return BatchVitalMetrics(
+      dayProgress: dayProgress,
+      completedClasses: completed,
+      totalClassesToday: total,
+      remainingClasses: remaining,
+      attendanceHealth: attendanceHealth,
+    );
   }
 
   // Find all consecutive sessions for a given session

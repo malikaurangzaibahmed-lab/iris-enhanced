@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/tokens.dart';
+import '../core/animations.dart';
 
 class NeuralAura extends StatefulWidget {
   final bool background;
@@ -393,134 +394,140 @@ class _NeuralAuraState extends State<NeuralAura>
       }
     }
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final t = _controller.value;
-        final phase = t * 2 * math.pi;
-        final wave = 0.5 + (0.5 * math.sin(phase));
-        final waveSlow = 0.5 + (0.5 * math.sin((phase * 0.72) + 0.9));
-        final driftX = 0.30 * math.sin(phase + 1.0);
-        final driftY = 0.22 * math.cos((phase * 0.86) + 0.6);
-        final shimmer = 0.5 + (0.5 * math.sin((phase * 2.3) + 2.2));
-        final pulse = 0.5 + (0.5 * math.sin((phase * 1.45) + 0.4));
+    final reduceMotion =
+        IrisMotion.reduceMotion || MediaQuery.of(context).disableAnimations;
 
-        final baseColors = widget.background
-            ? _lerpColorLists(toneStopsDark(), toneStopsDarkAlt(), wave)
-            : _lerpColorLists(toneStopsLight(), toneStopsLightAlt(), wave);
+    return TickerMode(
+      enabled: !reduceMotion,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final t = reduceMotion ? 0.42 : _controller.value;
+          final phase = t * 2 * math.pi;
+          final wave = 0.5 + (0.5 * math.sin(phase));
+          final waveSlow = 0.5 + (0.5 * math.sin((phase * 0.72) + 0.9));
+          final driftX = 0.30 * math.sin(phase + 1.0);
+          final driftY = 0.22 * math.cos((phase * 0.86) + 0.6);
+          final shimmer = 0.5 + (0.5 * math.sin((phase * 2.3) + 2.2));
+          final pulse = 0.5 + (0.5 * math.sin((phase * 1.45) + 0.4));
 
-        final meshColors = widget.background
-            ? _lerpColorLists(
-                [darkPrimaryAccent(), Colors.transparent, darkSecondaryAccent()],
-                [darkSecondaryAccent(), Colors.transparent, darkPrimaryAccent()],
-                wave,
-              )
-            : _lerpColorLists(toneMeshLight(), toneMeshLightAlt(), wave);
+          final baseColors = widget.background
+              ? _lerpColorLists(toneStopsDark(), toneStopsDarkAlt(), wave)
+              : _lerpColorLists(toneStopsLight(), toneStopsLightAlt(), wave);
 
-        return Stack(
-          children: [
-            // Base gradient — deeper, richer
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment(-1.0 + driftX, -1.0 + driftY),
-                  end: Alignment(1.0 - driftX, 1.0 - driftY),
-                  colors: baseColors,
-                  stops: widget.background
-                      ? const [0.0, 0.3, 0.7, 1.0]
-                      : const [0.0, 0.15, 0.35, 0.55, 0.78, 1.0],
-                ),
-              ),
-            ),
+          final meshColors = widget.background
+              ? _lerpColorLists(
+                  [darkPrimaryAccent(), Colors.transparent, darkSecondaryAccent()],
+                  [darkSecondaryAccent(), Colors.transparent, darkPrimaryAccent()],
+                  wave,
+                )
+              : _lerpColorLists(toneMeshLight(), toneMeshLightAlt(), wave);
 
-            // Mesh overlay for premium depth
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
+          return RepaintBoundary(
+            child: Stack(
+              children: [
+                // Base gradient — deeper, richer
+                Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment(1.0 - driftY, -1.0 + driftX),
-                      end: Alignment(-1.0 + driftY, 1.0 - driftX),
-                      colors: meshColors,
+                      begin: Alignment(-1.0 + driftX, -1.0 + driftY),
+                      end: Alignment(1.0 - driftX, 1.0 - driftY),
+                      colors: baseColors,
+                      stops: widget.background
+                          ? const [0.0, 0.3, 0.7, 1.0]
+                          : const [0.0, 0.15, 0.35, 0.55, 0.78, 1.0],
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            // Sweeping highlight layer for livelier movement
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Opacity(
-                  opacity: widget.background
-                      ? (0.06 + (shimmer * 0.05))
-                      : (0.05 + (shimmer * 0.06)),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment(-1.2 + (waveSlow * 1.6), -1.0),
-                        end: Alignment(-0.2 + (waveSlow * 1.6), 1.0),
-                        colors: [
-                          Colors.transparent,
-                          (widget.background ? Colors.white : IrisTokens.brand)
-                              .withValues(alpha: 0.28),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
+                // Mesh overlay for premium depth
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment(1.0 - driftY, -1.0 + driftX),
+                          end: Alignment(-1.0 + driftY, 1.0 - driftX),
+                          colors: meshColors,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            // Counter sweep to avoid static directional feel
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Opacity(
-                  opacity: widget.background
-                      ? (0.04 + (pulse * 0.05))
-                      : (0.03 + (pulse * 0.05)),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment(1.1 - (waveSlow * 1.5), -1.0),
-                        end: Alignment(0.1 - (waveSlow * 1.5), 1.0),
-                        colors: [
-                          Colors.transparent,
-                          (widget.background
-                                  ? IrisTokens.blue
-                                  : IrisTokens.purple)
-                              .withValues(alpha: 0.20),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
+                // Sweeping highlight layer for livelier movement
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Opacity(
+                      opacity: widget.background
+                          ? (0.06 + (shimmer * 0.05))
+                          : (0.05 + (shimmer * 0.06)),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(-1.2 + (waveSlow * 1.6), -1.0),
+                            end: Alignment(-0.2 + (waveSlow * 1.6), 1.0),
+                            colors: [
+                              Colors.transparent,
+                              (widget.background ? Colors.white : IrisTokens.brand)
+                                  .withValues(alpha: 0.28),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            // Moving pulse core for energetic depth
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment(
-                          -0.5 + (wave * 1.0), -0.2 + ((1 - wave) * 0.8)),
-                      radius: 0.9 + (pulse * 0.2),
-                      colors: [
-                        (widget.background ? IrisTokens.teal : IrisTokens.brand)
-                            .withValues(alpha: 0.10 + (pulse * 0.08)),
-                        Colors.transparent,
-                      ],
+                // Counter sweep to avoid static directional feel
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Opacity(
+                      opacity: widget.background
+                          ? (0.04 + (pulse * 0.05))
+                          : (0.03 + (pulse * 0.05)),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(1.1 - (waveSlow * 1.5), -1.0),
+                            end: Alignment(0.1 - (waveSlow * 1.5), 1.0),
+                            colors: [
+                              Colors.transparent,
+                              (widget.background
+                                      ? IrisTokens.blue
+                                      : IrisTokens.purple)
+                                  .withValues(alpha: 0.20),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+
+                // Moving pulse core for energetic depth
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(
+                              -0.5 + (wave * 1.0), -0.2 + ((1 - wave) * 0.8)),
+                          radius: 0.9 + (pulse * 0.2),
+                          colors: [
+                            (widget.background ? IrisTokens.teal : IrisTokens.brand)
+                                .withValues(alpha: 0.10 + (pulse * 0.08)),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
             if (widget.background)
               Positioned.fill(
@@ -732,9 +739,11 @@ class _NeuralAuraState extends State<NeuralAura>
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         );
       },
+      ),
     );
   }
 }

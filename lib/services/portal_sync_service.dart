@@ -200,40 +200,57 @@ class PortalSyncService {
     final raw = prefs.getString(sessionKey);
     
     if (raw != null) {
-      final sessionData = jsonDecode(raw) as Map<String, dynamic>;
-      final session = PortalSession.fromJson(sessionData);
-      
-      final existingTasks = session.tasks;
-      final merged = <PortalTask>[];
-      
-      for (final nt in newTasks) {
-        final existing = existingTasks.cast<PortalTask?>().firstWhere(
-          (t) => t?.title == nt.title && t?.subject == nt.subject,
-          orElse: () => null,
-        );
-        merged.add(nt.copyWith(isCompleted: existing?.isCompleted ?? false));
-      }
+      try {
+        final sessionData = jsonDecode(raw) as Map<String, dynamic>;
+        final session = PortalSession.fromJson(sessionData);
+        
+        final existingTasks = session.tasks;
+        final mergedMap = <String, PortalTask>{};
+        
+        // 1. Start with existing tasks that haven't expired yet
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        
+        for (final et in existingTasks) {
+          final key = '${et.subject}_${et.title}_${et.type}';
+          
+          // Keep it if it's completed OR if the due date hasn't passed yet
+          // (daysRemaining returns 999 if unparseable, which is fine to keep)
+          if (et.isCompleted || et.daysRemaining >= 0) {
+            mergedMap[key] = et;
+          }
+        }
 
-      final updatedSession = session.copyWith(
-        tasks: merged,
-        lastSyncAt: DateTime.now().millisecondsSinceEpoch,
-      );
-      await prefs.setString(sessionKey, jsonEncode(updatedSession.toJson()));
+        // 2. Merge in new tasks from the latest scrape
+        for (final nt in newTasks) {
+          final key = '${nt.subject}_${nt.title}_${nt.type}';
+          final existing = mergedMap[key];
+          
+          if (existing != null) {
+            // Update existing with new portal data but preserve user completion status
+            mergedMap[key] = nt.copyWith(
+              isCompleted: existing.isCompleted || nt.isCompleted,
+            );
+          } else {
+            // Found a brand new task
+            mergedMap[key] = nt;
+          }
+        }
+
+        final updatedSession = session.copyWith(
+          tasks: mergedMap.values.toList(),
+          lastSyncAt: DateTime.now().millisecondsSinceEpoch,
+        );
+        await prefs.setString(sessionKey, jsonEncode(updatedSession.toJson()));
+      } catch (e) {
+        debugPrint('Error merging portal tasks: $e');
+      }
     }
   }
-}
 
-extension on PortalTask {
-  PortalTask copyWith({bool? isCompleted, String? status}) {
-    return PortalTask(
-      type: type,
-      title: title,
-      subject: subject,
-      dueDate: dueDate,
-      scrapedAt: scrapedAt,
-      isCompleted: isCompleted ?? this.isCompleted,
-      status: status ?? this.status,
-      courseId: courseId,
-    );
+  /// Expose the storage logic for use by other sync services (like the Headless scraper)
+  static Future<void> updatePersistence(List<PortalTask> tasks) async {
+    final prefs = await SharedPreferences.getInstance();
+    await _updateStoredTasks(tasks, prefs);
   }
 }

@@ -10,15 +10,20 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../core/tokens.dart';
 import '../core/animations.dart';
+import '../core/theme_signals.dart';
 import '../core/models.dart';
 import '../core/omni_brain.dart';
 import '../core/university_memory.dart';
 import '../core/format_guard.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/vital_card.dart';
+import '../widgets/vital_progress.dart';
 import '../widgets/neural_aura.dart';
 import '../widgets/smooth_scroll.dart';
 import '../widgets/portal_sync_card.dart';
+import '../core/vital_theme.dart';
+import '../core/vital_motion.dart';
 import '../services/notification_service.dart';
 import '../services/helpdesk_faculty_service.dart';
 import '../services/helpdesk_campus_feed_service.dart';
@@ -29,10 +34,9 @@ import '../portal_screen.dart';
 import 'about_screen.dart';
 import 'room_finder_screen.dart';
 
-// Helper screens that are currently in main.dart but will be moved to tools_screen.dart
-// For now, we will import them if they are still in main.dart, but ideally they should be in their own files.
-// Since we are moving ToolsScreen next, I'll temporarily leave these as placeholders or import main if needed.
-// Actually, it's better to move them all together or use relative imports.
+import 'teacher_locator_screen.dart';
+import 'makeup_lecture_scheduler.dart';
+import 'class_analytics_screen.dart';
 
 class Dashboard extends StatefulWidget {
   final UniversityMemory memory;
@@ -91,6 +95,7 @@ class _DashboardState extends State<Dashboard>
   final GlobalKey _studentAboutNavKey = GlobalKey(
     debugLabel: 'student_about_nav',
   );
+  final ScrollController _scrollController = ScrollController();
 
   bool _isMakeupSession(ClassSession session) =>
       session.id.startsWith('makeup_');
@@ -125,56 +130,34 @@ class _DashboardState extends State<Dashboard>
     }
   }
 
+  bool _sameSessionSignature(ClassSession a, ClassSession b) =>
+      a.subject == b.subject &&
+      a.teacher == b.teacher &&
+      a.room == b.room &&
+      (a.safeStartVal - b.safeStartVal).abs() < 0.01;
+
+  bool _sessionsOverlap(ClassSession a, ClassSession b) =>
+      a.batchKey.batch == b.batchKey.batch &&
+      a.dayIndex == b.dayIndex &&
+      a.safeStartVal < b.safeEndVal &&
+      b.safeStartVal < a.safeEndVal;
+
   Future<void> _persistCustomMakeupSessions() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final custom = widget.memory.sessions
-          .where(_isMakeupSession)
+          .where((s) => _isMakeupSession(s))
           .map((s) => s.toJson())
           .toList();
       await prefs.setString(_customMakeupSessionsPrefsKey, jsonEncode(custom));
     } catch (e) {
-      debugPrint('⚠️ Failed to persist custom makeup sessions: $e');
+      debugPrint('⚠️ Failed to persist makeup sessions: $e');
     }
-  }
-
-  bool _sessionsOverlap(ClassSession a, ClassSession b) {
-    if (a.dayIndex != b.dayIndex) return false;
-    return a.safeStartVal < b.safeEndVal && b.safeStartVal < a.safeEndVal;
-  }
-
-  bool _sameSessionSignature(ClassSession a, ClassSession b) {
-    return a.batchKey.batch == b.batchKey.batch &&
-        a.dayIndex == b.dayIndex &&
-        a.startTime == b.startTime &&
-        a.endTime == b.endTime &&
-        a.teacher.trim().toLowerCase() == b.teacher.trim().toLowerCase() &&
-        a.subject.trim().toLowerCase() == b.subject.trim().toLowerCase();
   }
 
   Future<void> _addMakeupSession(ClassSession session) async {
-    if (session.batchKey.batch != widget.batch) {
-      if (!mounted) return;
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'makeup_different_batch',
-        content: const Text('This makeup class belongs to a different batch.'),
-      );
-      return;
-    }
-
-    final duplicate = widget.memory.sessions.any(
-      (s) => s.id == session.id || _sameSessionSignature(s, session),
-    );
-    if (duplicate) {
-      if (!mounted) return;
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'makeup_duplicate',
-        content: const Text('That makeup class is already in your timeline.'),
-      );
-      return;
-    }
+    if (_isMakeupSession(session)) return;
+    if (!mounted) return;
 
     final batchSessions = widget.memory.sessions
         .where((s) => s.batchKey.batch == widget.batch)
@@ -299,7 +282,7 @@ class _DashboardState extends State<Dashboard>
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => LiquidGlassLayer(
+      builder: (ctx) => GlassSurface(
         settings: LiquidGlassSettings(
           blur: 16,
           ambientStrength: 0.70,
@@ -307,14 +290,10 @@ class _DashboardState extends State<Dashboard>
           glassColor: Colors.black.withValues(alpha: 0.05),
           thickness: 15,
         ),
-        child: LiquidGlass.inLayer(
-          shape: const LiquidRoundedSuperellipse(
-            borderRadius: Radius.circular(20),
-          ),
-          glassContainsChild: false,
-          child: AlertDialog(
-            backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
-                .withValues(alpha: isDark ? 0.88 : 0.92),
+        radius: 20,
+        child: AlertDialog(
+          backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
+              .withValues(alpha: isDark ? 0.88 : 0.92),
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -329,8 +308,8 @@ class _DashboardState extends State<Dashboard>
             isLive
                 ? 'This class is live right now. Remove it from your timeline?'
                 : minutesToStart >= 0 && minutesToStart <= 15
-                ? 'This class starts in $minutesToStart min. Remove it anyway?'
-                : 'Remove ${session.subject} (${session.startTime}-${session.endTime}) from your timeline?',
+                    ? 'This class starts in $minutesToStart min. Remove it anyway?'
+                    : 'Remove ${session.subject} (${session.startTime}-${session.endTime}) from your timeline?',
           ),
           actions: [
             TextButton(
@@ -345,57 +324,25 @@ class _DashboardState extends State<Dashboard>
           ],
         ),
       ),
-    ),
-  );
+    );
 
     if (confirm == true) {
       await _removeMakeupSession(session);
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() => _navBarReady = true);
-      }
-    });
-    _updateScheduleCache();
-    _loadCustomMakeupSessions();
-    _lastMinute = DateTime.now().minute;
-
-    // Schedule class reminders for today
-    _scheduleClassReminders();
-
-    // Start foreground service if notifications enabled
-    _startForegroundServiceIfNeeded();
-
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) {
-        final now = DateTime.now();
-        final current = widget.brain.getCurrentClass(widget.batch, now);
-        final minuteChanged = _lastMinute != now.minute;
-        if (current != _previousClass || minuteChanged) {
-          setState(() {
-            _lastMinute = now.minute;
-            _previousClass = current;
-          });
-        }
-        // Update notifications and widget only if state changed (smarter updates)
-        _updatePersistentNotificationIfNeeded();
-        _updateWidgetIfNeeded();
-      }
-    });
-    _updatePersistentNotificationIfNeeded();
-    _updateWidgetIfNeeded();
+  void _tick(DateTime now) {
+    if (mounted) {
+      _updatePersistentNotificationIfNeeded();
+      _updateWidgetIfNeeded();
+    }
   }
 
   Future<void> _startForegroundServiceIfNeeded() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // ALWAYS set role to student to prevent cross-contamination
-    await prefs.setString('user_role', 'student');
+    // Keep the service data aligned with the active student batch,
+    // but do not overwrite the app persona here.
     await prefs.setString('student_batch', widget.batch);
 
     final notificationEnabled =
@@ -421,7 +368,6 @@ class _DashboardState extends State<Dashboard>
 
     // Store timetable data for TaskHandler to use
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_role', 'student');
     await prefs.setString('student_batch', widget.batch);
 
     // Serialize timetable data
@@ -453,13 +399,6 @@ class _DashboardState extends State<Dashboard>
     final next = widget.brain.getNextClass(widget.batch, now);
     final currentTime = now.hour + (now.minute / 60.0);
     final dayIndex = now.weekday;
-
-    // Animated colored progress bar with glowy emojis
-    String bar(double p) {
-      const total = 8;
-      final filled = (p * total).round().clamp(0, total);
-      return '🟦' * filled + '⬜' * (total - filled);
-    }
 
     final todayAll = widget.memory.sessions
         .where(
@@ -498,9 +437,9 @@ class _DashboardState extends State<Dashboard>
           ? ' · $remaining more today'
           : ' · Last one';
 
-      notifTitle = '🎓 ${current.subject} · $timeLeft';
+      notifTitle = '${current.subject} · $timeLeft';
       notifBody =
-          '${bar(progress)} $progressPercent%$classCount\n📍 ${current.room} · ${current.teacher}';
+          'In Progress ($progressPercent%)$classCount\n${current.room} · ${current.teacher}';
     } else if (next != null) {
       int daysAhead = 0;
       if (next.dayIndex != dayIndex) {
@@ -517,7 +456,7 @@ class _DashboardState extends State<Dashboard>
       final minsUntil = totalMinutesUntil % 60;
 
       String timeUntil = '';
-      String emoji = '📌';
+      String statusLabel = 'Scheduled';
       if (daysAhead > 0) {
         const dayNames = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final nextDayName = dayNames[next.dayIndex];
@@ -527,19 +466,19 @@ class _DashboardState extends State<Dashboard>
         final amPm = startHour >= 12 ? 'PM' : 'AM';
         timeUntil =
             '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
-        emoji = '📅';
+        statusLabel = 'Upcoming';
       } else if (hoursUntil > 0) {
         timeUntil = '${hoursUntil}h ${minsUntil}m';
-        emoji = '⏳';
+        statusLabel = 'Next';
       } else if (minsUntil > 10) {
         timeUntil = '${minsUntil} min';
-        emoji = '⏳';
+        statusLabel = 'Starting Soon';
       } else if (minsUntil > 0) {
         timeUntil = '${minsUntil} min';
-        emoji = '⚡';
+        statusLabel = 'Starting Now';
       } else {
-        timeUntil = 'now';
-        emoji = '🔔';
+        timeUntil = 'Now';
+        statusLabel = 'Starting';
       }
 
       final remainingToday = todayAll
@@ -548,22 +487,22 @@ class _DashboardState extends State<Dashboard>
 
       String classInfo;
       if (daysAhead > 0) {
-        classInfo = 'Done for today ✓';
+        classInfo = 'Done for today';
       } else if (remainingToday > 1) {
         classInfo = '$remainingToday classes left';
       } else {
         classInfo = 'Last class today';
       }
 
-      notifTitle = '$emoji ${next.subject} in $timeUntil';
-      notifBody = '$classInfo\n📍 ${next.room} · ${next.teacher}';
+      notifTitle = '${next.subject} in $timeUntil';
+      notifBody = '$classInfo\n${next.room} · ${next.teacher}';
     } else {
       final weekday = now.weekday;
       if (weekday == 6 || weekday == 7) {
-        notifTitle = '🎉 Weekend Mode';
+        notifTitle = 'Weekend Mode';
         notifBody = 'No classes — enjoy your break!';
       } else {
-        notifTitle = '✓ All done for today';
+        notifTitle = 'All done for today';
         notifBody = 'No more classes scheduled';
       }
     }
@@ -653,7 +592,7 @@ class _DashboardState extends State<Dashboard>
   @override
   void dispose() {
     _ticker.cancel();
-    // Don't stop foreground service here - it should persist
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -687,7 +626,7 @@ class _DashboardState extends State<Dashboard>
             SizedBox(width: 12),
             Text(
               'Schedule refreshed',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -741,13 +680,6 @@ class _DashboardState extends State<Dashboard>
 
     _previousNotificationHash = currentHash;
 
-    // Animated colored progress bar with glowy emojis
-    String bar(double p) {
-      const total = 8;
-      final filled = (p * total).round().clamp(0, total);
-      return '🟦' * filled + '⬜' * (total - filled);
-    }
-
     final todayAll = widget.memory.sessions
         .where(
           (s) => s.batchKey.batch == widget.batch && s.dayIndex == dayIndex,
@@ -784,9 +716,9 @@ class _DashboardState extends State<Dashboard>
             ? ' · $remaining more today'
             : ' · Last one';
 
-        notifTitle = '🎓 ${current.subject} · $timeLeft';
+        notifTitle = '${current.subject} · $timeLeft';
         notifBody =
-            '${bar(progress)} $progressPercent%$classCount\n📍 ${current.room} · ${current.teacher}';
+            'In Progress ($progressPercent%)$classCount\n${current.room} · ${current.teacher}';
       } else if (next != null) {
         int daysAhead = 0;
         if (next.dayIndex != dayIndex) {
@@ -803,7 +735,7 @@ class _DashboardState extends State<Dashboard>
         final minsUntil = totalMinutesUntil % 60;
 
         String timeUntil = '';
-        String emoji = '📌';
+        String statusLabel = 'Scheduled';
         if (daysAhead > 0) {
           const dayNames = [
             '',
@@ -822,19 +754,19 @@ class _DashboardState extends State<Dashboard>
           final amPm = startHour >= 12 ? 'PM' : 'AM';
           timeUntil =
               '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
-          emoji = '📅';
+          statusLabel = 'Upcoming';
         } else if (hoursUntil > 0) {
           timeUntil = '${hoursUntil}h ${minsUntil}m';
-          emoji = '⏳';
+          statusLabel = 'Next';
         } else if (minsUntil > 10) {
           timeUntil = '${minsUntil} min';
-          emoji = '⏳';
+          statusLabel = 'Starting Soon';
         } else if (minsUntil > 0) {
           timeUntil = '${minsUntil} min';
-          emoji = '⚡';
+          statusLabel = 'Starting Now';
         } else {
-          timeUntil = 'now';
-          emoji = '🔔';
+          timeUntil = 'Now';
+          statusLabel = 'Starting';
         }
 
         final remainingToday = todayAll
@@ -860,22 +792,22 @@ class _DashboardState extends State<Dashboard>
 
         String classInfo;
         if (daysAhead > 0) {
-          classInfo = 'Done for today ✓';
+          classInfo = 'Done for today';
         } else if (remainingToday > 1) {
           classInfo = '$remainingToday classes left';
         } else {
           classInfo = 'Last class today';
         }
 
-        notifTitle = '$emoji ${next.subject} in $timeUntil';
-        notifBody = '$classInfo$breakInfo\n📍 ${next.room} · ${next.teacher}';
+        notifTitle = '${next.subject} in $timeUntil';
+        notifBody = '$classInfo$breakInfo\n${next.room} · ${next.teacher}';
       } else {
         final weekday = now.weekday;
         if (weekday == 6 || weekday == 7) {
-          notifTitle = '🎉 Weekend Mode';
+          notifTitle = 'Weekend Mode';
           notifBody = 'No classes — enjoy your break!';
         } else {
-          notifTitle = '✓ All done for today';
+          notifTitle = 'All done for today';
           notifBody = 'No more classes scheduled';
         }
       }
@@ -1102,7 +1034,7 @@ class _DashboardState extends State<Dashboard>
             children: [
               const Icon(Icons.grid_view_rounded, size: 64, color: IrisTokens.brand),
               const SizedBox(height: 16),
-              const Text('Resources coming soon...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Resources coming soon...', style: IrisTextStyles.headline(context).copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () => setState(() => _bottomNavIndex = 0),
@@ -1115,1090 +1047,105 @@ class _DashboardState extends State<Dashboard>
         return AboutScreen(
           key: const PageStorageKey<String>('student_tab_about'),
           memory: widget.memory,
+          onRoleChanged: widget.onRoleChanged,
         );
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildStudentBottomNavBar(bool isDark) {
-    final width = MediaQuery.of(context).size.width;
-    final now = DateTime.now();
-    final current = widget.brain.getCurrentClass(widget.batch, now);
-    final next = widget.brain.getNextClass(widget.batch, now);
-    final currentTime = now.hour + (now.minute / 60.0);
-    final minutesToNext = next == null
-        ? 9999
-        : ((next.safeStartVal - currentTime) * 60).round();
-    final classesNeedAttention =
-        current != null ||
-        (next != null &&
-            next.dayIndex == now.weekday &&
-            minutesToNext >= 0 &&
-            minutesToNext <= 25);
-    final makeupCount = widget.memory.sessions
-        .where((s) => s.batchKey.batch == widget.batch && _isMakeupSession(s))
-        .length;
-    final hasMakeup = makeupCount > 0;
-    final navPriorityColor = current != null
-        ? IrisTokens.success
-        : (classesNeedAttention
-              ? IrisTokens.warning
-              : (hasMakeup ? IrisTokens.purple : IrisTokens.brand));
-    final compact = width < 420;
-    final veryCompact = width < 360;
-    final horizontalPadding = veryCompact ? 10.0 : (compact ? 12.0 : 20.0);
-    final radius = veryCompact ? 18.0 : (compact ? 22.0 : 28.0);
-
-    final navActive = _bottomNavIndex != 0;
-    final activeGlow = _bottomNavIndex == 0
-        ? Colors.transparent
-        : navPriorityColor.withValues(alpha: isDark ? 0.20 : 0.15);
-
-    return AnimatedScale(
-      duration: const Duration(milliseconds: 352),
-      curve: IrisMotion.standard,
-      scale: _navBarReady ? 1.0 : 0.93,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 336),
-        curve: IrisMotion.standard,
-        offset: _navBarReady ? Offset.zero : const Offset(0, 0.45),
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 352),
-          opacity: _navBarReady ? 1.0 : 0.0,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              0,
-              horizontalPadding,
-              10,
-            ),
-            child: LiquidGlassLayer(
-              settings: LiquidGlassSettings(
-                blur: 18.0,
-                ambientStrength: 0.75,
-                lightAngle: 0.15 * math.pi,
-                glassColor: isDark 
-                    ? const Color(0xFF020617).withValues(alpha: 0.10) 
-                    : Colors.white.withValues(alpha: 0.18),
-                thickness: 12,
-              ),
-              child: LiquidGlass.inLayer(
-                shape: LiquidRoundedSuperellipse(
-                  borderRadius: Radius.circular(radius),
-                ),
-                glassContainsChild: false,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 304),
-                  curve: IrisMotion.standard,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(radius),
-                    border: Border.all(
-                      color: (isDark ? Colors.white : navPriorityColor)
-                          .withValues(alpha: navActive ? 0.12 : 0.06),
-                      width: 1.8,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.08),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: activeGlow,
-                        blurRadius: 18,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final itemWidth = constraints.maxWidth / 4;
-                      final trailWidth = (itemWidth * 0.34).clamp(
-                        12.0,
-                        veryCompact ? 16.0 : (compact ? 20.0 : 24.0),
-                      );
-                      final haloSize = (itemWidth * 0.70).clamp(
-                        24.0,
-                        veryCompact ? 30.0 : (compact ? 36.0 : 44.0),
-                      );
-                      final left =
-                          (itemWidth * _bottomNavIndex) +
-                          ((itemWidth - trailWidth) / 2);
-                      final haloLeft =
-                          (itemWidth * _bottomNavIndex) +
-                          ((itemWidth - haloSize) / 2);
-                      final trailColor = isDark
-                          ? Colors.white.withValues(alpha: 0.70)
-                          : navPriorityColor.withValues(alpha: 0.84);
-
-                      return GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onHorizontalDragUpdate: (details) =>
-                            _handleStudentNavDrag(details, constraints.maxWidth),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: haloLeft,
-                              top: veryCompact ? 9 : (compact ? 8 : 7),
-                              child: IgnorePointer(
-                                child: NavActiveHalo(
-                                  size: haloSize,
-                                  color: trailColor,
-                                ),
-                              ),
-                            ),
-                            AnimatedPositioned(
-                              duration: const Duration(milliseconds: 304),
-                              curve: IrisMotion.standard,
-                              left: left,
-                              top: 0,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 304),
-                                curve: IrisMotion.standard,
-                                width: trailWidth,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: trailColor,
-                                  borderRadius: BorderRadius.circular(999),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: trailColor.withValues(alpha: 0.20),
-                                      blurRadius: 8,
-                                      spreadRadius: -2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                veryCompact ? 4 : (compact ? 6 : 8),
-                                veryCompact ? 5 : (compact ? 6 : 8),
-                                veryCompact ? 4 : (compact ? 6 : 8),
-                                veryCompact ? 3 : (compact ? 4 : 6),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: BouncyNavButton(
-                                      icon: _bottomNavIndex == 0
-                                          ? Icons.home_filled
-                                          : Icons.home_rounded,
-                                      label: 'Home',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 0,
-                                      enabled: !_isStudentNavBusy,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(0),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: BouncyNavButton(
-                                      launchIconKey: _studentPortalNavKey,
-                                      icon: Icons.public_rounded,
-                                      label: 'Portal',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 1,
-                                      enabled: !_isStudentNavBusy,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(1),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: BouncyNavButton(
-                                      launchIconKey: _studentToolsNavKey,
-                                      icon: _bottomNavIndex == 2
-                                          ? Icons.grid_view_rounded
-                                          : Icons.grid_view_outlined,
-                                      label: 'Resources',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 2,
-                                      enabled: !_isStudentNavBusy,
-                                      showIndicator: hasMakeup,
-                                      indicatorCount: makeupCount,
-                                      indicatorColor: IrisTokens.purple,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(2),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: BouncyNavButton(
-                                      launchIconKey: _studentAboutNavKey,
-                                      icon: _bottomNavIndex == 3
-                                          ? Icons.info_rounded
-                                          : Icons.info_outline_rounded,
-                                      label: 'About',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 3,
-                                      enabled: !_isStudentNavBusy,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(3),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+  Widget _buildStudentBottomNavBar(bool isDark, ScrollController scrollController) {
+    return DashboardDock(
+      scrollController: scrollController,
+      showStudentSet: true,
+      selectedIndex: _bottomNavIndex,
+      onHome: () {
+        if (_bottomNavIndex == 0) {
+          _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeOutCubic);
+        } else {
+          setState(() {
+            _studentTabSlideDirection = -1;
+            _bottomNavIndex = 0;
+          });
+        }
+      },
+      onPortal: () => setState(() {
+        _studentTabSlideDirection = _bottomNavIndex < 1 ? 1 : -1;
+        _bottomNavIndex = 1;
+      }),
+      onTools: () => setState(() {
+        _studentTabSlideDirection = _bottomNavIndex < 2 ? 1 : -1;
+        _bottomNavIndex = 2;
+      }),
+      onAbout: () => setState(() {
+        _studentTabSlideDirection = 1;
+        _bottomNavIndex = 3;
+      }),
     );
   }
 
-  // Future<void> _openMakeupScheduler({GlobalKey? originKey}) async {
-  //   if (!mounted) return;
-
-  //   IrisHaptics.actionMedium();
-
-  //   await pushIconLaunchRoute(
-  //     context,
-  //     originKey: originKey,
-  //     lightweight: true,
-  //     transitionDuration: const Duration(milliseconds: 304),
-  //     reverseTransitionDuration: const Duration(milliseconds: 240),
-  //     page: MakeupLectureScheduler(
-  //       memory: widget.memory,
-  //       brain: widget.brain,
-  //       batch: widget.batch,
-  //       onAddMakeupClass: _addMakeupSession,
-  //       onRemoveMakeupClass: _removeMakeupSession,
-  //       onRoleChanged: widget.onRoleChanged,
-  //       showDock: false,
-  //     ),
-  //   );
-
-  //   if (!mounted) return;
-  //   _updateScheduleCache();
-  //   setState(() {});
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final now = DateTime.now();
+      if (now.minute != _lastMinute) {
+        _lastMinute = now.minute;
+        _updateScheduleCache();
+        if (mounted) setState(() {});
+      }
+      _tick(now);
+    });
+    _loadCustomMakeupSessions();
+    _updateScheduleCache();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (_bottomNavIndex != 0) {
-      return Scaffold(
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 420),
-                switchInCurve: IrisMotion.entrance,
-                switchOutCurve: IrisMotion.standard,
-                transitionBuilder: (child, animation) {
-                  final isIncoming =
-                      child.key == ValueKey<int>(_bottomNavIndex);
-                  final direction = _studentTabSlideDirection.toDouble();
-                  
-                  // Slide animation: more dramatic distance
-                  final slideBegin = isIncoming
-                      ? Offset(0.42 * direction, 0)
-                      : Offset.zero;
-                  final slideEnd = isIncoming
-                      ? Offset.zero
-                      : Offset(-0.42 * direction, 0);
-                  final slideAnimation = Tween<Offset>(begin: slideBegin, end: slideEnd).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
-                    ),
-                  );
-                  
-                  // Scale animation: adds depth
-                  final scaleBegin = isIncoming ? 0.92 : 1.0;
-                  final scaleEnd = isIncoming ? 1.0 : 0.96;
-                  final scaleAnimation = Tween<double>(begin: scaleBegin, end: scaleEnd).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
-                    ),
-                  );
-                  
-                  // Fade animation: smoother opacity change
-                  final opacityAnimation = Tween<double>(
-                    begin: isIncoming ? 0.0 : 1.0,
-                    end: isIncoming ? 1.0 : 0.0,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
-                    ),
-                  );
-                  
-                  return FadeTransition(
-                    opacity: opacityAnimation,
-                    child: ScaleTransition(
-                      scale: scaleAnimation,
-                      child: SlideTransition(position: slideAnimation, child: child),
-                    ),
-                  );
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(_bottomNavIndex),
-                  child: _buildStudentTabContent(),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                top: false,
-                child: _buildStudentBottomNavBar(isDark),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final now = DateTime.now();
-    // final dateLabel = _formatDateLabel(now);
-    final insight = widget.brain.buildTemporalInsight(widget.batch, now);
-
-    // Update cache if day changed or schedule is empty
-    if (_lastScheduleUpdate == null ||
-        _lastScheduleUpdate!.day != now.day ||
-        _cachedSchedule.isEmpty) {
-      _updateScheduleCache();
-    }
-    final schedule = _cachedSchedule;
-    final filteredSchedule = schedule;
-
     return Scaffold(
       body: Stack(
         children: [
-          RepaintBoundary(child: NeuralAura(background: isDark)),
-          SafeArea(
-            child: RefreshIndicator(
-              onRefresh: _handleRefresh,
-              color: IrisTokens.brand,
-              backgroundColor: isDark
-                  ? IrisTokens.surfaceDarkElevated
-                  : Colors.white,
-              child: CustomScrollView(
-                physics: const ButterScrollPhysics(),
-                cacheExtent: 500,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(24),
-                        borderRadius: 36.0,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: const LinearGradient(
-                                  colors: [IrisTokens.brand, IrisTokens.purple],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: IrisTokens.brand.withValues(alpha: 0.2),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'AM',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 22,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _getSmartGreeting(now.hour),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    widget.userName ?? 'Student',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                                          borderRadius: BorderRadius.circular(99),
-                                          border: Border.all(
-                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          widget.batch,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w800,
-                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                onPressed: widget.onToggleTheme,
-                                icon: Icon(
-                                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                                  size: 24,
-                                  color: isDark ? Colors.white : IrisTokens.brand,
-                                ),
-                                padding: const EdgeInsets.all(12),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 420),
+              switchInCurve: IrisMotion.entrance,
+              switchOutCurve: IrisMotion.standard,
+              transitionBuilder: (child, animation) {
+                final isIncoming = child.key == ValueKey<int>(_bottomNavIndex);
+                final direction = _studentTabSlideDirection.toDouble();
+                
+                final slideBegin = isIncoming ? Offset(0.42 * direction, 0) : Offset.zero;
+                final slideEnd = isIncoming ? Offset.zero : Offset(-0.42 * direction, 0);
+                final slideAnimation = Tween<Offset>(begin: slideBegin, end: slideEnd).animate(
+                  CurvedAnimation(parent: animation, curve: IrisMotion.standard),
+                );
+                
+                final scaleBegin = isIncoming ? 0.92 : 1.0;
+                final scaleEnd = isIncoming ? 1.0 : 0.96;
+                final scaleAnimation = Tween<double>(begin: scaleBegin, end: scaleEnd).animate(
+                  CurvedAnimation(parent: animation, curve: IrisMotion.standard),
+                );
+                
+                final opacityAnimation = Tween<double>(
+                  begin: isIncoming ? 0.0 : 1.0,
+                  end: isIncoming ? 1.0 : 0.0,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: IrisMotion.standard),
+                );
+                
+                return FadeTransition(
+                  opacity: opacityAnimation,
+                  child: ScaleTransition(
+                    scale: scaleAnimation,
+                    child: SlideTransition(position: slideAnimation, child: child),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 14)),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: GlassCard(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 336),
-                          switchInCurve: IrisMotion.entrance,
-                          switchOutCurve: IrisMotion.standard,
-                          transitionBuilder: (child, animation) {
-                            final offset = Tween<Offset>(
-                              begin: const Offset(0, 0.08),
-                              end: Offset.zero,
-                            ).animate(animation);
-
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: offset,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Column(
-                            key: ValueKey(
-                              '${insight.headline}-${insight.subline}',
-                            ),
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  // Icon with live pulse glow (no glitchy circle)
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: insight.isUrgent
-                                            ? [
-                                                IrisTokens.error,
-                                                const Color(0xFFFCA5A5),
-                                              ]
-                                            : insight.isLive
-                                            ? [
-                                                IrisTokens.success,
-                                                IrisTokens.success.withValues(alpha: 
-                                                  0.8,
-                                                ),
-                                              ]
-                                            : [
-                                                IrisTokens.brand,
-                                                IrisTokens.brandLight,
-                                              ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(14),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color:
-                                              (insight.isUrgent
-                                                      ? IrisTokens.error
-                                                      : insight.isLive
-                                                      ? IrisTokens.success
-                                                      : IrisTokens.brand)
-                                                  .withValues(alpha: 0.22),
-                                          blurRadius: insight.isLive ? 10 : 7,
-                                          spreadRadius: -2,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      insight.isUrgent
-                                          ? Icons.notifications_active
-                                          : insight.isLive
-                                          ? Icons.play_circle_filled_rounded
-                                          : Icons.insights_rounded,
-                                      color: Colors.white,
-                                      size: 22,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          insight.headline,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 17,
-                                            letterSpacing: 0.3,
-                                            height: 1.2,
-                                            color: insight.isLive
-                                                ? IrisTokens.success
-                                                : null,
-                                          ),
-                                        ),
-                                        if (insight.timeInfo != null) ...[
-                                          const SizedBox(height: 3),
-                                          Text(
-                                            insight.timeInfo!,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color: insight.isUrgent
-                                                  ? IrisTokens.error
-                                                  : insight.isLive
-                                                  ? IrisTokens.success
-                                                  : IrisTokens.brand,
-                                              letterSpacing: 0.2,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              // Subline with accent bar
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 3,
-                                    height: 18,
-                                    margin: const EdgeInsets.only(
-                                      top: 2,
-                                      right: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(2),
-                                      color: insight.isLive
-                                          ? IrisTokens.success.withValues(
-                                              alpha: 0.4,
-                                            )
-                                          : IrisTokens.brand.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      insight.subline,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        letterSpacing: 0.2,
-                                        height: 1.4,
-                                        fontWeight: FontWeight.w500,
-                                        color: (isDark
-                                            ? Colors.white.withValues(
-                                                alpha: 0.72,
-                                              )
-                                            : Colors.black.withValues(
-                                                alpha: 0.55,
-                                              )),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              // Progress bar for live classes
-                              if (insight.isLive) ...[
-                                const SizedBox(height: 14),
-                                Builder(
-                                  builder: (context) {
-                                    final currentClass = widget.brain
-                                        .getCurrentClass(widget.batch, now);
-                                    if (currentClass != null) {
-                                      final currentTime =
-                                          now.hour + (now.minute / 60.0);
-                                      // Use actual lecture duration (1.0 for 1-hour lectures, full duration otherwise)
-                                      final duration =
-                                          LectureDuration.getActualDuration(
-                                            currentClass,
-                                          );
-                                      final actualEndTime =
-                                          LectureDuration.getActualEndTime(
-                                            currentClass,
-                                          );
-                                      final progress =
-                                          ((currentTime -
-                                                      currentClass
-                                                          .safeStartVal) /
-                                                  duration)
-                                              .clamp(0.0, 1.0);
-                                      final minutesLeft =
-                                          ((actualEndTime - currentTime) * 60)
-                                              .toInt()
-                                              .clamp(
-                                                0,
-                                                (duration * 60).toInt(),
-                                              );
-
-                                      String progressLabel = '';
-                                      if (minutesLeft >= 60) {
-                                        final hours = minutesLeft ~/ 60;
-                                        final mins = minutesLeft % 60;
-                                        progressLabel = mins > 0
-                                            ? '${hours}h ${mins}m left'
-                                            : '${hours}h left';
-                                      } else {
-                                        progressLabel = '${minutesLeft}m left';
-                                      }
-
-                                      return Column(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            child: TweenAnimationBuilder<double>(
-                                              duration: const Duration(
-                                                milliseconds: 768,
-                                              ),
-                                              curve: IrisMotion.entrance,
-                                              tween: Tween<double>(
-                                                begin: 0.0,
-                                                end: progress,
-                                              ),
-                                              builder:
-                                                  (
-                                                    context,
-                                                    value,
-                                                    child,
-                                                  ) => Container(
-                                                    height: 6,
-                                                    decoration: BoxDecoration(
-                                                      color: IrisTokens.success
-                                                          .withValues(
-                                                            alpha: 0.15,
-                                                          ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            6,
-                                                          ),
-                                                    ),
-                                                    child: FractionallySizedBox(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      widthFactor: value.clamp(
-                                                        0.0,
-                                                        1.0,
-                                                      ),
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                          gradient: const LinearGradient(
-                                                            colors: [
-                                                              IrisTokens
-                                                                  .success,
-                                                              IrisTokens
-                                                                  .success,
-                                                              IrisTokens
-                                                                  .successDark,
-                                                            ],
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                6,
-                                                              ),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: IrisTokens
-                                                                  .success
-                                                                  .withValues(
-                                                                    alpha: 0.28,
-                                                                  ),
-                                                              blurRadius: 3,
-                                                              spreadRadius: -1,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                progressLabel,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  letterSpacing: 0.3,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: IrisTokens.success,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${(progress * 100).toInt()}%',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  letterSpacing: 0.3,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: IrisTokens.success
-                                                      .withValues(alpha: 0.7),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ],
-                              if (insight.teacherInfo != null &&
-                                  insight.teacherInfo!.isNotEmpty) ...[
-                                const SizedBox(height: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 7,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.06)
-                                        : Colors.black.withValues(alpha: 0.03),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.10)
-                                          : Colors.black.withValues(
-                                              alpha: 0.06,
-                                            ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          color: IrisTokens.brand.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.person_rounded,
-                                          size: 12,
-                                          color: IrisTokens.brand.withValues(
-                                            alpha: 0.8,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          insight.teacherInfo!,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color:
-                                                (isDark
-                                                        ? Colors.white
-                                                        : Colors.black)
-                                                    .withValues(alpha: 0.6),
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
-                  
-                  // Quick Actions Grid (Image 1)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Quick Actions',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IrisComponents.quickActionButton(
-                                label: 'Attend',
-                                icon: Icons.fingerprint_rounded,
-                                color: const Color(0xFF6366F1),
-                                isDark: isDark,
-                                onTap: () {},
-                              ),
-                              IrisComponents.quickActionButton(
-                                label: 'Finder',
-                                icon: Icons.map_rounded,
-                                color: const Color(0xFF10B981),
-                                isDark: isDark,
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => RoomFinderScreen(
-                                        memory: widget.memory,
-                                        brain: widget.brain,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              IrisComponents.quickActionButton(
-                                label: 'Portal',
-                                icon: Icons.language_rounded,
-                                color: const Color(0xFFF59E0B),
-                                isDark: isDark,
-                                onTap: () {
-                                  setState(() => _bottomNavIndex = 1);
-                                },
-                              ),
-                              IrisComponents.quickActionButton(
-                                label: 'Grades',
-                                icon: Icons.auto_graph_rounded,
-                                color: const Color(0xFFEC4899),
-                                isDark: isDark,
-                                onTap: () {},
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
-                      child: DaySwitcher(
-                        selectedDayIndex: _overrideDayIndex,
-                        onSelected: (value) => setState(() {
-                          _overrideDayIndex = value;
-                          _updateScheduleCache();
-                        }),
-                      ),
-                    ),
-                  ),
-
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
-                      child: SectionHeader(
-                        title: _timelineTitle(schedule, now, _overrideDayIndex),
-                        subtitle: _timelineSubtitle(
-                          schedule,
-                          now,
-                          _overrideDayIndex,
-                        ),
-                        statusIndicator: _getTimelineStatusColor(
-                          widget.brain,
-                          widget.batch,
-                          now,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    sliver: filteredSchedule.isEmpty
-                        ? SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 24,
-                              ),
-                              child: GlassCard(
-                                child: Column(
-                                  children: [
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      padding: const EdgeInsets.all(20),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            IrisTokens.brand.withValues(
-                                              alpha: 0.15,
-                                            ),
-                                            IrisTokens.brandLight.withValues(
-                                              alpha: 0.08,
-                                            ),
-                                          ],
-                                        ),
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: IrisTokens.brand.withValues(
-                                              alpha: 0.14,
-                                            ),
-                                            blurRadius: 8,
-                                            spreadRadius: -4,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        Icons.beach_access_rounded,
-                                        size: 40,
-                                        color: IrisTokens.brand.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Text(
-                                      'No classes scheduled',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 17,
-                                        letterSpacing: 0.3,
-                                        color:
-                                            (isDark
-                                                    ? Colors.white
-                                                    : Colors.black)
-                                                .withValues(alpha: 0.85),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Enjoy your free time! 🎉',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        height: 1.4,
-                                        color:
-                                            (isDark
-                                                    ? Colors.white
-                                                    : Colors.black)
-                                                .withValues(alpha: 0.55),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
-                        : SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (ctx, index) {
-                                final session = filteredSchedule[index];
-                                final fullIndex = schedule.indexOf(session);
-                                final nextSession =
-                                    (fullIndex >= 0 &&
-                                        fullIndex + 1 < schedule.length)
-                                    ? schedule[fullIndex + 1]
-                                    : null;
-                                return StaggeredListItem(
-                                  index: index,
-                                  child: RepaintBoundary(
-                                    child: ClassCard(
-                                      key: ValueKey(
-                                        'class_${session.subject}_${session.startTime}',
-                                      ),
-                                      session: session,
-                                      nextSession: nextSession,
-                                      isFacultyView: false,
-                                      onRemoveMakeup: _isMakeupSession(session)
-                                          ? () =>
-                                                _confirmAndRemoveMakeupSession(
-                                                  session,
-                                                )
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                              childCount: filteredSchedule.length,
-                              addAutomaticKeepAlives: true,
-                              addRepaintBoundaries: true,
-                            ),
-                          ),
-                  ),
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 126)),
-                ],
+                );
+              },
+              child: KeyedSubtree(
+                key: ValueKey<int>(_bottomNavIndex),
+                child: _bottomNavIndex == 0 ? _buildStudentPortal(context) : _buildStudentTabContent(),
               ),
             ),
           ),
@@ -2208,10 +1155,264 @@ class _DashboardState extends State<Dashboard>
             bottom: 0,
             child: SafeArea(
               top: false,
-              child: _buildStudentBottomNavBar(isDark),
+              child: _buildStudentBottomNavBar(isDark, _scrollController),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStudentPortal(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final now = DateTime.now();
+    final metrics = widget.brain.getVitalMetrics(widget.batch, now);
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          ObsidianPulse(isDark: isDark),
+          CustomScrollView(
+            controller: _scrollController,
+            physics: VitalMotion.scrollPhysics,
+            slivers: [
+              _buildVitalHeader(context, metrics, isDark),
+              _buildBentoToolGrid(context, isDark),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: SliverToBoxAdapter(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'TIMELINE',
+                        style: TextStyle(
+                          fontSize: 12,
+                          letterSpacing: 2, 
+                          fontWeight: FontWeight.w900,
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      Text(
+                        _formatDateLabel(now).toUpperCase(),
+                        style: TextStyle(
+                          letterSpacing: 1, 
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              _buildChronosTimeline(context, isDark),
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVitalHeader(BuildContext context, BatchVitalMetrics metrics, bool isDark) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 64, 24, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'GOOD ${_getTimeGreeting()},',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.userName ?? 'Student',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.8,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: VitalTokens.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: VitalTokens.blue.withValues(alpha: 0.2)),
+                        ),
+                        child: Text(
+                          widget.batch,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: VitalTokens.blue,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildSyncIndicator(isDark),
+              ],
+            ),
+            const SizedBox(height: 36),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                VitalRing(
+                  progress: metrics.dayProgress,
+                  size: 92,
+                  strokeWidth: 9,
+                  color: VitalTokens.blue,
+                  value: '${(metrics.dayProgress * 100).toInt()}%',
+                  label: 'Day',
+                ),
+                VitalRing(
+                  progress: metrics.totalClassesToday > 0 ? metrics.completedClasses / metrics.totalClassesToday : 0,
+                  size: 92,
+                  strokeWidth: 9,
+                  color: VitalTokens.orange,
+                  value: '${metrics.completedClasses}/${metrics.totalClassesToday}',
+                  label: 'Classes',
+                ),
+                VitalRing(
+                  progress: metrics.attendanceHealth,
+                  size: 92,
+                  strokeWidth: 9,
+                  color: VitalTokens.green,
+                  value: '${(metrics.attendanceHealth * 100).toInt()}%',
+                  label: 'Health',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChronosTimeline(BuildContext context, bool isDark) {
+    if (_cachedSchedule.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 80),
+          child: Opacity(
+            opacity: 0.5,
+            child: Column(
+              children: [
+                Icon(Icons.event_available_rounded, size: 48, color: isDark ? Colors.white30 : Colors.black26),
+                const SizedBox(height: 16),
+                const Text('No classes today', style: TextStyle(fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final session = _cachedSchedule[index];
+            final isLast = index == _cachedSchedule.length - 1;
+            final now = DateTime.now();
+            final isLive = session.isLive(now);
+
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 14,
+                        height: 14,
+                        margin: const EdgeInsets.only(top: 24),
+                        decoration: BoxDecoration(
+                          color: isLive ? VitalTokens.blue : (isDark ? Colors.white10 : Colors.black12),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark ? VitalTokens.obsidian : Colors.white,
+                            width: 3,
+                          ),
+                          boxShadow: isLive ? [
+                            BoxShadow(
+                              color: VitalTokens.blue.withValues(alpha: 0.4),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            )
+                          ] : null,
+                        ),
+                      ),
+                      if (!isLast)
+                        Expanded(
+                          child: Container(
+                            width: 2,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: ClassCard(
+                        session: session,
+                        onRemoveMakeup: _isMakeupSession(session) ? () => _confirmAndRemoveMakeupSession(session) : null,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          childCount: _cachedSchedule.length,
+        ),
+      ),
+    );
+  }
+
+  String _getTimeGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'MORNING';
+    if (hour < 17) return 'AFTERNOON';
+    return 'EVENING';
+  }
+
+  Widget _buildSyncIndicator(bool isDark) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Icon(
+          Icons.bolt_rounded,
+          size: 20,
+          color: VitalTokens.blue.withValues(alpha: 0.8),
+        ),
       ),
     );
   }
@@ -2336,11 +1537,11 @@ class _DashboardState extends State<Dashboard>
               .round();
 
           if (minutesUntil > 60) {
-            return '${(minutesUntil / 60).floor()}h ${minutesUntil % 60}m free • Next: ${nextClass.subject}';
+            return '${(minutesUntil / 60).floor()}h ${minutesUntil % 60}m free • Room Finder likely has open study rooms';
           } else if (minutesUntil > 15) {
-            return '${minutesUntil} min break • ${nextClass.subject} in ${nextClass.room}';
+            return '${minutesUntil} min break • open Room Finder for a nearby study room';
           } else {
-            return 'Starting soon: ${nextClass.subject} in ${nextClass.room} ⚡';
+            return 'Starting soon: ${nextClass.subject} in ${nextClass.room} • head there now';
           }
         }
       }
@@ -2407,5 +1608,232 @@ class _DashboardState extends State<Dashboard>
 
     // Red - no active lectures
     return IrisTokens.error;
+  }
+
+  Widget _buildVitalThemeToggle(bool isDark) {
+    return VitalCard(
+      borderRadius: VitalTokens.radiusFull,
+      padding: EdgeInsets.zero,
+      animate: false,
+      onTap: widget.onToggleTheme,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+          size: 20,
+          color: isDark ? Colors.white : Colors.black,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVitalMetricsPanel(BuildContext context, BatchVitalMetrics metrics, bool isDark) {
+    return VitalCard(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          VitalRing(
+            progress: metrics.dayProgress,
+            size: 80,
+            strokeWidth: 8,
+            color: VitalTokens.blue,
+            label: 'Day Progress',
+            value: '${(metrics.dayProgress * 100).toInt()}%',
+          ),
+          VitalRing(
+            progress: metrics.attendanceHealth,
+            size: 80,
+            strokeWidth: 8,
+            color: VitalTokens.green,
+            label: 'Attendance',
+            value: '${(metrics.attendanceHealth * 100).toInt()}%',
+          ),
+          VitalRing(
+            progress: metrics.totalClassesToday > 0 ? metrics.remainingClasses / metrics.totalClassesToday : 0.0,
+            size: 80,
+            strokeWidth: 8,
+            color: VitalTokens.orange,
+            label: 'Remaining',
+            value: '${metrics.remainingClasses}',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVitalInsightBanner(BuildContext context, TemporalInsight insight, bool isDark) {
+    final accentColor = insight.isUrgent 
+      ? VitalTokens.error 
+      : (insight.isLive ? VitalTokens.green : VitalTokens.blue);
+
+    return VitalCard(
+      backgroundColor: accentColor.withValues(alpha: isDark ? 0.15 : 0.08),
+      border: Border.all(color: accentColor.withValues(alpha: 0.2), width: 1.5),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: accentColor,
+              borderRadius: BorderRadius.circular(VitalTokens.radius16),
+              boxShadow: [
+                BoxShadow(
+                  color: accentColor.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              insight.isUrgent ? Icons.warning_rounded : (insight.isLive ? Icons.play_arrow_rounded : Icons.info_outline_rounded),
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  insight.headline,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  insight.subline,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                  ),
+                ),
+                if (insight.timeInfo != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    insight.timeInfo!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: accentColor,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBentoToolGrid(BuildContext context, bool isDark) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      sliver: SliverGrid.count(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 1.1,
+        children: [
+          _buildBentoTile(
+            context: context,
+            isDark: isDark,
+            title: 'Room Finder',
+            subtitle: 'Find study space',
+            icon: Icons.location_on_rounded,
+            color: VitalTokens.green,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RoomFinderScreen(memory: widget.memory, brain: widget.brain))),
+          ),
+          _buildBentoTile(
+            context: context,
+            isDark: isDark,
+            title: 'Teacher Locator',
+            subtitle: 'Faculty status',
+            icon: Icons.person_search_rounded,
+            color: VitalTokens.purple,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherLocatorScreen(brain: widget.brain, memory: widget.memory, currentBatch: widget.batch, onRoleChanged: widget.onRoleChanged))),
+          ),
+          _buildBentoTile(
+            context: context,
+            isDark: isDark,
+            title: 'Makeup Planner',
+            subtitle: 'Plan missing labs',
+            icon: Icons.event_repeat_rounded,
+            color: VitalTokens.orange,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MakeupLectureScheduler(memory: widget.memory, brain: widget.brain, batch: widget.batch, onAddMakeupClass: _addMakeupSession, onRoleChanged: widget.onRoleChanged, showDock: false, showBackButton: true))),
+          ),
+          _buildBentoTile(
+            context: context,
+            isDark: isDark,
+            title: 'Analytics',
+            subtitle: 'Load patterns',
+            icon: Icons.analytics_rounded,
+            color: VitalTokens.blue,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClassAnalyticsScreen(brain: widget.brain, batch: widget.batch))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBentoTile({
+    required BuildContext context,
+    required bool isDark,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return VitalCard(
+      padding: const EdgeInsets.all(16),
+      onTap: () {
+        IrisHaptics.actionMedium();
+        onTap();
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const Spacer(),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

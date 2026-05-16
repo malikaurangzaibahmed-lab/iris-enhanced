@@ -82,6 +82,8 @@ flutter:
     - assets/timetable_seed.json
     - assets/iris_logo.png
     - assets/Alex_Jones.gif
+    - assets/widget_bg_light.gif
+    - assets/widget_bg_dark.gif
     - assets/sfx_nav_soft.ogg
     - assets/sfx_nav_click.ogg
     - assets/sfx_confirm.ogg

@@ -97,4 +97,12 @@ class NotificationService {
   Future<void> scheduleClassReminders(List<dynamic> classes) async {
     // Stub implementation
   }
+
+  Future<void> syncClassRemindersFromPrefs() async {
+    // Stub implementation
+  }
+
+  Future<void> cancelScheduledClassReminders() async {
+    // Stub implementation
+  }
 }

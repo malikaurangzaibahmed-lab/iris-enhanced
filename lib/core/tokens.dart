@@ -176,6 +176,150 @@ class IrisTextStyles {
           : Colors.black.withValues(alpha: 0.54),
     );
   }
+
+  /// Greeting/salutation label text (12px, w600, secondary color)
+  static TextStyle greetingLabel(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.2,
+      height: 1.3,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+    );
+  }
+
+  /// Large user name in greeting card (24px, w900, primary text)
+  static TextStyle greetingName(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w900,
+      letterSpacing: -0.5,
+      height: 1.1,
+      color: isDark ? Colors.white : Colors.black,
+    );
+  }
+
+  /// Insight/insight card headline (17px, w800, accent-aware)
+  static TextStyle insightHeadline(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 17,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.3,
+      height: 1.2,
+      color: isDark ? Colors.white : Colors.black,
+    );
+  }
+
+  /// Insight subtext (14px, w500, secondary)
+  static TextStyle insightSubtext(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      height: 1.4,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+    );
+  }
+
+  /// Meta information (11-12px, w500/w600, tertiary)
+  static TextStyle metaInfo(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.2,
+      height: 1.3,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+    );
+  }
+
+  /// Small badge/chip text (11px, w800, label-style)
+  static TextStyle badgeText(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.3,
+      height: 1.2,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+    );
+  }
+
+  /// Setting tile title (16px, w600, primary)
+  static TextStyle settingTitle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.15,
+      height: 1.3,
+      color: isDark ? Colors.white : Colors.black,
+    );
+  }
+
+  /// Setting tile subtitle (12px, w500, secondary)
+  static TextStyle settingSubtitle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      height: 1.4,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.65),
+    );
+  }
+
+  /// Section header (14px, w700, accent-colored)
+  static TextStyle sectionHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.5,
+      height: 1.2,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
+    );
+  }
+
+  /// Class/course subject name (20px, w900, condensed)
+  static TextStyle classSubject(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w900,
+      letterSpacing: -0.2,
+      height: 1.1,
+      color: isDark ? Colors.white : Colors.black,
+    );
+  }
+
+  /// Class session meta (time, room, teacher - 14-15px, w600-w700)
+  static TextStyle classSessionMeta(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.1,
+      height: 1.3,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+    );
+  }
+
+  /// Class progress indicator text (12px, w700-w800)
+  static TextStyle classProgress(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.1,
+      height: 1.3,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+    );
+  }
 }
 
 class IrisElevation {

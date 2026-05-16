@@ -1,0 +1,400 @@
+﻿class _ToolsScreen extends StatelessWidget {
+  final UniversityMemory memory;
+  final String batch;
+  final OmniBrain brain;
+  final ValueChanged<String>? onRoleChanged;
+
+  const _ToolsScreen({
+    Key? key,
+    required this.memory,
+    required this.batch,
+    required this.brain,
+    this.onRoleChanged,
+  }) : super(key: key);
+
+  String _getDepartmentFromBatch() {
+    final key = BatchKey.parse(batch);
+    return key.program;
+  }
+
+  List<_ToolItem> _getUniversalTools() {
+    return [
+      _ToolItem(
+        id: 'unit_converter',
+        title: 'Unit Converter',
+        subtitle: 'Length, weight, temperature and more',
+        icon: Icons.swap_horiz_rounded,
+        color: IrisTokens.blue,
+        description: 'Convert common engineering and daily-use units quickly',
+      ),
+      _ToolItem(
+        id: 'word_counter',
+        title: 'Word Counter',
+        subtitle: 'Words, chars, read time and speaking time',
+        icon: Icons.text_fields_rounded,
+        color: IrisTokens.purple,
+        description: 'Analyze writing quality and pacing instantly',
+      ),
+      _ToolItem(
+        id: 'universal_calculator',
+        title: 'Universal Calculator',
+        subtitle: 'Arithmetic, markup and scientific operations',
+        icon: Icons.functions_rounded,
+        color: IrisTokens.success,
+        description:
+            'Solve standard calculations, profit pricing and scientific values',
+      ),
+      _ToolItem(
+        id: 'cgpa_calculator',
+        title: 'CGPA Calculator',
+        subtitle: 'Track semester GPA and cumulative CGPA',
+        icon: Icons.calculate_rounded,
+        color: IrisTokens.brand,
+        description: 'Compute GPA per semester and your overall CGPA quickly',
+      ),
+      _ToolItem(
+        id: 'base_converter',
+        title: 'Base Converter',
+        subtitle: 'Binary, octal, decimal and hexadecimal',
+        icon: Icons.memory_rounded,
+        color: IrisTokens.success,
+        description: 'Smart number base conversion with auto-detect mode',
+      ),
+      _ToolItem(
+        id: 'equation_solver',
+        title: 'Equation Solver',
+        subtitle: 'Linear, quadratic and calculus helpers',
+        icon: Icons.calculate_outlined,
+        color: IrisTokens.warning,
+        description: 'Solve equations with step-by-step intelligent feedback',
+      ),
+      _ToolItem(
+        id: 'molecular_weight_calculator',
+        title: 'Molecular Weight Calculator',
+        subtitle: 'Molar mass from chemical formulas',
+        icon: Icons.science_rounded,
+        color: IrisTokens.success,
+        description:
+            'Smart chemistry parser with grouped compounds and hydrate support',
+      ),
+      _ToolItem(
+        id: 'offline_formula_library',
+        title: 'Formula Library & Constants',
+        subtitle: 'Offline formulas for thermo, circuits, mechanics',
+        icon: Icons.menu_book_rounded,
+        color: IrisTokens.blue,
+        description: 'Searchable offline reference with smart categorization',
+      ),
+      _ToolItem(
+        id: 'export_schedule',
+        title: 'Export Schedule',
+        subtitle: 'Download timetable as PDF or calendar',
+        icon: Icons.download_rounded,
+        color: IrisTokens.blue,
+        description:
+            'Export your schedule in multiple formats for offline access',
+      ),
+      _ToolItem(
+        id: 'find_rooms',
+        title: 'Room Finder',
+        subtitle: 'Discover available study spaces',
+        icon: Icons.location_on_rounded,
+        color: IrisTokens.success,
+        description: 'Find empty classrooms and labs available now',
+      ),
+      _ToolItem(
+        id: 'teacher_directory',
+        title: 'Teacher Directory',
+        subtitle: 'Contact info and office hours',
+        icon: Icons.person_rounded,
+        color: IrisTokens.purple,
+        description: 'Search all teachers by name and department',
+      ),
+      _ToolItem(
+        id: 'teacher_locator',
+        title: 'Teacher Locator',
+        subtitle: 'Live teacher status and weekly schedule',
+        icon: Icons.person_search_rounded,
+        color: IrisTokens.purple,
+        description: 'Locate a teacher instantly with smart matching',
+      ),
+      _ToolItem(
+        id: 'browse_classes',
+        title: 'Browse Classes',
+        subtitle: 'Open all batch classes and schedules',
+        icon: Icons.school_rounded,
+        color: IrisTokens.brand,
+        description: 'Explore class lists directly from Resources',
+      ),
+      _ToolItem(
+        id: 'makeup_scheduler',
+        title: 'Makeup Planner',
+        subtitle: 'Find and add makeup lecture slots',
+        icon: Icons.event_repeat_rounded,
+        color: IrisTokens.warning,
+        description: 'Plan and manage makeup lectures from one place',
+      ),
+      _ToolItem(
+        id: 'transport_schedule',
+        title: 'Transport Schedule',
+        subtitle: 'Bus and shuttle notices',
+        icon: Icons.directions_bus_rounded,
+        color: IrisTokens.success,
+        description: 'Scraper-backed transport updates and timing notices',
+      ),
+      _ToolItem(
+        id: 'library_schedule',
+        title: 'Library Schedule',
+        subtitle: 'Opening hours and library notices',
+        icon: Icons.local_library_rounded,
+        color: IrisTokens.blue,
+        description: 'Scraper-backed library timing and service updates',
+      ),
+      _ToolItem(
+        id: 'semester_schedule',
+        title: 'Semester Schedule',
+        subtitle: 'Midterm, finals and semester milestones',
+        icon: Icons.event_note_rounded,
+        color: IrisTokens.purple,
+        description: 'Scraper-backed semester and exam announcements',
+      ),
+      _ToolItem(
+        id: 'timetable_print',
+        title: 'Print Timetable',
+        subtitle: 'Get a printable schedule',
+        icon: Icons.print_rounded,
+        color: IrisTokens.warning,
+        description: 'Generate a formatted timetable for printing',
+      ),
+      _ToolItem(
+        id: 'class_analytics',
+        title: 'Class Analytics',
+        subtitle: 'Schedule insights and patterns',
+        icon: Icons.analytics_rounded,
+        color: IrisTokens.brand,
+        description: 'View your class distribution, busiest days, and patterns',
+      ),
+    ];
+  }
+
+  List<_ToolItem> _getDepartmentTools(String department) {
+    final deptTools = <String, List<_ToolItem>>{
+      'BCS': [
+        _ToolItem(
+          id: 'lab_resources',
+          title: 'CS Lab Resources',
+          subtitle: 'IDE guides and compiler info',
+          icon: Icons.computer_rounded,
+          color: IrisTokens.brand,
+          description: 'Access software lab guidelines and development tools',
+        ),
+        _ToolItem(
+          id: 'programming_tools',
+          title: 'Programming Tools',
+          subtitle: 'Compilers, IDEs, and frameworks',
+          icon: Icons.code_rounded,
+          color: IrisTokens.blue,
+          description: 'Setup guides for common development environments',
+        ),
+      ],
+      'BBA': [
+        _ToolItem(
+          id: 'business_resources',
+          title: 'Business Resources',
+          subtitle: 'Case studies and market data',
+          icon: Icons.trending_up_rounded,
+          color: IrisTokens.brand,
+          description: 'Access business databases and research resources',
+        ),
+      ],
+      'RHND': [
+        _ToolItem(
+          id: 'design_tools',
+          title: 'Design Resources',
+          subtitle: 'CAD software and design guides',
+          icon: Icons.architecture_rounded,
+          color: IrisTokens.brand,
+          description: 'Resources for architectural design and visualization',
+        ),
+      ],
+    };
+
+    final tools = List<_ToolItem>.from(deptTools[department] ?? []);
+    if (_isHealthDepartment(department)) {
+      tools.addAll([
+        _ToolItem(
+          id: 'health_tools',
+          title: 'Health Calculators',
+          subtitle: 'BMI, hydration and vitals assistant',
+          icon: Icons.monitor_heart_rounded,
+          color: IrisTokens.success,
+          description: 'Smart health checks tailored for routine monitoring',
+        ),
+        _ToolItem(
+          id: 'periodic_table',
+          title: 'Periodic Table',
+          subtitle: 'Quick chemistry reference',
+          icon: Icons.grid_view_rounded,
+          color: IrisTokens.brand,
+          description: 'Searchable mini periodic table for common elements',
+        ),
+      ]);
+    }
+
+    if (_isMecDepartment(department)) {
+      tools.add(
+        _ToolItem(
+          id: 'resistor_decoder',
+          title: 'Resistor Color Decoder',
+          subtitle: '4-band resistor value and tolerance',
+          icon: Icons.settings_input_component_rounded,
+          color: IrisTokens.warning,
+          description:
+              'Smart resistor decoding with human-friendly units and guidance',
+        ),
+      );
+    }
+
+    if (_isOtherDepartment(department)) {
+      tools.add(
+        _ToolItem(
+          id: 'dept_smart_kit',
+          title: 'Department Smart Kit',
+          subtitle: 'Adaptive accessories and estimators',
+          icon: Icons.auto_graph_rounded,
+          color: IrisTokens.blue,
+          description:
+              'Intelligent planning tools tailored to your department profile',
+        ),
+      );
+    }
+
+    return tools;
+  }
+
+  bool _isHealthDepartment(String department) {
+    final d = department.toLowerCase();
+    return d.contains('health') ||
+        d.contains('nursing') ||
+        d.contains('medical') ||
+        d.contains('pharm') ||
+        d.contains('dpt') ||
+        d.contains('physio') ||
+        d.contains('bio');
+  }
+
+  bool _isMecDepartment(String department) {
+    final d = department.toLowerCase();
+    return d.contains('mec') ||
+        d.contains('mechanical') ||
+        d.contains('electrical') ||
+        d.contains('electronics') ||
+        d.contains('mechatronics');
+  }
+
+  bool _isOtherDepartment(String department) {
+    if (department == 'BCS' || department == 'BBA' || department == 'RHND') {
+      return false;
+    }
+    if (_isHealthDepartment(department) || _isMecDepartment(department)) {
+      return false;
+    }
+    return true;
+  }
+
+  String _recommendedToolId(
+    String department,
+    DateTime now,
+    ClassSession? current,
+    ClassSession? next,
+  ) {
+    if (current != null) {
+      return 'class_analytics';
+    }
+
+    if (next != null && next.dayIndex == now.weekday) {
+      final currentTime = now.hour + (now.minute / 60.0);
+      final minsToNext = ((next.safeStartVal - currentTime) * 60).round();
+      if (minsToNext >= 0 && minsToNext <= 25) {
+        return 'find_rooms';
+      }
+    }
+
+    if (department == 'BCS') {
+      return 'base_converter';
+    }
+
+    if (_isHealthDepartment(department)) {
+      return 'health_tools';
+    }
+
+    if (_isMecDepartment(department)) {
+      return 'resistor_decoder';
+    }
+
+    if (_isOtherDepartment(department)) {
+      return 'dept_smart_kit';
+    }
+
+    if (department == 'RHND') {
+      return 'molecular_weight_calculator';
+    }
+
+    if (department == 'BBA') {
+      return 'offline_formula_library';
+    }
+
+    return 'cgpa_calculator';
+  }
+
+  List<_ToolItem> _prioritizeTool(
+    List<_ToolItem> source,
+    String recommendedId,
+  ) {
+    final items = List<_ToolItem>.from(source);
+    final index = items.indexWhere((t) => t.id == recommendedId);
+    if (index <= 0) {
+      return items;
+    }
+    final picked = items.removeAt(index);
+    items.insert(0, picked);
+    return items;
+  }
+
+  Widget _buildSmartInsightCard({
+    required bool isDark,
+    required String department,
+    required String recommendedId,
+    required ClassSession? current,
+    required ClassSession? next,
+  }) {
+    final title = current != null
+        ? 'You are live in ${current.subject}'
+        : next != null
+        ? 'Next class: ${next.subject}'
+        : 'No upcoming class right now';
+
+    final reason = switch (recommendedId) {
+      'find_rooms' => 'Smart pick: Room Finder because your next class is soon.',
+      'programming_tools' =>
+        'Smart pick: Programming Tools based on your $department profile.',
+      'base_converter' =>
+        'Smart pick: Base Converter for fast number-system conversions.',
+      'equation_solver' =>
+        'Smart pick: Equation Solver for quick algebra and calculus checks.',
+      'molecular_weight_calculator' =>
+        'Smart pick: Molecular Weight Calculator for chemistry-focused formulas.',
+      'offline_formula_library' =>
+        'Smart pick: Formula Library for instant offline concept recall.',
+      'health_tools' =>
+        'Smart pick: Health calculators based on your department profile.',
+      'periodic_table' =>
+        'Smart pick: Periodic table for fast element lookup.',
+      'resistor_decoder' =>
+        'Smart pick: Resistor decoder for quick lab component reading.',
+      'dept_smart_kit' =>
+        'Smart pick: Adaptive department kit for planning and quick estimates.',
+      'class_analytics' =>
+        'Smart pick: Class Analytics to track live load and timing patterns.',
+      _ => 'Smart pick: CGPA Calculator to stay on top of your semester progress.',
+    };

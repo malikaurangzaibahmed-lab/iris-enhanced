@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/tokens.dart';
 import '../widgets/iris_components.dart';
-import '../widgets/neural_aura.dart';
+import '../core/vital_theme.dart';
 import '../widgets/glass_card.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),

@@ -6,7 +6,10 @@ import 'dart:convert';
 import '../services/portal_sync_service.dart';
 import '../portal_screen.dart';
 import '../core/tokens.dart';
+import '../core/theme_signals.dart';
+import '../core/vital_theme.dart';
 import 'glass_card.dart';
+import 'vital_card.dart';
 
 class PortalSyncCard extends StatefulWidget {
   final bool isDark;
@@ -79,161 +82,250 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
     final accentColor = isFailed ? IrisTokens.error : IrisTokens.brand;
     final statusLabel = isFailed ? 'Connection Lost' : (tasks.isEmpty ? 'Synced' : 'Active Updates');
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: GlassCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeSignals.useVitalTheme,
+      builder: (context, useVital, _) {
+        if (useVital) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            child: VitalCard(
+              backgroundColor: isFailed ? VitalTokens.orange.withValues(alpha: widget.isDark ? 0.15 : 0.08) : null,
+              border: isFailed ? Border.all(color: VitalTokens.orange.withValues(alpha: 0.3), width: 1.5) : null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      _StatusPulse(color: accentColor),
-                      Icon(
-                        isFailed ? Icons.cloud_off_rounded : Icons.sync_rounded,
-                        color: accentColor,
-                        size: 20,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Portal Sync',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          letterSpacing: 0.3,
-                          height: 1.2,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isFailed ? Icons.cloud_off_rounded : Icons.sync_rounded,
+                          color: accentColor,
+                          size: 22,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Text(
-                            statusLabel,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: accentColor,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          if (!isFailed && tasks.isNotEmpty) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
-                              child: Text(
-                                '•',
-                                style: TextStyle(
-                                  color: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
-                                ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Portal Intelligence',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 17,
+                                color: widget.isDark ? Colors.white : Colors.black,
+                                letterSpacing: -0.3,
                               ),
                             ),
                             Text(
-                              '${tasks.length} items',
+                              statusLabel.toUpperCase(),
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                                fontWeight: FontWeight.w900,
+                                color: accentColor,
+                                letterSpacing: 0.8,
                               ),
                             ),
                           ],
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  if (tasks.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    ...displayTasks.map((task) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: task.isUrgent ? VitalTokens.orange : VitalTokens.blue,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  task.title,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: widget.isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  '${task.subject} • ${task.dueDate}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                ],
+              ),
             ),
-            if (tasks.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              ...displayTasks.map((task) => Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
                     Container(
-                      width: 3,
-                      height: 18,
-                      margin: const EdgeInsets.only(top: 2, right: 10),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        color: (task.isUrgent ? IrisTokens.error : IrisTokens.brand)
-                            .withValues(alpha: 0.3),
+                        color: accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          _StatusPulse(color: accentColor),
+                          Icon(
+                            isFailed ? Icons.cloud_off_rounded : Icons.sync_rounded,
+                            color: accentColor,
+                            size: 20,
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            task.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              letterSpacing: 0.2,
+                            'Portal Sync',
+                            style: IrisTextStyles.label(context).copyWith(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              letterSpacing: 0.3,
                               height: 1.2,
-                              fontWeight: FontWeight.w700,
-                              color: widget.isDark 
-                                  ? Colors.white.withValues(alpha: 0.9) 
-                                  : Colors.black.withValues(alpha: 0.8),
                             ),
                           ),
-                          const SizedBox(height: 3),
-                          Text(
-                            '${task.subject} • Due: ${task.dueDate}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: widget.isDark 
-                                  ? Colors.white.withValues(alpha: 0.5) 
-                                  : Colors.black.withValues(alpha: 0.45),
-                            ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                statusLabel,
+                                style: IrisTextStyles.badgeText(context).copyWith(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: accentColor,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              if (!isFailed && tasks.isNotEmpty) ...[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                  child: Text(
+                                    '•',
+                                    style: TextStyle(
+                                      color: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${tasks.length} items',
+                                  style: IrisTextStyles.metaInfo(context).copyWith(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-              )),
-            ] else if (isFailed) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Background sync failed. Open portal to re-authenticate.',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                ),
-              ),
-            ] else ...[
-              const SizedBox(height: 8),
-              Text(
-                'Everything up to date.',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+                if (tasks.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  ...displayTasks.map((task) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 3,
+                          height: 18,
+                          margin: const EdgeInsets.only(top: 2, right: 10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            color: (task.isUrgent ? IrisTokens.error : IrisTokens.brand)
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                task.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: IrisTextStyles.label(context).copyWith(
+                                  fontSize: 13,
+                                  letterSpacing: 0.2,
+                                  height: 1.2,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${task.subject} • Due: ${task.dueDate}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: IrisTextStyles.metaInfo(context).copyWith(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+                ] else if (isFailed) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Background sync failed. Open portal to re-authenticate.',
+                    style: IrisTextStyles.caption(context),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Everything up to date.',
+                    style: IrisTextStyles.caption(context),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

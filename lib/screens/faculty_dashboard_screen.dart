@@ -1,45 +1,34 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:ui';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart' hide NotificationVisibility;
 
-import '../core/omni_brain.dart';
-import '../core/models.dart';
-import '../core/format_guard.dart';
-import '../core/animations.dart';
 import '../core/tokens.dart';
-import '../services/helpdesk_faculty_service.dart';
-import '../services/notification_service.dart';
-import '../services/ui_feedback.dart';
-import '../services/timetable_ota_service.dart';
-import '../widget_service.dart';
+import '../core/models.dart';
+import '../core/omni_brain.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/neural_aura.dart';
-import '../widgets/dashboard_dock.dart';
-import '../screens/teacher_locator_screen.dart';
-import '../screens/about_screen.dart';
-import '../portal_screen.dart';
-
-// Extracted Faculty dashboard and full schedule screen
+import '../widgets/smooth_scroll.dart';
+import '../core/vital_theme.dart';
+import '../core/vital_motion.dart';
+import '../core/animations.dart';
+import '../services/ui_feedback.dart';
+import '../services/helpdesk_faculty_service.dart';
 
 class FacultyDashboard extends StatefulWidget {
   final OmniBrain brain;
+  final String teacherName;
   final VoidCallback onToggleTheme;
-  final Future<void> Function(String mode) onSetThemeMode;
-  final String currentThemeMode;
-  final ValueChanged<String> onRoleChanged;
+  final ValueChanged<String>? onRoleChanged;
 
   const FacultyDashboard({
     required this.brain,
+    required this.teacherName,
     required this.onToggleTheme,
-    required this.onSetThemeMode,
-    required this.currentThemeMode,
-    required this.onRoleChanged,
+    this.onRoleChanged,
     super.key,
   });
 
@@ -49,555 +38,618 @@ class FacultyDashboard extends StatefulWidget {
 
 class _FacultyDashboardState extends State<FacultyDashboard>
     with SingleTickerProviderStateMixin {
-  static const String _helpdeskBackendBase =
-      'https://cui-helpdesk-backend.onrender.com';
-
-  final HelpdeskFacultyService _facultyService = HelpdeskFacultyService();
-  String? _selectedTeacher;
-  Timer? _ticker;
+  late String? _selectedTeacher;
   int? _overrideDayIndex;
-  int _bottomNavIndex = 0;
-  int _facultyTabSlideDirection = 1;
-  bool _isStudentNavBusy = false;
-  bool _navBarReady = false;
   List<ClassSession> _cachedSchedule = [];
-  DateTime? _lastScheduleUpdate;
-  int? _lastMinute;
-  bool _isRefreshing = false;
   bool _facultyProfilesLoading = false;
-  HelpdeskFacultySource _facultyProfilesSource = HelpdeskFacultySource.none;
-  List<FacultyProfile> _facultyProfiles = const [];
-  final GlobalKey _facultyTeacherNavKey = GlobalKey(
-    debugLabel: 'faculty_teacher_nav',
-  );
-  final GlobalKey _facultySelectTeacherCtaKey = GlobalKey(
-    debugLabel: 'faculty_select_teacher_cta',
-  );
-  final GlobalKey _facultyChangeTeacherKey = GlobalKey(
-    debugLabel: 'faculty_change_teacher',
-  );
-  final GlobalKey _facultyPortalNavKey = GlobalKey(
-    debugLabel: 'faculty_portal_nav',
-  );
-  final GlobalKey _facultyAboutNavKey = GlobalKey(
-    debugLabel: 'faculty_about_nav',
-  );
+  List<FacultyProfile> _facultyProfiles = [];
+  String _facultyProfilesSource = 'local';
+  final GlobalKey _facultyChangeTeacherKey = GlobalKey();
+  late Timer _ticker;
+  int? _lastMinute;
 
   @override
   void initState() {
     super.initState();
-    _loadSelectedTeacher();
-    unawaited(_loadFacultyProfiles());
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() => _navBarReady = true);
-      }
-    });
+    _selectedTeacher = widget.teacherName;
+    _updateScheduleCache();
+    _loadFacultyProfiles();
     _lastMinute = DateTime.now().minute;
     _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) {
         final now = DateTime.now();
-        final minuteChanged = _lastMinute != now.minute;
-        if (minuteChanged) {
+        if (_lastMinute != now.minute) {
           setState(() {
             _lastMinute = now.minute;
+            _updateScheduleCache();
           });
         }
-        _updateWidgetForTeacher();
       }
     });
-    _updateWidgetForTeacher();
   }
 
   @override
   void dispose() {
-    _ticker?.cancel();
+    _ticker.cancel();
     super.dispose();
   }
 
-  Future<void> _handleRefresh() async {
-    if (_isRefreshing) return;
-    IrisHaptics.refreshStart();
+  void _updateScheduleCache() {
+    if (_selectedTeacher == null) return;
+    final now = DateTime.now();
+    final schedule = _overrideDayIndex != null
+        ? _scheduleForDay(_selectedTeacher!, _overrideDayIndex!)
+        : _buildSuggestedScheduleForTeacher(_selectedTeacher!, now);
 
-    setState(() => _isRefreshing = true);
-
-    // Simulate data refresh delay
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // Refresh schedule cache
-    _updateScheduleCache();
-
-    // Update widget and notifications
-    _updateWidgetForTeacher();
-
-    setState(() => _isRefreshing = false);
-    IrisHaptics.refreshSuccess();
-
-    // Show success feedback
-    if (mounted) {
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'dashboard_refresh_success',
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 12),
-            Text(
-              'Schedule refreshed',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        tint: IrisTokens.success,
-        duration: const Duration(seconds: 2),
-      );
-    }
-  }
-
-  String _timelineTitle(
-    List<ClassSession> schedule,
-    DateTime now,
-    int? overrideDay,
-  ) {
-    if (schedule.isEmpty && overrideDay != null) {
-      return '${FormatGuard.normalizeDay(overrideDay)} Timeline';
-    }
-    if (schedule.isEmpty) return 'No Classes';
-    final dayIndex = overrideDay ?? schedule.first.dayIndex;
-
-    if (dayIndex == now.weekday) {
-      return 'Today\'s Timeline';
-    }
-
-    final tomorrowIndex = (now.weekday % 7) + 1;
-    if (dayIndex == tomorrowIndex && overrideDay == null) {
-      return 'Tomorrow Morning';
-    }
-
-    final dayName = FormatGuard.normalizeDay(dayIndex);
-    return '$dayName Timeline';
-  }
-
-  String _timelineSubtitle(
-    List<ClassSession> schedule,
-    DateTime now,
-    int? overrideDay,
-  ) {
-    if (schedule.isEmpty && overrideDay != null) {
-      return 'No classes scheduled • Free day! 🎉';
-    }
-    if (schedule.isEmpty) return 'No sessions in the registry';
-
-    final dayIndex = overrideDay ?? schedule.first.dayIndex;
-    final currentTime = now.hour + (now.minute / 60.0);
-
-    if (dayIndex == now.weekday) {
-      if (_selectedTeacher != null) {
-        final current = widget.brain.getCurrentClassForTeacher(
-          _selectedTeacher!,
-          now,
-        );
-
-        if (current != null && current.isLive(now)) {
-          final remaining = schedule
-              .where((s) => s.safeStartVal > currentTime)
-              .length;
-          final classesLeft = remaining > 0
-              ? '$remaining ${remaining == 1 ? 'class' : 'classes'} left'
-              : 'Last class today';
-          return '${current.subject} • $classesLeft';
-        }
-      }
-
-      return '${schedule.length} classes scheduled';
-    }
-
-    return '${schedule.length} classes scheduled';
-  }
-
-  Color _getTimelineStatusColor(OmniBrain brain, String teacher, DateTime now) {
-    if (_selectedTeacher != null) {
-      final current = brain.getCurrentClassForTeacher(_selectedTeacher!, now);
-      if (current != null && current.isLive(now)) {
-        return IrisTokens.success;
-      }
-    }
-    return IrisTokens.purple;
-  }
-
-  Future<void> _loadSelectedTeacher() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_role', 'faculty');
-
-    final teacher = prefs.getString('faculty_teacher');
+    final mergedSchedule = widget.brain.getMergedConsecutiveSessions(schedule);
+    mergedSchedule.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
     setState(() {
-      _selectedTeacher = teacher;
+      _cachedSchedule = mergedSchedule;
     });
+  }
 
-    if (teacher != null && teacher.isNotEmpty) {
-      await _ensureFacultyNotificationService(teacher);
-      await _scheduleFacultyClassReminders(teacher);
+  List<ClassSession> _scheduleForDay(String teacher, int dayIndex) {
+    final allSessions = widget.brain.scheduleForTeacher(teacher);
+    return allSessions.where((s) => s.dayIndex == dayIndex).toList()
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+  }
+
+  List<ClassSession> _buildSuggestedScheduleForTeacher(
+    String teacher,
+    DateTime now,
+  ) {
+    final all = widget.brain.scheduleForTeacher(teacher);
+    if (all.isEmpty) return [];
+
+    final currentTime = now.hour + (now.minute / 60.0);
+    final today = all.where((s) => s.dayIndex == now.weekday).toList()
+      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+    if (today.isNotEmpty) {
+      if (today.every((s) => s.safeEndVal <= currentTime)) {
+        return _nextDayScheduleForTeacher(all, now.weekday);
+      }
+      return today;
     }
+    return _nextDayScheduleForTeacher(all, now.weekday);
+  }
+
+  List<ClassSession> _nextDayScheduleForTeacher(
+    List<ClassSession> all,
+    int todayIndex,
+  ) {
+    for (int offset = 1; offset <= 6; offset++) {
+      final nextDay = ((todayIndex + offset - 1) % 7) + 1;
+      final daySchedule = all.where((s) => s.dayIndex == nextDay).toList()
+        ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+      if (daySchedule.isNotEmpty) return daySchedule;
+    }
+    return [];
   }
 
   Future<void> _loadFacultyProfiles() async {
-    _facultyProfilesLoading = true;
-    final payload = await _facultyService.fetchLiveFirstWithFallbackPayload();
-    if (!mounted) return;
-    setState(() {
-      _facultyProfiles = payload.items;
-      _facultyProfilesSource = payload.source;
-      _facultyProfilesLoading = false;
-    });
-  }
-
-  void _updateScheduleCache() {
-    final teacher = _selectedTeacher;
-    if (teacher == null || teacher.isEmpty) {
-      _cachedSchedule = [];
-      return;
-    }
-
-    final sessions = widget.brain.scheduleForTeacher(teacher);
-    sessions.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-    _cachedSchedule = sessions;
-  }
-
-  Future<void> _saveSelectedTeacher(String teacherName) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('faculty_teacher', teacherName);
-    await prefs.setString('user_role', 'faculty');
-    await _persistTimetableData();
-    setState(() {
-      _selectedTeacher = teacherName;
-      _overrideDayIndex = null;
-    });
-    _updateScheduleCache();
-    _updateWidgetForTeacher();
-    await _ensureFacultyNotificationService(teacherName);
-    await _scheduleFacultyClassReminders(teacherName);
-  }
-
-  Future<void> _scheduleFacultyClassReminders(String teacherName) async {
-    final prefs = await SharedPreferences.getInstance();
-    final remindersEnabled = prefs.getBool('lecture_reminders_enabled') ?? false;
-    if (!remindersEnabled) {
-      await NotificationService().cancelScheduledClassReminders();
-      return;
-    }
-
-    final todayClasses = widget.brain.memory.sessions
-        .where((s) => s.dayIndex == DateTime.now().weekday && s.teacher.trim().toLowerCase() == teacherName.trim().toLowerCase())
-        .toList();
-
-    if (todayClasses.isNotEmpty) {
-      await NotificationService().scheduleClassReminders(todayClasses);
-    }
-  }
-
-  Future<void> _persistTimetableData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final timetableData = {
-      'sessions': widget.brain.memory.sessions.map((s) => s.toJson()).toList(),
-    };
-    await prefs.setString('timetable_data', jsonEncode(timetableData));
-  }
-
-  Future<void> _ensureFacultyNotificationService(String? teacherParam) async {
-    final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool('persistent_notification_enabled') ?? false;
-    final teacher = teacherParam ?? _selectedTeacher;
-    if (!enabled || teacher == null || teacher.isEmpty) {
-      if (await FlutterForegroundTask.isRunningService) {
-        await FlutterForegroundTask.stopService();
+    setState(() => _facultyProfilesLoading = true);
+    try {
+      final service = HelpdeskFacultyService();
+      final profiles = await service.fetchOfflineOnly();
+      if (mounted) {
+        setState(() {
+          _facultyProfiles = profiles;
+          _facultyProfilesSource = 'remote';
+          _facultyProfilesLoading = false;
+        });
       }
-      return;
-    }
-
-    await prefs.setString('user_role', 'faculty');
-    await prefs.setString('faculty_teacher', teacher);
-    await _persistTimetableData();
-
-    if (await FlutterForegroundTask.isRunningService) {
-      await FlutterForegroundTask.stopService();
-      await Future.delayed(const Duration(milliseconds: 50));
-    }
-
-    final now = DateTime.now();
-    final current = widget.brain.getCurrentClassForTeacher(teacher, now);
-    final next = widget.brain.getNextClassForTeacher(teacher, now);
-    final currentTime = now.hour + (now.minute / 60.0);
-    final dayIndex = now.weekday;
-
-    String notifTitle = 'IRIS Faculty Tracker';
-    String notifBody = 'Your schedule is ready';
-
-    if (current != null && current.isLive(now)) {
-      final duration = LectureDuration.getActualDuration(current);
-      final actualEndTime = LectureDuration.getActualEndTime(current);
-      final progress = ((currentTime - current.safeStartVal) / duration).clamp(0.0, 1.0);
-      final progressPercent = (progress * 100).toInt();
-
-      final minutesRemaining = ((actualEndTime - currentTime) * 60).round().clamp(0, (duration * 60).round());
-      final hoursRemaining = minutesRemaining ~/ 60;
-      final minsRemaining = minutesRemaining % 60;
-
-      String timeLeft = hoursRemaining > 0 ? '${hoursRemaining}h ${minsRemaining}m left' : minsRemaining > 0 ? '${minsRemaining}m left' : 'Ending now';
-
-      final remaining = widget.brain.memory.sessions.where((s) => s.dayIndex == dayIndex && s.teacher.trim().toLowerCase() == teacher.trim().toLowerCase()).length;
-
-      notifTitle = '🎓 ${current.subject} · $timeLeft';
-      notifBody = '${_bar(progress)} $progressPercent%\n📍 ${current.room} · 📚 ${current.batchKey.batch}';
-    } else if (next != null) {
-      int daysAhead = 0;
-      if (next.dayIndex != dayIndex) {
-        daysAhead = (next.dayIndex - dayIndex + 7) % 7;
-        if (daysAhead == 0) daysAhead = 7;
-      }
-      final totalMinutesUntil = daysAhead > 0
-          ? ((24.0 - currentTime) * 60 + (daysAhead - 1) * 24 * 60 + next.safeStartVal * 60).round()
-          : ((next.safeStartVal - currentTime) * 60).round();
-      final hoursUntil = totalMinutesUntil ~/ 60;
-      final minsUntil = totalMinutesUntil % 60;
-
-      String timeUntil = '';
-      String emoji = '📌';
-      if (daysAhead > 0) {
-        const dayNames = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        final nextDayName = dayNames[next.dayIndex];
-        final startHour = next.safeStartVal.floor();
-        final startMin = ((next.safeStartVal - startHour) * 60).round();
-        final displayHour = startHour > 12 ? startHour - 12 : startHour;
-        final amPm = startHour >= 12 ? 'PM' : 'AM';
-        timeUntil = '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
-        emoji = '📅';
-      } else if (hoursUntil > 0) {
-        timeUntil = '${hoursUntil}h ${minsUntil}m';
-        emoji = '⏳';
-      } else if (minsUntil > 10) {
-        timeUntil = '${minsUntil} min';
-        emoji = '⏳';
-      } else if (minsUntil > 0) {
-        timeUntil = '${minsUntil} min';
-        emoji = '⚡';
-      } else {
-        timeUntil = 'now';
-        emoji = '🔔';
-      }
-
-      final remainingToday = widget.brain.memory.sessions.where((s) => s.dayIndex == dayIndex && s.teacher.trim().toLowerCase() == teacher.trim().toLowerCase()).length;
-
-      String classInfo;
-      if (daysAhead > 0) {
-        classInfo = 'Done for today ✓';
-      } else if (remainingToday > 1) {
-        classInfo = '$remainingToday classes left';
-      } else {
-        classInfo = 'Last class today';
-      }
-
-      notifTitle = '$emoji ${next.subject} in $timeUntil';
-      notifBody = '$classInfo\n📍 ${next.room} · 📚 ${next.batchKey.batch}';
-    } else {
-      final weekday = now.weekday;
-      if (weekday == 6 || weekday == 7) {
-        notifTitle = '🎉 Weekend Mode';
-        notifBody = 'No classes — enjoy your break!';
-      } else {
-        notifTitle = '✓ All done for today';
-        notifBody = 'No more classes scheduled';
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _facultyProfilesSource = 'fallback';
+          _facultyProfilesLoading = false;
+        });
       }
     }
-
-    await FlutterForegroundTask.startService(
-      serviceId: 256,
-      notificationTitle: notifTitle,
-      notificationText: notifBody,
-      notificationIcon: null,
-      notificationButtons: [NotificationButton(id: 'open', text: 'Open IRIS')],
-      callback: startClassNotificationTask,
-    );
   }
 
-  String _bar(double p) {
-    const total = 8;
-    final filled = (p * total).round().clamp(0, total);
-    return '🟦' * filled + '⬜' * (total - filled);
-  }
-
-  Future<void> _updateWidgetForTeacher() async {
-    final teacher = _selectedTeacher;
-    if (teacher == null || teacher.isEmpty) {
-      await WidgetService.updateWidgetIdle(
-        headline: 'Faculty Mode',
-        subline: 'Select your name to view schedule',
-        teacherInfo: '',
-        timeInfo: 'Open IRIS to select',
-        isUrgent: false,
+  FacultyProfile? _matchSelectedFacultyProfile() {
+    if (_selectedTeacher == null) return null;
+    try {
+      return _facultyProfiles.firstWhere(
+        (p) => p.name.toLowerCase().contains(_selectedTeacher!.toLowerCase()),
       );
-      return;
+    } catch (_) {
+      return null;
     }
+  }
 
-    final now = DateTime.now();
-    final insight = widget.brain.buildTeacherTemporalInsight(teacher, now);
-    int progressPercent = 0;
-    final current = widget.brain.getCurrentClassForTeacher(teacher, now);
-    if (current != null && current.isLive(now)) {
-      final currentTime = now.hour + (now.minute / 60.0);
-      final duration = LectureDuration.getActualDuration(current);
-      final progress = ((currentTime - current.safeStartVal) / duration).clamp(0.0, 1.0);
-      progressPercent = (progress * 100).toInt();
+  String _resolveFacultyImageUrl(String path) {
+    if (path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    return 'https://cuonline.comsats.edu.pk/PublicDocs/TeacherImages/$path';
+  }
+
+  void _launchFacultyEmail(String email) async {
+    if (email.isEmpty) return;
+    final url = Uri.parse('mailto:$email');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
     }
+  }
 
-    String displayInfo = teacher;
-    if (current != null) {
-      displayInfo = current.batchKey.batch;
-    } else {
-      final allSessions = widget.brain.memory.sessions.where((s) => s.teacher.trim().toLowerCase() == teacher.trim().toLowerCase()).toList();
-      if (allSessions.isNotEmpty) {
-        displayInfo = allSessions.first.batchKey.batch;
-      }
+  String _facultySourceLabel(String source) {
+    switch (source) {
+      case 'remote': return 'VERIFIED';
+      case 'fallback': return 'LOCAL';
+      default: return 'GUEST';
     }
+  }
 
-    await WidgetService.updateWidgetWithInsight(
-      headline: insight.headline,
-      subline: insight.subline,
-      timeInfo: insight.timeInfo ?? '--',
-      teacherInfo: displayInfo,
-      isLive: insight.isLive,
-      isUrgent: insight.isUrgent,
-      progressPercentage: progressPercent,
+  Future<void> _handleRefresh() async {
+    IrisHaptics.refreshStart();
+    await _loadFacultyProfiles();
+    _updateScheduleCache();
+    IrisHaptics.refreshSuccess();
+  }
+
+  void _openTeacherPicker({GlobalKey? originKey}) {
+    final teachers = widget.brain.allTeachers();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).brightness == Brightness.dark 
+            ? VitalTokens.obsidian 
+            : VitalTokens.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Select Teacher', style: TextStyle(fontWeight: FontWeight.w900)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: teachers.length,
+            itemBuilder: (context, index) {
+              final t = teachers[index];
+              return ListTile(
+                title: Text(t, style: const TextStyle(fontWeight: FontWeight.w600)),
+                onTap: () {
+                  setState(() {
+                    _selectedTeacher = t;
+                    _updateScheduleCache();
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
-  Future<void> _openTeacherPortal({GlobalKey? originKey}) async {
-    await _onBottomNavTap(2);
-  }
-
-  Future<void> _openTeacherPicker({GlobalKey? originKey}) async {
-    await _onBottomNavTap(1);
-  }
-
-  Future<void> _openAbout({GlobalKey? originKey}) async {
-    await _onBottomNavTap(3);
-  }
-
-  Future<void> _onBottomNavTap(int index) async {
-    if (!mounted) return;
-    index = index.clamp(0, 5);
-    if (_isStudentNavBusy) return;
-    final previousIndex = _bottomNavIndex;
-    if (index == previousIndex) {
-      await IrisHaptics.navTransition(from: previousIndex, to: index);
-      return;
-    }
-
-    setState(() => _isStudentNavBusy = true);
-    await IrisHaptics.navTransition(from: previousIndex, to: index);
-    await IrisHaptics.destinationOpen(destination: index);
-
-    if (!mounted) return;
-    const lockDuration = Duration(milliseconds: 420);
-    setState(() {
-      _facultyTabSlideDirection = index > previousIndex ? 1 : -1;
-      _bottomNavIndex = index;
-    });
-
-    await Future<void>.delayed(lockDuration);
-    if (!mounted) return;
-    setState(() => _isStudentNavBusy = false);
-
-    if (index == 0) {
-      _updateScheduleCache();
-    }
-  }
-
-  void _setFacultyTabFromDrag(int index) {
-    if (!mounted) return;
-    if (_isStudentNavBusy) return;
-    if (index == _bottomNavIndex) return;
-    index = index.clamp(0, 3);
-    setState(() {
-      _facultyTabSlideDirection = index > _bottomNavIndex ? 1 : -1;
-      _bottomNavIndex = index;
-    });
-    IrisHaptics.chipSelect();
-    if (index == 0) {
-      _updateScheduleCache();
-    }
-  }
-
-  void _handleFacultyNavDrag(DragUpdateDetails details, double width) {
-    if (width <= 0) return;
-    final safeDx = details.localPosition.dx.clamp(0.0, width - 1);
-    final itemWidth = width / 4;
-    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 3);
-    _setFacultyTabFromDrag(targetIndex);
-  }
-
-  Widget _buildFacultyTabContent() {
-    switch (_bottomNavIndex) {
-      case 1:
-        return TeacherLocatorScreen(
-          key: const PageStorageKey<String>('faculty_tab_teacher'),
-          brain: widget.brain,
-          onTeacherSelected: (teacherName) {
-            _saveSelectedTeacher(teacherName);
-            if (mounted) {
-              setState(() {
-                _facultyTabSlideDirection = -1;
-                _bottomNavIndex = 0;
-              });
-            }
-          },
-          onRoleChanged: widget.onRoleChanged,
-          showDock: false,
-          showBackButton: false,
-          closeOnTeacherSelect: false,
-        );
-      case 2:
-        return const PortalScreen(
-          key: PageStorageKey<String>('faculty_tab_portal'),
-          url: 'https://faculty.comsats.edu.pk/Home/login?returnUrl=https://faculty.comsats.edu.pk/',
-          title: 'COMSATS Faculty Portal',
-          sessionScope: 'faculty',
-          showBackButton: false,
-        );
-      case 3:
-        return AboutScreen(
-          key: const PageStorageKey<String>('faculty_tab_about'),
-          onRoleChanged: widget.onRoleChanged,
-          onSetThemeMode: widget.onSetThemeMode,
-          currentThemeMode: widget.currentThemeMode,
-          showDock: false,
-          showCloseButton: false,
-        );
-      default:
-        return const SizedBox.shrink();
-    }
+  String _formatDateLabel(DateTime now) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${days[(now.weekday - 1) % 7]}, ${months[now.month - 1]} ${now.day}';
   }
 
   @override
   Widget build(BuildContext context) {
-    // Render a minimal placeholder while keeping the migration safe.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final now = DateTime.now();
+    final teacher = _selectedTeacher ?? 'Faculty Member';
+    final dateLabel = _formatDateLabel(now);
+    final insight = widget.brain.buildTeacherTemporalInsight(teacher, now);
+
     return Scaffold(
-      body: Center(child: Text('Faculty Dashboard')),
+      body: Stack(
+        children: [
+          ObsidianPulse(isDark: isDark),
+          _buildFacultyScheduleView(
+            isDark,
+            teacher,
+            _cachedSchedule,
+            now,
+            dateLabel,
+            insight,
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(top: false, child: _buildBottomNavBar(isDark)),
+          ),
+        ],
+      ),
     );
   }
-}
 
-// Lightweight compatibility helpers copied here to avoid circular imports.
-class LectureDuration {
-  static double getActualDuration(ClassSession session) {
-    return (session.safeEndVal - session.safeStartVal).abs();
+  Widget _buildFacultyScheduleView(
+    bool isDark,
+    String teacher,
+    List<ClassSession> schedule,
+    DateTime now,
+    String dateLabel,
+    TemporalInsight insight,
+  ) {
+    final profile = _matchSelectedFacultyProfile();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompactCard = screenWidth < 400;
+
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: IrisTokens.brand,
+      backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+      child: CustomScrollView(
+        physics: const ButterScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 0),
+              child: GlassCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _buildFacultyHeaderBadge(compact: isCompactCard),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: _buildFacultyHeaderTitle(teacher, isDark, isCompactCard),
+                        ),
+                        _buildFacultyChangeTeacherButton(compact: isCompactCard),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    if (profile != null) _buildProfileCard(profile, isDark),
+                    const SizedBox(height: 16),
+                    _buildStatsRow(schedule, dateLabel, isDark),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: _buildInsightCard(insight, isDark),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildDaySelector(now, isDark),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
+            sliver: schedule.isEmpty
+                ? SliverToBoxAdapter(child: _buildEmptyState(isDark))
+                : SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, index) {
+                        final session = schedule[index];
+                        final nextSession = index + 1 < schedule.length ? schedule[index + 1] : null;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: ClassCard(
+                            session: session,
+                            nextSession: nextSession,
+                            isFacultyView: true,
+                          ),
+                        );
+                      },
+                      childCount: schedule.length,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 
-  static double getActualEndTime(ClassSession session) {
-    return session.safeEndVal;
+  Widget _buildFacultyHeaderBadge({bool compact = false}) {
+    return Container(
+      padding: EdgeInsets.all(compact ? 8 : 12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [IrisTokens.purple, IrisTokens.purpleLight]),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: IrisTokens.purple.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(Icons.badge_rounded, color: Colors.white, size: compact ? 20 : 24),
+    );
   }
-}
 
-// Provide a no-op callback if the real one isn't available in this context.
-void startClassNotificationTask() {
-  // real implementation lives in services/notification_service.dart
+  Widget _buildFacultyHeaderTitle(String teacher, bool isDark, bool compact) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'TEACHING TODAY',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 10,
+            letterSpacing: 1.2,
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          teacher.toUpperCase(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: compact ? 18 : 22,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFacultyChangeTeacherButton({bool compact = false}) {
+    return IconButton(
+      onPressed: _openTeacherPicker,
+      icon: Icon(
+        Icons.swap_horiz_rounded,
+        color: IrisTokens.purple,
+        size: compact ? 20 : 24,
+      ),
+    );
+  }
+
+  Widget _buildProfileCard(FacultyProfile profile, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              IrisComponents.facultyAvatar(
+                imageUrl: profile.image.isNotEmpty ? _resolveFacultyImageUrl(profile.image) : null,
+                gender: profile.gender,
+                name: profile.name,
+                radius: 24,
+                isDark: isDark,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      profile.department,
+                      style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black),
+                    ),
+                    Text(
+                      profile.location,
+                      style: TextStyle(fontSize: 12, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6)),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: IrisTokens.brand.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _facultySourceLabel(_facultyProfilesSource),
+                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: IrisTokens.brand),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _launchFacultyEmail(profile.email),
+              icon: const Icon(Icons.email_outlined, size: 16),
+              label: const Text('CONTACT FACULTY'),
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                foregroundColor: IrisTokens.brand,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(List<ClassSession> schedule, String dateLabel, bool isDark) {
+    return Row(
+      children: [
+        _buildStatChip(Icons.calendar_today_rounded, dateLabel, isDark),
+        const SizedBox(width: 8),
+        _buildStatChip(Icons.schedule_rounded, '${schedule.length} CLASSES', isDark),
+      ],
+    );
+  }
+
+  Widget _buildStatChip(IconData icon, String label, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 12, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsightCard(TemporalInsight insight, bool isDark) {
+    final accentColor = insight.isLive ? VitalTokens.green : (insight.isUrgent ? VitalTokens.orange : VitalTokens.blue);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentColor.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(insight.isLive ? Icons.record_voice_over_rounded : Icons.info_outline_rounded, color: accentColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  insight.headline,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                ),
+              ),
+              if (insight.isLive) _buildLivePill(),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            insight.subline,
+            style: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLivePill() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: VitalTokens.green.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Text('LIVE', style: TextStyle(color: VitalTokens.green, fontSize: 10, fontWeight: FontWeight.w900)),
+    );
+  }
+
+  Widget _buildDaySelector(DateTime now, bool isDark) {
+    final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final currentDay = _overrideDayIndex ?? now.weekday;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(7, (index) {
+        final dayIndex = index + 1;
+        final isSelected = currentDay == dayIndex;
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _overrideDayIndex = dayIndex;
+              _updateScheduleCache();
+            });
+            IrisHaptics.chipSelect();
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                days[index],
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                  color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    return Column(
+      children: [
+        const SizedBox(height: 40),
+        Icon(Icons.spa_rounded, size: 64, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)),
+        const SizedBox(height: 16),
+        const Text(
+          'NO CLASSES SCHEDULED',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 12),
+        ),
+        Text(
+          'Time to relax and recharge',
+          style: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomNavBar(bool isDark) {
+    return Container(
+      height: 72,
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      decoration: BoxDecoration(
+        color: (isDark ? VitalTokens.obsidian : Colors.white).withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(36),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(0, Icons.dashboard_rounded, 'DASH', true, isDark),
+              _buildNavItem(1, Icons.groups_rounded, 'STUDENTS', false, isDark),
+              _buildNavItem(2, Icons.cloud_rounded, 'PORTAL', false, isDark),
+              _buildNavItem(3, Icons.settings_rounded, 'ABOUT', false, isDark),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label, bool isSelected, bool isDark) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: isSelected ? IrisTokens.brand : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w900,
+            color: isSelected ? IrisTokens.brand : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -33,6 +33,7 @@ object NotificationHelper {
         collapsed.setTextViewText(R.id.notif_title, title)
         collapsed.setTextViewText(R.id.notif_line1, line1)
         collapsed.setProgressBar(R.id.notif_progress, 100, progress.coerceIn(0, 100), false)
+        collapsed.setTextViewText(R.id.notif_progress_text, "${progress.coerceIn(0, 100)}%")
         collapsed.setTextViewText(R.id.notif_line2, line2)
         collapsed.setViewVisibility(
             R.id.notif_line2,
@@ -42,6 +43,7 @@ object NotificationHelper {
         expanded.setTextViewText(R.id.notif_title, title)
         expanded.setTextViewText(R.id.notif_line1, line1)
         expanded.setProgressBar(R.id.notif_progress, 100, progress.coerceIn(0, 100), false)
+        expanded.setTextViewText(R.id.notif_progress_text, "${progress.coerceIn(0, 100)}%")
         expanded.setTextViewText(R.id.notif_line2, line2)
         expanded.setViewVisibility(
             R.id.notif_line2,

@@ -1,0 +1,97 @@
+{
+  "description": "[{
+    "id": "25914",
+    "code": "PHY124",
+    "name": "Applied Physics",
+    "teacher": "Hassan Iqbal",
+    "assignments": [],
+    "quizzes": []
+  },
+  {
+    "id": "25894",
+    "code": "CSC102",
+    "name": "Discrete Structures",
+    "teacher": "Shaheen Akhter",
+    "assignments": [],
+    "quizzes": []
+  },
+  {
+    "id": "25904",
+    "code": "HUM120",
+    "name": "Expository Writing",
+    "teacher": "Dr. Ammar Ashraf",
+    "assignments": [
+      {
+        "title": "Assignment 4 - Expository writing",
+        "startDate": "5/12/2026 2:58:00 PM",
+        "dueDate": "5/18/2026 11:59:00 PM",
+        "isActionable": true
+      }
+    ],
+    "quizzes": [
+      {
+        "title": "Quiz 1",
+        "startDate": "2/23/2026 10:00:00 AM",
+        "dueDate": "3/2/2026 11:59:00 PM",
+        "isActionable": false
+      },
+      {
+        "title": "Quiz 2",
+        "startDate": "4/13/2026 11:09:00 AM",
+        "dueDate": "4/13/2026 11:30:00 AM",
+        "isActionable": false
+      },
+      {
+        "title": "Quiz 3",
+        "startDate": "4/28/2026 3:17:00 PM",
+        "dueDate": "5/1/2026 11:59:00 PM",
+        "isActionable": false
+      },
+      {
+        "title": "Quiz 4",
+        "startDate": "5/12/2026 3:03:00 PM",
+        "dueDate": "5/17/2026 11:59:00 PM",
+        "isActionable": false
+      }
+    ]
+  },
+  {
+    "id": "25899",
+    "code": "CSC241",
+    "name": "Object Oriented Programming",
+    "teacher": "Hamza Arif",
+    "assignments": [],
+    "quizzes": []
+  },
+  {
+    "id": "25909",
+    "code": "CSC291",
+    "name": "Software Engineering",
+    "teacher": "Kanwal Fatima",
+    "assignments": [
+      {
+        "title": "TA4_SE",
+        "startDate": "5/13/2026 11:37:00 AM",
+        "dueDate": "5/17/2026 11:30:00 PM",
+        "isActionable": true
+      }
+    ],
+    "quizzes": []
+  },
+  {
+    "id": "25919",
+    "code": "HUM161",
+    "name": "Understanding of Holy Quran – I (Fehm-e-Quran–I)",
+    "teacher": "Muhammad Yasin",
+    "assignments": [
+      {
+        "title": "Assignment No. 4",
+        "startDate": "5/16/2026 8:30:00 AM",
+        "dueDate": "5/18/2026 4:30:00 PM",
+        "isActionable": true
+      }
+    ],
+    "quizzes": []
+  }
+]"
+}

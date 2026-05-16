@@ -21,124 +21,93 @@ class HeadlessPortalSync extends StatefulWidget {
   static const String syncPortalScript = r'''
 (() => {
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  
-  const parsePortalDate = (str) => {
-    if (!str || str === "N/A") return "";
-    try {
-      const clean = str.trim().toLowerCase().replace(/\s+/g, ' ');
-      // Split by common separators: dash, slash, space
-      const parts = clean.split(/[-/ ]/);
-      if (parts.length >= 3) {
-        const months = {
-          'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'may': '05', 'jun': '06',
-          'jul': '07', 'aug': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12',
-          '01': '01', '02': '02', '03': '03', '04': '04', '05': '05', '06': '06',
-          '07': '07', '08': '08', '09': '09', '10': '10', '11': '11', '12': '12'
-        };
-        
-        let d, m, y;
-        // Heuristic: identify which part is the month
-        if (months[parts[1]]) { // Format: DD-MMM-YYYY
-          d = parts[0];
-          m = months[parts[1]];
-          y = parts[2];
-        } else if (months[parts[0]]) { // Format: MMM DD, YYYY
-          m = months[parts[0]];
-          d = parts[1].replace(',', '');
-          y = parts[2];
-        } else { // Assume DD-MM-YYYY
-          d = parts[0];
-          m = parts[1].padStart(2, '0');
-          y = parts[2];
-        }
 
-        d = d.padStart(2, '0').slice(-2);
-        // Normalize year: 26 -> 2026
-        if (y.length === 2) y = '20' + y;
-        
-        const iso = `${y}-${m}-${d}T23:59:00`;
-        return isNaN(Date.parse(iso)) ? str : iso;
-      }
-    } catch(e) {}
-    return str;
-  };
-
-  async function getPortalDataForFlutter() {
+  async function scrapeAllCourses() {
+      const results = [];
       const parser = new DOMParser();
-      const finalData = [];
+      
+      console.log(`[IRIS] Engine: Starting deep sync from ${window.location.pathname}...`);
 
+      // 1. Fetch the main course index directly for maximum reliability
+      let dashHtml;
       try {
-          const dashResp = await fetch('/Courses/Index');
-          const dashHtml = await dashResp.text();
-          if (dashHtml.includes('cf-challenge')) return;
-          
-          const dashDoc = parser.parseFromString(dashHtml, 'text/html');
-          const courses = Array.from(dashDoc.querySelectorAll('table tbody tr')).map(tr => ({
-              name: tr.cells[1]?.innerText.trim(),
-              id: tr.getAttribute('onclick')?.match(/\d+/)?.[0]
-          })).filter(c => c.id);
+          dashHtml = await fetch('/Courses/Index').then(res => res.text());
+      } catch (e) {
+          console.log("[IRIS] Engine ERROR: Failed to reach course index.");
+          return [];
+      }
 
-          for (const course of courses) {
-              await fetch(`/Courses/SetCourse/${course.id}`);
-              await sleep(1000); 
+      const dashDoc = parser.parseFromString(dashHtml, 'text/html');
+      const rows = Array.from(dashDoc.querySelectorAll('table tbody tr'))
+          .filter(r => r.getAttribute('onclick') && r.getAttribute('onclick').includes('SetCourse'));
 
-              // Parallelize Assignment and Quiz fetches for speed
-              const [assHtml, quizHtml] = await Promise.all([
-                  fetch('/Assignments/Index').then(r => r.text()),
-                  fetch('/Course/Quizzes').then(r => r.text())
+      console.log(`[IRIS] Engine: Identified ${rows.length} courses.`);
+
+      for (let row of rows) {
+          try {
+              const onclick = row.getAttribute('onclick');
+              const courseId = onclick.match(/\d+/)[0];
+              const cells = row.querySelectorAll('td');
+
+              const courseInfo = {
+                  id: courseId,
+                  code: cells[0]?.innerText.trim() || "N/A",
+                  name: cells[1]?.innerText.trim() || "Unknown",
+                  teacher: cells[3]?.innerText.trim() || "Unknown"
+              };
+
+              console.log(`[IRIS] Syncing: ${courseInfo.name}...`);
+
+              // Step A: Set session context
+              await fetch(`/Courses/SetCourse/${courseId}`);
+              await sleep(400); 
+
+              // Step B: Parallel fetch for Assignments and Quizzes
+              const [assignHtml, quizHtml] = await Promise.all([
+                  fetch('/Assignments/Index').then(res => res.text()),
+                  fetch('/Course/Quizzes').then(res => res.text()).catch(() => fetch('/Quizzes/Index').then(r => r.text()))
               ]);
 
-              const assDoc = parser.parseFromString(assHtml, 'text/html');
-              const assRows = Array.from(assDoc.querySelectorAll('table tbody tr'));
-              const assignments = assRows.map(row => {
-                  const cells = row.cells;
-                  if (cells.length < 8) return null;
-                  const hasDownload = cells[6]?.innerText.includes('Download');
-                  const hasUpload = cells[7]?.innerText.includes('Upload');
+              // Step C: Parse results
+              results.push({
+                  ...courseInfo,
+                  assignments: parseTable(assignHtml, "Assignment", parser),
+                  quizzes: parseTable(quizHtml, "Quiz", parser)
+              });
 
-                  if (hasDownload || hasUpload) {
-                      return {
-                          title: cells[1]?.innerText.trim(),
-                          deadline: parsePortalDate(cells[3]?.innerText.trim()),
-                          status: hasUpload ? "Action Required" : "Download Available",
-                          type: "Assignment"
-                      };
-                  }
-                  return null;
-              }).filter(item => item !== null);
-
-              const quizDoc = parser.parseFromString(quizHtml, 'text/html');
-              const quizRows = Array.from(quizDoc.querySelectorAll('table tbody tr'));
-              const quizzes = quizRows.map(row => {
-                  if (row.innerText.toLowerCase().includes('not attempted')) {
-                      return {
-                          title: row.cells[1]?.innerText.trim(),
-                          deadline: parsePortalDate(row.cells[2]?.innerText.trim()),
-                          status: "Not Attempted",
-                          type: "Quiz"
-                      };
-                  }
-                  return null;
-              }).filter(item => item !== null);
-
-              if (assignments.length > 0 || quizzes.length > 0) {
-                  finalData.push({
-                      courseName: course.name,
-                      courseId: course.id,
-                      tasks: [...assignments, ...quizzes]
-                  });
-              }
+          } catch (e) {
+              console.error(`Error scraping course:`, e);
           }
-      } catch (e) { console.error("[Iris] Shadow Scrape Failed", e); }
+      }
+      return results;
+  }
 
+  function parseTable(html, type, parser) {
+      const doc = parser.parseFromString(html, 'text/html');
+      const rows = Array.from(doc.querySelectorAll('table tbody tr'));
+
+      return rows.map(r => {
+          if (r.cells.length < 4 || r.innerText.toLowerCase().includes("no record found")) return null;
+
+          return {
+              type: type,
+              title: r.cells[1]?.innerText.trim(),
+              startDate: r.cells[2]?.innerText.trim(),
+              dueDate: r.cells[3]?.innerText.trim(),
+              status: r.cells[r.cells.length - 1]?.innerText.trim() || "",
+              isActionable: r.innerHTML.toLowerCase().includes('upload') || r.innerHTML.toLowerCase().includes('download')
+          };
+      }).filter(i => i !== null);
+  }
+
+  scrapeAllCourses().then(data => {
       if (window.IrisPortalChannel) {
           window.IrisPortalChannel.postMessage(JSON.stringify({
               type: 'portal_sync_tasks',
-              tasks: finalData
+              courses: data
           }));
       }
-  }
-  getPortalDataForFlutter();
+  });
 })();
 ''';
 
@@ -154,7 +123,6 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
   void initState() {
     super.initState();
     _initController();
-    // Listen for sync lock changes
     PortalSyncService.isSyncPaused.addListener(_handlePauseChange);
   }
 
@@ -167,8 +135,6 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
   void _handlePauseChange() {
     if (PortalSyncService.isSyncPaused.value) {
       debugPrint('IRIS: Background sync paused (User is in portal)');
-    } else {
-      debugPrint('IRIS: Background sync resumed');
     }
   }
 
@@ -196,7 +162,7 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
   DateTime? _lastSyncTime;
 
   void _onPageFinished(String url) {
-    if (widget.pause) return;
+    if (widget.pause || PortalSyncService.isSyncPaused.value) return;
 
     final lowerUrl = url.toLowerCase();
     final isChallenge = lowerUrl.contains('challenge') || lowerUrl.contains('captcha');
@@ -211,35 +177,45 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
   }
 
   void _triggerScraper() {
+    if (PortalSyncService.isSyncPaused.value) return;
     debugPrint('IRIS: Shadow Scraper Waking Up...');
     _controller.runJavaScript(HeadlessPortalSync.syncPortalScript);
   }
 
-  void _handleJsMessage(String json) {
+  Future<void> _handleJsMessage(String json) async {
     try {
       final data = jsonDecode(json);
       if (data['type'] == 'portal_sync_tasks') {
-        final List<dynamic> courseData = data['tasks'] as List<dynamic>? ?? [];
+        final List<dynamic> courses = data['courses'] as List<dynamic>? ?? [];
         final List<PortalTask> flattenedTasks = [];
         
-        for (final course in courseData) {
-          final courseName = course['courseName']?.toString() ?? 'Unknown';
-          final tasks = course['tasks'] as List<dynamic>? ?? [];
+        for (final course in courses) {
+          final courseName = course['name']?.toString() ?? 'Unknown';
+          final courseId = course['id']?.toString();
           
-          for (final t in tasks) {
+          final assignments = course['assignments'] as List<dynamic>? ?? [];
+          final quizzes = course['quizzes'] as List<dynamic>? ?? [];
+          
+          for (final t in [...assignments, ...quizzes]) {
             flattenedTasks.add(PortalTask(
-              type: t['type']?.toString() ?? 'Assignment',
+              type: t['type']?.toString() ?? 'Task',
               title: t['title']?.toString() ?? 'Untitled',
               subject: courseName,
-              dueDate: t['deadline']?.toString() ?? '',
+              dueDate: t['dueDate']?.toString() ?? '',
+              startDate: t['startDate']?.toString() ?? '',
               status: t['status']?.toString() ?? '',
+              isActionable: t['isActionable'] == true,
+              courseId: courseId,
               scrapedAt: DateTime.now().millisecondsSinceEpoch,
             ));
           }
         }
 
         if (flattenedTasks.isNotEmpty) {
-          // Notify the app that new tasks were found
+          // Persist the tasks to SharedPreferences via the central service
+          await PortalSyncService.updatePersistence(flattenedTasks);
+          
+          // Notify the UI to rebuild
           PortalSyncService.notifyUpdate();
           widget.onSyncComplete?.call(flattenedTasks);
         }

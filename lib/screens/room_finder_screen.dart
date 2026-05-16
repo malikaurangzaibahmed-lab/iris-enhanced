@@ -9,7 +9,7 @@ import '../services/analytics_manager.dart';
 import '../core/models.dart';
 import '../core/format_guard.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/neural_aura.dart';
+import '../core/vital_theme.dart';
 
 class RoomFinderScreen extends StatefulWidget {
   final dynamic memory; // Using dynamic for now to avoid circular deps if possible
@@ -39,6 +39,19 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
     // 2nd slot: 10:00 - 11:30
     // ... 5th slot: 2:30 - 4:00
     return 8.5 + (slotIndex * 1.5);
+  }
+
+  String? _bestBuildingSuggestion(List<RoomAvailability> availability) {
+    final counts = <String, int>{};
+    for (final room in availability) {
+      if (!room.isAvailable) continue;
+      if (room.building == 'Other' || room.building == 'Academic Block') continue;
+      counts[room.building] = (counts[room.building] ?? 0) + 1;
+    }
+    if (counts.isEmpty) return null;
+    final ranked = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return ranked.first.key;
   }
 
   @override
@@ -101,6 +114,12 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
       final matchesBuilding = _filterBuilding == 'All' || a.building == _filterBuilding;
       return matchesQuery && matchesBuilding;
     }).toList();
+    final likelyBuilding = _bestBuildingSuggestion(availability);
+    final likelyBuildingCount = likelyBuilding == null
+        ? 0
+        : availability
+            .where((a) => a.isAvailable && a.building == likelyBuilding)
+            .length;
 
     final recommendation = _service.getSmartRecommendation(
       allSessions, 
@@ -115,8 +134,9 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
       appBar: irisFrostedAppBar(title: 'Room Finder', isDark: isDark),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'cs'),
-          ListView(
+          ObsidianPulse(isDark: isDark),
+          RepaintBoundary(
+            child: ListView(
             physics: const ButterScrollPhysics(),
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 100),
             children: [
@@ -134,11 +154,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                       onChanged: (v) {
                         setState(() => _query = v);
                       },
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
+                      style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
                       decoration: irisFrostedInputDecoration(
                         label: 'Search rooms or blocks...',
                         isDark: isDark,
@@ -150,6 +166,42 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                   _buildTimePicker(context, isDark),
                 ],
               ),
+              if (_query.trim().length < 3 && _filterBuilding == 'All' && likelyBuilding != null) ...[
+                const SizedBox(height: 12),
+                GlassCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: IrisTokens.brand.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 16,
+                          color: IrisTokens.brand,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Likely match: $likelyBuilding has $likelyBuildingCount open room${likelyBuildingCount == 1 ? '' : 's'} right now',
+                          style: IrisTextStyles.metaInfo(context).copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () => setState(() => _filterBuilding = likelyBuilding),
+                        child: const Text('Use filter'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               
               _buildSectionHeader('SELECT DAY', isDark),
@@ -239,11 +291,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                     ),
                     child: Text(
                       '${filtered.length} found',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                      ),
+                      style: IrisTextStyles.metaInfo(context).copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
                 ],
@@ -253,9 +301,10 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
               if (filtered.isEmpty)
                 _buildEmptyState(isDark)
               else
-                ...filtered.map((a) => RoomAvailabilityCard(availability: a, isDark: isDark)),
+                ...filtered.map((a) => RepaintBoundary(child: RoomAvailabilityCard(availability: a, isDark: isDark))),
             ],
           ),
+        ),
         ],
       ),
     );
@@ -264,12 +313,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
   Widget _buildSectionHeader(String title, bool isDark) {
     return Text(
       title,
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 1.2,
-        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-      ),
+      style: IrisTextStyles.overline(context).copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w900),
     );
   }
 
@@ -292,21 +336,13 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
         const SizedBox(height: 24),
         Text(
           'No rooms match your filters',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w900,
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
-          ),
+          style: IrisTextStyles.classSubject(context).copyWith(fontSize: 17, fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 8),
         Text(
           'Try adjusting your time or building filters',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-          ),
+          style: IrisTextStyles.body(context).copyWith(fontSize: 14, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -374,19 +410,11 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                   children: [
                     Text(
                       '${room.roomId}',
-                      style: const TextStyle(
-                        fontSize: 22, 
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                      ),
+                      style: IrisTextStyles.classSubject(context).copyWith(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5),
                     ),
                     Text(
                       reason,
-                      style: TextStyle(
-                        fontSize: 13, 
-                        fontWeight: FontWeight.w600,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-                      ),
+                      style: IrisTextStyles.metaInfo(context).copyWith(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -411,7 +439,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
       children: [
         Icon(icon, size: 14, color: IrisTokens.brand),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(label, style: IrisTextStyles.label(context).copyWith(fontSize: 12, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -454,7 +482,7 @@ class RoomAvailabilityCard extends StatelessWidget {
                           availability.roomId.replaceAll(RegExp(r'[^0-9]'), '').isEmpty 
                             ? availability.roomId.substring(0, 1).toUpperCase()
                             : availability.roomId.replaceAll(RegExp(r'[^0-9]'), '').substring(0, math.min(2, availability.roomId.replaceAll(RegExp(r'[^0-9]'), '').length)),
-                          style: TextStyle(color: statusColor, fontWeight: FontWeight.w900, fontSize: 24),
+                          style: IrisTextStyles.classProgress(context).copyWith(color: statusColor, fontWeight: FontWeight.w900, fontSize: 24),
                         ),
                       ),
                     ),
@@ -465,11 +493,7 @@ class RoomAvailabilityCard extends StatelessWidget {
                         children: [
                           Text(
                             availability.roomId,
-                            style: const TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.w900, 
-                              letterSpacing: -0.5,
-                            ),
+                            style: IrisTextStyles.classSubject(context).copyWith(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.5),
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -482,11 +506,7 @@ class RoomAvailabilityCard extends StatelessWidget {
                               const SizedBox(width: 6),
                               Text(
                                 availability.building,
-                                style: TextStyle(
-                                  fontSize: 13, 
-                                  fontWeight: FontWeight.w700, 
-                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                                ),
+                                style: IrisTextStyles.metaInfo(context).copyWith(fontSize: 13, fontWeight: FontWeight.w700),
                               ),
                             ],
                           ),
@@ -505,12 +525,7 @@ class RoomAvailabilityCard extends StatelessWidget {
                           ),
                           child: Text(
                             availability.isAvailable ? 'FREE' : 'IN USE',
-                            style: TextStyle(
-                              color: statusColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
+                            style: IrisTextStyles.badgeText(context).copyWith(color: statusColor, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -518,11 +533,7 @@ class RoomAvailabilityCard extends StatelessWidget {
                           availability.isAvailable 
                             ? (availability.minulesFreeUntilNextSession != null ? '${availability.minulesFreeUntilNextSession}m free' : 'Until EOD')
                             : 'Until ${FormatGuard.formatDecimalTime(availability.occupiedUntil ?? 0)}',
-                          style: TextStyle(
-                            fontSize: 13, 
-                            fontWeight: FontWeight.w800, 
-                            color: statusColor.withValues(alpha: 0.8),
-                          ),
+                          style: IrisTextStyles.metaInfo(context).copyWith(fontSize: 13, fontWeight: FontWeight.w800, color: statusColor.withValues(alpha: 0.8)),
                         ),
                       ],
                     ),
@@ -575,11 +586,7 @@ class RoomAvailabilityCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Next: ${availability.nextSessionSubject} at ${FormatGuard.formatDecimalTime(availability.nextSessionAt ?? 0)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                          ),
+                          style: IrisTextStyles.metaInfo(context).copyWith(fontSize: 12, fontWeight: FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -619,13 +626,7 @@ class RoomFilterChip extends StatelessWidget {
         accentColor: isSelected ? IrisTokens.brand : null,
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            color: isSelected 
-                ? Colors.white 
-                : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-          ),
+          style: IrisTextStyles.label(context).copyWith(fontSize: 13, fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600, color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7)),
         ),
       ),
     );

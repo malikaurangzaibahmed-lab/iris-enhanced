@@ -19,28 +19,49 @@
         android:id="@+id/notif_line1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="4dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textSize="12sp"
+        android:textSize="13sp"
         android:textColor="?android:attr/textColorSecondary" />
 
-    <ProgressBar
-        android:id="@+id/notif_progress"
-        style="?android:attr/progressBarStyleHorizontal"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="8dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:indeterminate="false"
-        android:progressDrawable="@drawable/notification_progress_anim" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:spacing="8dp">
+
+        <ProgressBar
+            android:id="@+id/notif_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:layout_weight="1"
+            android:indeterminate="false"
+            android:progressDrawable="@drawable/notification_progress_modern" />
+
+        <TextView
+            android:id="@+id/notif_progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorSecondary"
+            android:minWidth="32dp"
+            android:textAlignment="center" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/notif_line2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:maxLines="2"
         android:textSize="12sp"
         android:textColor="?android:attr/textColorSecondary" />
 

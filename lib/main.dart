@@ -1,57 +1,294 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'dart:io';
-import 'dart:ui';
-import 'dart:convert';
-import 'dart:math' as math;
-import 'screens/setup_screens.dart';
-import 'services/notification_service.dart';
-import 'core/animations.dart';
-import 'widgets/spring_button.dart';
-import 'widgets/dashboard_dock.dart';
-import 'widgets/neural_aura.dart';
-import 'widgets/smooth_scroll.dart';
-import 'widgets/batch_selector.dart';
-import 'screens/about_screen.dart';
-import 'screens/faculty_dashboard_screen.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'widgets/iris_components.dart';
-import 'widgets/glass_card.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
-    hide NotificationVisibility;
+  hide NotificationVisibility;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui';
 
-import 'core/tokens.dart';
-import 'core/format_guard.dart';
 import 'core/animations.dart';
+import 'core/format_guard.dart';
+import 'core/glass.dart';
 import 'core/models.dart';
 import 'core/omni_brain.dart';
+import 'core/theme.dart';
+import 'core/minimal_theme.dart';
+import 'core/tokens.dart';
 import 'core/university_memory.dart';
+import 'core/app_signals.dart';
+import 'core/theme_signals.dart';
+import 'core/vital_theme.dart';
+import 'core/vital_motion.dart';
 import 'portal_screen.dart';
-import 'widgets/portal_sync_card.dart';
+import 'screens/about_screen.dart';
+import 'screens/faculty_dashboard_screen.dart' hide FacultyDashboard, LectureDuration, startClassNotificationTask;
 import 'screens/room_finder_screen.dart';
+import 'screens/setup_screens.dart';
+import 'screens/teacher_locator_screen.dart';
 import 'services/helpdesk_campus_feed_service.dart';
 import 'services/helpdesk_faculty_service.dart';
 import 'services/helpdesk_schedule_data_service.dart';
+import 'services/notification_service.dart';
 import 'services/timetable_ota_service.dart';
 import 'services/ui_feedback.dart';
 import 'widget_service.dart';
-import 'widgets/spring_button.dart';
-import 'widgets/dashboard_dock.dart';
-import 'widgets/neural_aura.dart';
-import 'widgets/smooth_scroll.dart';
 import 'widgets/batch_selector.dart';
-import 'screens/about_screen.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:open_filex/open_filex.dart';
+import 'widgets/dashboard_dock.dart' hide NavActiveHalo, BouncyNavButton;
+import 'widgets/glass_card.dart';
+import 'widgets/iris_components.dart';
+import 'widgets/neural_aura.dart';
+import 'widgets/portal_sync_card.dart';
+import 'widgets/smooth_scroll.dart';
+import 'widgets/spring_button.dart';
+import 'widgets/vital_card.dart';
+
+part 'screens/tools_screen_part.dart';
 
 const MethodChannel _notificationChannel = MethodChannel('iris/notification_channel');
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  tz.initializeTimeZones();
+  FlutterForegroundTask.init(
+    androidNotificationOptions: AndroidNotificationOptions(
+      channelId: 'persistent_class_foreground',
+      channelName: 'IRIS Class Tracker',
+      channelDescription: 'Shows your current and upcoming classes',
+    ),
+    iosNotificationOptions: const IOSNotificationOptions(
+      showNotification: false,
+    ),
+    foregroundTaskOptions: ForegroundTaskOptions(
+      eventAction: ForegroundTaskEventAction.repeat(30000),
+      autoRunOnBoot: true,
+      autoRunOnMyPackageReplaced: true,
+      allowWakeLock: true,
+    ),
+  );
+  await IrisSfx.init();
+  await IrisHaptics.init();
+  runApp(const _BootIrisApp());
+}
+
+class _BootIrisApp extends StatefulWidget {
+  const _BootIrisApp();
+
+  @override
+  State<_BootIrisApp> createState() => _BootIrisAppState();
+}
+
+class _BootIrisAppState extends State<_BootIrisApp> {
+  late final Future<UniversityMemory> _memoryFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _memoryFuture = UniversityMemoryLoader.loadFromAssets();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<UniversityMemory>(
+      future: _memoryFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return _IrisApp(memory: snapshot.data!);
+        }
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: IrisTheme.light(),
+          darkTheme: IrisTheme.dark(),
+          scrollBehavior: const SmoothScrollBehavior(),
+          home: const _StartupSplash(),
+        );
+      },
+    );
+  }
+}
+
+class _StartupSplash extends StatelessWidget {
+  const _StartupSplash();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [IrisTokens.surfaceDark, const Color(0xFF0D0F17)]
+                : [const Color(0xFFF8F7FC), const Color(0xFFF0F3FF)],
+          ),
+        ),
+        child: Center(
+          child: GlassCard(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'IRIS',
+                  style: IrisTextStyles.display(context).copyWith(
+                    fontSize: 26,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Loading schedule and preferences...',
+                  style: IrisTextStyles.metaInfo(context),
+                ),
+                const SizedBox(height: 16),
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IrisApp extends StatefulWidget {
+  const _IrisApp({required this.memory});
+
+  final UniversityMemory memory;
+
+  @override
+  State<_IrisApp> createState() => _IrisAppState();
+}
+
+class _IrisAppState extends State<_IrisApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
+  }
+
+  Future<void> _loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedMode = prefs.getString('theme_mode') ?? 'system';
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _themeMode = _themeModeFromString(savedMode);
+    });
+    // Load minimal UI preference and apply globally
+    final useMinimal = prefs.getBool('use_minimal_ui') ?? false;
+    ThemeSignals.useMinimalTheme.value = useMinimal;
+  }
+
+  ThemeMode _themeModeFromString(String mode) {
+    switch (mode) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  String _themeModeToString(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'light';
+      case ThemeMode.dark:
+        return 'dark';
+      case ThemeMode.system:
+        return 'system';
+    }
+  }
+
+  Future<void> _setThemeMode(String mode) async {
+    final nextMode = _themeModeFromString(mode);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('theme_mode', _themeModeToString(nextMode));
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _themeMode = nextMode;
+    });
+  }
+
+  void _toggleTheme() {
+    setState(() {
+      _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeSignals.useVitalTheme,
+      builder: (context, useVital, _) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: ThemeSignals.useMinimalTheme,
+          builder: (context, useMinimal, _) {
+            final theme = useVital 
+                ? buildVitalTheme(brightness: Brightness.light)
+                : (useMinimal ? buildMinimalTheme(brightness: Brightness.light) : IrisTheme.light());
+            
+            final darkTheme = useVital 
+                ? buildVitalTheme(brightness: Brightness.dark)
+                : (useMinimal ? buildMinimalTheme(brightness: Brightness.dark) : IrisTheme.dark());
+
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              themeMode: _themeMode,
+              theme: theme,
+              darkTheme: darkTheme,
+              scrollBehavior: const SmoothScrollBehavior(),
+              home: _AppRoot(
+                memory: widget.memory,
+                onToggleTheme: _toggleTheme,
+                onSetThemeMode: _setThemeMode,
+                currentThemeMode: _themeModeToString(_themeMode),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
 
 
 
@@ -77,20 +314,42 @@ class _AppRootState extends State<_AppRoot> {
   String? _selectedBatch;
   String? _userRole;
   String? _userName;
+  late VoidCallback _roleListener;
 
   @override
   void initState() {
     super.initState();
     _brain = OmniBrain(widget.memory);
+    // Listen for global role-change signals (used when hub is opened without a callback)
+    _roleListener = () {
+      final role = AppSignals.roleNotifier.value;
+      if (role != null) {
+        // Persist and apply role change
+        _saveUserRole(role);
+        // clear the notifier value so subsequent changes can be detected
+        AppSignals.roleNotifier.value = null;
+      }
+    };
+    AppSignals.roleNotifier.addListener(_roleListener);
     _loadUserRole();
     _loadBatch();
     _loadUserName();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestForegroundNotificationPermission();
+    });
 
     // Show Darood e Pak reminder on app boot with haptic pulse
     WidgetsBinding.instance.addPostFrameCallback((_) {
       IrisHaptics.actionSoft();
       _showDaroodePakDialog();
     });
+  }
+
+  @override
+  void dispose() {
+    AppSignals.roleNotifier.removeListener(_roleListener);
+    super.dispose();
   }
 
   Future<void> _loadUserRole() async {
@@ -193,6 +452,17 @@ class _AppRootState extends State<_AppRoot> {
     });
   }
 
+  Future<void> _requestForegroundNotificationPermission() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+
+    final permission = await FlutterForegroundTask.checkNotificationPermission();
+    if (permission != NotificationPermission.granted) {
+      await FlutterForegroundTask.requestNotificationPermission();
+    }
+  }
+
   Future<void> _saveUserName(String name) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('student_user_name', name);
@@ -203,9 +473,10 @@ class _AppRootState extends State<_AppRoot> {
 
   Future<void> _saveBatch(String batch) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedBatch', batch);
+    final trimmed = batch.trim();
+    await prefs.setString('selectedBatch', trimmed);
     final isFirstSetup = prefs.getBool('widget_prompt_shown') != true;
-    setState(() => _selectedBatch = batch);
+    setState(() => _selectedBatch = trimmed);
 
     // Show widget setup prompt after first batch selection
     if (isFirstSetup && mounted) {
@@ -515,6 +786,7 @@ class _AppRootState extends State<_AppRoot> {
       currentThemeMode: widget.currentThemeMode,
       userName: _userName,
       onUserNameChanged: (name) => setState(() => _userName = name),
+      onRoleChanged: _saveUserRole,
       onChangeBatch: () async {
         final result = await showModalBottomSheet<String>(
           context: context,
@@ -560,7 +832,7 @@ class _NameCaptureScreenState extends State<_NameCaptureScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(28.0),
@@ -714,7 +986,7 @@ class RoleSelectorScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -1333,8 +1605,8 @@ class _SetupBotState extends State<SetupBot> {
     return Scaffold(
       body: Stack(
         children: [
-          NeuralAura(
-            background: Theme.of(context).brightness == Brightness.dark,
+          ObsidianPulse(
+            isDark: Theme.of(context).brightness == Brightness.dark,
           ),
           SafeArea(
             child: Padding(
@@ -1692,7 +1964,7 @@ class _SetupBotState extends State<SetupBot> {
                                           orElse: () =>
                                               widget.memory.allBatches.first,
                                         );
-                                    widget.onComplete(batch);
+                                    widget.onComplete(batch.trim());
                                   }
                                 : null,
                             style: ElevatedButton.styleFrom(
@@ -1866,6 +2138,7 @@ class Dashboard extends StatefulWidget {
   final VoidCallback onChangeBatch;
   final String? userName;
   final ValueChanged<String>? onUserNameChanged;
+  final ValueChanged<String>? onRoleChanged;
 
   const Dashboard({
     required this.memory,
@@ -1877,6 +2150,7 @@ class Dashboard extends StatefulWidget {
     required this.onChangeBatch,
     this.userName,
     this.onUserNameChanged,
+    this.onRoleChanged,
     super.key,
   });
 
@@ -1917,6 +2191,9 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   int _facultyTabSlideDirection = 1;
   bool _isStudentNavBusy = false;
   bool _navBarReady = false;
+  double? _facultyNavDragPosition;
+  bool _isFacultyNavTracking = false;
+  bool _facultyNavHasMoved = false;
   List<ClassSession> _cachedSchedule = [];
   DateTime? _lastScheduleUpdate;
   int? _lastMinute;
@@ -2466,6 +2743,10 @@ class _FacultyDashboardState extends State<FacultyDashboard>
     }
   }
 
+  void _onFacultyNavTap(int index) {
+    _onBottomNavTap(index);
+  }
+
   void _setFacultyTabFromDrag(int index) {
     if (!mounted) return;
     if (_isStudentNavBusy) return;
@@ -2487,6 +2768,78 @@ class _FacultyDashboardState extends State<FacultyDashboard>
     final itemWidth = width / 4;
     final targetIndex = (safeDx / itemWidth).floor().clamp(0, 3);
     _setFacultyTabFromDrag(targetIndex);
+  }
+
+  double _facultyNavInteractionPosition(int itemCount) {
+    if (_isFacultyNavTracking && _facultyNavDragPosition != null) {
+      return _facultyNavDragPosition!.clamp(0.0, itemCount - 1.0);
+    }
+    return _bottomNavIndex.toDouble();
+  }
+
+  int _facultyNavDisplayIndex(int itemCount) {
+    return _facultyNavInteractionPosition(itemCount)
+        .round()
+        .clamp(0, itemCount - 1);
+  }
+
+  void _beginFacultyNavTracking(
+    Offset localPosition,
+    double width,
+    int itemCount,
+  ) {
+    if (width <= 0) return;
+    setState(() {
+      _isFacultyNavTracking = true;
+      _facultyNavHasMoved = false;
+      final slotWidth = width / itemCount;
+      _facultyNavDragPosition = (localPosition.dx / slotWidth).clamp(
+        0.0,
+        itemCount - 1.0,
+      );
+    });
+  }
+
+  void _updateFacultyNavTracking(
+    Offset localPosition,
+    double width,
+    int itemCount,
+  ) {
+    if (!_isFacultyNavTracking || width <= 0) return;
+    setState(() {
+      _facultyNavHasMoved = true;
+      final slotWidth = width / itemCount;
+      _facultyNavDragPosition = (localPosition.dx / slotWidth).clamp(
+        0.0,
+        itemCount - 1.0,
+      );
+    });
+  }
+
+  void _endFacultyNavTracking(int itemCount) {
+    if (!_isFacultyNavTracking) return;
+    if (!_facultyNavHasMoved) {
+      _cancelFacultyNavTracking();
+      return;
+    }
+    final targetIndex = _facultyNavInteractionPosition(itemCount)
+        .round()
+        .clamp(0, itemCount - 1);
+    setState(() {
+      _isFacultyNavTracking = false;
+      _facultyNavDragPosition = null;
+      _facultyNavHasMoved = false;
+    });
+    _setFacultyTabFromDrag(targetIndex);
+  }
+
+  void _cancelFacultyNavTracking() {
+    if (!_isFacultyNavTracking) return;
+    setState(() {
+      _isFacultyNavTracking = false;
+      _facultyNavDragPosition = null;
+      _facultyNavHasMoved = false;
+    });
   }
 
   Widget _buildFacultyTabContent() {
@@ -2521,11 +2874,8 @@ class _FacultyDashboardState extends State<FacultyDashboard>
       case 3:
         return AboutScreen(
           key: const PageStorageKey<String>('faculty_tab_about'),
+          memory: widget.brain.memory,
           onRoleChanged: widget.onRoleChanged,
-          onSetThemeMode: widget.onSetThemeMode,
-          currentThemeMode: widget.currentThemeMode,
-          showDock: false,
-          showCloseButton: false,
         );
       default:
         return const SizedBox.shrink();
@@ -2533,205 +2883,90 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   }
 
   Widget _buildBottomNavBar(bool isDark) {
-    final width = MediaQuery.of(context).size.width;
-    final compact = width < 420;
-    final veryCompact = width < 360;
-    final horizontalPadding = veryCompact ? 10.0 : (compact ? 12.0 : 20.0);
-    final radius = veryCompact ? 18.0 : (compact ? 22.0 : 28.0);
-
-    final navActive = _bottomNavIndex != 0;
-    final activeGlow = _bottomNavIndex == 0
-        ? Colors.transparent
-        : IrisTokens.purple.withValues(alpha: isDark ? 0.18 : 0.13);
-
-    return AnimatedScale(
-      duration: const Duration(milliseconds: 352),
-      curve: IrisMotion.standard,
-      scale: _navBarReady ? 1.0 : 0.93,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 336),
-        curve: IrisMotion.standard,
-        offset: _navBarReady ? Offset.zero : const Offset(0, 0.45),
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 352),
-          opacity: _navBarReady ? 1.0 : 0.0,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              0,
-              horizontalPadding,
-              10,
-            ),
-            child: LiquidGlassLayer(
-              settings: LiquidGlassSettings(
-                blur: (_bottomNavIndex == 0 ? 16 : 20),
-                ambientStrength: 0.65,
-                lightAngle: 0.15 * math.pi,
-                glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                    .withValues(alpha: 0.38),
-                thickness: 20,
+    // Compact, well-balanced bottom nav bar to avoid complex nested parsing issues.
+    final displayIndex = _facultyNavDisplayIndex(4);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: isDark
+                      ? [
+                          Colors.white.withValues(alpha: 0.08),
+                          Colors.white.withValues(alpha: 0.04),
+                        ]
+                      : [
+                          Colors.white.withValues(alpha: 0.85),
+                          Colors.white.withValues(alpha: 0.70),
+                        ],
+                ),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.06),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: VitalTokens.blue.withValues(alpha: isDark ? 0.15 : 0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
               ),
-              child: LiquidGlass.inLayer(
-                shape: LiquidRoundedSuperellipse(
-                  borderRadius: Radius.circular(radius),
-                ),
-                glassContainsChild: false,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 304),
-                  curve: IrisMotion.standard,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(radius),
-                    border: Border.all(
-                      color: (isDark ? Colors.white : IrisTokens.purple)
-                          .withValues(alpha: navActive ? 0.14 : 0.08),
-                      width: 1.1,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: displayIndex == 0 ? Icons.home_filled : Icons.home_rounded,
+                      label: 'Home',
+                      isDark: isDark,
+                      isSelected: displayIndex == 0,
+                      activeColor: VitalTokens.blue,
+                      onTap: () => _onFacultyNavTap(0),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.28 : 0.08,
-                        ),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: activeGlow,
-                        blurRadius: 18,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
                   ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final itemWidth = constraints.maxWidth / 4;
-                      final trailWidth = (itemWidth * 0.34).clamp(
-                        14.0,
-                        veryCompact ? 20.0 : (compact ? 24.0 : 30.0),
-                      );
-                      final haloSize = (itemWidth * 0.70).clamp(
-                        28.0,
-                        veryCompact ? 36.0 : (compact ? 44.0 : 52.0),
-                      );
-                      final left =
-                          (itemWidth * _bottomNavIndex) +
-                          ((itemWidth - trailWidth) / 2);
-                      final haloLeft =
-                          (itemWidth * _bottomNavIndex) +
-                          ((itemWidth - haloSize) / 2);
-                      final trailColor = isDark
-                          ? Colors.white.withValues(alpha: 0.70)
-                          : IrisTokens.purple.withValues(alpha: 0.80);
-
-                      return GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onHorizontalDragUpdate: (details) =>
-                            _handleFacultyNavDrag(
-                              details,
-                              constraints.maxWidth,
-                            ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: haloLeft,
-                              top: veryCompact ? 9 : (compact ? 8 : 7),
-                              child: IgnorePointer(
-                                child: NavActiveHalo(
-                                  size: haloSize,
-                                  color: trailColor,
-                                ),
-                              ),
-                            ),
-                            AnimatedPositioned(
-                              duration: const Duration(milliseconds: 304),
-                              curve: IrisMotion.standard,
-                              left: left,
-                              top: 0,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 304),
-                                curve: IrisMotion.standard,
-                                width: trailWidth,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: trailColor,
-                                  borderRadius: BorderRadius.circular(999),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: trailColor.withValues(alpha: 0.20),
-                                      blurRadius: 8,
-                                      spreadRadius: -2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                veryCompact ? 4 : (compact ? 6 : 8),
-                                veryCompact ? 5 : (compact ? 6 : 8),
-                                veryCompact ? 4 : (compact ? 6 : 8),
-                                veryCompact ? 3 : (compact ? 4 : 6),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      child: BouncyNavButton(
-                                      icon: _bottomNavIndex == 0
-                                          ? Icons.home_filled
-                                          : Icons.home_rounded,
-                                      label: 'Home',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 0,
-                                      activeColor: IrisTokens.purple,
-                                      onTap: () => _onBottomNavTap(0),
-                                    ),
-                                  ),
-                                  Expanded(
-                                      child: BouncyNavButton(
-                                      launchIconKey: _facultyTeacherNavKey,
-                                      icon: _bottomNavIndex == 1
-                                          ? Icons.badge_rounded
-                                          : Icons.badge_outlined,
-                                      label: 'Teacher',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 1,
-                                      activeColor: IrisTokens.purple,
-                                      onTap: () => _onBottomNavTap(1),
-                                    ),
-                                  ),
-                                  Expanded(
-                                      child: BouncyNavButton(
-                                      launchIconKey: _facultyPortalNavKey,
-                                      icon: Icons.public_rounded,
-                                      label: 'Portal',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 2,
-                                      activeColor: IrisTokens.purple,
-                                      onTap: () => _onBottomNavTap(2),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: BouncyNavButton(
-                                      launchIconKey: _facultyAboutNavKey,
-                                      icon: _bottomNavIndex == 3
-                                          ? Icons.info_rounded
-                                          : Icons.info_outline_rounded,
-                                      label: 'About',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 3,
-                                      activeColor: IrisTokens.purple,
-                                      onTap: () => _onBottomNavTap(3),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: displayIndex == 1 ? Icons.badge_rounded : Icons.badge_outlined,
+                      label: 'Teachers',
+                      isDark: isDark,
+                      isSelected: displayIndex == 1,
+                      activeColor: VitalTokens.purple,
+                      onTap: () => _onFacultyNavTap(1),
+                    ),
                   ),
-                ),
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: Icons.public_rounded,
+                      label: 'Portal',
+                      isDark: isDark,
+                      isSelected: displayIndex == 2,
+                      activeColor: VitalTokens.cyan,
+                      onTap: () => _onFacultyNavTap(2),
+                    ),
+                  ),
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: displayIndex == 3 ? Icons.info_rounded : Icons.info_outline_rounded,
+                      label: 'About',
+                      isDark: isDark,
+                      isSelected: displayIndex == 3,
+                      activeColor: VitalTokens.blue,
+                      onTap: () => _onFacultyNavTap(3),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -2811,6 +3046,15 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   }
 
   String _formatDateLabel(DateTime now) {
+    const days = [
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+      'Sun',
+    ];
     const months = [
       'Jan',
       'Feb',
@@ -2825,7 +3069,6 @@ class _FacultyDashboardState extends State<FacultyDashboard>
       'Nov',
       'Dec',
     ];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final dayName = days[(now.weekday - 1) % 7];
     final monthName = months[(now.month - 1).clamp(0, 11)];
     return '$dayName, $monthName ${now.day}';
@@ -2837,8 +3080,10 @@ class _FacultyDashboardState extends State<FacultyDashboard>
 
     if (_bottomNavIndex != 0) {
       return Scaffold(
+        backgroundColor: Colors.transparent,
         body: Stack(
           children: [
+            ObsidianPulse(isDark: isDark),
             Positioned.fill(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 420),
@@ -2959,9 +3204,10 @@ class _FacultyDashboardState extends State<FacultyDashboard>
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: teacher == null || teacher.isEmpty
                 ? _buildTeacherSelectionView(isDark)
@@ -4677,6 +4923,7 @@ class _FacultyFullScheduleScreenState
     extends State<_FacultyFullScheduleScreen> {
   int? _overrideDayIndex;
   List<ClassSession> _cachedSchedule = [];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -4769,6 +5016,12 @@ class _FacultyFullScheduleScreenState
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
@@ -4818,9 +5071,10 @@ class _FacultyFullScheduleScreenState
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: CustomScrollView(
+              controller: _scrollController,
               physics: const ButterScrollPhysics(),
               cacheExtent: 500,
               slivers: [
@@ -5107,6 +5361,7 @@ class _FacultyFullScheduleScreenState
             child: SafeArea(
               top: false,
               child: DashboardDock(
+                scrollController: _scrollController,
                 showFacultySet: true,
                 selectedIndex: 1,
                 onTeacher: () => pushIconLaunchRoute(
@@ -5124,7 +5379,10 @@ class _FacultyFullScheduleScreenState
                 ),
                 onAbout: () => pushIconLaunchRoute(
                   context,
-                  page: AboutScreen(onRoleChanged: widget.onRoleChanged),
+                  page: AboutScreen(
+                    memory: widget.brain.memory,
+                    onRoleChanged: widget.onRoleChanged,
+                  ),
                 ),
               ),
             ),
@@ -5403,6 +5661,9 @@ class _DashboardState extends State<Dashboard>
   int _studentTabSlideDirection = 1;
   bool _isStudentNavBusy = false;
   bool _navBarReady = false;
+  double? _studentNavDragPosition;
+  bool _isStudentNavTracking = false;
+  bool _studentNavHasMoved = false;
   List<ClassSession> _cachedSchedule = [];
   DateTime? _lastScheduleUpdate;
   int? _lastMinute;
@@ -5625,54 +5886,54 @@ class _DashboardState extends State<Dashboard>
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => LiquidGlassLayer(
-        settings: LiquidGlassSettings(
-          blur: 16,
-          ambientStrength: 0.70,
-          lightAngle: 0.15 * math.pi,
-          glassColor: Colors.black.withValues(alpha: 0.05),
-          thickness: 15,
-        ),
-        child: LiquidGlass.inLayer(
-          shape: const LiquidRoundedSuperellipse(
-            borderRadius: Radius.circular(20),
+      builder: (ctx) {
+        return GlassSurface(
+          settings: IrisGlass.settings(
+            ctx,
+            blur: 16,
+            ambientStrength: 0.70,
+            lightAngle: 0.15 * math.pi,
+            thickness: 15,
+            glassColor: Colors.black.withValues(alpha: 0.05),
+            minBlur: 10,
+            minThickness: 12,
           ),
-          glassContainsChild: false,
+          radius: 20,
           child: AlertDialog(
             backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
                 .withValues(alpha: isDark ? 0.88 : 0.92),
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: (isDark ? Colors.white : Colors.black).withValues(
-                alpha: 0.12,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.12,
+                ),
               ),
             ),
-          ),
-          title: const Text('Remove makeup class?'),
-          content: Text(
-            isLive
-                ? 'This class is live right now. Remove it from your timeline?'
-                : minutesToStart >= 0 && minutesToStart <= 15
-                ? 'This class starts in $minutesToStart min. Remove it anyway?'
-                : 'Remove ${session.subject} (${session.startTime}-${session.endTime}) from your timeline?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),
+            title: const Text('Remove makeup class?'),
+            content: Text(
+              isLive
+                  ? 'This class is live right now. Remove it from your timeline?'
+                  : minutesToStart >= 0 && minutesToStart <= 15
+                      ? 'This class starts in $minutesToStart min. Remove it anyway?'
+                      : 'Remove ${session.subject} (${session.startTime}-${session.endTime}) from your timeline?',
             ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              style: ElevatedButton.styleFrom(backgroundColor: IrisTokens.error),
-              child: const Text('Remove'),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: ElevatedButton.styleFrom(backgroundColor: IrisTokens.error),
+                child: const Text('Remove'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
 
     if (confirm == true) {
       await _removeMakeupSession(session);
@@ -5707,21 +5968,21 @@ class _DashboardState extends State<Dashboard>
             _lastMinute = now.minute;
             _previousClass = current;
           });
+          // Update notifications and widget only when the visible schedule state changes.
+          unawaited(_updatePersistentNotificationIfNeeded());
+          unawaited(_updateWidgetIfNeeded());
         }
-        // Update notifications and widget only if state changed (smarter updates)
-        _updatePersistentNotificationIfNeeded();
-        _updateWidgetIfNeeded();
       }
     });
-    _updatePersistentNotificationIfNeeded();
-    _updateWidgetIfNeeded();
+    unawaited(_updatePersistentNotificationIfNeeded());
+    unawaited(_updateWidgetIfNeeded());
   }
 
   Future<void> _startForegroundServiceIfNeeded() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // ALWAYS set role to student to prevent cross-contamination
-    await prefs.setString('user_role', 'student');
+    // Keep the foreground service aligned with the active batch without
+    // overwriting the app persona.
     await prefs.setString('student_batch', widget.batch);
 
     final notificationEnabled =
@@ -5747,7 +6008,6 @@ class _DashboardState extends State<Dashboard>
 
     // Store timetable data for TaskHandler to use
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_role', 'student');
     await prefs.setString('student_batch', widget.batch);
 
     // Serialize timetable data
@@ -6314,10 +6574,8 @@ class _DashboardState extends State<Dashboard>
       context,
       originKey: originKey,
       page: AboutScreen(
+        memory: widget.memory,
         onRoleChanged: widget.onRoleChanged,
-        onSetThemeMode: widget.onSetThemeMode,
-        currentThemeMode: widget.currentThemeMode,
-        onUserNameChanged: widget.onUserNameChanged,
       ),
     );
 
@@ -6410,6 +6668,78 @@ class _DashboardState extends State<Dashboard>
     _setStudentTabFromDrag(targetIndex);
   }
 
+  double _studentNavInteractionPosition(int itemCount) {
+    if (_isStudentNavTracking && _studentNavDragPosition != null) {
+      return _studentNavDragPosition!.clamp(0.0, itemCount - 1.0);
+    }
+    return _bottomNavIndex.toDouble();
+  }
+
+  int _studentNavDisplayIndex(int itemCount) {
+    return _studentNavInteractionPosition(itemCount)
+        .round()
+        .clamp(0, itemCount - 1);
+  }
+
+  void _beginStudentNavTracking(
+    Offset localPosition,
+    double width,
+    int itemCount,
+  ) {
+    if (width <= 0) return;
+    setState(() {
+      _isStudentNavTracking = true;
+      _studentNavHasMoved = false;
+      final slotWidth = width / itemCount;
+      _studentNavDragPosition = (localPosition.dx / slotWidth).clamp(
+        0.0,
+        itemCount - 1.0,
+      );
+    });
+  }
+
+  void _updateStudentNavTracking(
+    Offset localPosition,
+    double width,
+    int itemCount,
+  ) {
+    if (!_isStudentNavTracking || width <= 0) return;
+    setState(() {
+      _studentNavHasMoved = true;
+      final slotWidth = width / itemCount;
+      _studentNavDragPosition = (localPosition.dx / slotWidth).clamp(
+        0.0,
+        itemCount - 1.0,
+      );
+    });
+  }
+
+  void _endStudentNavTracking(int itemCount) {
+    if (!_isStudentNavTracking) return;
+    if (!_studentNavHasMoved) {
+      _cancelStudentNavTracking();
+      return;
+    }
+    final targetIndex = _studentNavInteractionPosition(itemCount)
+        .round()
+        .clamp(0, itemCount - 1);
+    setState(() {
+      _isStudentNavTracking = false;
+      _studentNavDragPosition = null;
+      _studentNavHasMoved = false;
+    });
+    _setStudentTabFromDrag(targetIndex);
+  }
+
+  void _cancelStudentNavTracking() {
+    if (!_isStudentNavTracking) return;
+    setState(() {
+      _isStudentNavTracking = false;
+      _studentNavDragPosition = null;
+      _studentNavHasMoved = false;
+    });
+  }
+
   Widget _buildStudentTabContent() {
     switch (_bottomNavIndex) {
       case 1:
@@ -6431,11 +6761,8 @@ class _DashboardState extends State<Dashboard>
       case 3:
         return AboutScreen(
           key: const PageStorageKey<String>('student_tab_about'),
+          memory: widget.memory,
           onRoleChanged: widget.onRoleChanged,
-          onSetThemeMode: widget.onSetThemeMode,
-          currentThemeMode: widget.currentThemeMode,
-          showDock: false,
-          showCloseButton: false,
         );
       default:
         return const SizedBox.shrink();
@@ -6443,230 +6770,90 @@ class _DashboardState extends State<Dashboard>
   }
 
   Widget _buildStudentBottomNavBar(bool isDark) {
-    final width = MediaQuery.of(context).size.width;
-    final now = DateTime.now();
-    final current = widget.brain.getCurrentClass(widget.batch, now);
-    final next = widget.brain.getNextClass(widget.batch, now);
-    final currentTime = now.hour + (now.minute / 60.0);
-    final minutesToNext = next == null
-        ? 9999
-        : ((next.safeStartVal - currentTime) * 60).round();
-    final classesNeedAttention =
-        current != null ||
-        (next != null &&
-            next.dayIndex == now.weekday &&
-            minutesToNext >= 0 &&
-            minutesToNext <= 25);
-    final makeupCount = widget.memory.sessions
-        .where((s) => s.batchKey.batch == widget.batch && _isMakeupSession(s))
-        .length;
-    final hasMakeup = makeupCount > 0;
-    final navPriorityColor = current != null
-        ? IrisTokens.success
-        : (classesNeedAttention
-              ? IrisTokens.warning
-              : (hasMakeup ? IrisTokens.purple : IrisTokens.brand));
-    final compact = width < 420;
-    final veryCompact = width < 360;
-    final horizontalPadding = veryCompact ? 10.0 : (compact ? 12.0 : 20.0);
-    final radius = veryCompact ? 18.0 : (compact ? 22.0 : 28.0);
-
-    final navActive = _bottomNavIndex != 0;
-    final activeGlow = _bottomNavIndex == 0
-        ? Colors.transparent
-        : navPriorityColor.withValues(alpha: isDark ? 0.20 : 0.15);
-
-    return AnimatedScale(
-      duration: const Duration(milliseconds: 352),
-      curve: IrisMotion.standard,
-      scale: _navBarReady ? 1.0 : 0.93,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 336),
-        curve: IrisMotion.standard,
-        offset: _navBarReady ? Offset.zero : const Offset(0, 0.45),
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 352),
-          opacity: _navBarReady ? 1.0 : 0.0,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              0,
-              horizontalPadding,
-              10,
-            ),
-            child: LiquidGlassLayer(
-              settings: LiquidGlassSettings(
-                blur: 18.0,
-                ambientStrength: 0.75,
-                lightAngle: 0.15 * math.pi,
-                glassColor: isDark 
-                    ? const Color(0xFF020617).withValues(alpha: 0.10) 
-                    : Colors.white.withValues(alpha: 0.18),
-                thickness: 12,
+    final displayIndex = _studentNavDisplayIndex(4);
+    
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: isDark
+                      ? [
+                          Colors.white.withValues(alpha: 0.08),
+                          Colors.white.withValues(alpha: 0.04),
+                        ]
+                      : [
+                          Colors.white.withValues(alpha: 0.85),
+                          Colors.white.withValues(alpha: 0.70),
+                        ],
+                ),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.06),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: IrisTokens.brand.withValues(alpha: isDark ? 0.15 : 0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
               ),
-              child: LiquidGlass.inLayer(
-                shape: LiquidRoundedSuperellipse(
-                  borderRadius: Radius.circular(radius),
-                ),
-                glassContainsChild: false,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 304),
-                  curve: IrisMotion.standard,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(radius),
-                    border: Border.all(
-                      color: (isDark ? Colors.white : navPriorityColor)
-                          .withValues(alpha: navActive ? 0.12 : 0.06),
-                      width: 1.8,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: displayIndex == 0 ? Icons.home_filled : Icons.home_rounded,
+                      label: 'Home',
+                      isDark: isDark,
+                      isSelected: displayIndex == 0,
+                      activeColor: IrisTokens.brand,
+                      onTap: () => _onBottomNavTap(0),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.08),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: activeGlow,
-                        blurRadius: 18,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
                   ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final itemWidth = constraints.maxWidth / 4;
-                      final trailWidth = (itemWidth * 0.34).clamp(
-                        12.0,
-                        veryCompact ? 16.0 : (compact ? 20.0 : 24.0),
-                      );
-                      final haloSize = (itemWidth * 0.70).clamp(
-                        24.0,
-                        veryCompact ? 30.0 : (compact ? 36.0 : 44.0),
-                      );
-                      final left =
-                          (itemWidth * _bottomNavIndex) +
-                          ((itemWidth - trailWidth) / 2);
-                      final haloLeft =
-                          (itemWidth * _bottomNavIndex) +
-                          ((itemWidth - haloSize) / 2);
-                      final trailColor = isDark
-                          ? Colors.white.withValues(alpha: 0.70)
-                          : navPriorityColor.withValues(alpha: 0.84);
-
-                      return GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onHorizontalDragUpdate: (details) =>
-                            _handleStudentNavDrag(details, constraints.maxWidth),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: haloLeft,
-                              top: veryCompact ? 9 : (compact ? 8 : 7),
-                              child: IgnorePointer(
-                                child: _NavActiveHalo(
-                                  size: haloSize,
-                                  color: trailColor,
-                                ),
-                              ),
-                            ),
-                            AnimatedPositioned(
-                              duration: const Duration(milliseconds: 304),
-                              curve: IrisMotion.standard,
-                              left: left,
-                              top: 0,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 304),
-                                curve: IrisMotion.standard,
-                                width: trailWidth,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: trailColor,
-                                  borderRadius: BorderRadius.circular(999),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: trailColor.withValues(alpha: 0.20),
-                                      blurRadius: 8,
-                                      spreadRadius: -2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                veryCompact ? 4 : (compact ? 6 : 8),
-                                veryCompact ? 5 : (compact ? 6 : 8),
-                                veryCompact ? 4 : (compact ? 6 : 8),
-                                veryCompact ? 3 : (compact ? 4 : 6),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: _BouncyNavButton(
-                                      icon: _bottomNavIndex == 0
-                                          ? Icons.home_filled
-                                          : Icons.home_rounded,
-                                      label: 'Home',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 0,
-                                      enabled: !_isStudentNavBusy,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(0),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _BouncyNavButton(
-                                      launchIconKey: _studentPortalNavKey,
-                                      icon: Icons.public_rounded,
-                                      label: 'Portal',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 1,
-                                      enabled: !_isStudentNavBusy,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(1),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _BouncyNavButton(
-                                      launchIconKey: _studentToolsNavKey,
-                                      icon: _bottomNavIndex == 2
-                                          ? Icons.grid_view_rounded
-                                          : Icons.grid_view_outlined,
-                                      label: 'Resources',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 2,
-                                      enabled: !_isStudentNavBusy,
-                                      showIndicator: hasMakeup,
-                                      indicatorCount: makeupCount,
-                                      indicatorColor: IrisTokens.purple,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(2),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _BouncyNavButton(
-                                      launchIconKey: _studentAboutNavKey,
-                                      icon: _bottomNavIndex == 3
-                                          ? Icons.info_rounded
-                                          : Icons.info_outline_rounded,
-                                      label: 'About',
-                                      isDark: isDark,
-                                      isSelected: _bottomNavIndex == 3,
-                                      enabled: !_isStudentNavBusy,
-                                      activeColor: IrisTokens.brand,
-                                      onTap: () => _onBottomNavTap(3),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: Icons.public_rounded,
+                      label: 'Feed',
+                      isDark: isDark,
+                      isSelected: displayIndex == 1,
+                      activeColor: IrisTokens.purple,
+                      onTap: () => _onBottomNavTap(1),
+                    ),
                   ),
-                ),
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: displayIndex == 2 ? Icons.build_rounded : Icons.build_outlined,
+                      label: 'Tools',
+                      isDark: isDark,
+                      isSelected: displayIndex == 2,
+                      activeColor: IrisTokens.success,
+                      onTap: () => _onBottomNavTap(2),
+                    ),
+                  ),
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: displayIndex == 3 ? Icons.info_rounded : Icons.info_outline_rounded,
+                      label: 'About',
+                      isDark: isDark,
+                      isSelected: displayIndex == 3,
+                      activeColor: IrisTokens.brand,
+                      onTap: () => _onBottomNavTap(3),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -6674,6 +6861,7 @@ class _DashboardState extends State<Dashboard>
       ),
     );
   }
+
 
   Future<void> _openMakeupScheduler({GlobalKey? originKey}) async {
     if (!mounted) return;
@@ -6708,8 +6896,10 @@ class _DashboardState extends State<Dashboard>
 
     if (_bottomNavIndex != 0) {
       return Scaffold(
+        backgroundColor: Colors.transparent,
         body: Stack(
           children: [
+            ObsidianPulse(isDark: isDark),
             Positioned.fill(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 420),
@@ -6797,9 +6987,10 @@ class _DashboardState extends State<Dashboard>
     final filteredSchedule = schedule;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          RepaintBoundary(child: NeuralAura(background: isDark)),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: RefreshIndicator(
               onRefresh: _handleRefresh,
@@ -7297,61 +7488,6 @@ class _DashboardState extends State<Dashboard>
                     ),
                   ),
                   SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
-                  
-                  // Quick Actions Grid (Image 1)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Quick Actions',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IrisComponents.quickActionButton(
-                                label: 'Attend',
-                                icon: Icons.fingerprint_rounded,
-                                color: const Color(0xFF6366F1),
-                                isDark: isDark,
-                                onTap: () {},
-                              ),
-                              IrisComponents.quickActionButton(
-                                label: 'Finder',
-                                icon: Icons.map_rounded,
-                                color: const Color(0xFF10B981),
-                                isDark: isDark,
-                                onTap: () {},
-                              ),
-                              IrisComponents.quickActionButton(
-                                label: 'Portal',
-                                icon: Icons.language_rounded,
-                                color: const Color(0xFFF59E0B),
-                                isDark: isDark,
-                                onTap: () {},
-                              ),
-                              IrisComponents.quickActionButton(
-                                label: 'Grades',
-                                icon: Icons.auto_graph_rounded,
-                                color: const Color(0xFFEC4899),
-                                isDark: isDark,
-                                onTap: () {},
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -7720,3704 +7856,6 @@ class _DashboardState extends State<Dashboard>
 }
 
 // DaySwitcher, ClassCard, and GlassShimmer moved to widgets/iris_components.dart
-
-// SectionHeader moved to widgets/iris_components.dart
-
-                        BoxShadow(
-                          color: widget.activeColor.withValues(alpha: 0.16),
-                          blurRadius: 16,
-                          spreadRadius: -8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    )
-                  : const BoxDecoration(color: Colors.transparent),
-              child: widget.showLabelAlways
-                  ? Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        buildIcon(veryCompact ? 16 : (compact ? 17 : 19), veryCompact),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: widget.isSelected
-                                ? color
-                                : (widget.isDark
-                                      ? Colors.white.withValues(alpha: 0.72)
-                                      : Colors.black.withValues(alpha: 0.62)),
-                            fontWeight: widget.isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w600,
-                            fontSize: veryCompact ? 8 : (compact ? 9 : 10),
-                            height: 1.0,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        buildIcon(veryCompact ? 16 : (compact ? 18 : 21), veryCompact),
-                        if (showLabel) ...[
-                          SizedBox(width: veryCompact ? 3 : (compact ? 4 : (roomy ? 8 : 6))),
-                          Flexible(
-                            child: AnimatedDefaultTextStyle(
-                              duration: const Duration(milliseconds: 192),
-                              curve: IrisMotion.standard,
-                              style: TextStyle(
-                                color: widget.isSelected
-                                    ? color
-                                    : (widget.isDark
-                                          ? Colors.white.withValues(alpha: 0.62)
-                                          : Colors.black.withValues(alpha: 0.55)),
-                                fontWeight: widget.isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w600,
-                                fontSize: veryCompact ? 8 : (compact ? 9 : 12),
-                              ),
-                              child: Text(
-                                widget.label,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-      child: SpringButton(
-        onTap: onTap ?? () => Navigator.pop(context),
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            Icons.arrow_back_rounded,
-            color: isDark ? Colors.white : Colors.black,
-            size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ============ TOOLS SCREEN ============
-class _ToolsScreen extends StatelessWidget {
-  final UniversityMemory memory;
-  final String batch;
-  final OmniBrain brain;
-  final ValueChanged<String>? onRoleChanged;
-
-  const _ToolsScreen({
-    Key? key,
-    required this.memory,
-    required this.batch,
-    required this.brain,
-    this.onRoleChanged,
-  }) : super(key: key);
-
-  String _getDepartmentFromBatch() {
-    final key = BatchKey.parse(batch);
-    return key.program;
-  }
-
-  List<_ToolItem> _getUniversalTools() {
-    return [
-      _ToolItem(
-        id: 'unit_converter',
-        title: 'Unit Converter',
-        subtitle: 'Length, weight, temperature and more',
-        icon: Icons.swap_horiz_rounded,
-        color: IrisTokens.blue,
-        description: 'Convert common engineering and daily-use units quickly',
-      ),
-      _ToolItem(
-        id: 'word_counter',
-        title: 'Word Counter',
-        subtitle: 'Words, chars, read time and speaking time',
-        icon: Icons.text_fields_rounded,
-        color: IrisTokens.purple,
-        description: 'Analyze writing quality and pacing instantly',
-      ),
-      _ToolItem(
-        id: 'universal_calculator',
-        title: 'Universal Calculator',
-        subtitle: 'Arithmetic, markup and scientific operations',
-        icon: Icons.functions_rounded,
-        color: IrisTokens.success,
-        description:
-            'Solve standard calculations, profit pricing and scientific values',
-      ),
-      _ToolItem(
-        id: 'cgpa_calculator',
-        title: 'CGPA Calculator',
-        subtitle: 'Track semester GPA and cumulative CGPA',
-        icon: Icons.calculate_rounded,
-        color: IrisTokens.brand,
-        description: 'Compute GPA per semester and your overall CGPA quickly',
-      ),
-      _ToolItem(
-        id: 'base_converter',
-        title: 'Base Converter',
-        subtitle: 'Binary, octal, decimal and hexadecimal',
-        icon: Icons.memory_rounded,
-        color: IrisTokens.success,
-        description: 'Smart number base conversion with auto-detect mode',
-      ),
-      _ToolItem(
-        id: 'equation_solver',
-        title: 'Equation Solver',
-        subtitle: 'Linear, quadratic and calculus helpers',
-        icon: Icons.calculate_outlined,
-        color: IrisTokens.warning,
-        description: 'Solve equations with step-by-step intelligent feedback',
-      ),
-      _ToolItem(
-        id: 'molecular_weight_calculator',
-        title: 'Molecular Weight Calculator',
-        subtitle: 'Molar mass from chemical formulas',
-        icon: Icons.science_rounded,
-        color: IrisTokens.success,
-        description:
-            'Smart chemistry parser with grouped compounds and hydrate support',
-      ),
-      _ToolItem(
-        id: 'offline_formula_library',
-        title: 'Formula Library & Constants',
-        subtitle: 'Offline formulas for thermo, circuits, mechanics',
-        icon: Icons.menu_book_rounded,
-        color: IrisTokens.blue,
-        description: 'Searchable offline reference with smart categorization',
-      ),
-      _ToolItem(
-        id: 'export_schedule',
-        title: 'Export Schedule',
-        subtitle: 'Download timetable as PDF or calendar',
-        icon: Icons.download_rounded,
-        color: IrisTokens.blue,
-        description:
-            'Export your schedule in multiple formats for offline access',
-      ),
-      _ToolItem(
-        id: 'find_rooms',
-        title: 'Room Finder',
-        subtitle: 'Discover available study spaces',
-        icon: Icons.location_on_rounded,
-        color: IrisTokens.success,
-        description: 'Find empty classrooms and labs available now',
-      ),
-      _ToolItem(
-        id: 'teacher_directory',
-        title: 'Teacher Directory',
-        subtitle: 'Contact info and office hours',
-        icon: Icons.person_rounded,
-        color: IrisTokens.purple,
-        description: 'Search all teachers by name and department',
-      ),
-      _ToolItem(
-        id: 'teacher_locator',
-        title: 'Teacher Locator',
-        subtitle: 'Live teacher status and weekly schedule',
-        icon: Icons.person_search_rounded,
-        color: IrisTokens.purple,
-        description: 'Locate a teacher instantly with smart matching',
-      ),
-      _ToolItem(
-        id: 'browse_classes',
-        title: 'Browse Classes',
-        subtitle: 'Open all batch classes and schedules',
-        icon: Icons.school_rounded,
-        color: IrisTokens.brand,
-        description: 'Explore class lists directly from Resources',
-      ),
-      _ToolItem(
-        id: 'makeup_scheduler',
-        title: 'Makeup Planner',
-        subtitle: 'Find and add makeup lecture slots',
-        icon: Icons.event_repeat_rounded,
-        color: IrisTokens.warning,
-        description: 'Plan and manage makeup lectures from one place',
-      ),
-      _ToolItem(
-        id: 'transport_schedule',
-        title: 'Transport Schedule',
-        subtitle: 'Bus and shuttle notices',
-        icon: Icons.directions_bus_rounded,
-        color: IrisTokens.success,
-        description: 'Scraper-backed transport updates and timing notices',
-      ),
-      _ToolItem(
-        id: 'library_schedule',
-        title: 'Library Schedule',
-        subtitle: 'Opening hours and library notices',
-        icon: Icons.local_library_rounded,
-        color: IrisTokens.blue,
-        description: 'Scraper-backed library timing and service updates',
-      ),
-      _ToolItem(
-        id: 'semester_schedule',
-        title: 'Semester Schedule',
-        subtitle: 'Midterm, finals and semester milestones',
-        icon: Icons.event_note_rounded,
-        color: IrisTokens.purple,
-        description: 'Scraper-backed semester and exam announcements',
-      ),
-      _ToolItem(
-        id: 'timetable_print',
-        title: 'Print Timetable',
-        subtitle: 'Get a printable schedule',
-        icon: Icons.print_rounded,
-        color: IrisTokens.warning,
-        description: 'Generate a formatted timetable for printing',
-      ),
-      _ToolItem(
-        id: 'class_analytics',
-        title: 'Class Analytics',
-        subtitle: 'Schedule insights and patterns',
-        icon: Icons.analytics_rounded,
-        color: IrisTokens.brand,
-        description: 'View your class distribution, busiest days, and patterns',
-      ),
-    ];
-  }
-
-  List<_ToolItem> _getDepartmentTools(String department) {
-    final deptTools = <String, List<_ToolItem>>{
-      'BCS': [
-        _ToolItem(
-          id: 'lab_resources',
-          title: 'CS Lab Resources',
-          subtitle: 'IDE guides and compiler info',
-          icon: Icons.computer_rounded,
-          color: IrisTokens.brand,
-          description: 'Access software lab guidelines and development tools',
-        ),
-        _ToolItem(
-          id: 'programming_tools',
-          title: 'Programming Tools',
-          subtitle: 'Compilers, IDEs, and frameworks',
-          icon: Icons.code_rounded,
-          color: IrisTokens.blue,
-          description: 'Setup guides for common development environments',
-        ),
-      ],
-      'BBA': [
-        _ToolItem(
-          id: 'business_resources',
-          title: 'Business Resources',
-          subtitle: 'Case studies and market data',
-          icon: Icons.trending_up_rounded,
-          color: IrisTokens.brand,
-          description: 'Access business databases and research resources',
-        ),
-      ],
-      'RHND': [
-        _ToolItem(
-          id: 'design_tools',
-          title: 'Design Resources',
-          subtitle: 'CAD software and design guides',
-          icon: Icons.architecture_rounded,
-          color: IrisTokens.brand,
-          description: 'Resources for architectural design and visualization',
-        ),
-      ],
-    };
-
-    final tools = List<_ToolItem>.from(deptTools[department] ?? []);
-    if (_isHealthDepartment(department)) {
-      tools.addAll([
-        _ToolItem(
-          id: 'health_tools',
-          title: 'Health Calculators',
-          subtitle: 'BMI, hydration and vitals assistant',
-          icon: Icons.monitor_heart_rounded,
-          color: IrisTokens.success,
-          description: 'Smart health checks tailored for routine monitoring',
-        ),
-        _ToolItem(
-          id: 'periodic_table',
-          title: 'Periodic Table',
-          subtitle: 'Quick chemistry reference',
-          icon: Icons.grid_view_rounded,
-          color: IrisTokens.brand,
-          description: 'Searchable mini periodic table for common elements',
-        ),
-      ]);
-    }
-
-    if (_isMecDepartment(department)) {
-      tools.add(
-        _ToolItem(
-          id: 'resistor_decoder',
-          title: 'Resistor Color Decoder',
-          subtitle: '4-band resistor value and tolerance',
-          icon: Icons.settings_input_component_rounded,
-          color: IrisTokens.warning,
-          description:
-              'Smart resistor decoding with human-friendly units and guidance',
-        ),
-      );
-    }
-
-    if (_isOtherDepartment(department)) {
-      tools.add(
-        _ToolItem(
-          id: 'dept_smart_kit',
-          title: 'Department Smart Kit',
-          subtitle: 'Adaptive accessories and estimators',
-          icon: Icons.auto_graph_rounded,
-          color: IrisTokens.blue,
-          description:
-              'Intelligent planning tools tailored to your department profile',
-        ),
-      );
-    }
-
-    return tools;
-  }
-
-  bool _isHealthDepartment(String department) {
-    final d = department.toLowerCase();
-    return d.contains('health') ||
-        d.contains('nursing') ||
-        d.contains('medical') ||
-        d.contains('pharm') ||
-        d.contains('dpt') ||
-        d.contains('physio') ||
-        d.contains('bio');
-  }
-
-  bool _isMecDepartment(String department) {
-    final d = department.toLowerCase();
-    return d.contains('mec') ||
-        d.contains('mechanical') ||
-        d.contains('electrical') ||
-        d.contains('electronics') ||
-        d.contains('mechatronics');
-  }
-
-  bool _isOtherDepartment(String department) {
-    if (department == 'BCS' || department == 'BBA' || department == 'RHND') {
-      return false;
-    }
-    if (_isHealthDepartment(department) || _isMecDepartment(department)) {
-      return false;
-    }
-    return true;
-  }
-
-  String _recommendedToolId(
-    String department,
-    DateTime now,
-    ClassSession? current,
-    ClassSession? next,
-  ) {
-    if (current != null) {
-      return 'class_analytics';
-    }
-
-    if (next != null && next.dayIndex == now.weekday) {
-      final currentTime = now.hour + (now.minute / 60.0);
-      final minsToNext = ((next.safeStartVal - currentTime) * 60).round();
-      if (minsToNext >= 0 && minsToNext <= 25) {
-        return 'find_rooms';
-      }
-    }
-
-    if (department == 'BCS') {
-      return 'base_converter';
-    }
-
-    if (_isHealthDepartment(department)) {
-      return 'health_tools';
-    }
-
-    if (_isMecDepartment(department)) {
-      return 'resistor_decoder';
-    }
-
-    if (_isOtherDepartment(department)) {
-      return 'dept_smart_kit';
-    }
-
-    if (department == 'RHND') {
-      return 'molecular_weight_calculator';
-    }
-
-    if (department == 'BBA') {
-      return 'offline_formula_library';
-    }
-
-    return 'cgpa_calculator';
-  }
-
-  List<_ToolItem> _prioritizeTool(
-    List<_ToolItem> source,
-    String recommendedId,
-  ) {
-    final items = List<_ToolItem>.from(source);
-    final index = items.indexWhere((t) => t.id == recommendedId);
-    if (index <= 0) {
-      return items;
-    }
-    final picked = items.removeAt(index);
-    items.insert(0, picked);
-    return items;
-  }
-
-  Widget _buildSmartInsightCard({
-    required bool isDark,
-    required String department,
-    required String recommendedId,
-    required ClassSession? current,
-    required ClassSession? next,
-  }) {
-    final title = current != null
-        ? 'You are live in ${current.subject}'
-        : next != null
-        ? 'Next class: ${next.subject}'
-        : 'No upcoming class right now';
-
-    final reason = switch (recommendedId) {
-      'find_rooms' => 'Smart pick: Room Finder because your next class is soon.',
-      'programming_tools' =>
-        'Smart pick: Programming Tools based on your $department profile.',
-      'base_converter' =>
-        'Smart pick: Base Converter for fast number-system conversions.',
-      'equation_solver' =>
-        'Smart pick: Equation Solver for quick algebra and calculus checks.',
-      'molecular_weight_calculator' =>
-        'Smart pick: Molecular Weight Calculator for chemistry-focused formulas.',
-      'offline_formula_library' =>
-        'Smart pick: Formula Library for instant offline concept recall.',
-      'health_tools' =>
-        'Smart pick: Health calculators based on your department profile.',
-      'periodic_table' =>
-        'Smart pick: Periodic table for fast element lookup.',
-      'resistor_decoder' =>
-        'Smart pick: Resistor decoder for quick lab component reading.',
-      'dept_smart_kit' =>
-        'Smart pick: Adaptive department kit for planning and quick estimates.',
-      'class_analytics' =>
-        'Smart pick: Class Analytics to track live load and timing patterns.',
-      _ => 'Smart pick: CGPA Calculator to stay on top of your semester progress.',
-    };
-
-    return GlassCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Smart Tools Assistant',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              reason,
-              style: TextStyle(
-                fontSize: 12,
-                color: (isDark ? Colors.white : Colors.black).withValues(
-                  alpha: 0.70,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResourceStatChip({
-    required bool isDark,
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color tint,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        decoration: BoxDecoration(
-          color: tint.withValues(alpha: isDark ? 0.17 : 0.09),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: tint.withValues(alpha: isDark ? 0.33 : 0.20),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 14, color: tint),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                color: (isDark ? Colors.white : Colors.black).withValues(
-                  alpha: 0.58,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<Map<String, dynamic>> _loadCampusHubData() async {
-    final schedule = await HelpdeskScheduleDataService().fetchSchedulePayload();
-    final noticesPayload =
-      await HelpdeskCampusFeedService().fetchNoticesLiveFirstWithFallbackPayload();
-
-    final entries = <Map<String, String>>[];
-
-    for (final route in schedule.transportRoutes) {
-      final first = route.stops.isNotEmpty ? route.stops.first.time : '--';
-      final last = route.stops.isNotEmpty ? route.stops.last.time : '--';
-      final stopKeywords = route.stops.map((e) => e.point).join(' ');
-      entries.add({
-        'type': 'transport',
-        'title': route.route,
-        'subtitle': '${route.stops.length} stops • $first to $last',
-        'search': '${route.route} $stopKeywords ${route.driverName} ${route.helperName}'.toLowerCase(),
-      });
-    }
-
-    for (final item in schedule.semesterSchedule) {
-      entries.add({
-        'type': 'semester',
-        'title': item.title,
-        'subtitle': '${item.date} • ${item.status.toUpperCase()}',
-        'search': '${item.title} ${item.date} ${item.status}'.toLowerCase(),
-      });
-    }
-
-    for (final item in schedule.deadlines) {
-      entries.add({
-        'type': 'deadline',
-        'title': item.title,
-        'subtitle': '${item.date} • ${item.status.toUpperCase()}',
-        'search': '${item.title} ${item.date} ${item.status}'.toLowerCase(),
-      });
-    }
-
-    final library = schedule.librarySchedule;
-    if (library != null) {
-      entries.addAll([
-        {
-          'type': 'library',
-          'title': 'Library Opening Time',
-          'subtitle': library.open,
-          'search': 'library open ${library.open}'.toLowerCase(),
-        },
-        {
-          'type': 'library',
-          'title': 'Library Break Time',
-          'subtitle': library.breakTime,
-          'search': 'library break ${library.breakTime}'.toLowerCase(),
-        },
-        {
-          'type': 'library',
-          'title': 'Library Closing Time',
-          'subtitle': library.close,
-          'search': 'library close ${library.close}'.toLowerCase(),
-        },
-      ]);
-    }
-
-    for (final notice in noticesPayload.items.take(15)) {
-      entries.add({
-        'type': 'notice',
-        'title': notice.title,
-        'subtitle': notice.detail.replaceAll('\n', ' ').trim(),
-        'search': notice.searchable,
-      });
-    }
-
-    try {
-      final raw = await rootBundle.loadString(
-        'assets/helpdesk_backup/helpdesk_snapshot.json',
-      );
-      final decoded = jsonDecode(raw);
-      final data = decoded is Map<String, dynamic> ? decoded['data'] : null;
-      final events = data is Map<String, dynamic> ? data['events'] : null;
-      if (events is List) {
-        for (final event in events.whereType<Map<String, dynamic>>().take(20)) {
-          final title = (event['title'] ?? event['name'] ?? 'Campus Event')
-              .toString()
-              .trim();
-          final detail = (event['detail'] ?? event['description'] ?? event['about'] ?? '')
-              .toString()
-              .trim();
-          final date = (event['date'] ?? event['createdAt'] ?? '').toString().trim();
-          entries.add({
-            'type': 'event',
-            'title': title,
-            'subtitle': date.isEmpty ? detail : '$date • $detail',
-            'search': '$title $detail $date event'.toLowerCase(),
-          });
-        }
-      }
-    } catch (_) {
-      // Keep hub resilient when optional event snapshot is unavailable.
-    }
-
-    return {
-      'entries': entries,
-      'transportCount': schedule.transportRoutes.length,
-      'semesterCount': schedule.semesterSchedule.length,
-      'deadlineCount': schedule.deadlines.length,
-    };
-  }
-
-  Widget _buildCampusDataHubPanel(
-    BuildContext context,
-    bool isDark,
-    String department,
-  ) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _loadCampusHubData(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Building unified campus data surface...',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: (isDark ? Colors.white : Colors.black).withValues(
-                        alpha: 0.66,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        final allEntries =
-            (snapshot.data!['entries'] as List<Map<String, String>>)
-                .toList(growable: false);
-        var query = '';
-
-        return StatefulBuilder(
-          builder: (context, setLocalState) {
-            final lowered = query.trim().toLowerCase();
-            final filtered = lowered.isEmpty
-                ? allEntries
-                : allEntries
-                    .where((e) => (e['search'] ?? '').contains(lowered))
-                    .toList(growable: false);
-
-            Color colorForType(String type) {
-              switch (type) {
-                case 'transport':
-                  return IrisTokens.success;
-                case 'library':
-                  return IrisTokens.blue;
-                case 'semester':
-                case 'deadline':
-                  return IrisTokens.warning;
-                case 'event':
-                  return IrisTokens.purple;
-                default:
-                  return IrisTokens.brand;
-              }
-            }
-
-            IconData iconForType(String type) {
-              switch (type) {
-                case 'transport':
-                  return Icons.alt_route_rounded;
-                case 'library':
-                  return Icons.local_library_rounded;
-                case 'semester':
-                  return Icons.event_note_rounded;
-                case 'deadline':
-                  return Icons.task_alt_rounded;
-                case 'event':
-                  return Icons.celebration_rounded;
-                default:
-                  return Icons.notifications_active_rounded;
-              }
-            }
-
-            return GlassCard(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'UNIFIED CAMPUS DATA HUB',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.1,
-                        color: (isDark ? Colors.white : Colors.black).withValues(
-                          alpha: 0.55,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 7),
-                    Text(
-                      'Search transport routes, library timings, semester flow, deadlines, events and notices in one place.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: (isDark ? Colors.white : Colors.black).withValues(
-                          alpha: 0.68,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      onChanged: (value) => setLocalState(() => query = value),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Search anything in campus data...',
-                        prefixIcon: const Icon(Icons.manage_search_rounded, size: 18),
-                        isDense: true,
-                        filled: true,
-                        fillColor: (isDark ? Colors.white : Colors.black).withValues(
-                          alpha: isDark ? 0.09 : 0.04,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        _buildResourceStatChip(
-                          isDark: isDark,
-                          icon: Icons.directions_bus_rounded,
-                          label: 'Routes',
-                          value: '${snapshot.data!['transportCount']}',
-                          tint: IrisTokens.success,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildResourceStatChip(
-                          isDark: isDark,
-                          icon: Icons.event_note_rounded,
-                          label: 'Semester',
-                          value: '${snapshot.data!['semesterCount']}',
-                          tint: IrisTokens.warning,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildResourceStatChip(
-                          isDark: isDark,
-                          icon: Icons.assignment_turned_in_rounded,
-                          label: 'Deadlines',
-                          value: '${snapshot.data!['deadlineCount']}',
-                          tint: IrisTokens.brand,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    ...filtered.take(16).map((entry) {
-                      final type = entry['type'] ?? 'notice';
-                      final tint = colorForType(type);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            if (type == 'transport') {
-                              _handleToolTap(context, 'transport_schedule', department);
-                              return;
-                            }
-                            if (type == 'library') {
-                              _handleToolTap(context, 'library_schedule', department);
-                              return;
-                            }
-                            if (type == 'semester' || type == 'deadline') {
-                              _handleToolTap(context, 'semester_schedule', department);
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(11),
-                            decoration: BoxDecoration(
-                              color: tint.withValues(alpha: isDark ? 0.15 : 0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: tint.withValues(alpha: isDark ? 0.28 : 0.20),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(iconForType(type), size: 16, color: tint),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        entry['title'] ?? '',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w800,
-                                          color: isDark ? Colors.white : Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        entry['subtitle'] ?? '',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w600,
-                                          color: (isDark ? Colors.white : Colors.black)
-                                              .withValues(alpha: 0.62),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                    if (filtered.length > 16)
-                      Text(
-                        '+${filtered.length - 16} more results. Keep typing to narrow down.',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: (isDark ? Colors.white : Colors.black).withValues(
-                            alpha: 0.58,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final now = DateTime.now();
-    final department = _getDepartmentFromBatch();
-    final current = brain.getCurrentClass(batch, now);
-    final next = brain.getNextClass(batch, now);
-    final recommendedId = _recommendedToolId(department, now, current, next);
-    final universalTools = _prioritizeTool(_getUniversalTools(), recommendedId);
-    final deptTools = _getDepartmentTools(department);
-    const quickIds = {
-      'find_rooms',
-      'teacher_locator',
-      'browse_classes',
-      'makeup_scheduler',
-      'teacher_directory',
-    };
-    const campusDataIds = {
-      'transport_schedule',
-      'library_schedule',
-      'semester_schedule',
-      'class_analytics',
-      'timetable_print',
-    };
-    const calculatorIds = {
-      'universal_calculator',
-      'cgpa_calculator',
-      'unit_converter',
-      'base_converter',
-      'equation_solver',
-      'molecular_weight_calculator',
-    };
-
-    final quickTools = universalTools
-        .where((tool) => quickIds.contains(tool.id))
-        .toList(growable: false);
-    final campusDataTools = universalTools
-        .where((tool) => campusDataIds.contains(tool.id))
-        .toList(growable: false);
-    final calculatorTools = universalTools
-        .where((tool) => calculatorIds.contains(tool.id))
-        .toList(growable: false);
-    final otherTools = universalTools
-        .where(
-          (tool) =>
-              !quickIds.contains(tool.id) &&
-              !campusDataIds.contains(tool.id) &&
-              !calculatorIds.contains(tool.id),
-        )
-        .toList(growable: false);
-
-    SliverPadding sectionGrid(List<_ToolItem> items) {
-      return SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        sliver: SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 1.16,
-          ),
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final tool = items[index];
-            return _ToolCard(
-              tool: tool,
-              isDark: isDark,
-              onTap: () => _handleToolTap(context, tool.id, department),
-            );
-          }, childCount: items.length),
-        ),
-      );
-    }
-
-    SliverPadding sectionTitle(String title) {
-      return SliverPadding(
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
-        sliver: SliverToBoxAdapter(
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.1,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.46),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-            sliver: SliverToBoxAdapter(
-              child: Text(
-                'Resources',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-            ),
-          ),
-          sectionTitle('QUICK ACCESS'),
-          sectionGrid(quickTools),
-          sectionTitle('CAMPUS DATA'),
-          sectionGrid(campusDataTools),
-          sectionTitle('CALCULATORS'),
-          sectionGrid(calculatorTools),
-          sectionTitle('OTHER TOOLS'),
-          sectionGrid(otherTools),
-          if (deptTools.isNotEmpty) ...[
-            sectionTitle('${department.toUpperCase()} KIT'),
-            sectionGrid(deptTools),
-          ],
-          const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-        ],
-      ),
-    );
-  }
-
-  bool _isMakeupSession(ClassSession session) =>
-      session.id.startsWith('makeup_');
-
-  Future<void> _persistCustomMakeupSessions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final custom = memory.sessions.where(_isMakeupSession).map((s) => s.toJson()).toList();
-    await prefs.setString('custom_makeup_sessions', jsonEncode(custom));
-  }
-
-  Future<void> _addMakeupSessionFromTools(
-    BuildContext context,
-    ClassSession session,
-  ) async {
-    if (session.batchKey.batch != batch) return;
-    final duplicate = memory.sessions.any((s) => s.id == session.id);
-    if (duplicate) return;
-    memory.sessions.add(session);
-    await _persistCustomMakeupSessions();
-    if (!context.mounted) return;
-    showIrisFrostedSnackBar(
-      context,
-      dedupeKey: 'tools_makeup_added_${session.id}',
-      content: Text('Added makeup class: ${session.subject}'),
-    );
-  }
-
-  Future<void> _removeMakeupSessionFromTools(ClassSession session) async {
-    memory.sessions.removeWhere((s) => s.id == session.id);
-    await _persistCustomMakeupSessions();
-  }
-
-  void _handleToolTap(BuildContext context, String toolId, String department) {
-    IrisHaptics.actionSoft();
-    switch (toolId) {
-      case 'unit_converter':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _UnitConverterScreen()),
-        );
-        break;
-      case 'word_counter':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _WordCounterScreen()),
-        );
-        break;
-      case 'universal_calculator':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _UniversalCalculatorScreen()),
-        );
-        break;
-      case 'cgpa_calculator':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _CgpaCalculatorScreen(),
-          ),
-        );
-        break;
-      case 'base_converter':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _BaseConverterScreen()),
-        );
-        break;
-      case 'equation_solver':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _EquationSolverScreen()),
-        );
-        break;
-      case 'molecular_weight_calculator':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _MolecularWeightCalculatorScreen(),
-          ),
-        );
-        break;
-      case 'offline_formula_library':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _OfflineFormulaLibraryScreen(),
-          ),
-        );
-        break;
-      case 'export_schedule':
-        _showFeatureComingSoon(context, 'Schedule Export');
-        break;
-      case 'find_rooms':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => RoomFinderScreen(
-            memory: memory,
-            brain: brain,
-          )),
-        );
-        break;
-      case 'teacher_directory':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => _FacultyDirectoryScreen(
-              brain: brain,
-              onRoleChanged: onRoleChanged,
-              memory: memory,
-              currentBatch: batch,
-            ),
-          ),
-        );
-        break;
-      case 'teacher_locator':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => TeacherLocatorScreen(
-              brain: brain,
-              onRoleChanged: onRoleChanged,
-              memory: memory,
-              currentBatch: batch,
-              showDock: false,
-            ),
-          ),
-        );
-        break;
-      case 'browse_classes':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => _DepartmentClassesScreen(
-              memory: memory,
-              currentBatch: batch,
-              brain: brain,
-              onRoleChanged: onRoleChanged,
-              showDock: false,
-            ),
-          ),
-        );
-        break;
-      case 'makeup_scheduler':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MakeupLectureScheduler(
-              memory: memory,
-              brain: brain,
-              batch: batch,
-              onAddMakeupClass: (session) =>
-                  _addMakeupSessionFromTools(context, session),
-              onRemoveMakeupClass: _removeMakeupSessionFromTools,
-              onRoleChanged: onRoleChanged,
-              showDock: false,
-            ),
-          ),
-        );
-        break;
-      case 'transport_schedule':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _CampusScheduleFeedScreen(
-              feedType: _CampusFeedType.transport,
-            ),
-          ),
-        );
-        break;
-      case 'library_schedule':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _CampusScheduleFeedScreen(
-              feedType: _CampusFeedType.library,
-            ),
-          ),
-        );
-        break;
-      case 'semester_schedule':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _CampusScheduleFeedScreen(
-              feedType: _CampusFeedType.semester,
-            ),
-          ),
-        );
-        break;
-      case 'timetable_print':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => _PrintTimetableScreen(brain: brain, batch: batch),
-          ),
-        );
-        break;
-      case 'class_analytics':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => _ClassAnalyticsScreen(brain: brain, batch: batch),
-          ),
-        );
-        break;
-      case 'lab_resources':
-        _showFeatureComingSoon(context, 'Lab Resources');
-        break;
-      case 'programming_tools':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _ProgrammingToolsScreen()),
-        );
-        break;
-      case 'business_resources':
-        _showFeatureComingSoon(context, 'Business Resources');
-        break;
-      case 'design_tools':
-        _showFeatureComingSoon(context, 'Design Tools');
-        break;
-      case 'health_tools':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _HealthToolsScreen(initialTab: 0),
-          ),
-        );
-        break;
-      case 'periodic_table':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _HealthToolsScreen(initialTab: 1),
-          ),
-        );
-        break;
-      case 'resistor_decoder':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _ResistorColorDecoderScreen(),
-          ),
-        );
-        break;
-      case 'dept_smart_kit':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => _DepartmentSmartKitScreen(
-              department: department,
-              brain: brain,
-              batch: batch,
-            ),
-          ),
-        );
-        break;
-    }
-  }
-
-  void _showFeatureComingSoon(BuildContext context, String featureName) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 340),
-          decoration: BoxDecoration(
-            color: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.08),
-              width: 0.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
-                offset: const Offset(0, 12),
-                blurRadius: 32,
-                spreadRadius: -8,
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: IrisTokens.brand.withValues(alpha: 0.25),
-                      blurRadius: 12,
-                      spreadRadius: -4,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.rocket_launch_rounded,
-                  color: Colors.white,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Coming Soon',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '$featureName is under development',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: (isDark ? Colors.white : Colors.black).withValues(
-                    alpha: 0.7,
-                  ),
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: IrisTokens.brand,
-                  minimumSize: const Size.fromHeight(48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Got It',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _UnitConverterScreen extends StatefulWidget {
-  const _UnitConverterScreen();
-
-  @override
-  State<_UnitConverterScreen> createState() => _UnitConverterScreenState();
-}
-
-enum _CampusFeedType { transport, library, semester }
-
-class _CampusScheduleFeedScreen extends StatefulWidget {
-  final _CampusFeedType feedType;
-
-  const _CampusScheduleFeedScreen({required this.feedType});
-
-  @override
-  State<_CampusScheduleFeedScreen> createState() =>
-      _CampusScheduleFeedScreenState();
-}
-
-class _CampusScheduleFeedScreenState extends State<_CampusScheduleFeedScreen> {
-  final HelpdeskScheduleDataService _scheduleService = HelpdeskScheduleDataService();
-  final HelpdeskCampusFeedService _noticeService = HelpdeskCampusFeedService();
-  CampusSchedulePayload? _payload;
-  HelpdeskCampusFeedSource _noticeSource = HelpdeskCampusFeedSource.none;
-  bool _loading = true;
-  List<CampusNotice> _relatedNotices = const [];
-  String _routeQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_load());
-  }
-
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    final schedulePayload = await _scheduleService.fetchSchedulePayload();
-    final noticePayload = await _noticeService.fetchNoticesLiveFirstWithFallbackPayload();
-    final filtered = HelpdeskCampusFeedService.filterByKeywords(noticePayload.items, _keywords);
-    if (!mounted) return;
-    setState(() {
-      _payload = schedulePayload;
-      _noticeSource = noticePayload.source;
-      _relatedNotices = filtered.take(8).toList(growable: false);
-      _loading = false;
-    });
-  }
-
-  String get _title {
-    switch (widget.feedType) {
-      case _CampusFeedType.transport:
-        return 'Transport Schedule';
-      case _CampusFeedType.library:
-        return 'Library Schedule';
-      case _CampusFeedType.semester:
-        return 'Semester Schedule';
-    }
-  }
-
-  String get _subtitle {
-    switch (widget.feedType) {
-      case _CampusFeedType.transport:
-        return 'Full route map, stops and contacts';
-      case _CampusFeedType.library:
-        return 'Opening hours, break window and updates';
-      case _CampusFeedType.semester:
-        return 'Milestones, exams and deadline tracker';
-    }
-  }
-
-  IconData get _icon {
-    switch (widget.feedType) {
-      case _CampusFeedType.transport:
-        return Icons.directions_bus_rounded;
-      case _CampusFeedType.library:
-        return Icons.local_library_rounded;
-      case _CampusFeedType.semester:
-        return Icons.event_note_rounded;
-    }
-  }
-
-  List<String> get _keywords {
-    switch (widget.feedType) {
-      case _CampusFeedType.transport:
-        return const ['transport', 'bus', 'route', 'shuttle', 'pickup', 'drop'];
-      case _CampusFeedType.library:
-        return const ['library', 'books', 'timing', 'hours', 'librarian'];
-      case _CampusFeedType.semester:
-        return const ['semester', 'mid', 'midterm', 'final', 'terminal', 'exam', 'calendar'];
-    }
-  }
-
-  String _sourceLabel(HelpdeskCampusFeedSource source) {
-    switch (source) {
-      case HelpdeskCampusFeedSource.live:
-        return 'LIVE';
-      case HelpdeskCampusFeedSource.cache:
-        return 'CACHE';
-      case HelpdeskCampusFeedSource.backup:
-        return 'BACKUP';
-      case HelpdeskCampusFeedSource.none:
-        return 'OFFLINE';
-    }
-  }
-
-  String _scheduleSourceLabel(CampusScheduleSource source) {
-    switch (source) {
-      case CampusScheduleSource.asset:
-        return 'ASSET';
-      case CampusScheduleSource.none:
-        return 'OFFLINE';
-    }
-  }
-
-  String _prettyDate(DateTime? date) {
-    if (date == null) return 'Unknown date';
-    final local = date.toLocal();
-    return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
-  }
-
-  String _dateLabel(String input) {
-    final dt = DateTime.tryParse(input);
-    if (dt == null) return input.isEmpty ? 'TBA' : input;
-    return _prettyDate(dt);
-  }
-
-  String _statusLabel(String raw) {
-    final v = raw.toLowerCase();
-    if (v.contains('expired') || v.contains('passed')) return 'Done';
-    if (v.contains('upcoming')) return 'Upcoming';
-    return 'Scheduled';
-  }
-
-  Color _statusColor(String raw) {
-    final v = raw.toLowerCase();
-    if (v.contains('expired') || v.contains('passed')) return IrisTokens.warning;
-    if (v.contains('upcoming')) return IrisTokens.success;
-    return IrisTokens.brand;
-  }
-
-  List<TransportRouteData> _filteredRoutes(List<TransportRouteData> routes) {
-    final query = _routeQuery.trim().toLowerCase();
-    if (query.isEmpty) return routes;
-    return routes.where((route) {
-      if (route.route.toLowerCase().contains(query)) return true;
-      return route.stops.any((stop) => stop.point.toLowerCase().contains(query));
-    }).toList(growable: false);
-  }
-
-  Future<void> _launchTransportPhone(String rawPhone) async {
-    final cleaned = rawPhone.trim().replaceAll(' ', '');
-    if (cleaned.isEmpty) return;
-    final uri = Uri(scheme: 'tel', path: cleaned);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-      return;
-    }
-    if (!mounted) return;
-    showIrisFrostedSnackBar(
-      context,
-      dedupeKey: 'transport_phone_unavailable',
-      content: const Text('Unable to open dialer on this device'),
-    );
-  }
-
-  Widget _buildNoticeCard(bool isDark, CampusNotice item) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: GlassCard(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                item.detail,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  height: 1.3,
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.68),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${item.createdBy.isEmpty ? 'Admin' : item.createdBy} • ${_prettyDate(item.createdAt)}',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: IrisTokens.brand.withValues(alpha: 0.86),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTransportBody(bool isDark, CampusSchedulePayload payload) {
-    final routes = _filteredRoutes(payload.transportRoutes);
-    return Column(
-      children: [
-        GlassCard(
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (value) => setState(() => _routeQuery = value),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Search route or stop...',
-                      hintStyle: TextStyle(
-                        fontSize: 12,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                      ),
-                      prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                      isDense: true,
-                      filled: true,
-                      fillColor: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.09 : 0.04),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: IrisTokens.success.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: IrisTokens.success.withValues(alpha: 0.25)),
-                  ),
-                  child: Text(
-                    '${routes.length} routes',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: IrisTokens.success,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        ...routes.map((route) {
-          final firstStop = route.stops.isNotEmpty ? route.stops.first.time : '--';
-          final lastStop = route.stops.isNotEmpty ? route.stops.last.time : '--';
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: GlassCard(
-              child: Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                  title: Text(
-                    route.route,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${route.stops.length} stops • $firstStop to $lastStop',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.58),
-                    ),
-                  ),
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: route.driverPhone.isNotEmpty
-                              ? InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: () =>
-                                      _launchTransportPhone(route.driverPhone),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                    child: Text(
-                                      'Driver: ${route.driverName.isEmpty ? 'N/A' : route.driverName} (${route.driverPhone}) • Tap to call',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: IrisTokens.brand,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  'Driver: ${route.driverName.isEmpty ? 'N/A' : route.driverName}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: IrisTokens.brand,
-                                  ),
-                                ),
-                        ),
-                      ],
-                    ),
-                    if (route.helperName.isNotEmpty || route.helperPhone.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: route.helperPhone.isNotEmpty
-                                ? InkWell(
-                                    borderRadius: BorderRadius.circular(8),
-                                    onTap: () =>
-                                        _launchTransportPhone(route.helperPhone),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 2,
-                                      ),
-                                      child: Text(
-                                        'Helper: ${route.helperName.isEmpty ? 'N/A' : route.helperName} (${route.helperPhone}) • Tap to call',
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: IrisTokens.purple,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Text(
-                                    'Helper: ${route.helperName.isEmpty ? 'N/A' : route.helperName}',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: IrisTokens.purple,
-                                    ),
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    ...route.stops.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final stop = entry.value;
-                      final isFirst = index == 0;
-                      final isLast = index == route.stops.length - 1;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 24,
-                              child: Column(
-                                children: [
-                                  Container(
-                                    width: 2,
-                                    height: 8,
-                                    color: isFirst
-                                        ? Colors.transparent
-                                        : IrisTokens.success.withValues(alpha: 0.45),
-                                  ),
-                                  Container(
-                                    width: isFirst || isLast ? 10 : 8,
-                                    height: isFirst || isLast ? 10 : 8,
-                                    decoration: BoxDecoration(
-                                      color: isFirst
-                                          ? IrisTokens.brand
-                                          : isLast
-                                          ? IrisTokens.warning
-                                          : IrisTokens.success,
-                                      borderRadius: BorderRadius.circular(99),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: (isFirst
-                                                  ? IrisTokens.brand
-                                                  : isLast
-                                                  ? IrisTokens.warning
-                                                  : IrisTokens.success)
-                                              .withValues(alpha: 0.36),
-                                          blurRadius: 8,
-                                          spreadRadius: -2,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 2,
-                                    height: 22,
-                                    color: isLast
-                                        ? Colors.transparent
-                                        : IrisTokens.success.withValues(alpha: 0.45),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: (isDark ? Colors.white : Colors.black).withValues(
-                                    alpha: isDark ? 0.07 : 0.03,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: (isDark ? Colors.white : Colors.black).withValues(
-                                      alpha: 0.08,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        stop.point,
-                                        style: TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark ? Colors.white : Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      stop.time,
-                                      style: TextStyle(
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: (isDark ? Colors.white : Colors.black)
-                                            .withValues(alpha: 0.64),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildLibraryBody(bool isDark, CampusSchedulePayload payload) {
-    final library = payload.librarySchedule;
-    final entries = [
-      {'label': 'Open', 'value': library?.open ?? 'N/A', 'color': IrisTokens.success},
-      {'label': 'Break', 'value': library?.breakTime ?? 'N/A', 'color': IrisTokens.warning},
-      {'label': 'Close', 'value': library?.close ?? 'N/A', 'color': IrisTokens.brand},
-    ];
-
-    return GlassCard(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: entries.map((entry) {
-            final color = entry['color'] as Color;
-            return Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: isDark ? 0.16 : 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: color.withValues(alpha: 0.28)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry['label']! as String,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      entry['value']! as String,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(growable: false),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSemesterBody(bool isDark, CampusSchedulePayload payload) {
-    return Column(
-      children: [
-        ...payload.semesterSchedule.map((item) {
-          final color = _statusColor(item.status);
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: GlassCard(
-              child: Padding(
-                padding: const EdgeInsets.all(13),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 5,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.title,
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _dateLabel(item.date),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: color.withValues(alpha: 0.28)),
-                      ),
-                      child: Text(
-                        _statusLabel(item.status),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
-        if (payload.deadlines.isNotEmpty)
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(13),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Assignment Deadlines',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...payload.deadlines.take(8).map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        children: [
-                          Icon(Icons.schedule_rounded, size: 14, color: _statusColor(item.status)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              item.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : Colors.black,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            _dateLabel(item.date),
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 10;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Text(_title),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          NeuralAura(background: isDark),
-          RefreshIndicator(
-            onRefresh: _load,
-            color: IrisTokens.brand,
-            child: ListView(
-              physics: const ButterScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(16, topInset, 16, 24),
-              children: [
-                GlassCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(11),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: IrisTokens.brandGradient),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(_icon, color: Colors.white, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _subtitle,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: IrisTokens.brand.withValues(alpha: 0.13),
-                                      borderRadius: BorderRadius.circular(999),
-                                      border: Border.all(color: IrisTokens.brand.withValues(alpha: 0.24)),
-                                    ),
-                                    child: Text(
-                                      _payload == null
-                                          ? 'OFFLINE'
-                                          : _scheduleSourceLabel(_payload!.source),
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.6,
-                                        color: IrisTokens.brand,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: IrisTokens.success.withValues(alpha: 0.13),
-                                      borderRadius: BorderRadius.circular(999),
-                                      border: Border.all(color: IrisTokens.success.withValues(alpha: 0.24)),
-                                    ),
-                                    child: Text(
-                                      _sourceLabel(_noticeSource),
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.6,
-                                        color: IrisTokens.success,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (_loading)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else if (_payload == null)
-                  GlassCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Text(
-                        'No $_title data available right now.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ),
-                  )
-                else ...[
-                  if (widget.feedType == _CampusFeedType.transport)
-                    _buildTransportBody(isDark, _payload!),
-                  if (widget.feedType == _CampusFeedType.library)
-                    _buildLibraryBody(isDark, _payload!),
-                  if (widget.feedType == _CampusFeedType.semester)
-                    _buildSemesterBody(isDark, _payload!),
-                  if (_relatedNotices.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    Text(
-                      'Related Notices',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ..._relatedNotices.map((item) => _buildNoticeCard(isDark, item)),
-                  ],
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _UnitConverterScreenState extends State<_UnitConverterScreen> {
-  final TextEditingController _valueController = TextEditingController();
-  final List<String> _categories = ['Length', 'Weight', 'Temperature'];
-  String _category = 'Length';
-  String _from = 'Meter';
-  String _to = 'Kilometer';
-  double _result = 0.0;
-
-  static const Map<String, Map<String, double>> _ratioMap = {
-    'Length': {
-      'Meter': 1.0,
-      'Kilometer': 1000.0,
-      'Centimeter': 0.01,
-      'Millimeter': 0.001,
-      'Foot': 0.3048,
-      'Inch': 0.0254,
-    },
-    'Weight': {
-      'Kilogram': 1.0,
-      'Gram': 0.001,
-      'Pound': 0.45359237,
-      'Ounce': 0.028349523,
-    },
-  };
-
-  List<String> _unitsFor(String category) {
-    if (category == 'Temperature') {
-      return ['Celsius', 'Fahrenheit', 'Kelvin'];
-    }
-    return _ratioMap[category]!.keys.toList();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _valueController.text = '1';
-    _compute();
-  }
-
-  @override
-  void dispose() {
-    _valueController.dispose();
-    super.dispose();
-  }
-
-  double _convertTemperature(double value, String from, String to) {
-    double celsius;
-    if (from == 'Celsius') {
-      celsius = value;
-    } else if (from == 'Fahrenheit') {
-      celsius = (value - 32) * (5 / 9);
-    } else {
-      celsius = value - 273.15;
-    }
-
-    if (to == 'Celsius') {
-      return celsius;
-    }
-    if (to == 'Fahrenheit') {
-      return (celsius * 9 / 5) + 32;
-    }
-    return celsius + 273.15;
-  }
-
-  void _compute() {
-    final input = double.tryParse(_valueController.text.trim()) ?? 0.0;
-    double converted;
-
-    if (_category == 'Temperature') {
-      converted = _convertTemperature(input, _from, _to);
-    } else {
-      final map = _ratioMap[_category]!;
-      final inBase = input * map[_from]!;
-      converted = inBase / map[_to]!;
-    }
-
-    setState(() {
-      _result = converted;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    final units = _unitsFor(_category);
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Unit Converter'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          NeuralAura(background: isDark, tone: 'core'),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: _category,
-                    decoration: const InputDecoration(
-                      labelText: 'Category',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _categories
-                        .map(
-                          (c) => DropdownMenuItem(value: c, child: Text(c)),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      final nextUnits = _unitsFor(value);
-                      setState(() {
-                        _category = value;
-                        _from = nextUnits.first;
-                        _to = nextUnits.length > 1
-                            ? nextUnits[1]
-                            : nextUnits.first;
-                      });
-                      _compute();
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _valueController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: 'Value',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (_) => _compute(),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _from,
-                          decoration: const InputDecoration(
-                            labelText: 'From',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: units
-                              .map(
-                                (u) => DropdownMenuItem(
-                                  value: u,
-                                  child: Text(u),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            if (value == null) return;
-                            setState(() => _from = value);
-                            _compute();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _to,
-                          decoration: const InputDecoration(
-                            labelText: 'To',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: units
-                              .map(
-                                (u) => DropdownMenuItem(
-                                  value: u,
-                                  child: Text(u),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            if (value == null) return;
-                            setState(() => _to = value);
-                            _compute();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Result',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: (isDark ? Colors.white : Colors.black).withValues(
-                        alpha: 0.68,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${_result.toStringAsFixed(4)} $_to',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WordCounterScreen extends StatefulWidget {
-  const _WordCounterScreen();
-
-  @override
-  State<_WordCounterScreen> createState() => _WordCounterScreenState();
-}
-
-class _UniversalCalculatorScreen extends StatefulWidget {
-  const _UniversalCalculatorScreen();
-
-  @override
-  State<_UniversalCalculatorScreen> createState() =>
-      _UniversalCalculatorScreenState();
-}
-
-class _UniversalCalculatorScreenState extends State<_UniversalCalculatorScreen> {
-  final TextEditingController _aController = TextEditingController(text: '0');
-  final TextEditingController _bController = TextEditingController(text: '0');
-  final TextEditingController _costController = TextEditingController(text: '0');
-  final TextEditingController _markupController = TextEditingController(
-    text: '20',
-  );
-  final TextEditingController _valueController = TextEditingController(
-    text: '1',
-  );
-
-  String _operation = '+';
-  String _resultText = '0';
-  String _markupResultText = '0';
-  String _scientificResultText = '1';
-
-  @override
-  void initState() {
-    super.initState();
-    _computeStandard();
-    _computeMarkup();
-  }
-
-  @override
-  void dispose() {
-    _aController.dispose();
-    _bController.dispose();
-    _costController.dispose();
-    _markupController.dispose();
-    _valueController.dispose();
-    super.dispose();
-  }
-
-  String _formatNum(double value) {
-    if (value.isNaN || value.isInfinite) return 'Invalid';
-    final fixed = value.toStringAsFixed(6);
-    final trimmed = fixed.replaceFirst(RegExp(r'\.0+$'), '');
-    return trimmed.replaceFirst(RegExp(r'(\.\d*?)0+$'), r'$1');
-  }
-
-  void _computeStandard() {
-    final a = double.tryParse(_aController.text.trim()) ?? 0;
-    final b = double.tryParse(_bController.text.trim()) ?? 0;
-    double result;
-    switch (_operation) {
-      case '+':
-        result = a + b;
-        break;
-      case '-':
-        result = a - b;
-        break;
-      case '*':
-        result = a * b;
-        break;
-      case '/':
-        result = b == 0 ? double.nan : a / b;
-        break;
-      case '%':
-        result = b == 0 ? double.nan : a % b;
-        break;
-      default:
-        result = a + b;
-    }
-
-    setState(() {
-      _resultText = _formatNum(result);
-    });
-  }
-
-  void _computeMarkup() {
-    final cost = double.tryParse(_costController.text.trim()) ?? 0;
-    final markup = double.tryParse(_markupController.text.trim()) ?? 0;
-    final sellPrice = cost * (1 + (markup / 100));
-    setState(() {
-      _markupResultText = _formatNum(sellPrice);
-    });
-  }
-
-  void _applyScientific(String op) {
-    final value = double.tryParse(_valueController.text.trim()) ?? 0;
-    double result;
-    switch (op) {
-      case 'x^2':
-        result = value * value;
-        break;
-      case 'sqrt':
-        result = value < 0 ? double.nan : math.sqrt(value);
-        break;
-      case '1/x':
-        result = value == 0 ? double.nan : 1 / value;
-        break;
-      case 'sin':
-        result = math.sin(value);
-        break;
-      case 'cos':
-        result = math.cos(value);
-        break;
-      case 'tan':
-        result = math.tan(value);
-        break;
-      case 'ln':
-        result = value <= 0 ? double.nan : math.log(value);
-        break;
-      default:
-        result = value;
-    }
-    setState(() {
-      _scientificResultText = _formatNum(result);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Universal Calculator'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          NeuralAura(background: isDark, tone: 'core'),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Standard',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _aController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: const InputDecoration(
-                            labelText: 'A',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (_) => _computeStandard(),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      SizedBox(
-                        width: 80,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _operation,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                          ),
-                          items: const ['+', '-', '*', '/', '%']
-                              .map(
-                                (op) => DropdownMenuItem(
-                                  value: op,
-                                  child: Text(op),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            if (value == null) return;
-                            setState(() => _operation = value);
-                            _computeStandard();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: _bController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: const InputDecoration(
-                            labelText: 'B',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (_) => _computeStandard(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Result: $_resultText',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Markup Calculator',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _costController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: const InputDecoration(
-                            labelText: 'Cost Price',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (_) => _computeMarkup(),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: _markupController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: const InputDecoration(
-                            labelText: 'Markup %',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (_) => _computeMarkup(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Selling Price: $_markupResultText',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Scientific Quick Ops',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _valueController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: 'Input Value',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: const ['x^2', 'sqrt', '1/x', 'sin', 'cos', 'tan', 'ln']
-                        .map(
-                          (op) => SizedBox(
-                            width: 74,
-                            child: _SciOpButton(op: op),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Scientific Result: $_scientificResultText',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SciOpButton extends StatelessWidget {
-  final String op;
-
-  const _SciOpButton({required this.op});
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        final state = context.findAncestorStateOfType<
-            _UniversalCalculatorScreenState>();
-        state?._applyScientific(op);
-      },
-      child: Text(op),
-    );
-  }
-}
-
-class _BaseConverterScreen extends StatefulWidget {
-  const _BaseConverterScreen();
-
-  @override
-  State<_BaseConverterScreen> createState() => _BaseConverterScreenState();
-}
-
-class _BaseConverterScreenState extends State<_BaseConverterScreen> {
-  final TextEditingController _inputController = TextEditingController(
-    text: '1010',
-  );
-  bool _autoDetect = true;
-  int _manualBase = 2;
-  String _status = 'Auto-detected as Binary';
-  BigInt? _parsedValue = BigInt.from(10);
-
-  @override
-  void initState() {
-    super.initState();
-    _compute();
-  }
-
-  @override
-  void dispose() {
-    _inputController.dispose();
-    super.dispose();
-  }
-
-  ({String normalized, int base}) _resolveBase(String input) {
-    final raw = input.trim().toLowerCase();
-    if (raw.startsWith('0b')) return (normalized: raw.substring(2), base: 2);
-    if (raw.startsWith('0x')) return (normalized: raw.substring(2), base: 16);
-    if (raw.startsWith('0o')) return (normalized: raw.substring(2), base: 8);
-
-    if (!_autoDetect) return (normalized: raw, base: _manualBase);
-
-    if (RegExp(r'^[01]+$').hasMatch(raw)) {
-      return (normalized: raw, base: 2);
-    }
-    if (RegExp(r'^[0-7]+$').hasMatch(raw)) {
-      return (normalized: raw, base: 8);
-    }
-    if (RegExp(r'^[0-9]+$').hasMatch(raw)) {
-      return (normalized: raw, base: 10);
-    }
-    if (RegExp(r'^[0-9a-f]+$').hasMatch(raw)) {
-      return (normalized: raw, base: 16);
-    }
-
-    return (normalized: raw, base: _manualBase);
-  }
-
-  String _baseName(int base) {
-    switch (base) {
-      case 2:
-        return 'Binary';
-      case 8:
-        return 'Octal';
-      case 10:
-        return 'Decimal';
-      case 16:
-        return 'Hexadecimal';
-      default:
-        return 'Base $base';
-    }
-  }
-
-  void _compute() {
-    final input = _inputController.text.trim();
-    if (input.isEmpty) {
-      setState(() {
-        _parsedValue = null;
-        _status = 'Enter a value to convert';
-      });
-      return;
-    }
-
-    final resolved = _resolveBase(input);
-    try {
-      final value = BigInt.parse(resolved.normalized, radix: resolved.base);
-      setState(() {
-        _parsedValue = value;
-        _status = 'Detected as ${_baseName(resolved.base)}';
-      });
-    } catch (_) {
-      setState(() {
-        _parsedValue = null;
-        _status = 'Invalid number for selected/detected base';
-      });
-    }
-  }
-
-  String _out(int radix) {
-    if (_parsedValue == null) return '-';
-    return _parsedValue!.toRadixString(radix).toUpperCase();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    final value = _parsedValue;
-    final bitLen = value == null ? '-' : value.toRadixString(2).length.toString();
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Base Converter'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          NeuralAura(background: isDark, tone: 'core'),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Smart Input',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _inputController,
-                    decoration: const InputDecoration(
-                      labelText: 'Value (prefix: 0b / 0o / 0x supported)',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (_) => _compute(),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Switch(
-                        value: _autoDetect,
-                        onChanged: (v) {
-                          setState(() => _autoDetect = v);
-                          _compute();
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      const Expanded(child: Text('Auto detect base')),
-                    ],
-                  ),
-                  if (!_autoDetect)
-                    DropdownButtonFormField<int>(
-                      initialValue: _manualBase,
-                      decoration: const InputDecoration(
-                        labelText: 'Manual Base',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [2, 8, 10, 16]
-                          .map(
-                            (b) => DropdownMenuItem(
-                              value: b,
-                              child: Text('${_baseName(b)} ($b)'),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        if (v == null) return;
-                        setState(() => _manualBase = v);
-                        _compute();
-                      },
-                    ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _status,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _parsedValue == null ? IrisTokens.error : IrisTokens.success,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Conversions',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _BaseOutRow(label: 'Binary (2)', value: _out(2)),
-                  _BaseOutRow(label: 'Octal (8)', value: _out(8)),
-                  _BaseOutRow(label: 'Decimal (10)', value: _out(10)),
-                  _BaseOutRow(label: 'Hex (16)', value: _out(16)),
-                  const Divider(height: 18),
-                  _BaseOutRow(label: 'Bit Length', value: bitLen),
-                ],
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BaseOutRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _BaseOutRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: (isDark ? Colors.white : Colors.black).withValues(
-                  alpha: 0.75,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: SelectableText(
-              value,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EquationSolverScreen extends StatefulWidget {
-  const _EquationSolverScreen();
-
-  @override
-  State<_EquationSolverScreen> createState() => _EquationSolverScreenState();
-}
-
-class _EquationSolverScreenState extends State<_EquationSolverScreen> {
-  final TextEditingController _aController = TextEditingController(text: '1');
-  final TextEditingController _bController = TextEditingController(text: '0');
-  final TextEditingController _cController = TextEditingController(text: '0');
-  final TextEditingController _xController = TextEditingController(text: '1');
-  final TextEditingController _lowController = TextEditingController(text: '0');
-  final TextEditingController _highController = TextEditingController(text: '1');
-
-  String _mode = 'Linear';
-  String _headline = 'Ready';
-  String _details = 'Enter values and tap Solve.';
-
-  @override
-  void dispose() {
-    _aController.dispose();
-    _bController.dispose();
-    _cController.dispose();
-    _xController.dispose();
-    _lowController.dispose();
-    _highController.dispose();
-    super.dispose();
-  }
-
-  String _fmt(double value) {
-    if (value.isNaN || value.isInfinite) return 'Invalid';
-    final fixed = value.toStringAsFixed(6);
-    final trimmed = fixed.replaceFirst(RegExp(r'\.0+$'), '');
-    return trimmed.replaceFirst(RegExp(r'(\.\d*?)0+$'), r'$1');
-  }
-
-  double _poly(double x, double a, double b, double c) => (a * x * x) + (b * x) + c;
-
-  void _solve() {
-    final a = double.tryParse(_aController.text.trim()) ?? 0;
-    final b = double.tryParse(_bController.text.trim()) ?? 0;
-    final c = double.tryParse(_cController.text.trim()) ?? 0;
-    final x0 = double.tryParse(_xController.text.trim()) ?? 0;
-    final low = double.tryParse(_lowController.text.trim()) ?? 0;
-    final high = double.tryParse(_highController.text.trim()) ?? 0;
-
-    if (_mode == 'Linear') {
-      if (a == 0 && b == 0) {
-        setState(() {
-          _headline = 'Infinite or no solutions';
-          _details = 'Equation $c = 0 depends on constant value.';
-        });
-        return;
-      }
-      if (a == 0) {
-        setState(() {
-          _headline = 'No solution';
-          _details = 'a = 0 makes equation degenerate: ${_fmt(b)}x + ${_fmt(c)} = 0';
-        });
-        return;
-      }
-      final x = -b / a;
-      setState(() {
-        _headline = 'x = ${_fmt(x)}';
-        _details =
-            'Solved ${_fmt(a)}x + ${_fmt(b)} = 0 using x = -b/a.';
-      });
-      return;
-    }
-
-    if (_mode == 'Quadratic') {
-      if (a == 0) {
-        if (b == 0) {
-          setState(() {
-            _headline = 'No quadratic form';
-            _details = 'Both a and b are zero.';
-          });
-          return;
-        }
-        final x = -c / b;
-        setState(() {
-          _headline = 'Linear fallback: x = ${_fmt(x)}';
-          _details = 'a = 0, so equation reduced to linear bx + c = 0.';
-        });
-        return;
-      }
-
-      final disc = (b * b) - (4 * a * c);
-      if (disc < 0) {
-        final real = -b / (2 * a);
-        final imag = math.sqrt(-disc) / (2 * a).abs();
-        setState(() {
-          _headline = 'Complex roots';
-          _details =
-              'Discriminant = ${_fmt(disc)}. Roots: ${_fmt(real)} ± ${_fmt(imag)}i';
-        });
-        return;
-      }
-
-      final sqrtDisc = math.sqrt(disc);
-      final x1 = (-b + sqrtDisc) / (2 * a);
-      final x2 = (-b - sqrtDisc) / (2 * a);
-      setState(() {
-        _headline = 'x1 = ${_fmt(x1)}, x2 = ${_fmt(x2)}';
-        _details =
-            'Used quadratic formula with discriminant ${_fmt(disc)}.';
-      });
-      return;
-    }
-
-    final h = 0.0001;
-    final fxh1 = _poly(x0 + h, a, b, c);
-    final fxh2 = _poly(x0 - h, a, b, c);
-    final derivative = (fxh1 - fxh2) / (2 * h);
-
-    final antiHigh = (a * math.pow(high, 3) / 3) + (b * math.pow(high, 2) / 2) + (c * high);
-    final antiLow = (a * math.pow(low, 3) / 3) + (b * math.pow(low, 2) / 2) + (c * low);
-    final integral = (antiHigh - antiLow).toDouble();
-
-    setState(() {
-      _headline = 'f\'(x0) = ${_fmt(derivative)}';
-      _details =
-          'For f(x)=ax^2+bx+c at x0=${_fmt(x0)}: derivative ≈ ${_fmt(derivative)}, integral[${_fmt(low)}, ${_fmt(high)}] = ${_fmt(integral)}';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Equation Solver'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          NeuralAura(background: isDark, tone: 'core'),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    children: ['Linear', 'Quadratic', 'Calculus']
-                        .map(
-                          (m) => ChoiceChip(
-                            label: Text(m),
-                            selected: _mode == m,
-                            onSelected: (_) => setState(() => _mode = m),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _aController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: _mode == 'Linear' ? 'a (ax + b = 0)' : 'a (ax² + bx + c)',
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _bController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: _mode == 'Linear' ? 'b (ax + b = 0)' : 'b (ax² + bx + c)',
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _cController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: 'c (for quadratic/calculus)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  if (_mode == 'Calculus') ...[
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _xController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(
-                        labelText: 'x0 for derivative',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _lowController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Integral lower',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: _highController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Integral upper',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _solve,
-                      icon: const Icon(Icons.auto_graph_rounded),
-                      label: const Text('Solve Smartly'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _headline,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _details,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      color: (isDark ? Colors.white : Colors.black).withValues(
-                        alpha: 0.75,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MolecularWeightCalculatorScreen extends StatefulWidget {
-  const _MolecularWeightCalculatorScreen();
-
-  @override
-  State<_MolecularWeightCalculatorScreen> createState() =>
-      _MolecularWeightCalculatorScreenState();
-}
-
-class _MolecularWeightCalculatorScreenState
-    extends State<_MolecularWeightCalculatorScreen> {
-  final TextEditingController _formulaController = TextEditingController(
-    text: 'C6H12O6',
-  );
-
-  String _status = 'Ready';
-  String _molarMass = '-';
-  List<String> _breakdown = const [];
-
-  static const Map<String, double> _atomicWeights = {
-    'H': 1.008,
-    'He': 4.0026,
-    'Li': 6.94,
-    'Be': 9.0122,
-    'B': 10.81,
-    'C': 12.011,
-    'N': 14.007,
-    'O': 15.999,
-    'F': 18.998,
-    'Ne': 20.180,
-    'Na': 22.990,
-    'Mg': 24.305,
-    'Al': 26.982,
-    'Si': 28.085,
-    'P': 30.974,
-    'S': 32.06,
-    'Cl': 35.45,
-    'K': 39.098,
-    'Ar': 39.948,
-    'Ca': 40.078,
-    'Cr': 51.996,
-    'Mn': 54.938,
-    'Fe': 55.845,
-    'Co': 58.933,
-    'Ni': 58.693,
-    'Cu': 63.546,
-    'Zn': 65.38,
-    'Br': 79.904,
-    'Ag': 107.868,
-    'I': 126.904,
-    'Ba': 137.327,
-    'Au': 196.967,
-    'Hg': 200.592,
-    'Pb': 207.2,
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    _compute();
-  }
-
-  @override
-  void dispose() {
-    _formulaController.dispose();
-    super.dispose();
-  }
-
-  ({Map<String, int> counts, int index}) _parseGroup(String s, int start) {
-    final counts = <String, int>{};
-    int i = start;
-
-    int readNumber() {
-      final begin = i;
-      while (i < s.length && RegExp(r'[0-9]').hasMatch(s[i])) {
-        i++;
-      }
-      if (i == begin) return 1;
-      return int.parse(s.substring(begin, i));
-    }
-
-    while (i < s.length) {
-      final ch = s[i];
-      if (ch == '(') {
-        final nested = _parseGroup(s, i + 1);
-        i = nested.index;
-        final mult = readNumber();
-        nested.counts.forEach((k, v) {
-          counts[k] = (counts[k] ?? 0) + (v * mult);
-        });
-        continue;
-      }
-
-      if (ch == ')') {
-        return (counts: counts, index: i + 1);
-      }
-
-      if (RegExp(r'[A-Z]').hasMatch(ch)) {
-        var symbol = ch;
-        i++;
-        if (i < s.length && RegExp(r'[a-z]').hasMatch(s[i])) {
-          symbol += s[i];
-          i++;
-        }
-        final mult = readNumber();
-        counts[symbol] = (counts[symbol] ?? 0) + mult;
-        continue;
-      }
-
-      i++;
-    }
-
-    return (counts: counts, index: i);
-  }
-
-  Map<String, int> _parseFormula(String formula) {
-    final cleaned = formula.replaceAll('·', '.').replaceAll(' ', '');
-    final parts = cleaned.split('.').where((p) => p.isNotEmpty).toList();
-    final total = <String, int>{};
-
-    for (final part in parts) {
-      var i = 0;
-      while (i < part.length && RegExp(r'[0-9]').hasMatch(part[i])) {
-        i++;
-      }
-      final lead = i == 0 ? 1 : int.parse(part.substring(0, i));
-      final body = part.substring(i);
-      final parsed = _parseGroup(body, 0).counts;
-      parsed.forEach((k, v) {
-        total[k] = (total[k] ?? 0) + (v * lead);
-      });
-    }
-
-    return total;
-  }
-
-  void _compute() {
-    final formula = _formulaController.text.trim();
-    if (formula.isEmpty) {
-      setState(() {
-        _status = 'Enter a formula like H2O, C6H12O6, Ca(OH)2, CuSO4·5H2O';
-        _molarMass = '-';
-        _breakdown = const [];
-      });
-      return;
-    }
-
-    try {
-      final counts = _parseFormula(formula);
-      if (counts.isEmpty) {
-        setState(() {
-          _status = 'Could not parse formula.';
-          _molarMass = '-';
-          _breakdown = const [];
-        });
-        return;
-      }
-
-      double totalMass = 0;
-      final lines = <String>[];
-      for (final symbol in counts.keys.toList()..sort()) {
-        final count = counts[symbol]!;
-        final aw = _atomicWeights[symbol];
-        if (aw == null) {
-          setState(() {
-            _status = 'Unknown element symbol: $symbol';
-            _molarMass = '-';
-            _breakdown = ['Tip: verify capitalization, e.g., Co vs CO'];
-          });
-          return;
-        }
-        final subtotal = aw * count;
-        totalMass += subtotal;
-        lines.add('$symbol × $count = ${subtotal.toStringAsFixed(4)} g/mol');
-      }
-
-      setState(() {
-        _status = 'Parsed successfully';
-        _molarMass = '${totalMass.toStringAsFixed(4)} g/mol';
-        _breakdown = lines;
-      });
-    } catch (_) {
-      setState(() {
-        _status = 'Invalid formula syntax';
-        _molarMass = '-';
-        _breakdown = const [
-          'Examples: H2O, NaCl, Ca(OH)2, Al2(SO4)3, CuSO4·5H2O',
-        ];
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Molecular Weight Calculator'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          NeuralAura(background: isDark, tone: 'learning'),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: _formulaController,
-                    decoration: const InputDecoration(
-                      labelText: 'Chemical Formula',
-                      hintText: 'e.g. C6H12O6 or CuSO4·5H2O',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (_) => _compute(),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _status,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _status == 'Parsed successfully'
-                                ? IrisTokens.success
-                                : (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: _compute,
-                        icon: const Icon(Icons.science_rounded),
-                        label: const Text('Compute'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Molar Mass',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: (isDark ? Colors.white : Colors.black).withValues(
-                        alpha: 0.7,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _molarMass,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ..._breakdown.map(
-                    (line) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        line,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.75),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _HealthToolsScreen extends StatefulWidget {
   final int initialTab;
 
@@ -11532,13 +7970,42 @@ class _HealthToolsScreenState extends State<_HealthToolsScreen>
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'health'),
+          ObsidianPulse(isDark: isDark),
           TabBarView(
             controller: _tabController,
             children: [
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
+              GlassCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.monitor_heart_rounded, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Health Smart Suite', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                            const SizedBox(height: 4),
+                            Text('Quick calculators and references in one place.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               GlassCard(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -11636,6 +8103,35 @@ class _HealthToolsScreenState extends State<_HealthToolsScreen>
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
+              GlassCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.code_rounded, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('CS Compiler Suite', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                            const SizedBox(height: 4),
+                            Text('Smart checks, templates, and quick dry-run helpers.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               GlassCard(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -11838,7 +8334,7 @@ class _ResistorColorDecoderScreenState extends State<_ResistorColorDecoderScreen
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'engineering'),
+          ObsidianPulse(isDark: isDark),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -11928,11 +8424,11 @@ class _ResistorColorDecoderScreenState extends State<_ResistorColorDecoderScreen
               ),
             ),
           ),
-            ],
-          ),
         ],
       ),
-    );
+    ],
+  ),
+);
   }
 }
 
@@ -12065,10 +8561,39 @@ class _DepartmentSmartKitScreenState extends State<_DepartmentSmartKitScreen> {
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'analytics'),
+          ObsidianPulse(isDark: isDark),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
+              GlassCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.auto_graph_rounded, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Department Smart Kit', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                            const SizedBox(height: 4),
+                            Text('Weekly workload and grade planning for this department.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               GlassCard(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -12493,7 +9018,7 @@ class _PrintTimetableScreenState extends State<_PrintTimetableScreen> {
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'analytics'),
+          ObsidianPulse(isDark: isDark),
           Padding(
             padding: EdgeInsets.only(top: topInset),
             child: Center(
@@ -12732,7 +9257,7 @@ class _OfflineFormulaLibraryScreenState
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'learning'),
+          ObsidianPulse(isDark: isDark),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -13036,7 +9561,7 @@ class _ProgrammingToolsScreenState extends State<_ProgrammingToolsScreen> {
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'cs'),
+          ObsidianPulse(isDark: isDark),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
@@ -13226,6 +9751,22 @@ class _FormulaEntry {
 }
 
 
+class _WordCounterScreen extends StatefulWidget {
+  const _WordCounterScreen({
+    required this.title,
+    required this.formula,
+    required this.description,
+  });
+
+  final String title;
+  final String formula;
+  final String description;
+
+  @override
+  State<_WordCounterScreen> createState() => _WordCounterScreenState();
+}
+
+
 class _WordCounterScreenState extends State<_WordCounterScreen> {
   final TextEditingController _controller = TextEditingController();
 
@@ -13287,10 +9828,39 @@ class _WordCounterScreenState extends State<_WordCounterScreen> {
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'core'),
+          ObsidianPulse(isDark: isDark),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
+          GlassCard(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.text_fields_rounded, color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Word Counter', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                        const SizedBox(height: 4),
+                        Text('Measure writing, reading time, and speaking time instantly.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           GlassCard(
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -13412,10 +9982,39 @@ class _ClassAnalyticsScreen extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark, tone: 'analytics'),
+          ObsidianPulse(isDark: isDark),
           ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
             children: [
+          GlassCard(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Class Analytics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                        const SizedBox(height: 4),
+                        Text('See the shape of your week at a glance.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           GlassCard(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -13557,7 +10156,7 @@ class _CgpaCalculatorScreenState extends State<_CgpaCalculatorScreen> {
       body: Stack(
         children: [
           // Neural aura background
-          NeuralAura(background: isDark, tone: 'learning'),
+          ObsidianPulse(isDark: isDark),
           ListView(
         padding: EdgeInsets.fromLTRB(
           20,
@@ -13566,6 +10165,35 @@ class _CgpaCalculatorScreenState extends State<_CgpaCalculatorScreen> {
           36,
         ),
         children: [
+          GlassCard(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.school_rounded, color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('CGPA Calculator', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                        const SizedBox(height: 4),
+                        Text('Estimate GPA and keep your semester plan visible.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           GlassCard(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -13935,1181 +10563,6 @@ class _ToolCard extends StatelessWidget {
   }
 }
 
-class AboutScreen extends StatefulWidget {
-  final ValueChanged<String>? onRoleChanged;
-  final Future<void> Function(String mode)? onSetThemeMode;
-  final String? currentThemeMode;
-  final ValueChanged<String>? onUserNameChanged;
-  final bool showDock;
-  final bool showCloseButton;
-
-  const AboutScreen({
-    this.onRoleChanged,
-    this.onSetThemeMode,
-    this.currentThemeMode,
-    this.onUserNameChanged,
-    this.showDock = true,
-    this.showCloseButton = true,
-    super.key,
-  });
-
-  @override
-  State<AboutScreen> createState() => _AboutScreenState();
-}
-
-class _AboutScreenState extends State<AboutScreen> {
-  Timer? _revealTimer;
-  bool _revealQuote = false;
-  int _tapCount = 0;
-  bool _isChangingAppearance = false;
-  bool _persistentNotificationEnabled = false;
-  bool _lectureRemindersEnabled = false;
-  bool _uiSoundsEnabled = true;
-  bool _uiHapticsEnabled = true;
-  bool _widgetDarkMode = false;
-  String _feedbackProfile = 'balanced';
-  String _appearanceMode = 'system'; // 'system', 'light', 'dark'
-  Map<String, dynamic>? _otaStatus;
-  bool _isRefreshing = false;
-  bool _isSwitchingRole = false;
-  String _userRole = 'student';
-  String? _userName;
-
-  Future<void> _loadUserName() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userName = prefs.getString('student_user_name');
-    });
-  }
-
-  Future<void> _saveUserName(String name) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('student_user_name', name);
-    setState(() {
-      _userName = name;
-    });
-    if (widget.onUserNameChanged != null) {
-      widget.onUserNameChanged!(name);
-    }
-    IrisHaptics.actionHeavy();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _appearanceMode = widget.currentThemeMode ?? _appearanceMode;
-    _loadNotificationSetting();
-    _loadLectureReminderSetting();
-    _loadUiSoundsSetting();
-    _loadUiHapticsSetting();
-    _loadFeedbackProfile();
-    _loadWidgetDarkModeSetting();
-    _loadOTAStatus();
-    _loadUserRole();
-    _loadUserName();
-    if (widget.currentThemeMode == null) {
-      _loadAppearanceMode();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant AboutScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final incomingMode = widget.currentThemeMode;
-    if (incomingMode != null && incomingMode != _appearanceMode) {
-      setState(() {
-        _appearanceMode = incomingMode;
-      });
-    }
-  }
-
-  Future<void> _loadAppearanceMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final mode =
-        prefs.getString('themeMode') ??
-        prefs.getString('appearance_mode') ??
-        'system';
-    if (!mounted) return;
-    setState(() {
-      _appearanceMode = mode;
-    });
-  }
-
-  Future<void> _setAppearanceMode(String mode) async {
-    if (_appearanceMode == mode || _isChangingAppearance) return;
-    if (mounted) {
-      setState(() {
-        _appearanceMode = mode;
-        _isChangingAppearance = true;
-      });
-    }
-    IrisHaptics.chipSelect();
-
-    try {
-      if (widget.onSetThemeMode != null) {
-        await widget.onSetThemeMode!(mode);
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('themeMode', mode);
-        await prefs.setString('appearance_mode', mode);
-      }
-      await Future.delayed(const Duration(milliseconds: 160));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isChangingAppearance = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _handleBackNavigation() async {
-    if (_isChangingAppearance) {
-      await Future.delayed(const Duration(milliseconds: 180));
-    }
-    if (!mounted) return;
-
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.pop();
-      return;
-    }
-
-    final rootNavigator = Navigator.of(context, rootNavigator: true);
-    if (rootNavigator.canPop()) {
-      rootNavigator.pop();
-    }
-  }
-
-  Future<void> _loadUserRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userRole = prefs.getString('user_role') ?? 'student';
-    });
-  }
-
-  Future<void> _setUserRole(String role) async {
-    if (_userRole == role || _isSwitchingRole) return;
-    if (mounted) {
-      setState(() {
-        _isSwitchingRole = true;
-      });
-    }
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_role', role);
-      if (role == 'faculty' && await FlutterForegroundTask.isRunningService) {
-        await FlutterForegroundTask.stopService();
-      }
-      if (mounted) {
-        setState(() {
-          _userRole = role;
-        });
-      }
-      widget.onRoleChanged?.call(role);
-      IrisHaptics.chipSelect();
-
-      // Close stacked routes opened via navbar to avoid transient role/UI desync.
-      if (mounted) {
-        await Future.delayed(const Duration(milliseconds: 80));
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).popUntil((route) => route.isFirst);
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSwitchingRole = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadOTAStatus() async {
-    final status = await TimetableOTAService.getUpdateStatus();
-    if (mounted) {
-      setState(() {
-        _otaStatus = status;
-      });
-    }
-  }
-
-  Future<void> _refreshOTA() async {
-    if (_isRefreshing) return;
-
-    setState(() {
-      _isRefreshing = true;
-    });
-
-    IrisHaptics.actionMedium();
-
-    final refreshResult = await TimetableOTAService.forceRefresh();
-
-    if (mounted) {
-      setState(() {
-        _isRefreshing = false;
-      });
-
-      if (refreshResult > 0) {
-        IrisHaptics.actionHeavy();
-        showIrisFrostedSnackBar(
-          context,
-          dedupeKey: 'ota_refresh_updated',
-          content: Row(
-            children: const [
-              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Text('✅ Timetable updated! Refreshing...'),
-            ],
-          ),
-          tint: IrisTokens.success,
-          duration: const Duration(seconds: 3),
-        );
-
-        // Wait briefly, then pop back to Dashboard which will auto-reload timetable
-        await Future.delayed(const Duration(milliseconds: 800));
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      } else {
-        IrisHaptics.actionSoft();
-        showIrisFrostedSnackBar(
-          context,
-          dedupeKey: 'ota_refresh_no_update',
-          content: Row(
-            children: const [
-              Icon(Icons.info_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text('Already up-to-date or network unavailable'),
-              ),
-            ],
-          ),
-          tint: IrisTokens.brand,
-        );
-        await _loadOTAStatus();
-      }
-    }
-  }
-
-  Future<void> _loadNotificationSetting() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _persistentNotificationEnabled =
-          prefs.getBool('persistent_notification_enabled') ?? false;
-    });
-  }
-
-  Future<void> _loadWidgetDarkModeSetting() async {
-    final isDark = await WidgetService.getWidgetDarkMode();
-    setState(() {
-      _widgetDarkMode = isDark;
-    });
-  }
-
-  Future<void> _loadLectureReminderSetting() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _lectureRemindersEnabled =
-          prefs.getBool('lecture_reminders_enabled') ?? false;
-    });
-  }
-
-  Future<void> _loadUiSoundsSetting() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _uiSoundsEnabled = prefs.getBool('ui_sounds_enabled') ?? true;
-    });
-  }
-
-  Future<void> _loadUiHapticsSetting() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _uiHapticsEnabled = prefs.getBool('ui_haptics_enabled') ?? true;
-    });
-  }
-
-  Future<void> _loadFeedbackProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _feedbackProfile = prefs.getString('ui_feedback_profile') ?? 'balanced';
-    });
-  }
-
-  Future<void> _togglePersistentNotification(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    final role = prefs.getString('user_role') ?? 'student';
-    final teacher = prefs.getString('faculty_teacher');
-    if (role == 'faculty' && value && (teacher == null || teacher.isEmpty)) {
-      if (mounted) {
-        showIrisFrostedSnackBar(
-          context,
-          dedupeKey: 'settings_faculty_tracking_requires_teacher',
-          content: Row(
-            children: const [
-              Icon(Icons.info_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Select your name first to enable faculty tracking',
-                ),
-              ),
-            ],
-          ),
-          tint: IrisTokens.brand,
-        );
-      }
-      return;
-    }
-    await prefs.setBool('persistent_notification_enabled', value);
-    setState(() {
-      _persistentNotificationEnabled = value;
-    });
-
-    if (!value) {
-      // Stop foreground service when disabled
-      if (await FlutterForegroundTask.isRunningService) {
-        await FlutterForegroundTask.stopService();
-      }
-    } else {
-      // Start foreground service when enabled
-      if (!(await FlutterForegroundTask.isRunningService)) {
-        await FlutterForegroundTask.startService(
-          serviceId: 256,
-          notificationTitle: role == 'faculty'
-              ? 'IRIS Faculty Tracker'
-              : 'IRIS Class Tracker',
-          notificationText: 'Keeping your class schedule handy',
-          notificationIcon: null,
-          notificationButtons: [
-            NotificationButton(id: 'open', text: 'Open IRIS'),
-          ],
-          callback: startClassNotificationTask,
-        );
-      }
-    }
-
-    IrisHaptics.chipSelect();
-  }
-
-  Future<void> _toggleWidgetDarkMode(bool value) async {
-    await WidgetService.setWidgetDarkMode(value);
-    setState(() {
-      _widgetDarkMode = value;
-    });
-    IrisHaptics.chipSelect();
-  }
-
-  Future<void> _toggleLectureReminders(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('lecture_reminders_enabled', value);
-    setState(() {
-      _lectureRemindersEnabled = value;
-    });
-
-    if (value) {
-      await NotificationService().syncClassRemindersFromPrefs();
-    } else {
-      await NotificationService().cancelScheduledClassReminders();
-    }
-
-    IrisHaptics.chipSelect();
-  }
-
-  Future<void> _toggleUiSounds(bool value) async {
-    await IrisSfx.setEnabled(value);
-    setState(() {
-      _uiSoundsEnabled = value;
-    });
-    if (value) {
-      IrisSfx.confirm();
-    }
-  }
-
-  Future<void> _toggleUiHaptics(bool value) async {
-    await IrisHaptics.setEnabled(value);
-    setState(() {
-      _uiHapticsEnabled = value;
-    });
-    if (value) {
-      IrisHaptics.actionSoft();
-    }
-  }
-
-  Future<void> _setFeedbackProfile(String profile) async {
-    if (_feedbackProfile == profile) return;
-    await IrisSfx.setProfile(profile);
-    await IrisHaptics.setProfile(profile);
-    setState(() {
-      _feedbackProfile = profile;
-    });
-    IrisHaptics.actionMedium();
-  }
-
-  Future<void> _showWidgetSetupGuideFromDashboard() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 380),
-          decoration: BoxDecoration(
-            color: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.08),
-              width: 0.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
-                offset: const Offset(0, 12),
-                blurRadius: 32,
-                spreadRadius: -8,
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                offset: const Offset(0, 4),
-                blurRadius: 16,
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Widget icon with gradient
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [IrisTokens.purpleLight, IrisTokens.purple],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: IrisTokens.purpleLight.withValues(alpha: 0.3),
-                    width: 0.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: IrisTokens.purple.withValues(alpha: 0.20),
-                      offset: const Offset(0, 5),
-                      blurRadius: 12,
-                      spreadRadius: -5,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      offset: const Offset(0, 2),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.widgets_rounded,
-                  size: 38,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Title
-              Text(
-                'Add Home Screen Widget',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w300,
-                  color: isDark ? Colors.white : Colors.black,
-                  letterSpacing: 2.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-
-              // Description
-              Text(
-                'Track your classes at a glance with the IRIS home screen widget.',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                    0.65,
-                  ),
-                  height: 1.5,
-                  letterSpacing: 0.3,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-
-              // Instructions
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                    0.04,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                      0.06,
-                    ),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStepForDialog(
-                      isDark,
-                      '1',
-                      'Long press on your home screen',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildStepForDialog(isDark, '2', 'Tap Widgets'),
-                    const SizedBox(height: 12),
-                    _buildStepForDialog(isDark, '3', 'Search for "IRIS"'),
-                    const SizedBox(height: 12),
-                    _buildStepForDialog(isDark, '4', 'Drag to home screen'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Close',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await prefs.setBool('widget_prompt_shown', true);
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: IrisTokens.purple,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Got It!',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepForDialog(bool isDark, String number, String text) {
-    return Row(
-      children: [
-        Container(
-          width: 26,
-          height: 26,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [IrisTokens.purple, IrisTokens.purpleLight],
-            ),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              number,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-              height: 1.3,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _registerRevealTap() {
-    if (_revealQuote) return;
-    _tapCount += 1;
-    _revealTimer?.cancel();
-    _revealTimer = Timer(const Duration(seconds: 2), () {
-      _tapCount = 0;
-    });
-    if (_tapCount >= 5) {
-      _revealTimer?.cancel();
-      _tapCount = 0;
-      if (!mounted) return;
-      setState(() {
-        _revealQuote = true;
-      });
-      IrisHaptics.actionSoft();
-    }
-  }
-
-  void _showChangelog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
-          decoration: BoxDecoration(
-            color: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.08),
-              width: 0.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
-                offset: const Offset(0, 8),
-                blurRadius: 24,
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [IrisTokens.brand, IrisTokens.brandLight],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.history_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Version History',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : Colors.black,
-                            ),
-                          ),
-                          Text(
-                            'v1.0.0+1',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close_rounded,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-              ),
-              // Changelog content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildChangelogEntry(
-                        isDark,
-                        'v1.0.0',
-                        'Initial Release',
-                        [
-                          'Complete redesign of About & Settings screen',
-                          'New neumorphic visual style',
-                          'Added appearance mode selector (System/Light/Dark)',
-                          'Improved settings organization',
-                          'Enhanced changelog viewer',
-                          'All existing features preserved and optimized',
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChangelogEntry(
-    bool isDark,
-    String version,
-    String title,
-    List<String> changes,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: IrisTokens.brand.withValues(alpha: 0.1),
-                border: Border.all(color: IrisTokens.brand.withValues(alpha: 0.3)),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                version,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: IrisTokens.brand,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...changes
-            .map(
-              (change) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      color: IrisTokens.success,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        change,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.7),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-      ],
-    );
-  }
-
-  @override
-  void dispose() {
-    _revealTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      body: Stack(
-        children: [
-          NeuralAura(background: isDark),
-          SafeArea(
-            child: ScrollConfiguration(
-              behavior: const SmoothScrollBehavior(),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 118),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header with Back Button
-                    Row(
-                      children: [
-                        AnimatedButton(
-                          onPressed: _handleBackNavigation,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.08)
-                                  : Colors.black.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.12)
-                                    : Colors.black.withValues(alpha: 0.08),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 
-                                    isDark ? 0.2 : 0.04,
-                                  ),
-                                  offset: const Offset(0, 2),
-                                  blurRadius: 6,
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.arrow_back_rounded,
-                              color: isDark ? Colors.white : Colors.black,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Settings',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 22,
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              Text(
-                                'Configure IRIS appearance & behavior',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Profile Section (About Developer)
-                    _buildProfileHeader(isDark),
-                    const SizedBox(height: 28),
-
-                    // User Identity Section (For Students)
-                    if (_userRole == 'student') ...[
-                      _buildSectionLabel(isDark, 'User Identity'),
-                      const SizedBox(height: 12),
-                      _buildUserNameCard(isDark),
-                      const SizedBox(height: 28),
-                    ],
-
-                    // Interface Section
-                    _buildSectionLabel(isDark, 'Interface'),
-                    const SizedBox(height: 12),
-                    _buildAppearanceModeCard(isDark),
-                    const SizedBox(height: 12),
-                    _buildUiSoundsCard(isDark),
-                    const SizedBox(height: 12),
-                    _buildUserRoleCard(isDark),
-                    const SizedBox(height: 28),
-
-                    // Notifications & Widget Section
-                    _buildSectionLabel(isDark, 'Notifications & Widget'),
-                    const SizedBox(height: 12),
-                    _buildClassTrackerCard(isDark),
-                    const SizedBox(height: 12),
-                    _buildLectureReminderCard(isDark),
-                    const SizedBox(height: 12),
-                    _buildWidgetSettingsCard(isDark),
-                    const SizedBox(height: 28),
-
-                    // Updates Section
-                    _buildSectionLabel(isDark, 'Updates'),
-                    const SizedBox(height: 12),
-                    _buildOTACard(isDark),
-                    const SizedBox(height: 28),
-
-                    // Info Section
-                    _buildSectionLabel(isDark, 'Information'),
-                    const SizedBox(height: 12),
-                    _buildChangelogButton(isDark),
-                    const SizedBox(height: 12),
-                    _buildSupportButton(isDark),
-                    const SizedBox(height: 28),
-
-                    // Close Button
-                    if (widget.showCloseButton) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: TextButton(
-                          onPressed: _handleBackNavigation,
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: isDark
-                                ? Colors.white.withValues(alpha: 0.06)
-                                : Colors.black.withValues(alpha: 0.03),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.1)
-                                    : Colors.black.withValues(alpha: 0.06),
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            'Done',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (widget.showDock)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                top: false,
-                child: DashboardDock(
-                  showFacultySet: _userRole == 'faculty',
-                  selectedIndex: _userRole == 'faculty' ? 3 : 6,
-                  onPortal: () => pushIconLaunchRoute(
-                    context,
-                    page: const PortalScreen(
-                      url: 'https://swl-sis.comsats.edu.pk/Login/Index',
-                      title: 'COMSATS Student Portal',
-                      sessionScope: 'student',
-                    ),
-                  ),
-                  onAbout: () {},
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // Neumorphic Builder Methods
-
-  Widget _buildSectionLabel(bool isDark, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.5,
-          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserNameCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.08),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: IrisTokens.brand.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.face_rounded,
-                  color: IrisTokens.brand,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'YOUR NAME',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.4),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _userName ?? 'Not Set',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              AnimatedButton(
-                onPressed: () async {
-                  final result = await showDialog<String>(
-                    context: context,
-                    builder: (ctx) => _NameEditDialog(initialName: _userName),
-                  );
-                  if (result != null && result.isNotEmpty) {
-                    _saveUserName(result);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: IrisTokens.brand.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: IrisTokens.brand.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Text(
-                    'Edit',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: IrisTokens.brand,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _NameEditDialog extends StatefulWidget {
   final String? initialName;
 
@@ -15262,2626 +10715,7 @@ class _NameEditDialogState extends State<_NameEditDialog> {
     );
   }
 
-  Widget _buildProfileHeader(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.08),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [IrisTokens.brand, IrisTokens.brandLight],
-              ),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: IrisTokens.brand.withValues(alpha: 0.3),
-                  offset: const Offset(0, 3),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.info_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: _registerRevealTap,
-                  child: Text(
-                    'Developed by Malik Aurangzaib Channer',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                if (_revealQuote) ...[
-                  Text(
-                    '🎯 "Obstacles are but stepping stones."',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
-                      color: IrisTokens.brand,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ] else ...[
-                  Text(
-                    'IRIS - v1.0.0+1',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                        0.6,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              try {
-                final uri = Uri.parse(
-                  'mailto:malikaurangzaibahmed@gmail.com?subject=IRIS%20Support%20Request',
-                );
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-                IrisHaptics.actionSoft();
-              } catch (e) {
-                if (mounted) {
-                  showIrisFrostedSnackBar(
-                    context,
-                    dedupeKey: 'install_email_app_support',
-                    content: Row(
-                      children: const [
-                        Icon(
-                          Icons.info_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(child: Text('Install an email app')),
-                      ],
-                    ),
-                    tint: IrisTokens.brand,
-                  );
-                }
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: IrisTokens.brand.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.email_rounded,
-                color: IrisTokens.brand,
-                size: 18,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppearanceModeCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.08),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: IrisTokens.purple.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.palette_rounded,
-                  color: IrisTokens.purple,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Appearance Mode',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.03)
-                  : Colors.black.withValues(alpha: 0.02),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
-            ),
-            padding: const EdgeInsets.all(4),
-            child: Row(
-              children: [
-                _buildAppearanceButton(
-                  isDark,
-                  'System',
-                  'system',
-                  Icons.brightness_auto_rounded,
-                ),
-                const SizedBox(width: 4),
-                _buildAppearanceButton(
-                  isDark,
-                  'Light',
-                  'light',
-                  Icons.light_mode_rounded,
-                ),
-                const SizedBox(width: 4),
-                _buildAppearanceButton(
-                  isDark,
-                  'Dark',
-                  'dark',
-                  Icons.dark_mode_rounded,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppearanceButton(
-    bool isDark,
-    String label,
-    String mode,
-    IconData icon,
-  ) {
-    final isSelected = _appearanceMode == mode;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _setAppearanceMode(mode),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? IrisTokens.purple.withValues(alpha: isDark ? 0.25 : 0.15)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: isSelected
-                  ? IrisTokens.purple.withValues(alpha: 0.4)
-                  : Colors.transparent,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: isSelected
-                    ? IrisTokens.purple
-                    : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: isSelected
-                      ? IrisTokens.purple
-                      : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUiSoundsCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _uiSoundsEnabled
-            ? IrisTokens.blue.withValues(alpha: isDark ? 0.12 : 0.07)
-            : (isDark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.black.withValues(alpha: 0.04)),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _uiSoundsEnabled
-              ? IrisTokens.blue.withValues(alpha: 0.26)
-              : (isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.08)),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: IrisTokens.blue.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  _uiSoundsEnabled
-                      ? Icons.volume_up_rounded
-                      : Icons.volume_off_rounded,
-                  color: IrisTokens.blue,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Haptics & Sound Tuning',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      _uiSoundsEnabled
-                          ? 'ColorOS-inspired tactile and audio feedback'
-                          : 'Silent profile for interface actions',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildFeedbackToggle(
-                  isDark: isDark,
-                  label: 'UI Sounds',
-                  icon: _uiSoundsEnabled
-                      ? Icons.music_note_rounded
-                      : Icons.music_off_rounded,
-                  value: _uiSoundsEnabled,
-                  onChanged: _toggleUiSounds,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildFeedbackToggle(
-                  isDark: isDark,
-                  label: 'Haptics',
-                  icon: _uiHapticsEnabled
-                      ? Icons.vibration_rounded
-                      : Icons.phone_iphone_rounded,
-                  value: _uiHapticsEnabled,
-                  onChanged: _toggleUiHaptics,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.03)
-                  : Colors.black.withValues(alpha: 0.02),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
-            ),
-            padding: const EdgeInsets.all(4),
-            child: Row(
-              children: [
-                _buildFeedbackProfileButton(
-                  isDark: isDark,
-                  label: 'Gentle',
-                  profile: 'gentle',
-                ),
-                const SizedBox(width: 4),
-                _buildFeedbackProfileButton(
-                  isDark: isDark,
-                  label: 'Balanced',
-                  profile: 'balanced',
-                ),
-                const SizedBox(width: 4),
-                _buildFeedbackProfileButton(
-                  isDark: isDark,
-                  label: 'Crisp',
-                  profile: 'crisp',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeedbackToggle({
-    required bool isDark,
-    required String label,
-    required IconData icon,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.black.withValues(alpha: 0.06),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: IrisTokens.blue.withValues(alpha: value ? 0.95 : 0.6),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.78),
-              ),
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: IrisTokens.blue,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeedbackProfileButton({
-    required bool isDark,
-    required String label,
-    required String profile,
-  }) {
-    final isSelected = _feedbackProfile == profile;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _setFeedbackProfile(profile),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? IrisTokens.blue.withValues(alpha: isDark ? 0.26 : 0.16)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: isSelected
-                  ? IrisTokens.blue.withValues(alpha: 0.4)
-                  : Colors.transparent,
-            ),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: isSelected
-                  ? IrisTokens.blue
-                  : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.56),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserRoleCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.08),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                    0.1,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  _userRole == 'faculty'
-                      ? Icons.badge_rounded
-                      : Icons.school_rounded,
-                  color: isDark ? Colors.white : Colors.black,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'User Role',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    Text(
-                      _userRole == 'faculty' ? 'Faculty tools' : 'Student mode',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.03)
-                  : Colors.black.withValues(alpha: 0.02),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
-            ),
-            padding: const EdgeInsets.all(4),
-            child: AbsorbPointer(
-              absorbing: _isSwitchingRole,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _setUserRole('student'),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _userRole == 'student'
-                              ? IrisTokens.brand.withValues(alpha: 0.2)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: _userRole == 'student'
-                                ? IrisTokens.brand.withValues(alpha: 0.4)
-                                : Colors.transparent,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.school_rounded,
-                              size: 14,
-                              color: _userRole == 'student'
-                                  ? IrisTokens.brand
-                                  : (isDark ? Colors.white : Colors.black)
-                                        .withValues(alpha: 0.5),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Student',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                                color: _userRole == 'student'
-                                    ? IrisTokens.brand
-                                    : (isDark ? Colors.white : Colors.black)
-                                          .withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _setUserRole('faculty'),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _userRole == 'faculty'
-                              ? IrisTokens.blue.withValues(alpha: 0.2)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: _userRole == 'faculty'
-                                ? IrisTokens.blue.withValues(alpha: 0.4)
-                                : Colors.transparent,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.badge_rounded,
-                              size: 14,
-                              color: _userRole == 'faculty'
-                                  ? IrisTokens.blue
-                                  : (isDark ? Colors.white : Colors.black)
-                                        .withValues(alpha: 0.5),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Faculty',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                                color: _userRole == 'faculty'
-                                    ? IrisTokens.blue
-                                    : (isDark ? Colors.white : Colors.black)
-                                          .withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClassTrackerCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _persistentNotificationEnabled
-            ? IrisTokens.brand.withValues(alpha: isDark ? 0.1 : 0.06)
-            : (isDark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.black.withValues(alpha: 0.04)),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _persistentNotificationEnabled
-              ? IrisTokens.brand.withValues(alpha: 0.2)
-              : (isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.08)),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: IrisTokens.brand.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              _persistentNotificationEnabled
-                  ? Icons.notifications_active_rounded
-                  : Icons.notifications_off_rounded,
-              color: IrisTokens.brand,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Live Class Tracker',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _persistentNotificationEnabled
-                      ? 'Showing schedule in notification'
-                      : 'Enable to track classes',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                      0.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: _persistentNotificationEnabled,
-            onChanged: _togglePersistentNotification,
-            activeColor: IrisTokens.brand,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLectureReminderCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _lectureRemindersEnabled
-            ? IrisTokens.success.withValues(alpha: isDark ? 0.14 : 0.08)
-            : (isDark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.black.withValues(alpha: 0.04)),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _lectureRemindersEnabled
-              ? IrisTokens.success.withValues(alpha: 0.3)
-              : (isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.08)),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: IrisTokens.success.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              _lectureRemindersEnabled
-                  ? Icons.alarm_on_rounded
-                  : Icons.alarm_off_rounded,
-              color: IrisTokens.success,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Lecture Reminder',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _lectureRemindersEnabled
-                      ? 'Alerts 5 min before class starts'
-                      : 'Get notified before upcoming classes',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                      0.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: _lectureRemindersEnabled,
-            onChanged: _toggleLectureReminders,
-            activeColor: IrisTokens.success,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWidgetSettingsCard(bool isDark) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.black.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.08),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-                offset: const Offset(0, 3),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _showWidgetSetupGuideFromDashboard,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: IrisTokens.purple.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.widgets_rounded,
-                        color: IrisTokens.purple,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Home Screen Widget',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              color: isDark ? Colors.white : Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            'Add IRIS widget to home screen',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: IrisTokens.purple.withValues(alpha: 0.6),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _widgetDarkMode
-                ? IrisTokens.brand.withValues(alpha: isDark ? 0.1 : 0.06)
-                : (isDark
-                      ? Colors.white.withValues(alpha: 0.06)
-                      : Colors.black.withValues(alpha: 0.04)),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _widgetDarkMode
-                  ? IrisTokens.brand.withValues(alpha: 0.2)
-                  : (isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.08)),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-                offset: const Offset(0, 3),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: IrisTokens.brand.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  _widgetDarkMode
-                      ? Icons.dark_mode_rounded
-                      : Icons.light_mode_rounded,
-                  color: IrisTokens.brand,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Widget Dark Mode',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      _widgetDarkMode
-                          ? 'Dark colors for widget'
-                          : 'Light colors for widget',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: _widgetDarkMode,
-                onChanged: _toggleWidgetDarkMode,
-                activeColor: IrisTokens.brand,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOTACard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.08),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: IrisTokens.success.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.cloud_download_rounded,
-                  color: IrisTokens.success,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Timetable Updates',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      _otaStatus == null
-                          ? 'Checking...'
-                          : 'Last: ${_otaStatus!['lastCheck']}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_isRefreshing)
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(IrisTokens.brand),
-                  ),
-                )
-              else
-                GestureDetector(
-                  onTap: _refreshOTA,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: IrisTokens.brand.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.refresh_rounded,
-                      color: IrisTokens.brand,
-                      size: 18,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          if (_otaStatus != null && _otaStatus!['hasCached'] == true) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: IrisTokens.success.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: IrisTokens.success.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: IrisTokens.success,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Auto-updates daily',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: IrisTokens.success,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChangelogButton(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.08),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _showChangelog,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: IrisTokens.brand.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.history_rounded,
-                    color: IrisTokens.brand,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Version History',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'v1.0.0+1 - Latest',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: IrisTokens.brand.withValues(alpha: 0.6),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSupportButton(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.08),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () async {
-            try {
-              final uri = Uri.parse(
-                'mailto:malikaurangzaibahmed@gmail.com?subject=IRIS%20Support',
-              );
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-              IrisHaptics.actionSoft();
-            } catch (e) {
-              if (mounted) {
-                showIrisFrostedSnackBar(
-                  context,
-                  dedupeKey: 'install_email_client_contact',
-                  content: const Text('Install an email client'),
-                  tint: IrisTokens.brand,
-                );
-              }
-            }
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: IrisTokens.purple.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.support_agent_rounded,
-                    color: IrisTokens.purple,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Support & Feedback',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Get help or send feedback',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: IrisTokens.purple.withValues(alpha: 0.6),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
-
-// BatchSelectorSheet and its sub-widgets moved to widgets/batch_selector.dart
-
-// NeuralAura moved to widgets/neural_aura.dart
-
-// SmoothScrollBehavior moved to widgets/smooth_scroll.dart
-
-                        // Search field
-                        AnimatedContainer(
-                          duration: IrisMotion.fast,
-                          curve: IrisMotion.standard,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: isDark
-                                  ? [
-                                      Colors.black.withValues(alpha: 0.50),
-                                      Colors.black.withValues(alpha: 0.45),
-                                    ]
-                                  : [
-                                      Colors.white.withValues(alpha: 0.85),
-                                      Colors.white.withValues(alpha: 0.80),
-                                    ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              IrisTokens.radius20,
-                            ),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.18)
-                                  : IrisTokens.brand.withValues(alpha: 0.10),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: IrisTokens.brand.withValues(
-                                  alpha: isDark ? 0.08 : 0.06,
-                                ),
-                                blurRadius: 16,
-                                offset: const Offset(0, 4),
-                                spreadRadius: -2,
-                              ),
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.25 : 0.04,
-                                ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                                spreadRadius: -1,
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            controller: _controller,
-                            autofocus: false,
-                            textInputAction: TextInputAction.search,
-                            onSubmitted: (_) => _performSearch(),
-                            enabled: !_searching,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.1,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Search by name...',
-                              hintStyle: TextStyle(
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.40),
-                                fontWeight: FontWeight.w400,
-                                letterSpacing: 0.1,
-                              ),
-                              prefixIcon: const Icon(
-                                Icons.search_rounded,
-                                color: IrisTokens.brand,
-                                size: 24,
-                              ),
-                              suffixIcon: _controller.text.isNotEmpty
-                                  ? IconButton(
-                                      icon: Icon(
-                                        Icons.clear_rounded,
-                                        color:
-                                            (isDark
-                                                    ? Colors.white
-                                                    : Colors.black)
-                                                .withValues(alpha: 0.45),
-                                        size: 22,
-                                      ),
-                                      splashRadius: 22,
-                                      onPressed: () {
-                                        IrisHaptics.actionSoft();
-                                        _controller.clear();
-                                        setState(() {
-                                          _result = null;
-                                          _suggestions = [];
-                                        });
-                                      },
-                                    )
-                                  : null,
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: IrisTokens.space20,
-                                vertical: IrisTokens.space20,
-                              ),
-                            ),
-                            onChanged: (v) {
-                              _updateSuggestions(v);
-                              setState(() {});
-                            },
-                          ),
-                        ),
-
-                        if (_controller.text.trim().isEmpty &&
-                            _quickPicks.isNotEmpty) ...[
-                          const SizedBox(height: 10),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.auto_awesome_rounded,
-                                  size: 14,
-                                  color: IrisTokens.brand.withValues(
-                                    alpha: 0.6,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Quick picks',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    letterSpacing: 0.6,
-                                    fontWeight: FontWeight.w700,
-                                    color:
-                                        (isDark ? Colors.white : Colors.black)
-                                            .withValues(alpha: 0.45),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _quickPicks.map((name) {
-                              return InkWell(
-                                onTap: () {
-                                  _controller.text = name;
-                                  _performSearch(name);
-                                },
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.06)
-                                        : Colors.black.withValues(alpha: 0.04),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: purple.withValues(alpha: 0.18),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    name,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.85)
-                                          : Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-
-                        // Suggestions dropdown
-                        if (_suggestions.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.black.withValues(alpha: 0.4)
-                                  : Colors.white.withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: purple.withValues(alpha: 0.15),
-                              ),
-                            ),
-                            child: Column(
-                              children: _suggestions.map((name) {
-                                return InkWell(
-                                  borderRadius: BorderRadius.circular(12),
-                                  onTap: () {
-                                    _controller.text = name;
-                                    _performSearch(name);
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 12,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.person_outline_rounded,
-                                          size: 18,
-                                          color: purple.withValues(alpha: 0.7),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            name,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: isDark
-                                                  ? Colors.white.withValues(alpha: 
-                                                      0.9,
-                                                    )
-                                                  : Colors.black87,
-                                            ),
-                                          ),
-                                        ),
-                                        Icon(
-                                          Icons.north_west_rounded,
-                                          size: 14,
-                                          color: purple.withValues(alpha: 0.4),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 14),
-                        // Search button
-                        SizedBox(
-                          width: double.infinity,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [purple, purpleLight],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: purple.withValues(alpha: 0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              onPressed:
-                                  _searching || _controller.text.trim().isEmpty
-                                  ? null
-                                  : _performSearch,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white,
-                                shadowColor: Colors.transparent,
-                                disabledForegroundColor: Colors.white
-                                    .withValues(alpha: 0.5),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: _searching
-                                  ? TweenAnimationBuilder<double>(
-                                      tween: Tween(begin: 0.0, end: 1.0),
-                                      duration: const Duration(
-                                        milliseconds: 1152,
-                                      ),
-                                      curve: IrisMotion.standard,
-                                      builder: (context, value, child) =>
-                                          Transform.scale(
-                                            scale:
-                                                0.85 +
-                                                (0.15 *
-                                                    (1 -
-                                                        (value - 0.5).abs() *
-                                                            2)),
-                                            child: child,
-                                          ),
-                                      onEnd: () {},
-                                      child: const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      ),
-                                    )
-                                  : const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.near_me_rounded, size: 18),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Locate Now',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.3,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 224),
-                    switchInCurve: IrisMotion.entrance,
-                    switchOutCurve: IrisMotion.standard,
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(
-                          begin: 0.98,
-                          end: 1.0,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    ),
-                    child: _searching
-                        ? GlassCard(
-                            key: const ValueKey('search_loading'),
-                            enableOverlay: false,
-                            child: Row(
-                              children: [
-                                const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Locating teacher...',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color:
-                                        (isDark ? Colors.white : Colors.black)
-                                            .withValues(alpha: 0.7),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : (_result != null && _result!.status != 'empty')
-                        ? SizedBox(
-                            key: ValueKey(
-                              'search_result_${_result!.teacherName}_${_result!.status}',
-                            ),
-                            child: _buildResultSection(
-                              context,
-                              _result!,
-                              isDark,
-                            ),
-                          )
-                        : const SizedBox(key: ValueKey('search_idle')),
-                  ),
-
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ),
-          if (widget.showDock)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                top: false,
-                child: DashboardDock(
-                  showFacultySet: isFacultySelection,
-                  selectedIndex: 1,
-                  onPortal: () => pushIconLaunchRoute(
-                    context,
-                    page: PortalScreen(
-                      url: isFacultySelection
-                          ? 'https://faculty.comsats.edu.pk/Home/login?returnUrl=https://faculty.comsats.edu.pk/'
-                          : 'https://swl-sis.comsats.edu.pk/Login/Index',
-                      title: isFacultySelection
-                          ? 'COMSATS Faculty Portal'
-                          : 'COMSATS Student Portal',
-                      sessionScope: isFacultySelection ? 'faculty' : 'student',
-                    ),
-                  ),
-                  onClasses:
-                      widget.memory != null && widget.currentBatch != null
-                      ? () => pushIconLaunchRoute(
-                          context,
-                          page: _DepartmentClassesScreen(
-                            memory: widget.memory!,
-                            currentBatch: widget.currentBatch!,
-                            brain: widget.brain,
-                            onRoleChanged: widget.onRoleChanged,
-                          ),
-                        )
-                      : () {
-                          showIrisFrostedSnackBar(
-                            context,
-                            dedupeKey: 'classes_unavailable_faculty_selection',
-                            content: Text(
-                              'Classes view is unavailable in faculty selection mode.',
-                            ),
-                          );
-                        },
-                  onTools: !isFacultySelection &&
-                          widget.memory != null &&
-                          widget.currentBatch != null
-                      ? () => pushIconLaunchRoute(
-                          context,
-                          page: _ToolsScreen(
-                            memory: widget.memory!,
-                            batch: widget.currentBatch!,
-                            brain: widget.brain,
-                            onRoleChanged: widget.onRoleChanged,
-                          ),
-                        )
-                      : () {
-                          showIrisFrostedSnackBar(
-                            context,
-                            dedupeKey: 'tools_unavailable_faculty_selection',
-                            content: Text(
-                              'Tools view is unavailable in faculty selection mode.',
-                            ),
-                          );
-                        },
-                  onAbout: () => pushIconLaunchRoute(
-                    context,
-                    page: AboutScreen(onRoleChanged: widget.onRoleChanged),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResultSection(
-    BuildContext context,
-    TeacherLocatorResult result,
-    bool isDark,
-  ) {
-    const purple = IrisTokens.purple;
-    final profile = _matchFacultyProfile(result.teacherName);
-    final isLiveNow = result.status == 'live';
-    final hasEmail =
-      profile != null &&
-      profile.email.trim().isNotEmpty &&
-      profile.email.trim().toLowerCase() != 'not available';
-    final hasPhone =
-      profile != null &&
-      profile.contact.trim().isNotEmpty &&
-      profile.contact.trim().toLowerCase() != 'not available';
-    final canCallNow = hasPhone && !isLiveNow;
-
-    if (result.status == 'not_found') {
-      return GlassCard(
-        enableOverlay: false,
-        child: Column(
-          children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 48,
-              color: Colors.red.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'No teacher found matching "${_controller.text}"',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Try a different spelling or partial name',
-              style: TextStyle(
-                fontSize: 12,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Teacher name & status badge
-        GlassCard(
-          glow: result.status == 'live',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  // Avatar
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: result.status == 'live'
-                            ? [
-                                IrisTokens.success,
-                                IrisTokens.success.withValues(alpha: 0.8),
-                              ]
-                            : [purple, IrisTokens.purpleLight],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Center(
-                      child: Text(
-                        result.teacherName.isNotEmpty
-                            ? result.teacherName[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          result.teacherName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${result.allSubjects.length} subject${result.allSubjects.length == 1 ? '' : 's'} · ${result.weeklySchedule.length} day${result.weeklySchedule.length == 1 ? '' : 's'}/week',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Status badge
-                  _buildStatusBadge(result, isDark),
-                ],
-              ),
-              const SizedBox(height: 14),
-              // Status text
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: result.status == 'live'
-                      ? IrisTokens.success.withValues(alpha: isDark ? 0.15 : 0.1)
-                      : purple.withValues(alpha: isDark ? 0.12 : 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: result.status == 'live'
-                        ? IrisTokens.success.withValues(alpha: 0.2)
-                        : purple.withValues(alpha: 0.12),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      result.status == 'live'
-                          ? Icons.location_on_rounded
-                          : result.status == 'today'
-                          ? Icons.schedule_rounded
-                          : Icons.event_rounded,
-                      size: 16,
-                      color: result.status == 'live'
-                          ? IrisTokens.success
-                          : purple,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        result.statusText,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: result.status == 'live'
-                              ? IrisTokens.success
-                              : (isDark
-                                    ? Colors.white.withValues(alpha: 0.85)
-                                    : Colors.black87),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        if (profile != null) ...[
-          const SizedBox(height: 10),
-          GlassCard(
-            enableOverlay: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: _resolveFacultyImageUrl(profile.image).isEmpty
-                            ? Container(
-                                color: IrisTokens.brand.withValues(alpha: 0.16),
-                                child: const Icon(
-                                  Icons.person_rounded,
-                                  color: IrisTokens.brand,
-                                  size: 22,
-                                ),
-                              )
-                            : Image.network(
-                                _resolveFacultyImageUrl(profile.image),
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: IrisTokens.brand.withValues(alpha: 0.16),
-                                  child: const Icon(
-                                    Icons.person_rounded,
-                                    color: IrisTokens.brand,
-                                    size: 22,
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            profile.department.isEmpty
-                                ? 'Department unavailable'
-                                : profile.department,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.72),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_rounded,
-                                size: 13,
-                                color: IrisTokens.purple.withValues(alpha: 0.76),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  profile.location.isEmpty
-                                      ? 'Location unavailable'
-                                      : profile.location,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: (isDark ? Colors.white : Colors.black)
-                                        .withValues(alpha: 0.58),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: IrisTokens.brand.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: IrisTokens.brand.withValues(alpha: 0.24),
-                        ),
-                      ),
-                      child: Text(
-                        _facultySourceLabel(_facultyProfilesSource),
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.7,
-                          color: IrisTokens.brand.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: hasEmail
-                            ? () => _launchFacultyEmail(profile.email)
-                            : null,
-                        icon: const Icon(Icons.mail_outline_rounded, size: 16),
-                        label: Text(hasEmail ? 'Email' : 'No Email'),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: IrisTokens.brand.withValues(alpha: 0.26),
-                          ),
-                          foregroundColor: IrisTokens.brand,
-                          padding: const EdgeInsets.symmetric(vertical: 9),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: canCallNow
-                            ? () => _launchFacultyPhone(profile.contact)
-                            : null,
-                        icon: Icon(
-                          isLiveNow
-                              ? Icons.do_not_disturb_on_rounded
-                              : Icons.call_rounded,
-                          size: 16,
-                        ),
-                        label: Text(
-                          isLiveNow
-                              ? 'In Class'
-                              : (hasPhone ? 'Call' : 'No Phone'),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: IrisTokens.success.withValues(alpha: 0.3),
-                          ),
-                          foregroundColor: IrisTokens.success,
-                          padding: const EdgeInsets.symmetric(vertical: 9),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  isLiveNow
-                      ? 'Smart tip: teacher appears live in class right now, so email is prioritized.'
-                      : 'Smart tip: call is available when not in a live class.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: (isDark ? Colors.white : Colors.black).withValues(
-                      alpha: 0.52,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ] else if (_facultyProfilesLoading) ...[
-          const SizedBox(height: 10),
-          GlassCard(
-            enableOverlay: false,
-            child: Row(
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2.0),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Loading live faculty profile...',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: 0.62),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildMetricChip(
-              icon: Icons.menu_book_rounded,
-              label: '${result.allSubjects.length} subjects',
-              color: IrisTokens.brand,
-              isDark: isDark,
-            ),
-            _buildMetricChip(
-              icon: Icons.today_rounded,
-              label: '${result.todaySessions.length} today',
-              color: IrisTokens.success,
-              isDark: isDark,
-            ),
-            _buildMetricChip(
-              icon: Icons.calendar_month_rounded,
-              label: '${result.weeklySchedule.length} days/week',
-              color: IrisTokens.warning,
-              isDark: isDark,
-            ),
-          ],
-        ),
-
-        if (widget.onTeacherSelected != null) ...[
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                widget.onTeacherSelected?.call(result.teacherName);
-                if (widget.closeOnTeacherSelect &&
-                    Navigator.of(context).canPop()) {
-                  Navigator.pop(context);
-                }
-              },
-              icon: const Icon(Icons.check_circle_rounded, size: 18),
-              label: const Text('Use this teacher for my schedule'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: purple,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-
-        // Today's schedule (if any)
-        if (result.todaySessions.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 10),
-            child: Text(
-              'TODAY\'S SCHEDULE',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-              ),
-            ),
-          ),
-          ...result.todaySessions.map(
-            (entry) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: RepaintBoundary(
-                child: _buildSessionTile(entry, isDark, showDay: false),
-              ),
-            ),
-          ),
-        ],
-
-        // Weekly schedule
-        if (result.weeklySchedule.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 10),
-            child: Text(
-              'FULL WEEKLY SCHEDULE',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-              ),
-            ),
-          ),
-          ..._buildWeeklySchedule(result, isDark),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildStatusBadge(TeacherLocatorResult result, bool isDark) {
-    Color bg;
-    Color fg;
-    String label;
-    IconData icon;
-
-    switch (result.status) {
-      case 'live':
-        bg = IrisTokens.success;
-        fg = Colors.white;
-        label = 'LIVE';
-        icon = Icons.circle;
-        break;
-      case 'today':
-        bg = IrisTokens.brand;
-        fg = Colors.white;
-        label = 'TODAY';
-        icon = Icons.today_rounded;
-        break;
-      default:
-        bg = isDark
-            ? Colors.white.withValues(alpha: 0.1)
-            : Colors.black.withValues(alpha: 0.06);
-        fg = isDark
-            ? Colors.white.withValues(alpha: 0.7)
-            : Colors.black.withValues(alpha: 0.6);
-        label = 'WEEKLY';
-        icon = Icons.calendar_month_rounded;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: result.status == 'live'
-            ? [BoxShadow(color: bg.withValues(alpha: 0.4), blurRadius: 8)]
-            : [],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (result.status == 'live') ...[
-            Icon(icon, size: 8, color: fg),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: fg,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetricChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required bool isDark,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.14 : 0.10),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: isDark ? 0.35 : 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.75),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSessionTile(
-    TeacherScheduleEntry entry,
-    bool isDark, {
-    bool showDay = true,
-  }) {
-    const purple = IrisTokens.purple;
-
-    return GlassCard(
-      enableOverlay: false,
-      enableShadow: false,
-      child: Row(
-        children: [
-          // Time column
-          Container(
-            width: 56,
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: entry.isLive
-                  ? IrisTokens.success.withValues(alpha: isDark ? 0.15 : 0.1)
-                  : purple.withValues(alpha: isDark ? 0.1 : 0.06),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  entry.startTime,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: entry.isLive ? IrisTokens.success : purple,
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 8,
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                    0.1,
-                  ),
-                ),
-                Text(
-                  entry.endTime,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                      0.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (entry.isLive) ...[
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          color: IrisTokens.success,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    Expanded(
-                      child: Text(
-                        entry.subject,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.room_rounded,
-                      size: 13,
-                      color: purple.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      entry.room,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.5),
-                      ),
-                    ),
-                    if (showDay) ...[
-                      const SizedBox(width: 10),
-                      Icon(
-                        Icons.groups_rounded,
-                        size: 13,
-                        color: purple.withValues(alpha: 0.4),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          entry.batch,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.4),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ] else ...[
-                      const SizedBox(width: 10),
-                      Icon(
-                        Icons.groups_rounded,
-                        size: 13,
-                        color: purple.withValues(alpha: 0.4),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          entry.batch,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.4),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (entry.isLive)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: IrisTokens.success.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'NOW',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
-                  color: IrisTokens.success,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-          if (entry.isUpcoming && !entry.isLive)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: IrisTokens.brand.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'NEXT',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
-                  color: IrisTokens.brand,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildWeeklySchedule(TeacherLocatorResult result, bool isDark) {
-    const purple = IrisTokens.purple;
-    final sortedDays = result.weeklySchedule.keys.toList()..sort();
-    final today = DateTime.now().weekday;
-
-    return sortedDays.map((day) {
-      final entries = result.weeklySchedule[day]!;
-      final isToday = day == today;
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Day header
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isToday
-                          ? purple.withValues(alpha: isDark ? 0.2 : 0.12)
-                          : (isDark
-                                ? Colors.white.withValues(alpha: 0.06)
-                                : Colors.black.withValues(alpha: 0.04)),
-                      borderRadius: BorderRadius.circular(8),
-                      border: isToday
-                          ? Border.all(color: purple.withValues(alpha: 0.3))
-                          : null,
-                    ),
-                    child: Text(
-                      TeacherScheduleEntry.dayNames[day - 1],
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isToday
-                            ? purple
-                            : (isDark
-                                  ? Colors.white.withValues(alpha: 0.7)
-                                  : Colors.black.withValues(alpha: 0.6)),
-                      ),
-                    ),
-                  ),
-                  if (isToday) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      'Today',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: purple.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  Text(
-                    '${entries.length} class${entries.length == 1 ? '' : 'es'}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                        0.35,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ...entries.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: RepaintBoundary(
-                  child: _buildSessionTile(entry, isDark, showDay: true),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList();
-  }
-}
-
 class _DepartmentClassesScreen extends StatefulWidget {
   final UniversityMemory memory;
   final String currentBatch;
@@ -17940,6 +10774,7 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
   String _selectedDepartment = 'All';
   String _selectedBlock = 'All';
   HelpdeskFacultySource _source = HelpdeskFacultySource.none;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -17952,6 +10787,7 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -18252,33 +11088,12 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
           children: [
             Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SizedBox(
-                    width: 56,
-                    height: 56,
-                    child: imageUrl.isEmpty
-                        ? Container(
-                            color: IrisTokens.brand.withValues(alpha: 0.14),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              color: IrisTokens.brand,
-                              size: 26,
-                            ),
-                          )
-                        : Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: IrisTokens.brand.withValues(alpha: 0.14),
-                              child: const Icon(
-                                Icons.person_rounded,
-                                color: IrisTokens.brand,
-                                size: 26,
-                              ),
-                            ),
-                          ),
-                  ),
+                IrisComponents.facultyAvatar(
+                  imageUrl: imageUrl.isEmpty ? null : imageUrl,
+                  gender: item.gender,
+                  name: item.name,
+                  radius: 28,
+                  isDark: isDark,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -18436,11 +11251,11 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: _AppBackButton(isDark: isDark),
+        leading: AppBackButton(isDark: isDark),
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: Column(
               children: [
@@ -18448,6 +11263,7 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
                   child: RefreshIndicator(
                     onRefresh: _loadFaculty,
                     child: ListView(
+                      controller: _scrollController,
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
                       children: [
                         Row(
@@ -18656,6 +11472,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
   int? selectedSemester;
   String? selectedSection;
   int? selectedDay;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -18668,6 +11485,12 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
     if (validPrograms.isNotEmpty) {
       selectedProgram = validPrograms.first;
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -18765,9 +11588,10 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: CustomScrollView(
+              controller: _scrollController,
               physics: const ButterScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(
@@ -19338,6 +12162,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
               child: SafeArea(
                 top: false,
                 child: DashboardDock(
+                  scrollController: _scrollController,
                   selectedIndex: 3,
                   onTeacher: widget.brain != null
                       ? () => pushIconLaunchRoute(
@@ -19380,7 +12205,10 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                         },
                   onAbout: () => pushIconLaunchRoute(
                     context,
-                    page: AboutScreen(onRoleChanged: widget.onRoleChanged),
+                    page: AboutScreen(
+                      memory: widget.memory,
+                      onRoleChanged: widget.onRoleChanged,
+                    ),
                   ),
                 ),
               ),
@@ -19545,6 +12373,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
   double _minDuration = 0.5;
   int _minRooms = 0;
   String _sortBy = 'earliest'; // 'earliest', 'duration', 'rooms'
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -19568,6 +12397,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
   @override
   void dispose() {
     _teacherController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -19930,7 +12760,10 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       lightweight: true,
       transitionDuration: const Duration(milliseconds: 304),
       reverseTransitionDuration: const Duration(milliseconds: 240),
-      page: AboutScreen(onRoleChanged: widget.onRoleChanged),
+      page: AboutScreen(
+        memory: widget.memory,
+        onRoleChanged: widget.onRoleChanged,
+      ),
     );
   }
 
@@ -20012,9 +12845,10 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       body: Stack(
         children: [
           // Neural aura background
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: SingleChildScrollView(
+              controller: _scrollController,
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 108),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -20690,6 +13524,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
               child: SafeArea(
                 top: false,
                 child: DashboardDock(
+                  scrollController: _scrollController,
                   selectedIndex: 5,
                   onTeacher: _openTeacherFromMakeup,
                   onPortal: _openPortalFromMakeup,
@@ -21188,20 +14023,19 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
   void _showDayFilter(bool isDark) {
     showDialog(
       context: context,
-      builder: (ctx) => LiquidGlassLayer(
-        settings: LiquidGlassSettings(
+      builder: (ctx) => GlassSurface(
+        settings: IrisGlass.settings(
+          ctx,
           blur: 16,
           ambientStrength: 0.70,
           lightAngle: 0.15 * math.pi,
-          glassColor: Colors.black.withValues(alpha: 0.05),
           thickness: 15,
+          glassColor: Colors.black.withValues(alpha: 0.05),
+          minBlur: 10,
+          minThickness: 12,
         ),
-        child: LiquidGlass.inLayer(
-          shape: const LiquidRoundedSuperellipse(
-            borderRadius: Radius.circular(20),
-          ),
-          glassContainsChild: false,
-          child: AlertDialog(
+        radius: 20,
+        child: AlertDialog(
             backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
                 .withValues(alpha: isDark ? 0.88 : 0.92),
           surfaceTintColor: Colors.transparent,
@@ -21260,27 +14094,25 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
           ),
         ),
       ),
-    ),
-  );
+    );
 }
 
   void _showSortOptions(bool isDark) {
     showDialog(
       context: context,
-      builder: (ctx) => LiquidGlassLayer(
-        settings: LiquidGlassSettings(
+      builder: (ctx) => GlassSurface(
+        settings: IrisGlass.settings(
+          ctx,
           blur: 16,
           ambientStrength: 0.70,
           lightAngle: 0.15 * math.pi,
-          glassColor: Colors.black.withValues(alpha: 0.05),
           thickness: 15,
+          glassColor: Colors.black.withValues(alpha: 0.05),
+          minBlur: 10,
+          minThickness: 12,
         ),
-        child: LiquidGlass.inLayer(
-          shape: const LiquidRoundedSuperellipse(
-            borderRadius: Radius.circular(20),
-          ),
-          glassContainsChild: false,
-          child: AlertDialog(
+        radius: 20,
+        child: AlertDialog(
             backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
                 .withValues(alpha: isDark ? 0.88 : 0.92),
           surfaceTintColor: Colors.transparent,
@@ -21342,7 +14174,6 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
           ),
         ),
       ),
-    ),
-  );
+    );
 }
 }

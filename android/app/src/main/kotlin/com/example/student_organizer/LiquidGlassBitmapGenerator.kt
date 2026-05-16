@@ -51,10 +51,10 @@ object LiquidGlassBitmapGenerator {
 
         // Add LiquidGlassView
         val glassView = LiquidGlassView(context)
-        glassView.setCornerRadius(28f)
-        glassView.setBlurRadius(16f)
-        glassView.setTintAlpha(if (isDark) 0.35f else 0.45f)
-        
+        glassView.setCornerRadius(32f)
+        glassView.setBlurRadius(if (isDark) 25f else 23f)
+        glassView.setTintAlpha(if (isDark) 0.48f else 0.56f)
+
         container.addView(glassView, FrameLayout.LayoutParams(width, height))
         glassView.bind(container)
 

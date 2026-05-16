@@ -6,12 +6,16 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../core/omni_brain.dart';
+import '../core/models.dart';
 import '../core/university_memory.dart';
 import '../services/helpdesk_faculty_service.dart';
 import '../services/ui_feedback.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/neural_aura.dart';
+import '../core/theme_signals.dart';
+import '../core/minimal_theme.dart';
+import '../core/vital_theme.dart';
 
 class TeacherLocatorScreen extends StatefulWidget {
   final OmniBrain brain;
@@ -54,8 +58,10 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
   bool _facultyProfilesLoading = false;
   HelpdeskFacultySource _facultyProfilesSource = HelpdeskFacultySource.none;
   List<String> _suggestions = [];
+  String? _searchHint;
   List<String> _quickPicks = [];
   List<FacultyProfile> _facultyProfiles = const [];
+  int? _selectedWeekDay;
 
   String _normalizeTeacherName(String value) {
     return value
@@ -216,7 +222,10 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
 
   void _updateSuggestions(String query) {
     if (query.trim().isEmpty) {
-      setState(() => _suggestions = []);
+      setState(() {
+        _suggestions = [];
+        _searchHint = null;
+      });
       return;
     }
     final q = query.toLowerCase().trim();
@@ -225,7 +234,10 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
         .where((t) => t.toLowerCase().contains(q))
         .toList();
     if (directMatches.isNotEmpty) {
-      setState(() => _suggestions = directMatches.take(5).toList());
+      setState(() {
+        _suggestions = directMatches.take(5).toList();
+        _searchHint = null;
+      });
       return;
     }
 
@@ -251,7 +263,15 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
         .map((e) => e.key)
         .toList();
     final matches = filteredFuzzy.isNotEmpty ? filteredFuzzy : fuzzy;
-    setState(() => _suggestions = matches);
+    final bestMatch = _bestTeacherMatch(query);
+    setState(() {
+      _suggestions = matches;
+      _searchHint = bestMatch != null
+        ? 'Likely match: $bestMatch'
+        : q.length < 4
+          ? 'Try a full name, surname, or department.'
+          : 'Try initials or a surname for a better match.';
+    });
   }
 
   void _performSearch([String? override]) {
@@ -279,8 +299,20 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
         setState(() {
           _result = result;
           _searching = false;
+          _selectedWeekDay = result.weeklySchedule.containsKey(DateTime.now().weekday)
+              ? null
+              : (result.weeklySchedule.keys.isEmpty
+                  ? null
+                  : (result.weeklySchedule.keys.toList()..sort()).first);
           if (result.status != 'not_found' && result.status != 'empty') {
             _controller.text = result.teacherName;
+            _searchHint = null;
+          } else if (_bestTeacherMatch(query) != null) {
+            _searchHint = 'Closest match: ${_bestTeacherMatch(query)}';
+          } else if (query.trim().length < 4) {
+            _searchHint = 'Try a full name, surname, or department.';
+          } else {
+            _searchHint = 'No exact match. Try initials or a surname.';
           }
         });
 
@@ -318,7 +350,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
       ),
       body: Stack(
         children: [
-          NeuralAura(background: isDark),
+          ObsidianPulse(isDark: isDark),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 118),
@@ -328,62 +360,71 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [purple, purpleLight, purpleLight],
-                          ),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: purple.withValues(alpha: 0.18),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                              spreadRadius: -2,
+                      ValueListenableBuilder<bool>(
+                        valueListenable: ThemeSignals.useMinimalTheme,
+                        builder: (context, useMinimal, _) {
+                          return Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: useMinimal ? MinimalTokens.primary : null,
+                              gradient: useMinimal ? null : LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [purple, purpleLight, purpleLight],
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: useMinimal ? null : [
+                                BoxShadow(
+                                  color: purple.withValues(alpha: 0.18),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                  spreadRadius: -2,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.person_search_rounded,
-                          color: Colors.white,
-                          size: 28,
-                        ),
+                            child: const Icon(
+                              Icons.person_search_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) => const LinearGradient(
-                                colors: [purple, purpleLight],
-                              ).createShader(bounds),
-                              child: Text(
-                                isFacultySelection
-                                    ? 'Select Teacher'
-                                    : 'Teacher Locator',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 26,
-                                  letterSpacing: 0.3,
-                                  color: Colors.white,
-                                ),
-                              ),
+                            ValueListenableBuilder<bool>(
+                              valueListenable: ThemeSignals.useMinimalTheme,
+                              builder: (context, useMinimal, _) {
+                                if (useMinimal) {
+                                  return Text(
+                                    isFacultySelection ? 'Select Teacher' : 'Teacher Locator',
+                                    style: IrisTextStyles.classSubject(context).copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      fontSize: 26,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  );
+                                }
+                                return ShaderMask(
+                                  shaderCallback: (bounds) => const LinearGradient(
+                                    colors: [purple, purpleLight],
+                                  ).createShader(bounds),
+                                  child: Text(
+                                    isFacultySelection ? 'Select Teacher' : 'Teacher Locator',
+                                    style: IrisTextStyles.classSubject(context).copyWith(color: Colors.white, fontSize: 26, letterSpacing: 0.3),
+                                  ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 4),
                             Text(
                               isFacultySelection
                                   ? 'Choose a teacher to load your faculty schedule'
                                   : 'Find any teacher\'s real-time location & schedule',
-                              style: TextStyle(
-                                fontSize: 13,
-                                letterSpacing: 0.1,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.55),
-                              ),
+                              style: IrisTextStyles.insightSubtext(context),
                             ),
                           ],
                         ),
@@ -399,11 +440,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                           controller: _controller,
                           onChanged: _updateSuggestions,
                           onSubmitted: _performSearch,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
+                          style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
                           decoration: irisFrostedInputDecoration(
                             label: 'Teacher Name',
                             isDark: isDark,
@@ -448,14 +485,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                                       ),
                                       title: Text(
                                         s,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                          color: (isDark
-                                                  ? Colors.white
-                                                  : Colors.black)
-                                              .withValues(alpha: 0.7),
-                                        ),
+                                        style: IrisTextStyles.label(context).copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7)),
                                       ),
                                       onTap: () {
                                         _controller.text = s;
@@ -467,23 +497,34 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                             ),
                           ),
                         ],
+                        if (_searchHint != null) ...[
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Text(
+                              _searchHint!,
+                              style: IrisTextStyles.metaInfo(context).copyWith(
+                                color: (isDark ? Colors.white : Colors.black)
+                                    .withValues(alpha: 0.55),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   if (_result != null) ...[
                     const SizedBox(height: 20),
                     _buildResultCard(isDark, purple, purpleLight),
+                    if (_result!.weeklySchedule.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      _buildWeeklyScheduleCard(isDark, _result!),
+                    ],
                   ] else if (!_searching) ...[
                     const SizedBox(height: 32),
                     Text(
                       'QUICK PICKS',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.4),
-                      ),
+                      style: IrisTextStyles.overline(context).copyWith(letterSpacing: 1.5, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -494,10 +535,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                             (t) => ChoiceChip(
                               label: Text(
                                 t,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: IrisTextStyles.badgeText(context).copyWith(fontSize: 12, fontWeight: FontWeight.w700),
                               ),
                               selected: false,
                               onSelected: (_) {
@@ -528,7 +566,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
   Widget _buildResultCard(bool isDark, Color purple, Color purpleLight) {
     final res = _result!;
     final profile = _matchFacultyProfile(res.teacherName);
-    final hasSchedule = res.schedule.isNotEmpty;
+    final hasSchedule = res.todaySessions.isNotEmpty;
 
     return MotionSlideFade(
       beginOffset: const Offset(0, 30),
@@ -541,33 +579,12 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: purple.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: purple.withValues(alpha: 0.2),
-                          width: 1.5,
-                        ),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: profile != null && profile.image.isNotEmpty
-                          ? Image.network(
-                              _resolveFacultyImageUrl(profile.image),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Icon(
-                                Icons.person_rounded,
-                                size: 32,
-                                color: purple.withValues(alpha: 0.5),
-                              ),
-                            )
-                          : Icon(
-                              Icons.person_rounded,
-                              size: 32,
-                              color: purple.withValues(alpha: 0.5),
-                            ),
+                    IrisComponents.facultyAvatar(
+                      imageUrl: profile != null && profile.image.isNotEmpty ? _resolveFacultyImageUrl(profile.image) : null,
+                      gender: profile?.gender ?? 'male',
+                      name: res.teacherName,
+                      radius: 32,
+                      isDark: isDark,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -576,30 +593,18 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                         children: [
                           Text(
                             res.teacherName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.2,
-                            ),
+                            style: IrisTextStyles.classSubject(context).copyWith(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.2),
                           ),
                           const SizedBox(height: 4),
                           if (profile != null)
                             Text(
-                              profile.designation,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: purple.withValues(alpha: 0.8),
-                              ),
+                              profile.department,
+                              style: IrisTextStyles.classSessionMeta(context).copyWith(color: purple.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600),
                             )
                           else
                             Text(
                               'Faculty Member',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.5),
-                              ),
+                              style: IrisTextStyles.metaInfo(context),
                             ),
                         ],
                       ),
@@ -613,7 +618,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                       _buildContactAction(
                         Icons.phone_rounded,
                         'Call',
-                        () => _launchFacultyPhone(profile.phone),
+                        () => _launchFacultyPhone(profile.contact),
                       ),
                       const SizedBox(width: 12),
                       _buildContactAction(
@@ -644,7 +649,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
           ),
           if (hasSchedule) ...[
             const SizedBox(height: 20),
-            _buildMiniTimeline(isDark, res.schedule),
+            _buildMiniTimeline(isDark, res.todaySessions),
           ],
         ],
       ),
@@ -661,51 +666,52 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isPrimary
-                ? IrisTokens.purple
-                : (Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.05)),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isPrimary
-                  ? Colors.white.withValues(alpha: 0.2)
-                  : (Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.05)),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isPrimary
-                    ? Colors.white
-                    : (Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withValues(alpha: 0.7)
-                        : Colors.black.withValues(alpha: 0.7)),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: isPrimary
-                      ? Colors.white
-                      : (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.9)
-                          : Colors.black.withValues(alpha: 0.9)),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: ThemeSignals.useMinimalTheme,
+          builder: (context, useMinimal, _) {
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: useMinimal
+                    ? (isPrimary ? MinimalTokens.primary : Colors.transparent)
+                    : (isPrimary
+                        ? IrisTokens.purple
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.05))),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: useMinimal
+                      ? Colors.transparent
+                      : (isPrimary
+                          ? Colors.white.withValues(alpha: 0.2)
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.1)
+                              : Colors.black.withValues(alpha: 0.05))),
+                  width: 1,
                 ),
               ),
-            ],
-          ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    size: 16,
+                    color: isPrimary
+                        ? Colors.white
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withValues(alpha: 0.7)
+                            : Colors.black.withValues(alpha: 0.7)),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: IrisTextStyles.classProgress(context).copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: isPrimary ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.9) : Colors.black.withValues(alpha: 0.9))),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -729,43 +735,392 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
             children: [
               Text(
                 emoji,
-                style: const TextStyle(fontSize: 12),
+                style: IrisTextStyles.metaInfo(context).copyWith(fontSize: 12),
               ),
               const SizedBox(width: 8),
               Text(
                 res.status == 'live' ? 'CURRENTLY TEACHING' : 'CURRENT STATUS',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                  color: statusColor.withValues(alpha: 0.8),
-                ),
+                style: IrisTextStyles.overline(context).copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w900, color: statusColor.withValues(alpha: 0.8)),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            res.headline,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              height: 1.3,
-            ),
+            res.statusText,
+            style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w700, height: 1.3),
           ),
           const SizedBox(height: 4),
           Text(
-            res.subline,
-            style: TextStyle(
-              fontSize: 13,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-            ),
+            res.todaySessions.isNotEmpty
+                ? '${res.todaySessions.length} session${res.todaySessions.length == 1 ? '' : 's'} today'
+                : 'No sessions today',
+            style: IrisTextStyles.metaInfo(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMiniTimeline(bool isDark, List<ClassSession> sessions) {
+  int _focusWeekDay(TeacherLocatorResult res) {
+    if (_selectedWeekDay != null) {
+      return _selectedWeekDay!;
+    }
+
+    final today = DateTime.now().weekday;
+    if (res.weeklySchedule.containsKey(today)) {
+      return today;
+    }
+
+    final days = res.weeklySchedule.keys.toList()..sort();
+    return days.isEmpty ? today : days.first;
+  }
+
+  Widget _buildWeeklyScheduleCard(bool isDark, TeacherLocatorResult res) {
+    final dayIndex = _focusWeekDay(res);
+    final entries = List<TeacherScheduleEntry>.from(
+      res.weeklySchedule[dayIndex] ?? const [],
+    )..sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    final dayLabel = TeacherScheduleEntry.dayNames[dayIndex - 1];
+    final upcomingCount = entries.where((e) => e.isUpcoming).length;
+    final liveCount = entries.where((e) => e.isLive).length;
+
+    return GlassCard(
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                ValueListenableBuilder<bool>(
+                  valueListenable: ThemeSignals.useMinimalTheme,
+                  builder: (context, useMinimal, _) {
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: useMinimal ? MinimalTokens.primary : null,
+                        gradient: useMinimal ? null : LinearGradient(colors: IrisTokens.brandGradient),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.view_week_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Weekly Schedule',
+                        style: IrisTextStyles.classSubject(context).copyWith(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Tap a day to browse this teacher\'s week.',
+                        style: IrisTextStyles.metaInfo(context).copyWith(
+                          color: (isDark ? Colors.white : Colors.black)
+                              .withValues(alpha: 0.58),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 430;
+                return SizedBox(
+                  width: double.infinity,
+                  child: DaySwitcher(
+                    selectedDayIndex: _selectedWeekDay,
+                    onSelected: (value) => setState(() {
+                      _selectedWeekDay = value;
+                    }),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 14),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 380;
+                final statWidth = compact
+                    ? constraints.maxWidth
+                    : (constraints.maxWidth - 16) / 3;
+
+                if (compact) {
+                  return Column(
+                    children: [
+                      _buildMiniStat(
+                        isDark,
+                        width: statWidth,
+                        label: dayLabel,
+                        value: '${entries.length} classes',
+                      ),
+                      const SizedBox(height: 8),
+                      _buildMiniStat(
+                        isDark,
+                        width: statWidth,
+                        label: 'Live',
+                        value: '$liveCount',
+                      ),
+                      const SizedBox(height: 8),
+                      _buildMiniStat(
+                        isDark,
+                        width: statWidth,
+                        label: 'Upcoming',
+                        value: '$upcomingCount',
+                      ),
+                    ],
+                  );
+                }
+
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildMiniStat(
+                      isDark,
+                      width: statWidth,
+                      label: dayLabel,
+                      value: '${entries.length} classes',
+                    ),
+                    _buildMiniStat(
+                      isDark,
+                      width: statWidth,
+                      label: 'Live',
+                      value: '$liveCount',
+                    ),
+                    _buildMiniStat(
+                      isDark,
+                      width: statWidth,
+                      label: 'Upcoming',
+                      value: '$upcomingCount',
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            if (entries.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: 0.06),
+                  ),
+                ),
+                child: Text(
+                  'No classes on $dayLabel.',
+                  style: IrisTextStyles.body(context).copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: 0.68),
+                  ),
+                ),
+              )
+            else
+              Column(
+                children: entries
+                    .map(
+                      (entry) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _buildWeeklyEntryCard(isDark, entry),
+                      ),
+                    )
+                    .toList(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniStat(
+    bool isDark, {
+    required double width,
+    required String label,
+    required String value,
+  }) {
+    return SizedBox(
+      width: width,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: IrisTextStyles.overline(context).copyWith(
+                fontSize: 11,
+                letterSpacing: 1.2,
+                color: (isDark ? Colors.white : Colors.black)
+                    .withValues(alpha: 0.45),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: IrisTextStyles.body(context).copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeeklyEntryCard(bool isDark, TeacherScheduleEntry entry) {
+    final accent = entry.isLive
+        ? IrisTokens.success
+        : entry.isUpcoming
+            ? IrisTokens.brand
+            : IrisTokens.purple;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: accent.withValues(alpha: 0.12)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 480;
+
+          final metadataStyle = IrisTextStyles.metaInfo(context).copyWith(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.58),
+            fontSize: compact ? 11.5 : 12,
+          );
+
+          final badge = IrisComponents.statusBadge(
+            label: entry.isLive
+                ? 'LIVE'
+                : entry.isUpcoming
+                    ? 'UP NEXT'
+                    : TeacherScheduleEntry.dayNames[entry.dayIndex - 1]
+                        .substring(0, 3)
+                        .toUpperCase(),
+            color: accent,
+            isDark: isDark,
+            pulse: entry.isLive,
+          );
+
+          if (compact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: accent,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.subject,
+                            style: IrisTextStyles.classSubject(context).copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${entry.startTime} - ${entry.endTime}',
+                            style: metadataStyle,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${entry.room} • ${entry.batch}',
+                            style: metadataStyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                badge,
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              Container(
+                width: 12,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.subject,
+                      style: IrisTextStyles.classSubject(context).copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${entry.startTime} - ${entry.endTime}  •  ${entry.room}  •  ${entry.batch}',
+                      style: metadataStyle,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              badge,
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMiniTimeline(bool isDark, List<TeacherScheduleEntry> sessions) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -773,12 +1128,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
             'TODAY\'S SCHEDULE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-            ),
+            style: IrisTextStyles.overline(context).copyWith(letterSpacing: 1.5, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
           ),
         ),
         ListView.separated(
@@ -789,7 +1139,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
           itemBuilder: (context, idx) {
             final s = sessions[idx];
             final now = DateTime.now();
-            final isLive = s.isLive(now);
+            final isLive = s.isLive;
             return GlassCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
@@ -799,19 +1149,11 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                     children: [
                       Text(
                         s.startTime,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: IrisTextStyles.classSessionMeta(context).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                       ),
                       Text(
                         s.endTime,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.4),
-                        ),
+                        style: IrisTextStyles.metaInfo(context).copyWith(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
                       ),
                     ],
                   ),
@@ -822,20 +1164,13 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                       children: [
                         Text(
                           s.subject,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: IrisTextStyles.classSubject(context).copyWith(fontSize: 15, fontWeight: FontWeight.w700),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '${s.room} • ${s.batchKey.batch}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.6),
-                          ),
+                          '${s.room} • ${s.batch}',
+                          style: IrisTextStyles.metaInfo(context).copyWith(fontSize: 12),
                         ),
                       ],
                     ),

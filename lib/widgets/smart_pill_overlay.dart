@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import '../core/theme_signals.dart';
 import '../services/system_broadcast_service.dart';
 import '../core/tokens.dart';
 
@@ -136,7 +137,7 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with SingleTickerPr
                 child: Material(
                   color: Colors.transparent,
                   elevation: 0,
-                  child: LiquidGlassLayer(
+                  child: GlassSurface(
                     settings: LiquidGlassSettings(
                       blur: 12.0,
                       ambientStrength: 0.70,
@@ -146,27 +147,23 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with SingleTickerPr
                           : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.45)),
                       thickness: 12,
                     ),
-                    child: LiquidGlass.inLayer(
-                      shape: const LiquidRoundedSuperellipse(
-                        borderRadius: Radius.circular(32),
-                      ),
-                      glassContainsChild: false,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(32),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+                    radius: 32,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1,
                         ),
-                        child: Stack(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
                       children: [
                         // Liquid Blobs Background
                         Positioned.fill(
@@ -257,7 +254,6 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with SingleTickerPr
                         ),
                       ],
                     ),
-                  ),
                   ),
                   ),
                 ),

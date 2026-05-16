@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
+import '../core/glass.dart';
+import '../core/theme_signals.dart';
 import '../services/ui_feedback.dart';
 import 'iris_components.dart';
 import 'spring_button.dart';
+import 'vital_card.dart';
 
-class DashboardDock extends StatelessWidget {
+class DashboardDock extends StatefulWidget {
   final VoidCallback? onHome;
   final VoidCallback? onTeacher;
   final VoidCallback? onPortal;
@@ -16,7 +19,10 @@ class DashboardDock extends StatelessWidget {
   final VoidCallback? onMakeup;
   final VoidCallback? onAbout;
   final bool showFacultySet;
+  final bool showStudentSet;
   final int selectedIndex;
+  final ValueNotifier<double>? visibility;
+  final ScrollController? scrollController;
 
   const DashboardDock({
     super.key,
@@ -28,11 +34,16 @@ class DashboardDock extends StatelessWidget {
     this.onMakeup,
     this.onAbout,
     this.showFacultySet = false,
+    this.showStudentSet = false,
     this.selectedIndex = 0,
+    this.visibility,
+    this.scrollController,
   });
 
   @override
-  Widget build(BuildContext context) {
+  State<DashboardDock> createState() => _DashboardDockState();
+
+  Widget _buildDock(BuildContext context, _DashboardDockState state) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
     final compact = width < (showFacultySet ? 420 : 470);
@@ -46,262 +57,440 @@ class DashboardDock extends StatelessWidget {
     final radius = showFacultySet
         ? (veryCompact ? 18.0 : (compact ? 22.0 : 28.0))
         : (veryCompact ? 18.0 : (compact ? 20.0 : 24.0));
-    final itemCount = showFacultySet ? 4 : 7;
-    final safeSelected = selectedIndex.clamp(0, itemCount - 1);
+    final itemCount = showStudentSet ? 4 : (showFacultySet ? 4 : 7);
+    final safeSelected = state.displaySelectedIndex(itemCount, selectedIndex);
     final activeColor = showFacultySet ? IrisTokens.purple : IrisTokens.brand;
-    final navActive = safeSelected != 0;
-    final activeGlow = safeSelected == 0
-        ? Colors.transparent
-        : activeColor.withValues(alpha: isDark ? 0.18 : 0.13);
+    final pillAccent = IrisTokens.brand;
+    final glassSettings = IrisGlass.settings(
+      context,
+      blur: 16,
+      ambientStrength: 0.65,
+      lightAngle: 0.15 * math.pi,
+      thickness: 20,
+      glassColor: IrisGlass.adaptiveGlassColor(
+        context,
+        darkAlpha: 0.42,
+        lightAlpha: 0.45,
+      ),
+    );
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 6),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: LiquidGlassLayer(
-          settings: LiquidGlassSettings(
-            blur: 12.0,
-            ambientStrength: 0.65,
-            lightAngle: 0.15 * math.pi,
-            glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                .withValues(alpha: 0.38),
-            thickness: 20,
-          ),
-          child: LiquidGlass.inLayer(
-            shape: LiquidRoundedSuperellipse(
-              borderRadius: Radius.circular(radius),
-            ),
-            glassContainsChild: false,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 304),
-              curve: IrisMotion.standard,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(radius),
-                border: Border.all(
-                  color: (isDark ? Colors.white : activeColor).withValues(
-                    alpha: navActive ? 0.14 : 0.08,
-                  ),
-                  width: 1.1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: activeGlow,
-                    blurRadius: 18,
-                    spreadRadius: -4,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
+    final dockContent = ValueListenableBuilder<bool>(
+      valueListenable: ThemeSignals.useVitalTheme,
+      builder: (context, useVital, _) {
+        if (useVital) {
+          return Padding(
+            padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 10),
+            child: VitalCard(
+              borderRadius: radius,
+              padding: EdgeInsets.zero,
+              animate: false,
+              backgroundColor: isDark ? Colors.black.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.9),
               child: SizedBox(
                 height: navHeight,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final itemWidth = constraints.maxWidth / itemCount;
-                    final ultraDense = itemWidth < 48;
-                    final dense = itemWidth < 56;
-                    final trailWidth = showFacultySet
-                        ? (veryCompact ? 16.0 : (compact ? 20.0 : 26.0))
-                        : (ultraDense
-                            ? 9.0
-                            : (dense ? 12.0 : (veryCompact ? 14.0 : 18.0)));
-                    final haloSize = showFacultySet
-                        ? (veryCompact ? 30.0 : (compact ? 38.0 : 46.0))
-                        : (ultraDense
-                            ? 20.0
-                            : (dense ? 24.0 : (veryCompact ? 28.0 : 34.0)));
-                    final left = (itemWidth * safeSelected) +
-                        ((itemWidth - trailWidth) / 2);
-                    final haloLeft = (itemWidth * safeSelected) +
-                        ((itemWidth - haloSize) / 2);
-                    final trailColor = isDark
-                        ? Colors.white.withValues(alpha: 0.70)
-                        : activeColor.withValues(alpha: 0.80);
-
-                    return Stack(
-                      children: [
-                        Positioned(
-                          left: haloLeft,
-                          top: ultraDense
-                              ? 11
-                              : (veryCompact ? 9 : (compact ? 8 : 7)),
-                          child: IgnorePointer(
-                            child: NavActiveHalo(
-                              size: haloSize,
-                              color: trailColor,
-                            ),
-                          ),
+                    return Listener(
+                      behavior: HitTestBehavior.translucent,
+                      onPointerDown: (event) => state.beginTracking(event.localPosition, constraints.maxWidth, itemCount, selectedIndex),
+                      onPointerMove: (event) => state.updateTracking(event.localPosition, constraints.maxWidth, itemCount),
+                      onPointerUp: (_) => state.endTracking(context, itemCount),
+                      onPointerCancel: (_) => state.cancelTracking(),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
+                        child: Row(
+                          children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
                         ),
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 360),
-                          curve: IrisMotion.standard,
-                          left: left,
-                          top: 0,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 360),
-                            curve: IrisMotion.standard,
-                            width: trailWidth,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: trailColor,
-                              borderRadius: BorderRadius.circular(999),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: trailColor.withValues(alpha: 0.20),
-                                  blurRadius: 8,
-                                  spreadRadius: -2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            ultraDense
-                                ? 1
-                                : (veryCompact ? 3 : (compact ? 5 : 6)),
-                            ultraDense
-                                ? 1
-                                : (veryCompact ? 2 : (compact ? 3 : 4)),
-                            ultraDense
-                                ? 1
-                                : (veryCompact ? 3 : (compact ? 5 : 6)),
-                            ultraDense
-                                ? 1
-                                : (veryCompact ? 2 : (compact ? 3 : 4)),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: BouncyNavButton(
-                                  icon: safeSelected == 0
-                                      ? Icons.home_filled
-                                      : Icons.home_rounded,
-                                  label: 'Home',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 0,
-                                  activeColor: activeColor,
-                                  onTap: onHome ??
-                                      () => Navigator.of(
-                                            context,
-                                          ).popUntil((route) => route.isFirst),
-                                ),
-                              ),
-                              Expanded(
-                                child: BouncyNavButton(
-                                  icon: showFacultySet
-                                      ? (safeSelected == 1
-                                          ? Icons.badge_rounded
-                                          : Icons.badge_outlined)
-                                      : Icons.search_rounded,
-                                  label: 'Teacher',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 1,
-                                  activeColor: activeColor,
-                                  onTap: onTeacher ?? () {},
-                                ),
-                              ),
-                              Expanded(
-                                child: BouncyNavButton(
-                                  icon: Icons.public_rounded,
-                                  label: 'Portal',
-                                  isDark: isDark,
-                                  isSelected: safeSelected == 2,
-                                  activeColor: activeColor,
-                                  onTap: onPortal ?? () {},
-                                ),
-                              ),
-                              if (showFacultySet)
-                                Expanded(
-                                  child: BouncyNavButton(
-                                    icon: safeSelected == 3
-                                        ? Icons.info_rounded
-                                        : Icons.info_outline_rounded,
-                                    label: 'About',
-                                    isDark: isDark,
-                                    isSelected: safeSelected == 3,
-                                    activeColor: activeColor,
-                                    onTap: onAbout ?? () {},
-                                  ),
-                                )
-                              else ...[
-                                Expanded(
-                                  child: BouncyNavButton(
-                                    icon: safeSelected == 3
-                                        ? Icons.school_rounded
-                                        : Icons.school_outlined,
-                                    label: 'Classes',
-                                    isDark: isDark,
-                                    isSelected: safeSelected == 3,
-                                    activeColor: activeColor,
-                                    onTap: onClasses ?? () {},
-                                  ),
-                                ),
-                                Expanded(
-                                  child: BouncyNavButton(
-                                    icon: safeSelected == 4
-                                        ? Icons.build_rounded
-                                        : Icons.build_outlined,
-                                    label: 'Tools',
-                                    isDark: isDark,
-                                    isSelected: safeSelected == 4,
-                                    activeColor: activeColor,
-                                    onTap: onTools ??
-                                        () {
-                                          showIrisFrostedSnackBar(
-                                            context,
-                                            dedupeKey:
-                                                'tools_unavailable_from_screen',
-                                            content: const Text(
-                                              'Tools are unavailable from this screen.',
-                                            ),
-                                          );
-                                        },
-                                  ),
-                                ),
-                                Expanded(
-                                  child: BouncyNavButton(
-                                    icon: safeSelected == 5
-                                        ? Icons.event_repeat_rounded
-                                        : Icons.event_repeat_outlined,
-                                    label: 'Makeup',
-                                    isDark: isDark,
-                                    isSelected: safeSelected == 5,
-                                    activeColor: activeColor,
-                                    onTap: onMakeup ?? () {},
-                                  ),
-                                ),
-                                Expanded(
-                                  child: BouncyNavButton(
-                                    icon: safeSelected == 6
-                                        ? Icons.info_rounded
-                                        : Icons.info_outline_rounded,
-                                    label: 'About',
-                                    isDark: isDark,
-                                    isSelected: safeSelected == 6,
-                                    activeColor: activeColor,
-                                    onTap: onAbout ?? () {},
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     );
                   },
                 ),
               ),
             ),
+          );
+        }
+
+        return ValueListenableBuilder<bool>(
+          valueListenable: ThemeSignals.useMinimalTheme,
+          builder: (context, useMinimal, _) {
+            final content = Padding(
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 6),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: RepaintBoundary(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 304),
+                    curve: IrisMotion.standard,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(radius),
+                      border: Border.all(
+                        color: (isDark ? Colors.white : pillAccent)
+                            .withValues(alpha: isDark ? 0.14 : 0.18),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: SizedBox(
+                      height: navHeight,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Listener(
+                            behavior: HitTestBehavior.translucent,
+                            onPointerDown: (event) => state.beginTracking(
+                              event.localPosition,
+                              constraints.maxWidth,
+                              itemCount,
+                              selectedIndex,
+                            ),
+                            onPointerMove: (event) => state.updateTracking(
+                              event.localPosition,
+                              constraints.maxWidth,
+                              itemCount,
+                            ),
+                            onPointerUp: (_) => state.endTracking(
+                              context,
+                              itemCount,
+                            ),
+                            onPointerCancel: (_) => state.cancelTracking(),
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                veryCompact ? 3 : (compact ? 5 : 6),
+                                veryCompact ? 2 : (compact ? 3 : 4),
+                                veryCompact ? 3 : (compact ? 5 : 6),
+                                veryCompact ? 2 : (compact ? 3 : 4),
+                              ),
+                              child: Row(
+                                children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+
+            if (useMinimal) return content;
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 6),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: RepaintBoundary(
+                  child: GlassSurface(
+                    settings: glassSettings,
+                    radius: radius,
+                    child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 304),
+                        curve: IrisMotion.standard,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(radius),
+                          border: Border.all(
+                            color: (isDark ? Colors.white : pillAccent)
+                                .withValues(alpha: isDark ? 0.14 : 0.18),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isDark ? Colors.black : pillAccent)
+                                  .withValues(alpha: isDark ? 0.35 : 0.12),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                              spreadRadius: -6,
+                            ),
+                          ],
+                        ),
+                        child: SizedBox(
+                          height: navHeight,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return Listener(
+                                behavior: HitTestBehavior.translucent,
+                                onPointerDown: (event) => state.beginTracking(
+                                  event.localPosition,
+                                  constraints.maxWidth,
+                                  itemCount,
+                                  selectedIndex,
+                                ),
+                                onPointerMove: (event) => state.updateTracking(
+                                  event.localPosition,
+                                  constraints.maxWidth,
+                                  itemCount,
+                                ),
+                                onPointerUp: (_) => state.endTracking(
+                                  context,
+                                  itemCount,
+                                ),
+                                onPointerCancel: (_) => state.cancelTracking(),
+                                child: Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    veryCompact ? 3 : (compact ? 5 : 6),
+                                    veryCompact ? 2 : (compact ? 3 : 4),
+                                    veryCompact ? 3 : (compact ? 5 : 6),
+                                    veryCompact ? 2 : (compact ? 3 : 4),
+                                  ),
+                                  child: Row(
+                                    children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (state._internalVisibility == null) return dockContent;
+
+    return ValueListenableBuilder<double>(
+      valueListenable: state._internalVisibility,
+      builder: (context, v, child) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.identity()
+            ..translate(0.0, (1.0 - v) * 100)
+            ..scale(0.8 + (v * 0.2)),
+          child: Opacity(
+            opacity: v.clamp(0.0, 1.0),
+            child: child,
           ),
-        ),
+        );
+      },
+      child: dockContent,
+    );
+  }
+
+  List<Widget> _buildNavButtons(
+    BuildContext context,
+    bool isDark,
+    int safeSelected,
+    Color activeColor,
+    _DashboardDockState state,
+    int itemCount,
+  ) {
+    return [
+      _buildNavButton(0, Icons.home_filled, Icons.home_rounded, 'Home', onHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst), isDark, safeSelected, activeColor, state, itemCount),
+      if (showStudentSet) ...[
+        _buildNavButton(1, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(2, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(3, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+      ] else if (showFacultySet) ...[
+        _buildNavButton(1, Icons.badge_rounded, Icons.badge_outlined, 'Teacher', onTeacher ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(2, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(3, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+      ] else ...[
+        _buildNavButton(1, Icons.search_rounded, Icons.search_rounded, 'Teacher', onTeacher ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(2, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(3, Icons.school_rounded, Icons.school_outlined, 'Classes', onClasses ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(4, Icons.build_rounded, Icons.build_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(5, Icons.event_repeat_rounded, Icons.event_repeat_outlined, 'Makeup', onMakeup ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(6, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+      ],
+    ];
+  }
+
+  Widget _buildNavButton(
+    int index,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String label,
+    VoidCallback onTap,
+    bool isDark,
+    int safeSelected,
+    Color activeColor,
+    _DashboardDockState state,
+    int itemCount,
+  ) {
+    final isSelected = safeSelected == index;
+    return Expanded(
+      child: BouncyNavButton(
+        icon: isSelected ? activeIcon : inactiveIcon,
+        label: label,
+        isDark: isDark,
+        isSelected: isSelected,
+        showSelectionBackground: false,
+        activeColor: activeColor,
+        onTap: onTap,
       ),
     );
   }
+}
+
+class _DashboardDockState extends State<DashboardDock> {
+  double? _dragPosition;
+  bool _isDragging = false;
+  bool _hasMoved = false;
+  late final ValueNotifier<double> _internalVisibility;
+  double _lastOffset = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _internalVisibility = widget.visibility ?? ValueNotifier<double>(1.0);
+    widget.scrollController?.addListener(_handleScroll);
+  }
+
+  @override
+  void didUpdateWidget(DashboardDock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.scrollController != oldWidget.scrollController) {
+      oldWidget.scrollController?.removeListener(_handleScroll);
+      widget.scrollController?.addListener(_handleScroll);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController?.removeListener(_handleScroll);
+    if (widget.visibility == null) _internalVisibility.dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!mounted) return;
+    final controller = widget.scrollController!;
+    if (!controller.hasClients) return;
+
+    final offset = controller.offset;
+    final delta = offset - _lastOffset;
+
+    if (offset <= 0) {
+      _internalVisibility.value = 1.0;
+    } else if (delta > 10 && _internalVisibility.value > 0) {
+      _internalVisibility.value = 0.0;
+    } else if (delta < -20 && _internalVisibility.value < 1.0) {
+      _internalVisibility.value = 1.0;
+    }
+
+    _lastOffset = offset;
+  }
+
+  bool get isDragging => _isDragging;
+
+  double interactionPosition(int itemCount, int selectedIndex) {
+    final safeIndex = selectedIndex.clamp(0, itemCount - 1);
+    if (_isDragging && _dragPosition != null) {
+      return _dragPosition!.clamp(0.0, itemCount - 1.0);
+    }
+    return safeIndex.toDouble();
+  }
+
+  int displaySelectedIndex(int itemCount, int selectedIndex) {
+    return interactionPosition(itemCount, selectedIndex).round().clamp(0, itemCount - 1);
+  }
+
+  void beginTracking(
+    Offset localPosition,
+    double width,
+    int itemCount,
+    int selectedIndex,
+  ) {
+    if (width <= 0) return;
+    setState(() {
+      _isDragging = true;
+      _hasMoved = false;
+      final slotWidth = width / itemCount;
+      _dragPosition = (localPosition.dx / slotWidth).clamp(
+        0.0,
+        itemCount - 1.0,
+      );
+      _dragPosition ??= selectedIndex.toDouble();
+    });
+  }
+
+  void updateTracking(
+    Offset localPosition,
+    double width,
+    int itemCount,
+  ) {
+    if (!_isDragging || width <= 0) return;
+    setState(() {
+      _hasMoved = true;
+      final slotWidth = width / itemCount;
+      _dragPosition = (localPosition.dx / slotWidth).clamp(
+        0.0,
+        itemCount - 1.0,
+      );
+    });
+  }
+
+  void endTracking(BuildContext context, int itemCount) {
+    if (!_isDragging) return;
+    if (!_hasMoved) {
+      cancelTracking();
+      return;
+    }
+    final targetIndex = interactionPosition(itemCount, widget.selectedIndex)
+        .round()
+        .clamp(0, itemCount - 1);
+    setState(() {
+      _isDragging = false;
+      _dragPosition = null;
+      _hasMoved = false;
+    });
+    IrisHaptics.chipSelect();
+    _activateIndex(context, targetIndex);
+  }
+
+  void cancelTracking() {
+    if (!_isDragging) return;
+    setState(() {
+      _isDragging = false;
+      _dragPosition = null;
+      _hasMoved = false;
+    });
+  }
+
+  void _activateIndex(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        (widget.onHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst))();
+        break;
+      case 1:
+        if (widget.showStudentSet) {
+          widget.onPortal?.call();
+        } else {
+          widget.onTeacher?.call();
+        }
+        break;
+      case 2:
+        if (widget.showStudentSet) {
+          widget.onTools?.call();
+        } else {
+          widget.onPortal?.call();
+        }
+        break;
+      case 3:
+        if (widget.showStudentSet) {
+          widget.onAbout?.call();
+        } else if (widget.showFacultySet) {
+          widget.onAbout?.call();
+        } else {
+          widget.onClasses?.call();
+        }
+        break;
+      case 4:
+        widget.onTools?.call();
+        break;
+      case 5:
+        widget.onMakeup?.call();
+        break;
+      case 6:
+        widget.onAbout?.call();
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget._buildDock(context, this);
 }
 
 class NavActiveHalo extends StatefulWidget {
@@ -392,6 +581,7 @@ class BouncyNavButton extends StatefulWidget {
   final int? indicatorCount;
   final Color? indicatorColor;
   final Color activeColor;
+  final bool showSelectionBackground;
   final VoidCallback onTap;
   final GlobalKey? launchIconKey;
 
@@ -407,6 +597,7 @@ class BouncyNavButton extends StatefulWidget {
     this.indicatorCount,
     this.indicatorColor,
     required this.activeColor,
+    this.showSelectionBackground = true,
     required this.onTap,
     this.launchIconKey,
   });
@@ -506,7 +697,7 @@ class _BouncyNavButtonState extends State<BouncyNavButton>
                             color: widget.isDark
                                 ? IrisTokens.surfaceDarkElevated
                                 : Colors.white,
-                            width: 1.1,
+                            width: 1.25,
                           ),
                         ),
                         child: Text(
@@ -531,7 +722,7 @@ class _BouncyNavButtonState extends State<BouncyNavButton>
                             color: widget.isDark
                                 ? IrisTokens.surfaceDarkElevated
                                 : Colors.white,
-                            width: 1.1,
+                            width: 1.25,
                           ),
                         ),
                       ),
@@ -565,6 +756,7 @@ class _BouncyNavButtonState extends State<BouncyNavButton>
           child: SpringButton(
             onTap: widget.enabled ? widget.onTap : () {},
             child: Container(
+              width: double.infinity,
               padding: EdgeInsets.symmetric(
                 horizontal: widget.showLabelAlways
                     ? (veryCompact ? 2 : (compact ? 3 : 6))
@@ -573,7 +765,7 @@ class _BouncyNavButtonState extends State<BouncyNavButton>
                     ? (veryCompact ? 4 : 5)
                     : (veryCompact ? 4 : (compact ? 5 : 7)),
               ),
-              decoration: widget.isSelected
+                decoration: widget.isSelected && widget.showSelectionBackground
                   ? BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
