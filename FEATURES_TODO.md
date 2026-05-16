@@ -17,6 +17,8 @@
 - ✅ Some lectures confused with break time periods — **FIXED**
   - Current/live class detection now uses actual lecture end-times (including 1-hour markers)
   - Break windows now calculate from actual previous class end, not raw slot end
+- ✅ Faculty settings showing student batch info — **FIXED** (May 17)
+  - Conditionally hidden student batch bullet point in AboutScreen when role is 'faculty'
 
 ---
 
@@ -63,6 +65,7 @@
   - Live MEC module implemented: 4-band resistor color decoder with tolerance/range output
   - Live Other Departments module implemented: adaptive department smart kit with workload and target-grade planners
   - Live tools implemented: Unit Converter, Word Counter, Universal Calculator, CGPA Calculator, Base Converter, Equation Solver, Molecular Weight Calculator, Offline Formula Library, Class Analytics
+  - ✅ **Campus Transport System** (Dynamic route discovery, searchable stops, driver/helper contacts) — **COMPLETED May 17**
   - Smart Tools Assistant added (context-aware recommendation based on live/next class and department)
 - ✅ Department-aware visibility (show tools based on user's selected department)
 - ✅ Print service implementation to mobile print system

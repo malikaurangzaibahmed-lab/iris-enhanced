@@ -229,6 +229,7 @@ BackdropFilter(filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5)) // BAD
 │  │  PERSISTENCE LAYER (SharedPreferences)         │  │
 │  │  - Batch selection                             │  │
 │  │  - Theme preference (dark/light)               │  │
+│  │  - Transport Data (HelpdeskScheduleDataService) │  │
 │  │  - Future: Local teacher/room overrides       │  │
 │  └─────────────────────────────────────────────────┘  │
 │                                                         │

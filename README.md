@@ -3,10 +3,10 @@
 Intelligent timetable and schedule management app with OTA updates, PDF parsing, persistent notifications, and home widgets.
 
 ## 📋 Session Handoff & Context Recovery
-**Starting a new session or lost context?** See **[HANDOFF_INDEX.md](HANDOFF_INDEX.md)** for:
-- Quick resume guide (QUICK_RESUME.md)
-- Recent redesign summary (MARCH_2026_REDESIGN_SUMMARY.md)
-- Build workaround + commands (SESSION_HANDOFF.md)
+**Starting a new session or lost context?** See **[SESSION_SUMMARY_MAY_2026.md](SESSION_SUMMARY_MAY_2026.md)** for:
+- Recent dynamic transport integration summary
+- Faculty UI refinement details
+- Build results and release APK locations
 
 ## What This App Does
 - **Smart schedule tracking** for students and faculty
@@ -16,6 +16,7 @@ Intelligent timetable and schedule management app with OTA updates, PDF parsing,
 - **Persistent notifications** showing live class status
 - **Home widgets** for Android (OmniFlow, ClassTracker)
 - **Teacher locator** for faculty schedule queries
+- **Dynamic Transport** (30+ routes, driver contacts, live timelines)
 
 ## Architecture
 - **Core**: `lib/core/` (models, OmniBrain, UniversityMemory, format guards)
