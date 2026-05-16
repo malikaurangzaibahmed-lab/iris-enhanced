@@ -21,6 +21,7 @@ class TeacherLocatorScreen extends StatefulWidget {
   final OmniBrain brain;
   final ValueChanged<String>? onTeacherSelected;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
   final UniversityMemory? memory;
   final String? currentBatch;
   final String? initialTeacherQuery;
@@ -33,6 +34,7 @@ class TeacherLocatorScreen extends StatefulWidget {
     required this.brain,
     this.onTeacherSelected,
     this.onRoleChanged,
+    this.onBatchChanged,
     this.memory,
     this.currentBatch,
     this.initialTeacherQuery,
@@ -611,10 +613,10 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                     ),
                   ],
                 ),
-                if (profile != null) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    if (profile != null) ...[
                       _buildContactAction(
                         Icons.phone_rounded,
                         'Call',
@@ -626,22 +628,23 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                         'Email',
                         () => _launchFacultyEmail(profile.email),
                       ),
-                      const SizedBox(width: 12),
-                      if (widget.onTeacherSelected != null)
-                        _buildContactAction(
-                          Icons.check_circle_rounded,
-                          'Select',
-                          () {
-                            widget.onTeacherSelected!(res.teacherName);
-                            if (widget.closeOnTeacherSelect) {
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          isPrimary: true,
-                        ),
                     ],
-                  ),
-                ],
+                    if (widget.onTeacherSelected != null) ...[
+                      if (profile != null) const SizedBox(width: 12),
+                      _buildContactAction(
+                        Icons.check_circle_rounded,
+                        'Select',
+                        () {
+                          widget.onTeacherSelected!(res.teacherName);
+                          if (widget.closeOnTeacherSelect) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        isPrimary: true,
+                      ),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 24),
                 _buildStatusSection(isDark, res),
               ],
@@ -942,7 +945,7 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                 children: entries
                     .map(
                       (entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 12),
                         child: _buildWeeklyEntryCard(isDark, entry),
                       ),
                     )

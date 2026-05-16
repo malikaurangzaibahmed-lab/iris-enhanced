@@ -5,6 +5,7 @@ class _ToolsScreen extends StatefulWidget {
   final String batch;
   final OmniBrain brain;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
 
   const _ToolsScreen({
     super.key,
@@ -12,6 +13,7 @@ class _ToolsScreen extends StatefulWidget {
     required this.batch,
     required this.brain,
     this.onRoleChanged,
+    this.onBatchChanged,
   });
 
   @override
@@ -274,7 +276,7 @@ class _ToolsScreenState extends State<_ToolsScreen> {
               crossAxisCount: crossAxisCount,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
+              mainAxisSpacing: 12,
               crossAxisSpacing: 10,
               childAspectRatio: 0.94,
               children: tools
@@ -453,15 +455,7 @@ class _ToolsScreenState extends State<_ToolsScreen> {
       case 'library_schedule':
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => const _CampusResourceScreen(
-              title: 'Library Schedule',
-              subtitle: 'Library timing, quiet slots and focus planning',
-              items: [
-                'Use low-traffic hours for deep work sessions.',
-                'Group formula-heavy revision near reference sections.',
-                'Plan assignment and print tasks before closing time.',
-              ],
-            ),
+            builder: (_) => const _LibraryScheduleScreen(),
           ),
         );
         return;
@@ -593,14 +587,14 @@ class _ToolsScreenState extends State<_ToolsScreen> {
             physics: VitalMotion.scrollPhysics,
             slivers: [
               SliverAppBar(
-                expandedHeight: 180,
+                expandedHeight: 140,
                 collapsedHeight: kToolbarHeight,
                 pinned: true,
                 backgroundColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
-                  titlePadding: const EdgeInsets.only(left: 24, bottom: 64),
+                  titlePadding: const EdgeInsets.only(left: 24, bottom: 20),
                   title: Text(
                     'RESOURCES',
                     style: TextStyle(
@@ -610,22 +604,18 @@ class _ToolsScreenState extends State<_ToolsScreen> {
                       color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
-                  background: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                        child: TextField(
-                          onChanged: (v) => setState(() => _searchQuery = v),
-                          decoration: irisFrostedInputDecoration(
-                            label: 'Search tools...',
-                            isDark: isDark,
-                            prefixIcon: Icons.search_rounded,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 56), // Space for title
-                    ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                  child: TextField(
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                    decoration: irisFrostedInputDecoration(
+                      label: 'Search tools...',
+                      isDark: isDark,
+                      prefixIcon: Icons.search_rounded,
+                    ),
                   ),
                 ),
               ),
@@ -823,7 +813,7 @@ class _CampusResourceScreen extends StatelessWidget {
               const SizedBox(height: 12),
               ...items.map(
                 (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: GlassCard(
                     child: Padding(
                       padding: const EdgeInsets.all(14),
@@ -969,7 +959,7 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
                 else
                   ...payload.semesterSchedule.map(
                     (milestone) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: GlassCard(
                         child: Row(
                           children: [
@@ -1569,23 +1559,22 @@ class _MolecularWeightCalculatorScreenState extends State<_MolecularWeightCalcul
   }
 }
 
-class _TransportScheduleScreen extends StatelessWidget {
-  const _TransportScheduleScreen();
+class _LibraryScheduleScreen extends StatelessWidget {
+  const _LibraryScheduleScreen();
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final routes = [
-      {'id': 'R1', 'name': 'SADDER ROUTE', 'times': '08:00, 13:30, 16:00', 'stops': 'Lalazar, Cant, Sadder Metro'},
-      {'id': 'R2', 'name': 'G-11 ROUTE', 'times': '08:15, 14:00, 16:30', 'stops': 'G-8, G-9, G-10, G-11 Markaz'},
-      {'id': 'R3', 'name': 'BAHRIA ROUTE', 'times': '07:45, 13:15, 15:45', 'stops': 'Phase 1-6, Expressway, Gulberg'},
-      {'id': 'R4', 'name': 'PWD ROUTE', 'times': '08:30, 14:30, 17:00', 'stops': 'Media Town, PWD, Police Foundation'},
-      {'id': 'S1', 'name': 'CAMPUS SHUTTLE', 'times': 'Every 20 mins', 'stops': 'All Blocks, Main Gate, Library'},
+    final schedule = [
+      {'day': 'Monday - Thursday', 'open': '08:30 AM', 'close': '09:00 PM', 'peak': '11:00 AM - 02:00 PM'},
+      {'day': 'Friday', 'open': '08:30 AM', 'close': '05:00 PM', 'peak': '10:00 AM - 12:30 PM'},
+      {'day': 'Saturday', 'open': '10:00 AM', 'close': '04:00 PM', 'peak': '12:00 PM - 02:00 PM'},
+      {'day': 'Sunday', 'open': 'CLOSED', 'close': '', 'peak': ''},
     ];
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: irisFrostedAppBar(title: 'Transport Schedule', isDark: isDark),
+      appBar: irisFrostedAppBar(title: 'Library Timetable', isDark: isDark),
       body: Stack(
         children: [
           ObsidianPulse(isDark: isDark),
@@ -1593,58 +1582,510 @@ class _TransportScheduleScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 110, 16, 40),
             children: [
               _ResourceHeroCard(
-                title: 'Campus Transport',
-                subtitle: 'Daily routes and shuttle timings',
-                icon: Icons.directions_bus_rounded,
-                accent: VitalTokens.success,
+                title: 'Central Library',
+                subtitle: 'Opening hours, study slots and quiet planning',
+                icon: Icons.local_library_rounded,
+                accent: VitalTokens.blue,
                 isDark: isDark,
               ),
               const SizedBox(height: 24),
-              ...routes.map((r) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
+              Padding(
+                padding: const EdgeInsets.only(left: 4, right: 4, bottom: 16),
+                child: Text(
+                  'WEEKLY TIMETABLE',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+              ...schedule.map((s) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: GlassCard(
                   padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s['day']!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                            const SizedBox(height: 4),
+                            if (s['open'] == 'CLOSED')
+                              const Text('LIBRARY CLOSED', style: TextStyle(color: VitalTokens.pink, fontWeight: FontWeight.w700, fontSize: 12))
+                            else
+                              Text('${s['open']} — ${s['close']}', style: TextStyle(fontWeight: FontWeight.w700, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7))),
+                          ],
+                        ),
+                      ),
+                      if (s['peak']!.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: VitalTokens.orange.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const Text('PEAK HOURS', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: VitalTokens.orange)),
+                              Text(s['peak']!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: VitalTokens.orange)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              )),
+              const SizedBox(height: 24),
+              _CampusResourceScreen(
+                title: 'Study Guidelines',
+                subtitle: 'Optimizing your library sessions',
+                items: [
+                  'Use low-traffic (morning) hours for deep work sessions.',
+                  'Group formula-heavy revision near reference sections.',
+                  'Plan assignment and print tasks before 04:00 PM.',
+                  'Maintain strict silence in the designated Focus Zones.',
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+class _TransportScheduleScreen extends StatefulWidget {
+  const _TransportScheduleScreen({super.key});
+
+  @override
+  State<_TransportScheduleScreen> createState() => _TransportScheduleScreenState();
+}
+
+class _TransportScheduleScreenState extends State<_TransportScheduleScreen> {
+  final HelpdeskScheduleDataService _service = HelpdeskScheduleDataService();
+  final TextEditingController _searchController = TextEditingController();
+  List<TransportRouteData> _allRoutes = [];
+  List<TransportRouteData> _filteredRoutes = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    final payload = await _service.fetchSchedulePayload();
+    if (mounted) {
+      setState(() {
+        _allRoutes = payload.transportRoutes;
+        _filteredRoutes = _allRoutes;
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredRoutes = _allRoutes.where((r) {
+        final matchesName = r.route.toLowerCase().contains(query);
+        final matchesStop = r.stops.any((s) => s.point.toLowerCase().contains(query));
+        return matchesName || matchesStop;
+      }).toList();
+    });
+  }
+
+  void _makeCall(String number) async {
+    if (number.isEmpty) return;
+    final cleanNumber = number.replaceAll('-', '').replaceAll(' ', '');
+    final url = Uri.parse('tel:$cleanNumber');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: irisFrostedAppBar(title: 'Transport Schedule', isDark: isDark),
+      body: Stack(
+        children: [
+          ObsidianPulse(isDark: isDark),
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator(color: VitalTokens.success))
+          else if (_allRoutes.isEmpty)
+             Center(
+               child: Column(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   Icon(Icons.bus_alert_rounded, size: 64, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)),
+                   const SizedBox(height: 16),
+                   Text('No transport data found', style: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
+                 ],
+               ),
+             )
+          else
+            ListView(
+              padding: const EdgeInsets.fromLTRB(16, 110, 16, 40),
+              children: [
+                _ResourceHeroCard(
+                  title: 'Campus Transport',
+                  subtitle: 'Live routes, office contacts and shuttle timings',
+                  icon: Icons.directions_bus_rounded,
+                  accent: VitalTokens.success,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 24),
+                
+                // Search Bar
+                GlassCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    decoration: InputDecoration(
+                      hintText: 'Search route or stop...',
+                      hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3)),
+                      border: InputBorder.none,
+                      icon: Icon(Icons.search_rounded, color: VitalTokens.success.withValues(alpha: 0.5)),
+                      suffixIcon: _searchController.text.isNotEmpty 
+                        ? IconButton(
+                            icon: const Icon(Icons.close_rounded, size: 20),
+                            onPressed: () => _searchController.clear(),
+                          )
+                        : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, right: 4, bottom: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'ACTIVE ROUTES (${_filteredRoutes.length})',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      if (_filteredRoutes.length != _allRoutes.length)
+                        Text(
+                          'FILTERED',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: VitalTokens.success.withValues(alpha: 0.5),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                
+                ..._filteredRoutes.map((r) => _RouteCard(
+                  route: r,
+                  isDark: isDark,
+                  onCall: _makeCall,
+                )),
+                
+                const SizedBox(height: 24),
+                GlassCard(
+                  padding: const EdgeInsets.all(20),
+                  backgroundColor: VitalTokens.orange.withValues(alpha: 0.05),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: VitalTokens.orange),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Routes may vary during exam weeks or public holidays. Contact the transport office for real-time status.',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RouteCard extends StatefulWidget {
+  final TransportRouteData route;
+  final bool isDark;
+  final Function(String) onCall;
+
+  const _RouteCard({
+    required this.route,
+    required this.isDark,
+    required this.onCall,
+  });
+
+  @override
+  State<_RouteCard> createState() => _RouteCardState();
+}
+
+class _RouteCardState extends State<_RouteCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = widget.route;
+    final isDark = widget.isDark;
+    
+    // Determine primary display time (usually first stop)
+    final mainTime = r.stops.isNotEmpty ? r.stops.first.time : 'Scheduled';
+    final stopCount = r.stops.length;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: GlassCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        r.route.toUpperCase(),
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                      ),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: VitalTokens.success.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                          Icon(Icons.access_time_rounded, size: 14, color: VitalTokens.success.withValues(alpha: 0.6)),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Starts at $mainTime',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
                             ),
-                            child: Text(r['id']!, style: const TextStyle(color: VitalTokens.success, fontWeight: FontWeight.w900, fontSize: 12)),
                           ),
-                          const SizedBox(width: 12),
-                          Text(r['name']!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time_rounded, size: 16, color: VitalTokens.success),
-                          const SizedBox(width: 8),
-                          Text(r['times']!, style: TextStyle(fontWeight: FontWeight.w700, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7))),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.location_on_rounded, size: 16, color: VitalTokens.success),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(r['stops']!, style: TextStyle(fontSize: 13, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5)))),
                         ],
                       ),
                     ],
                   ),
                 ),
-              )),
-            ],
-          ),
-        ],
+                Material(
+                  color: Colors.transparent,
+                  child: Row(
+                    children: [
+                      if (r.driverPhone.isNotEmpty)
+                        IconButton(
+                          onPressed: () => widget.onCall(r.driverPhone),
+                          icon: const Icon(Icons.phone_in_talk_rounded, size: 20, color: VitalTokens.success),
+                          style: IconButton.styleFrom(
+                            backgroundColor: VitalTokens.success.withValues(alpha: 0.1),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      if (r.helperPhone.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () => widget.onCall(r.helperPhone),
+                          icon: const Icon(Icons.support_agent_rounded, size: 20, color: VitalTokens.orange),
+                          style: IconButton.styleFrom(
+                            backgroundColor: VitalTokens.orange.withValues(alpha: 0.1),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Personnel Info
+            Row(
+              children: [
+                _PersonnelTag(
+                  label: 'DRIVER',
+                  name: r.driverName,
+                  isDark: isDark,
+                  icon: Icons.person_rounded,
+                ),
+                if (r.helperName.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  _PersonnelTag(
+                    label: 'HELPER',
+                    name: r.helperName,
+                    isDark: isDark,
+                    icon: Icons.person_outline_rounded,
+                  ),
+                ],
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Stops Summary or Expandable
+            InkWell(
+              onTap: () => setState(() => _isExpanded = !_isExpanded),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.route_rounded, size: 14, color: VitalTokens.success),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$stopCount Stops in Route',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Icon(
+                          _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                          size: 18,
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+                        ),
+                      ],
+                    ),
+                    if (_isExpanded) ...[
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+                      ...r.stops.map((s) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 60,
+                              child: Text(
+                                s.time,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: VitalTokens.success,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                s.point,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PersonnelTag extends StatelessWidget {
+  final String label;
+  final String name;
+  final bool isDark;
+  final IconData icon;
+
+  const _PersonnelTag({
+    required this.label,
+    required this.name,
+    required this.isDark,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(icon, size: 10, color: VitalTokens.success.withValues(alpha: 0.5)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    name.isEmpty ? 'Not assigned' : name,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

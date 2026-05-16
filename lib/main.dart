@@ -39,6 +39,7 @@ import 'screens/teacher_locator_screen.dart';
 import 'services/helpdesk_campus_feed_service.dart';
 import 'services/helpdesk_faculty_service.dart';
 import 'services/helpdesk_schedule_data_service.dart';
+import 'services/headless_portal_sync.dart';
 import 'services/notification_service.dart';
 import 'services/timetable_ota_service.dart';
 import 'services/ui_feedback.dart';
@@ -441,7 +442,7 @@ class _AppRootState extends State<_AppRoot> {
   Future<void> _loadBatch() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedBatch = prefs.getString('selectedBatch');
+      _selectedBatch = prefs.getString('user_batch');
     });
   }
 
@@ -474,7 +475,7 @@ class _AppRootState extends State<_AppRoot> {
   Future<void> _saveBatch(String batch) async {
     final prefs = await SharedPreferences.getInstance();
     final trimmed = batch.trim();
-    await prefs.setString('selectedBatch', trimmed);
+    await prefs.setString('user_batch', trimmed);
     final isFirstSetup = prefs.getBool('widget_prompt_shown') != true;
     setState(() => _selectedBatch = trimmed);
 
@@ -766,6 +767,7 @@ class _AppRootState extends State<_AppRoot> {
         onSetThemeMode: widget.onSetThemeMode,
         currentThemeMode: widget.currentThemeMode,
         onRoleChanged: _saveUserRole,
+        onBatchChanged: _saveBatch,
       );
     }
 
@@ -777,31 +779,23 @@ class _AppRootState extends State<_AppRoot> {
       return _NameCaptureScreen(onComplete: _saveUserName);
     }
 
-    return Dashboard(
-      memory: widget.memory,
-      brain: _brain,
-      batch: _selectedBatch!,
-      onToggleTheme: widget.onToggleTheme,
-      onSetThemeMode: widget.onSetThemeMode,
-      currentThemeMode: widget.currentThemeMode,
-      userName: _userName,
-      onUserNameChanged: (name) => setState(() => _userName = name),
-      onRoleChanged: _saveUserRole,
-      onChangeBatch: () async {
-        final result = await showModalBottomSheet<String>(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (ctx) => BatchSelectorSheet(
-            memory: widget.memory,
-            selected: _selectedBatch!,
-          ),
-        );
-        if (result != null && result != _selectedBatch) {
-          await _saveBatch(result);
-          IrisHaptics.chipSelect();
-        }
-      },
+    return Stack(
+      children: [
+        Dashboard(
+          memory: widget.memory,
+          brain: _brain,
+          batch: _selectedBatch!,
+          onToggleTheme: widget.onToggleTheme,
+          onSetThemeMode: widget.onSetThemeMode,
+          currentThemeMode: widget.currentThemeMode,
+          userName: _userName,
+          onUserNameChanged: (name) => setState(() => _userName = name),
+          onRoleChanged: _saveUserRole,
+          onChangeBatch: () => setState(() => _selectedBatch = null),
+          onBatchChanged: _saveBatch,
+        ),
+        const HeadlessPortalSync(url: 'https://swl-sis.comsats.edu.pk/Login/Index'),
+      ],
     );
   }
 }
@@ -2139,6 +2133,7 @@ class Dashboard extends StatefulWidget {
   final String? userName;
   final ValueChanged<String>? onUserNameChanged;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
 
   const Dashboard({
     required this.memory,
@@ -2151,6 +2146,7 @@ class Dashboard extends StatefulWidget {
     this.userName,
     this.onUserNameChanged,
     this.onRoleChanged,
+    this.onBatchChanged,
     super.key,
   });
 
@@ -2163,7 +2159,8 @@ class FacultyDashboard extends StatefulWidget {
   final VoidCallback onToggleTheme;
   final Future<void> Function(String mode) onSetThemeMode;
   final String currentThemeMode;
-  final ValueChanged<String> onRoleChanged;
+  final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
 
   const FacultyDashboard({
     required this.brain,
@@ -2171,6 +2168,7 @@ class FacultyDashboard extends StatefulWidget {
     required this.onSetThemeMode,
     required this.currentThemeMode,
     required this.onRoleChanged,
+    this.onBatchChanged,
     super.key,
   });
 
@@ -2445,6 +2443,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   Future<void> _saveSelectedTeacher(String teacherName) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('faculty_teacher', teacherName);
+    await prefs.setString('faculty_user_name', teacherName);
     await prefs.setString('user_role', 'faculty');
     await _persistTimetableData();
     setState(() {
@@ -6763,6 +6762,7 @@ class _DashboardState extends State<Dashboard>
           key: const PageStorageKey<String>('student_tab_about'),
           memory: widget.memory,
           onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
         );
       default:
         return const SizedBox.shrink();
@@ -6881,6 +6881,7 @@ class _DashboardState extends State<Dashboard>
         onAddMakeupClass: _addMakeupSession,
         onRemoveMakeupClass: _removeMakeupSession,
         onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
         showDock: false,
       ),
     );
@@ -10721,6 +10722,7 @@ class _DepartmentClassesScreen extends StatefulWidget {
   final String currentBatch;
   final OmniBrain? brain;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
   final bool showDock;
   final bool showBackButton;
 
@@ -10729,6 +10731,7 @@ class _DepartmentClassesScreen extends StatefulWidget {
     required this.currentBatch,
     this.brain,
     this.onRoleChanged,
+    this.onBatchChanged,
     this.showDock = true,
     this.showBackButton = true,
     super.key,
@@ -10743,12 +10746,14 @@ class _DepartmentClassesScreen extends StatefulWidget {
 class _FacultyDirectoryScreen extends StatefulWidget {
   final OmniBrain? brain;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
   final UniversityMemory? memory;
   final String? currentBatch;
 
   const _FacultyDirectoryScreen({
     this.brain,
     this.onRoleChanged,
+    this.onBatchChanged,
     this.memory,
     this.currentBatch,
     super.key,
@@ -10921,6 +10926,7 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
         builder: (_) => TeacherLocatorScreen(
           brain: widget.brain!,
           onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
           memory: widget.memory,
           currentBatch: widget.currentBatch,
           initialTeacherQuery: item.name,
@@ -12170,6 +12176,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                           page: TeacherLocatorScreen(
                             brain: widget.brain!,
                             onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
                             memory: widget.memory,
                             currentBatch: widget.currentBatch,
                           ),
@@ -12192,6 +12199,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                             batch: widget.currentBatch,
                             brain: widget.brain!,
                             onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
                           ),
                         )
                       : () {
@@ -12208,6 +12216,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                     page: AboutScreen(
                       memory: widget.memory,
                       onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
                     ),
                   ),
                 ),
@@ -12338,6 +12347,7 @@ class MakeupLectureScheduler extends StatefulWidget {
   final Future<void> Function(ClassSession session) onAddMakeupClass;
   final Future<void> Function(ClassSession session)? onRemoveMakeupClass;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
   final bool showDock;
   final bool showBackButton;
 
@@ -12348,6 +12358,7 @@ class MakeupLectureScheduler extends StatefulWidget {
     required this.onAddMakeupClass,
     this.onRemoveMakeupClass,
     this.onRoleChanged,
+    this.onBatchChanged,
     this.showDock = true,
     this.showBackButton = true,
     super.key,
@@ -12700,6 +12711,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       page: TeacherLocatorScreen(
         brain: widget.brain,
         onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
         memory: widget.memory,
         currentBatch: widget.batch,
       ),
@@ -12733,6 +12745,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
         currentBatch: widget.batch,
         brain: widget.brain,
         onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
       ),
     );
   }
@@ -12749,6 +12762,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
         batch: widget.batch,
         brain: widget.brain,
         onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
       ),
     );
   }
@@ -12763,6 +12777,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       page: AboutScreen(
         memory: widget.memory,
         onRoleChanged: widget.onRoleChanged,
+        onBatchChanged: widget.onBatchChanged,
       ),
     );
   }

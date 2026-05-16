@@ -25,11 +25,13 @@ class AboutScreen extends StatefulWidget {
   final UniversityMemory memory;
   final ValueChanged<String>? onUserNameChanged;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
 
   const AboutScreen({
     required this.memory,
     this.onUserNameChanged,
     this.onRoleChanged,
+    this.onBatchChanged,
     super.key,
   });
 
@@ -60,11 +62,18 @@ class _AboutScreenState extends State<AboutScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _userName = prefs.getString('student_user_name')?.trim().isNotEmpty == true
-          ? prefs.getString('student_user_name')!.trim()
-          : 'Student';
-      _batch = prefs.getString('user_batch') ?? 'UNKNOWN';
       _userRole = prefs.getString('user_role') ?? 'student';
+      
+      // Load name based on role
+      if (_userRole == 'faculty') {
+        _userName = prefs.getString('faculty_user_name') ?? 'Faculty Member';
+      } else {
+        _userName = prefs.getString('student_user_name')?.trim().isNotEmpty == true
+            ? prefs.getString('student_user_name')!.trim()
+            : 'Student';
+      }
+
+      _batch = prefs.getString('user_batch') ?? 'UNKNOWN';
       _notificationsEnabled = prefs.getBool('persistent_notification_enabled') ??
           prefs.getBool('notifications_enabled') ??
           false;
@@ -103,6 +112,7 @@ class _AboutScreenState extends State<AboutScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_batch', result);
       setState(() => _batch = result);
+      widget.onBatchChanged?.call(result);
       IrisHaptics.actionHeavy();
       if (mounted) {
         showIrisFrostedSnackBar(
@@ -115,6 +125,15 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Future<void> _editUserName() async {
+    if (_userRole == 'faculty') {
+      showIrisFrostedSnackBar(
+        context,
+        content: const Text('Faculty name is derived from timetable data.'),
+        tint: IrisTokens.brand,
+      );
+      return;
+    }
+
     final controller = TextEditingController(
       text: _userName == 'Student' ? '' : _userName,
     );
@@ -163,10 +182,22 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Future<void> _toggleRole() async {
-    final newRole = _userRole == 'student' ? 'teacher' : 'student';
+    final newRole = _userRole == 'student' ? 'faculty' : 'student';
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_role', newRole);
-    setState(() => _userRole = newRole);
+    
+    // Update local state and name immediately
+    setState(() {
+      _userRole = newRole;
+      if (newRole == 'faculty') {
+        _userName = prefs.getString('faculty_user_name') ?? 'Faculty Member';
+      } else {
+        _userName = prefs.getString('student_user_name')?.trim().isNotEmpty == true
+            ? prefs.getString('student_user_name')!.trim()
+            : 'Student';
+      }
+    });
+    
     widget.onRoleChanged?.call(newRole);
     IrisHaptics.actionMedium();
   }
@@ -424,28 +455,31 @@ class _AboutScreenState extends State<AboutScreen> {
                 const SizedBox(height: 24),
                 _buildSectionHeader('Account', Icons.person_rounded),
                 const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.badge_rounded,
-                  title: 'Display name',
-                  subtitle: 'Change how your account name appears',
-                  accent: IrisTokens.brand,
-                  trailing: Text(
-                    _userName,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: IrisTokens.brand,
+                  _buildSettingCard(
+                    isDark: isDark,
+                    icon: Icons.badge_rounded,
+                    title: 'Display name',
+                    subtitle: _userRole == 'faculty' ? 'Faculty identity is verified' : 'Change how your account name appears',
+                    accent: IrisTokens.brand,
+                    trailing: Opacity(
+                      opacity: _userRole == 'faculty' ? 0.5 : 1.0,
+                      child: Text(
+                        _userName,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: IrisTokens.brand,
+                        ),
+                      ),
                     ),
+                    onTap: _editUserName,
                   ),
-                  onTap: _editUserName,
-                ),
                 const SizedBox(height: 12),
                 _buildSettingCard(
                   isDark: isDark,
                   icon: Icons.school_rounded,
                   title: 'Role',
-                  subtitle: 'Switch between student and teacher mode',
+                  subtitle: 'Switch between student and faculty mode',
                   accent: IrisTokens.purple,
                   trailing: Text(
                     _userRole.toUpperCase(),
@@ -458,19 +492,21 @@ class _AboutScreenState extends State<AboutScreen> {
                   onTap: _toggleRole,
                 ),
                 const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.batch_prediction_rounded,
-                  title: 'Batch',
-                  subtitle: 'Update your current program and semester',
-                  accent: IrisTokens.success,
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 14,
-                    color: IrisTokens.success,
+                if (_userRole == 'student') ...[
+                  _buildSettingCard(
+                    isDark: isDark,
+                    icon: Icons.batch_prediction_rounded,
+                    title: 'Batch',
+                    subtitle: 'Update your current program and semester',
+                    accent: IrisTokens.success,
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: IrisTokens.success,
+                    ),
+                    onTap: _updateBatch,
                   ),
-                  onTap: _updateBatch,
-                ),
+                ],
                 const SizedBox(height: 24),
                 _buildSectionHeader('Interface', Icons.tune_rounded),
                 const SizedBox(height: 12),
@@ -654,7 +690,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       ),
                     ),
                     Text(
-                      '${_userRole == 'teacher' ? 'Faculty Member' : 'Student'} • $_batch',
+                      _userRole == 'faculty' ? 'Faculty Member' : 'Student • $_batch',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,

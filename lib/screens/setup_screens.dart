@@ -264,7 +264,7 @@ class _SetupBotState extends State<SetupBot> {
 
   Future<void> _loadInitialBatchSelection() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedBatch = prefs.getString('selectedBatch')?.trim();
+    final savedBatch = prefs.getString('user_batch')?.trim();
 
     final fallbackBatch = savedBatch != null && savedBatch.isNotEmpty
         ? savedBatch

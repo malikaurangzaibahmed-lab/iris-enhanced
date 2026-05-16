@@ -1201,76 +1201,79 @@ class _ClassCardState extends State<ClassCard>
       valueListenable: ThemeSignals.useVitalTheme,
       builder: (context, useVital, _) {
         if (useVital) {
-          return VitalCard(
-            animate: false, // Handled by StaggeredListItem
-            backgroundColor: live ? VitalTokens.green.withValues(alpha: isDark ? 0.15 : 0.08) : null,
-            border: live ? Border.all(color: VitalTokens.green.withValues(alpha: 0.3), width: 1.5) : null,
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.session.subject,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: live ? VitalTokens.green : textPrimary,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            child: VitalCard(
+              animate: false, // Handled by StaggeredListItem
+              backgroundColor: live ? VitalTokens.green.withValues(alpha: isDark ? 0.15 : 0.08) : null,
+              border: live ? Border.all(color: VitalTokens.green.withValues(alpha: 0.3), width: 1.5) : null,
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.session.subject,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: live ? VitalTokens.green : textPrimary,
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: live ? VitalTokens.green : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
-                        borderRadius: BorderRadius.circular(VitalTokens.radiusFull),
-                      ),
-                      child: Text(
-                        timeLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: live ? Colors.white : textSecondary,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: live ? VitalTokens.green : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+                          borderRadius: BorderRadius.circular(VitalTokens.radiusFull),
+                        ),
+                        child: Text(
+                          timeLabel,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: live ? Colors.white : textSecondary,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.location_on_rounded, size: 16, color: accentColor.withValues(alpha: 0.6)),
+                          const SizedBox(width: 6),
+                          Text(
+                            widget.session.room,
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: textPrimary),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        widget.isFacultyView ? widget.session.batchKey.batch : widget.session.teacher,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textSecondary),
+                      ),
+                    ],
+                  ),
+                  if (live) ...[
+                    const SizedBox(height: 20),
+                    _buildVitalProgress(isDark),
                   ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.location_on_rounded, size: 16, color: accentColor.withValues(alpha: 0.6)),
-                        const SizedBox(width: 6),
-                        Text(
-                          widget.session.room,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: textPrimary),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      widget.isFacultyView ? widget.session.batchKey.batch : widget.session.teacher,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textSecondary),
-                    ),
-                  ],
-                ),
-                if (live) ...[
-                  const SizedBox(height: 20),
-                  _buildVitalProgress(isDark),
                 ],
-              ],
+              ),
             ),
           );
         }
 
         // Legacy GlassCard
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           child: TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.0, end: 1.0),
             duration: IrisMotion.medium,

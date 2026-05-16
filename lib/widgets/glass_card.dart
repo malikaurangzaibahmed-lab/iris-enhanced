@@ -16,6 +16,7 @@ class GlassCard extends StatelessWidget {
   final double? borderRadius;
   final int elevation;
   final Color? accentColor;
+  final Color? backgroundColor;
   final bool tilt;
   final VoidCallback? onTap;
 
@@ -30,6 +31,7 @@ class GlassCard extends StatelessWidget {
     this.borderRadius,
     this.elevation = 2,
     this.accentColor,
+    this.backgroundColor,
     this.tilt = false,
     this.onTap,
     super.key,
@@ -45,9 +47,9 @@ class GlassCard extends StatelessWidget {
         accentColor ?? (isDark ? IrisTokens.brandDark : IrisTokens.brand);
 
     // Ultra-glass transparency with dark tint in dark mode
-    final glassColor = isDark
+    final glassColor = backgroundColor ?? (isDark
         ? const Color(0xFF020617).withValues(alpha: 0.10)
-        : Colors.white.withValues(alpha: 0.48);
+        : Colors.white.withValues(alpha: 0.48));
     final borderColor = isDark
         ? Colors.white.withValues(alpha: 0.06)
         : Colors.black.withValues(alpha: 0.04);

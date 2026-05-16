@@ -17,18 +17,25 @@ import '../core/vital_motion.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
+import 'about_screen.dart';
 
 class FacultyDashboard extends StatefulWidget {
   final OmniBrain brain;
   final String teacherName;
   final VoidCallback onToggleTheme;
+  final ValueChanged<ThemeMode>? onSetThemeMode;
+  final ThemeMode currentThemeMode;
   final ValueChanged<String>? onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
 
   const FacultyDashboard({
     required this.brain,
-    required this.teacherName,
+    this.teacherName = '',
     required this.onToggleTheme,
+    this.onSetThemeMode,
+    this.currentThemeMode = ThemeMode.system,
     this.onRoleChanged,
+    this.onBatchChanged,
     super.key,
   });
 
@@ -208,7 +215,9 @@ class _FacultyDashboardState extends State<FacultyDashboard>
               final t = teachers[index];
               return ListTile(
                 title: Text(t, style: const TextStyle(fontWeight: FontWeight.w600)),
-                onTap: () {
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('faculty_user_name', t);
                   setState(() {
                     _selectedTeacher = t;
                     _updateScheduleCache();
@@ -328,7 +337,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
                         final session = schedule[index];
                         final nextSession = index + 1 < schedule.length ? schedule[index + 1] : null;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.only(bottom: 12),
                           child: ClassCard(
                             session: session,
                             nextSession: nextSession,
@@ -622,10 +631,20 @@ class _FacultyDashboardState extends State<FacultyDashboard>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.dashboard_rounded, 'DASH', true, isDark),
-              _buildNavItem(1, Icons.groups_rounded, 'STUDENTS', false, isDark),
-              _buildNavItem(2, Icons.cloud_rounded, 'PORTAL', false, isDark),
-              _buildNavItem(3, Icons.settings_rounded, 'ABOUT', false, isDark),
+              _buildNavItem(0, Icons.dashboard_rounded, 'DASH', true, isDark, () {}),
+              _buildNavItem(1, Icons.groups_rounded, 'STUDENTS', false, isDark, () {}),
+              _buildNavItem(2, Icons.cloud_rounded, 'PORTAL', false, isDark, () {}),
+              _buildNavItem(3, Icons.settings_rounded, 'ABOUT', false, isDark, () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AboutScreen(
+                      memory: widget.brain.memory,
+                      onRoleChanged: widget.onRoleChanged,
+                      onBatchChanged: widget.onBatchChanged,
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ),
@@ -633,23 +652,29 @@ class _FacultyDashboardState extends State<FacultyDashboard>
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, bool isSelected, bool isDark) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: isSelected ? IrisTokens.brand : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: FontWeight.w900,
+  Widget _buildNavItem(int index, IconData icon, String label, bool isSelected, bool isDark, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: () {
+        IrisSfx.navTick();
+        onTap();
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
             color: isSelected ? IrisTokens.brand : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
           ),
-        ),
-      ],
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
