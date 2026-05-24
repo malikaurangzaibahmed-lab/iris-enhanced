@@ -57,7 +57,7 @@ class DashboardDock extends StatefulWidget {
     final radius = showFacultySet
         ? (veryCompact ? 18.0 : (compact ? 22.0 : 28.0))
         : (veryCompact ? 18.0 : (compact ? 20.0 : 24.0));
-    final itemCount = showStudentSet ? 4 : (showFacultySet ? 4 : 7);
+    final itemCount = showStudentSet ? 5 : (showFacultySet ? 4 : 7);
     final safeSelected = state.displaySelectedIndex(itemCount, selectedIndex);
     final activeColor = showFacultySet ? IrisTokens.purple : IrisTokens.brand;
     final pillAccent = IrisTokens.brand;
@@ -280,8 +280,9 @@ class DashboardDock extends StatefulWidget {
       _buildNavButton(0, Icons.home_filled, Icons.home_rounded, 'Home', onHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst), isDark, safeSelected, activeColor, state, itemCount),
       if (showStudentSet) ...[
         _buildNavButton(1, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(2, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(3, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(2, Icons.school_rounded, Icons.school_outlined, 'Academics', onClasses ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(3, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(4, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
       ] else if (showFacultySet) ...[
         _buildNavButton(1, Icons.badge_rounded, Icons.badge_outlined, 'Teacher', onTeacher ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
         _buildNavButton(2, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
@@ -450,6 +451,27 @@ class _DashboardDockState extends State<DashboardDock> {
   }
 
   void _activateIndex(BuildContext context, int index) {
+    if (widget.showStudentSet) {
+      switch (index) {
+        case 0:
+          (widget.onHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst))();
+          break;
+        case 1:
+          widget.onPortal?.call();
+          break;
+        case 2:
+          widget.onClasses?.call(); // Academics
+          break;
+        case 3:
+          widget.onTools?.call(); // Tools
+          break;
+        case 4:
+          widget.onAbout?.call(); // About
+          break;
+      }
+      return;
+    }
+
     switch (index) {
       case 0:
         (widget.onHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst))();

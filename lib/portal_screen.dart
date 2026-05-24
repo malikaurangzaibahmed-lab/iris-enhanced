@@ -671,6 +671,11 @@ class _PortalScreenState extends State<PortalScreen>
           _hasSavedLogin = false;
         });
       }
+
+      // Automatically autofill credentials to streamline session holding
+      if (_hasLoginForm && _hasSavedLogin && mounted) {
+        await _autofillSavedLogin();
+      }
     } catch (_) {}
   }
 
@@ -1665,14 +1670,16 @@ class _PortalScreenState extends State<PortalScreen>
 (() => {
   const setNativeValue = (element, value) => {
     if (!element) return false;
-    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
-    if (descriptor && descriptor.set) {
-      descriptor.set.call(element, value);
-    } else {
-      element.value = value;
-    }
+    element.value = value;
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(element, value);
+      }
+    } catch (_) {}
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
+    element.dispatchEvent(new Event('blur', { bubbles: true }));
     return true;
   };
 
@@ -1692,7 +1699,7 @@ class _PortalScreenState extends State<PortalScreen>
   };
 
   const pwd = document.querySelector('input[type="password"]');
-  const scope = (pwd && pwd.form) ? pwd.form : document;
+  const scope = document;
   const candidates = Array.from(scope.querySelectorAll('input, textarea'))
     .filter((element) => element !== pwd)
     .filter((element) => {
@@ -1709,6 +1716,47 @@ class _PortalScreenState extends State<PortalScreen>
   if (pwd) {
     pwd.focus();
     setNativeValue(pwd, $jsPass);
+  }
+
+  // Smoothly focus and scroll to the captcha field if one exists
+  const captchaInput = Array.from(document.querySelectorAll('input')).find(input => {
+    const type = (input.type || '').toLowerCase();
+    if (type !== "text" && type !== "number") return false;
+    const meta = [input.id, input.name, input.placeholder, input.className].filter(Boolean).join(" ").toLowerCase();
+    return /captcha|code|validate|verif|security/i.test(meta);
+  });
+  
+  if (captchaInput) {
+    // Attempt to automatically solve simple mathematical captchas (e.g., "5 + 3 = ?")
+    const solveMath = () => {
+      const textElements = Array.from(document.querySelectorAll('label, span, div, p, td, b'));
+      for (const el of textElements) {
+        const text = el.innerText || '';
+        const match = text.match(/(\d+)\s*([\+\-\*])\s*(\d+)/) || 
+                      text.match(/(\d+)\s*(plus|minus|times)\s*(\d+)/i);
+        if (match) {
+          const num1 = parseInt(match[1]);
+          const op = match[2].toLowerCase();
+          const num2 = parseInt(match[3]);
+          let ans = null;
+          if (op === '+' || op === 'plus') ans = num1 + num2;
+          else if (op === '-' || op === 'minus') ans = num1 - num2;
+          else if (op === '*' || op === 'times') ans = num1 * num2;
+          if (ans !== null) return ans.toString();
+        }
+      }
+      return null;
+    };
+
+    const solvedVal = solveMath();
+    if (solvedVal) {
+      setNativeValue(captchaInput, solvedVal);
+    } else {
+      setTimeout(() => {
+        captchaInput.focus();
+        captchaInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    }
   }
 })();
 ''';
@@ -2136,6 +2184,75 @@ class _PortalScreenState extends State<PortalScreen>
     }
   }
 
+  Future<void> _processScrapedAcademics(Map<String, dynamic> data) async {
+    try {
+      final academicsData = data['data'] as Map<String, dynamic>? ?? {};
+      
+      // Save to cache
+      await PortalSyncService.saveCachedAcademics(academicsData);
+      
+      final List<dynamic> courses = academicsData['courses'] as List<dynamic>? ?? [];
+      final List<PortalTask> flattenedTasks = [];
+      
+      for (final course in courses) {
+        final courseName = course['name']?.toString() ?? 'Unknown';
+        final courseId = course['id']?.toString();
+        
+        final assignments = course['assignments'] as List<dynamic>? ?? [];
+        final quizzes = course['quizzes'] as List<dynamic>? ?? [];
+        
+        for (final a in assignments) {
+          flattenedTasks.add(PortalTask(
+            type: 'Assignment',
+            title: a['title']?.toString() ?? 'Untitled',
+            subject: courseName,
+            dueDate: a['due']?.toString() ?? '',
+            status: a['status']?.toString() ?? 'OPEN',
+            isCompleted: a['status']?.toString().toUpperCase() == 'CLOSED',
+            isActionable: a['status']?.toString().toUpperCase() == 'OPEN',
+            courseId: courseId,
+            scrapedAt: DateTime.now().millisecondsSinceEpoch,
+          ));
+        }
+        for (final q in quizzes) {
+          flattenedTasks.add(PortalTask(
+            type: 'Quiz',
+            title: q['title']?.toString() ?? 'Untitled',
+            subject: courseName,
+            dueDate: q['due']?.toString() ?? '',
+            status: q['status']?.toString() ?? 'OPEN',
+            isCompleted: q['status']?.toString().toUpperCase() == 'CLOSED',
+            isActionable: q['status']?.toString().toUpperCase() == 'OPEN',
+            courseId: courseId,
+            scrapedAt: DateTime.now().millisecondsSinceEpoch,
+          ));
+        }
+      }
+
+      if (flattenedTasks.isNotEmpty) {
+        if (mounted) {
+          setState(() => _scraperLogs.add('[IRIS] Scraped ${courses.length} courses and saved ${flattenedTasks.length} tasks successfully!'));
+        }
+        await PortalSyncService.updatePersistence(flattenedTasks);
+        final updatedSession = await _loadPortalSession(_currentSession.host);
+        if (updatedSession != null && mounted) {
+          setState(() {
+            _currentSession = updatedSession;
+          });
+        }
+        PortalSyncService.notifyUpdate();
+      } else {
+        if (mounted) {
+          setState(() => _scraperLogs.add('[IRIS] Scrape completed. Loaded ${courses.length} courses. No new tasks found.'));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _scraperLogs.add('[ERROR] Academics processing failed: $e'));
+      }
+    }
+  }
+
   Future<void> _processScrapedTasks(Map<String, dynamic> data) async {
     try {
       final List<dynamic> courses = data['courses'] as List<dynamic>? ?? [];
@@ -2164,11 +2281,21 @@ class _PortalScreenState extends State<PortalScreen>
       }
 
       if (flattenedTasks.isNotEmpty) {
-        setState(() => _scraperLogs.add('[IRIS] Scrape successful! Saving ${flattenedTasks.length} tasks.'));
+        if (mounted) {
+          setState(() => _scraperLogs.add('[IRIS] Scrape successful! Saving ${flattenedTasks.length} tasks.'));
+        }
         await PortalSyncService.updatePersistence(flattenedTasks);
+        final updatedSession = await _loadPortalSession(_currentSession.host);
+        if (updatedSession != null && mounted) {
+          setState(() {
+            _currentSession = updatedSession;
+          });
+        }
         PortalSyncService.notifyUpdate();
       } else {
-        setState(() => _scraperLogs.add('[IRIS] Scrape completed, but no new tasks found.'));
+        if (mounted) {
+          setState(() => _scraperLogs.add('[IRIS] Scrape completed, but no new tasks found.'));
+        }
       }
     } catch (e) {
       setState(() => _scraperLogs.add('[ERROR] Task processing failed: $e'));
@@ -2176,7 +2303,7 @@ class _PortalScreenState extends State<PortalScreen>
   }
 
   // Handles messages from the injected JS channel
-  void _handleJsMessage(JavaScriptMessage message) {
+  Future<void> _handleJsMessage(JavaScriptMessage message) async {
     try {
       final data = jsonDecode(message.message);
       if (data['type'] == 'log') {
@@ -2187,6 +2314,11 @@ class _PortalScreenState extends State<PortalScreen>
             if (_scraperLogs.length > 100) _scraperLogs.removeAt(0);
           });
         }
+        return;
+      }
+      
+      if (data['type'] == 'portal_sync_academics') {
+        _processScrapedAcademics(data);
         return;
       }
       
@@ -2293,13 +2425,13 @@ class _PortalScreenState extends State<PortalScreen>
         }
 
         if (mounted) {
-          setState(() {
-            _currentSession = _currentSession.copyWith(
-              tasks: flattenedTasks,
-              lastSyncAt: DateTime.now().millisecondsSinceEpoch,
-            );
-          });
-          _savePortalSession();
+          await PortalSyncService.updatePersistence(flattenedTasks);
+          final updatedSession = await _loadPortalSession(_currentSession.host);
+          if (updatedSession != null && mounted) {
+            setState(() {
+              _currentSession = updatedSession;
+            });
+          }
           PortalSyncService.notifyUpdate();
           _showMessage('✓ Scoped ${flattenedTasks.length} portal tasks');
           IrisSfx.tick();
@@ -2364,36 +2496,97 @@ class _PortalScreenState extends State<PortalScreen>
 
   String get addressLabelSafe => _currentUrl.isEmpty ? widget.url : _currentUrl;
 
-  // Detects form submissions with a password field and offers to save credentials
   static const String _savePasswordScript = r'''
 (() => {
   if (window._irisFormWatcher) return;
   window._irisFormWatcher = true;
-  const watch = () => {
-    document.querySelectorAll('form').forEach(form => {
-      if (form._irisWatching) return;
-      form._irisWatching = true;
-      form.addEventListener('submit', () => {
-        const pwd = form.querySelector('input[type="password"]');
-        if (!pwd || !pwd.value) return;
-        const user = form.querySelector(
-          'input[type="email"], input[name*="user" i], input[id*="user" i], input[name*="roll" i], input[name*="reg" i], input[type="text"]'
-        );
-        if (window.IrisPortalChannel) {
-          window.IrisPortalChannel.postMessage(JSON.stringify({
-            type: 'login_submit',
-            username: user ? user.value : '',
-            password: pwd.value
-          }));
-        }
-      }, true);
-    });
+
+  let lastUsername = '';
+  let lastPassword = '';
+
+  const scoreField = (element) => {
+    const meta = [element.name, element.id, element.placeholder, element.autocomplete, element.type].filter(Boolean).join(' ').toLowerCase();
+    let score = 0;
+    if (/email|user|username|login|roll|reg|id|student|account/.test(meta)) score += 3;
+    if (/password/.test(meta)) score -= 8;
+    if (element.type === 'text' || element.type === 'email' || element.type === 'tel' || element.type === 'number') score += 1;
+    return score;
   };
-  watch();
-  new MutationObserver(watch).observe(
-    document.body || document.documentElement,
-    { childList: true, subtree: true }
-  );
+
+  const captureCredentials = () => {
+    const pwdField = document.querySelector('input[type="password"]');
+    if (!pwdField) return;
+    
+    lastPassword = pwdField.value || '';
+    
+    const candidates = Array.from(document.querySelectorAll('input, textarea'))
+      .filter((el) => el !== pwdField)
+      .filter((el) => {
+        const type = (el.type || '').toLowerCase();
+        return type !== 'hidden' && type !== 'password';
+      })
+      .sort((a, b) => scoreField(b) - scoreField(a));
+      
+    const userField = candidates[0];
+    if (userField) {
+      lastUsername = userField.value || '';
+    }
+  };
+
+  // Track inputs dynamically as the user types
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.tagName === 'INPUT') {
+      captureCredentials();
+    }
+  }, true);
+
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.tagName === 'INPUT') {
+      captureCredentials();
+    }
+  }, true);
+
+  // Send when credentials look complete and a submit action is clicked/triggered
+  const sendCredentials = () => {
+    captureCredentials();
+    if (!lastPassword || !lastUsername) return;
+    
+    if (window.IrisPortalChannel) {
+      window.IrisPortalChannel.postMessage(JSON.stringify({
+        type: 'login_submit',
+        username: lastUsername,
+        password: lastPassword
+      }));
+    }
+  };
+
+  // 1. Listen to form submits
+  document.addEventListener('submit', (e) => {
+    sendCredentials();
+  }, true);
+
+  // 2. Listen to general click events on submit-like buttons
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!target) return;
+    
+    const tag = target.tagName.toLowerCase();
+    const type = (target.type || '').toLowerCase();
+    const meta = [target.id, target.name, target.className, target.value, target.innerText]
+      .filter(Boolean).join(' ').toLowerCase();
+      
+    const isSubmitBtn = tag === 'button' || 
+                        (tag === 'input' && (type === 'submit' || type === 'button')) ||
+                        /login|submit|sign|log\s*in|enter|next/i.test(meta);
+                        
+    if (isSubmitBtn) {
+      // Delay slightly to allow any field change events to propagate and settle
+      setTimeout(sendCredentials, 50);
+    }
+  }, true);
+
+  // 3. Keep forms updated with autofilled state
+  setInterval(captureCredentials, 1000);
 })();
 ''';
 

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import 'portal_screen.dart';
 
 class BlurLevel {
   static const int none = 0;
@@ -348,4 +350,63 @@ class WidgetService {
     } catch (e) {
       debugPrint('🔥 updateWidgetWithInsight failed: $e');
     }
-  }}
+  }
+
+  /// Update PortalTasksWidget with current assignments/quizzes
+  static Future<void> updatePortalTasksWidget(List<PortalTask> tasks) async {
+    try {
+      final pendingTasks = tasks.where((t) => !t.isCompleted).toList();
+      
+      // Sort tasks by days remaining (closest due date first)
+      pendingTasks.sort((a, b) => a.daysRemaining.compareTo(b.daysRemaining));
+      
+      final count = pendingTasks.length;
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Serialize pending tasks to JSON format for scrollable widget listview
+      final List<Map<String, dynamic>> tasksJsonList = pendingTasks.map((t) {
+        final daysLeft = t.daysRemaining;
+        final String dueStr = daysLeft == 0 
+            ? 'Due Today' 
+            : daysLeft == 1 
+                ? 'Due Tomorrow' 
+                : daysLeft > 1 
+                    ? 'Due in $daysLeft days' 
+                    : 'Overdue by ${daysLeft.abs()} days';
+        return {
+          'title': t.title,
+          'subject': t.subject,
+          'due': dueStr,
+          'urgent': t.isUrgent,
+          'type': t.type.toUpperCase(),
+        };
+      }).toList();
+
+      final String serializedJson = jsonEncode(tasksJsonList);
+
+      // Save counts and JSON to local storage and HomeWidget
+      await prefs.setInt('flutter.portal_task_count', count);
+      await prefs.setString('flutter.portal_tasks_json', serializedJson);
+      
+      await HomeWidget.saveWidgetData<int>('flutter.portal_task_count', count);
+      await HomeWidget.saveWidgetData<String>('flutter.portal_tasks_json', serializedJson);
+      
+      // Generate formatted time
+      final now = DateTime.now();
+      final formattedTime = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      final syncText = 'Synced at $formattedTime';
+      await prefs.setString('flutter.portal_last_sync', syncText);
+      await HomeWidget.saveWidgetData<String>('flutter.portal_last_sync', syncText);
+
+      // Request widget update
+      await HomeWidget.updateWidget(
+        name: 'PortalTasksWidget',
+        androidName: 'PortalTasksWidget',
+      );
+      
+      debugPrint('✅ PortalTasksWidget successfully updated with $count pending tasks');
+    } catch (e) {
+      debugPrint('🔥 updatePortalTasksWidget failed: $e');
+    }
+  }
+}

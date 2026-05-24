@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_widget/home_widget.dart';
+import '../core/models.dart';
+import '../core/format_guard.dart';
 
 @pragma('vm:entry-point')
 void startClassNotificationTask() {
@@ -17,7 +20,7 @@ class ClassNotificationTaskHandler extends TaskHandler {
   @override
   void onRepeatEvent(DateTime timestamp) {
     // Calculate current class info from stored timetable data
-    SharedPreferences.getInstance().then((prefs) {
+    SharedPreferences.getInstance().then((prefs) async {
       try {
         final role = prefs.getString('user_role') ?? 'student';
         final batch = prefs.getString('student_batch');
@@ -32,7 +35,7 @@ class ClassNotificationTaskHandler extends TaskHandler {
 
         // Validate role and data consistency - but still update notification
         if (role == 'faculty' && (teacherName == null || teacherName.isEmpty)) {
-          FlutterForegroundTask.updateService(
+          await FlutterForegroundTask.updateService(
             notificationTitle: notifTitle,
             notificationText: 'Select a teacher to view your schedule',
             notificationButtons: [
@@ -42,7 +45,7 @@ class ClassNotificationTaskHandler extends TaskHandler {
           return;
         }
         if (role == 'student' && (batch == null || batch.isEmpty)) {
-          FlutterForegroundTask.updateService(
+          await FlutterForegroundTask.updateService(
             notificationTitle: notifTitle,
             notificationText: 'Select a batch to view your schedule',
             notificationButtons: [
@@ -53,7 +56,7 @@ class ClassNotificationTaskHandler extends TaskHandler {
         }
 
         if (timetableJson == null) {
-          FlutterForegroundTask.updateService(
+          await FlutterForegroundTask.updateService(
             notificationTitle: notifTitle,
             notificationText: 'No timetable data synced',
             notificationButtons: [
@@ -63,11 +66,243 @@ class ClassNotificationTaskHandler extends TaskHandler {
           return;
         }
 
-        // Logic for current class... (omitted for brevity in this mock, but I'll copy the real one)
-        // For now, I'll just use a placeholder or copy the full logic if I have it.
-        
-        // Update notification
-        FlutterForegroundTask.updateService(
+        final List<dynamic> parsedList = jsonDecode(timetableJson);
+        final List<ClassSession> allSessions = parsedList
+            .map((json) => ClassSession.fromJson(json))
+            .toList();
+
+        final List<ClassSession> userSchedule = allSessions.where((s) {
+          if (role == 'faculty') {
+            if (teacherName == null) return false;
+            return s.teacher.trim().toLowerCase() == teacherName.trim().toLowerCase();
+          } else {
+            if (batch == null) return false;
+            return s.batchKey.batch.trim().toLowerCase() == batch.trim().toLowerCase();
+          }
+        }).toList();
+
+        final now = DateTime.now();
+        final dayIndex = now.weekday;
+        final currentTime = now.hour + (now.minute / 60.0);
+
+        final todaySessions = userSchedule.where((s) => s.dayIndex == dayIndex).toList();
+
+        // Merge consecutive classes
+        final sorted = List<ClassSession>.from(todaySessions)
+          ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+        final mergedToday = <ClassSession>[];
+        ClassSession? currentMerged;
+        for (final session in sorted) {
+          if (currentMerged == null) {
+            currentMerged = session;
+            continue;
+          }
+          if (currentMerged.isConsecutiveWith(session)) {
+            currentMerged = ClassSession(
+              id: currentMerged.id,
+              batchKey: currentMerged.batchKey,
+              dayIndex: currentMerged.dayIndex,
+              startTime: currentMerged.startTime,
+              endTime: session.endTime,
+              subject: currentMerged.subject,
+              teacher: currentMerged.teacher,
+              room: currentMerged.room,
+            );
+          } else {
+            mergedToday.add(currentMerged);
+            currentMerged = session;
+          }
+        }
+        if (currentMerged != null) {
+          mergedToday.add(currentMerged);
+        }
+
+        // Find current live class
+        ClassSession? currentLive;
+        for (final s in mergedToday) {
+          if (currentTime >= s.safeStartVal && currentTime < s.safeEndVal) {
+            currentLive = s;
+            break;
+          }
+        }
+
+        // Find next class today or in future days
+        ClassSession? nextClass;
+        final upcomingToday = mergedToday.where((s) => s.safeStartVal > currentTime).toList()
+          ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+        if (upcomingToday.isNotEmpty) {
+          nextClass = upcomingToday.first;
+        } else {
+          for (int daysAhead = 1; daysAhead <= 6; daysAhead++) {
+            final targetDay = ((dayIndex + daysAhead - 1) % 7) + 1;
+            final daySessions = userSchedule.where((s) => s.dayIndex == targetDay).toList();
+            if (daySessions.isNotEmpty) {
+              final sortedDay = List<ClassSession>.from(daySessions)
+                ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+              final mergedDay = <ClassSession>[];
+              ClassSession? curMerged;
+              for (final s in sortedDay) {
+                if (curMerged == null) { curMerged = s; continue; }
+                if (curMerged.isConsecutiveWith(s)) {
+                  curMerged = ClassSession(
+                    id: curMerged.id,
+                    batchKey: curMerged.batchKey,
+                    dayIndex: curMerged.dayIndex,
+                    startTime: curMerged.startTime,
+                    endTime: s.endTime,
+                    subject: curMerged.subject,
+                    teacher: curMerged.teacher,
+                    room: curMerged.room,
+                  );
+                } else {
+                  mergedDay.add(curMerged);
+                  curMerged = s;
+                }
+              }
+              if (curMerged != null) mergedDay.add(curMerged);
+              mergedDay.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+              nextClass = mergedDay.first;
+              break;
+            }
+          }
+        }
+
+        String _bar(double p) {
+          const total = 8;
+          final filled = (p * total).round().clamp(0, total);
+          return '🟦' * filled + '⬜' * (total - filled);
+        }
+
+        if (currentLive != null) {
+          final duration = (currentLive.safeEndVal - currentLive.safeStartVal).abs();
+          final progress = ((currentTime - currentLive.safeStartVal) / duration).clamp(0.0, 1.0);
+          final progressPercent = (progress * 100).toInt();
+
+          final minutesRemaining = ((currentLive.safeEndVal - currentTime) * 60).round().clamp(0, (duration * 60).round());
+          final hoursRemaining = minutesRemaining ~/ 60;
+          final minsRemaining = minutesRemaining % 60;
+
+          final timeLeft = hoursRemaining > 0
+              ? '${hoursRemaining}h ${minsRemaining}m left'
+              : minsRemaining > 0
+                  ? '${minsRemaining}m left'
+                  : 'Ending now';
+
+          final remaining = mergedToday.where((s) => s.safeStartVal > currentTime).length;
+          final classCount = remaining > 0 ? ' · $remaining more today' : ' · Last one';
+
+          notifTitle = '🎓 ${currentLive.subject} · $timeLeft';
+          notifBody = '${_bar(progress)} $progressPercent%$classCount\n📍 ${currentLive.room} · ${role == 'faculty' ? currentLive.batchKey.batch : currentLive.teacher}';
+
+          // Update ClassTrackerWidget homescreen widget in background
+          final displayTime = '${currentLive.startTime} - ${currentLive.endTime}';
+          await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', true);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', currentLive.subject);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_subline', currentLive.room);
+          await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', role == 'faculty' ? currentLive.batchKey.batch : currentLive.teacher);
+          await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', progressPercent);
+          await HomeWidget.saveWidgetData<String>('flutter.time_info', displayTime);
+          await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
+        } else if (nextClass != null) {
+          int daysAhead = 0;
+          if (nextClass.dayIndex != dayIndex) {
+            daysAhead = (nextClass.dayIndex - dayIndex + 7) % 7;
+            if (daysAhead == 0) daysAhead = 7;
+          }
+
+          final totalMinutesUntil = daysAhead > 0
+              ? ((24.0 - currentTime) * 60 + (daysAhead - 1) * 24 * 60 + nextClass.safeStartVal * 60).round()
+              : ((nextClass.safeStartVal - currentTime) * 60).round();
+
+          final hoursUntil = totalMinutesUntil ~/ 60;
+          final minsUntil = totalMinutesUntil % 60;
+
+          String timeUntil = '';
+          String emoji = '📌';
+          if (daysAhead > 0) {
+            const dayNames = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            final nextDayName = dayNames[nextClass.dayIndex];
+            final startHour = nextClass.safeStartVal.floor();
+            final startMin = ((nextClass.safeStartVal - startHour) * 60).round();
+            final displayHour = startHour > 12 ? startHour - 12 : startHour;
+            final amPm = startHour >= 12 ? 'PM' : 'AM';
+            timeUntil = '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
+            emoji = '📅';
+          } else if (hoursUntil > 0) {
+            timeUntil = '${hoursUntil}h ${minsUntil}m';
+            emoji = '⏳';
+          } else if (minsUntil > 10) {
+            timeUntil = '${minsUntil} min';
+            emoji = '⏳';
+          } else if (minsUntil > 0) {
+            timeUntil = '${minsUntil} min';
+            emoji = '⚡';
+          } else {
+            timeUntil = 'now';
+            emoji = '🔔';
+          }
+
+          final remainingToday = mergedToday.where((s) => s.safeStartVal > currentTime).length;
+
+          String breakInfo = '';
+          if (daysAhead == 0) {
+            final prevClasses = mergedToday.where((s) => s.safeEndVal <= currentTime).toList();
+            if (prevClasses.isNotEmpty) {
+              prevClasses.sort((a, b) => b.safeEndVal.compareTo(a.safeEndVal));
+              final breakMins = ((nextClass.safeStartVal - prevClasses.first.safeEndVal) * 60).round();
+              if (breakMins > 0 && breakMins < 180) {
+                breakInfo = ' · ${breakMins}m break';
+              }
+            }
+          }
+
+          String classInfo = daysAhead > 0
+              ? 'Done for today ✓'
+              : remainingToday > 1
+                  ? '$remainingToday classes left'
+                  : 'Last class today';
+
+          notifTitle = '$emoji ${nextClass.subject} in $timeUntil';
+          notifBody = '$classInfo$breakInfo\n📍 ${nextClass.room} · ${role == 'faculty' ? nextClass.batchKey.batch : nextClass.teacher}';
+
+          // Update ClassTrackerWidget homescreen widget in background
+          final isUrgent = daysAhead == 0 && totalMinutesUntil < 15;
+          final displayTime = '${nextClass.startTime} - ${nextClass.endTime}';
+          await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', nextClass.subject);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_subline', nextClass.room);
+          await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', role == 'faculty' ? nextClass.batchKey.batch : nextClass.teacher);
+          await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
+          await HomeWidget.saveWidgetData<String>('flutter.time_info', displayTime);
+          await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', isUrgent);
+        } else {
+          if (dayIndex == 6 || dayIndex == 7) {
+            notifTitle = '🎉 Weekend Mode';
+            notifBody = 'No classes — enjoy your break!';
+          } else {
+            notifTitle = '✓ All done for today';
+            notifBody = 'No more classes scheduled';
+          }
+
+          // Update ClassTrackerWidget homescreen widget to idle in background
+          await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', 'System Idle');
+          await HomeWidget.saveWidgetData<String>('flutter.widget_subline', 'No active class');
+          await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', '');
+          await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
+          await HomeWidget.saveWidgetData<String>('flutter.time_info', 'Ready');
+          await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
+        }
+
+        // Push widget refresh
+        await HomeWidget.updateWidget(
+          name: 'ClassTrackerWidget',
+          androidName: 'ClassTrackerWidget',
+        );
+
+        // Update foreground service notification
+        await FlutterForegroundTask.updateService(
           notificationTitle: notifTitle,
           notificationText: notifBody,
           notificationButtons: [

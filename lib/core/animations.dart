@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 
@@ -138,29 +139,49 @@ InputDecoration irisFrostedInputDecoration({
 }
 
 /// Premium frosted AppBar for tool sub-screens.
-AppBar irisFrostedAppBar({
+PreferredSizeWidget irisFrostedAppBar({
   required String title,
   required bool isDark,
   List<Widget>? actions,
 }) {
-  return AppBar(
-    title: Text(
-      title,
-      style: TextStyle(
-        fontSize: 17,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.3,
-        color: isDark ? Colors.white : Colors.black,
+  final bgColor = isDark 
+      ? const Color(0x600A0A0C) // Sleek dark frosted
+      : const Color(0x90FFFFFF); // Sleek white frosted
+  final borderColor = isDark
+      ? Colors.white.withValues(alpha: 0.10)
+      : Colors.black.withValues(alpha: 0.08);
+
+  return PreferredSize(
+    preferredSize: const Size.fromHeight(kToolbarHeight),
+    child: ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            border: Border(
+              bottom: BorderSide(color: borderColor, width: 1),
+            ),
+          ),
+          child: AppBar(
+            title: Text(
+              title,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            actions: actions,
+          ),
+        ),
       ),
     ),
-    centerTitle: true,
-    backgroundColor: Colors.transparent,
-    forceMaterialTransparency: true,
-    surfaceTintColor: Colors.transparent,
-    elevation: 0,
-    scrolledUnderElevation: 0,
-    shadowColor: Colors.transparent,
-    actions: actions,
   );
 }
 

@@ -74,6 +74,26 @@
                 android:resource="@xml/widget_provider_info" />
         </receiver>
 
+        <!-- Receiver for PortalTasksWidget updates -->
+        <receiver
+            android:name=".PortalTasksWidget"
+            android:exported="true"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.student_organizer.PORTAL_WIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_portal_tasks_info" />
+        </receiver>
+
+        <!-- Service for PortalTasksWidget ListView RemoteViews -->
+        <service
+            android:name=".PortalTasksWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
         <!-- FileProvider for sharing and printing files -->
         <provider
             android:name="androidx.core.content.FileProvider"

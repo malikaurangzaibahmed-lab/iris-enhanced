@@ -18,6 +18,9 @@ import '../widgets/iris_components.dart';
 import '../services/system_broadcast_service.dart';
 import '../core/animations.dart';
 import '../core/glass.dart';
+import '../core/vital_theme.dart';
+import '../core/vital_motion.dart';
+import '../widgets/vital_card.dart';
 
 class IrisHubScreen extends StatefulWidget {
   final ValueChanged<String>? onRoleChanged;
@@ -182,126 +185,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
               onPressed: () => Navigator.pop(context),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-                  // GOD MODE PANEL
-                  if (_isGodMode) ...[
-                    const SizedBox(height: 48),
-                    _buildSectionHeader("GOD-MODE REGISTRY", isDark),
-                    const SizedBox(height: 16),
-                    LiquidGlass(
-                      settings: IrisGlass.settings(
-                        context,
-                        blur: 10,
-                        ambientStrength: 0.5,
-                        lightAngle: 0.2 * 3.14,
-                        thickness: 15,
-                        glassColor: IrisTokens.warning.withOpacity(0.08),
-                        minBlur: 8,
-                        minThickness: 12,
-                      ),
-                      shape: IrisGlass.shape(24),
-                      child: InkWell(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminGodModeDashboard())),
-                        borderRadius: BorderRadius.circular(24),
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: IrisTokens.warning.withOpacity(0.2)),
-                            borderRadius: BorderRadius.circular(24),
-                            gradient: LinearGradient(
-                              colors: [IrisTokens.warning.withOpacity(0.05), Colors.transparent],
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: IrisTokens.warning.withOpacity(0.1), shape: BoxShape.circle),
-                                child: const Icon(Icons.admin_panel_settings_rounded, color: IrisTokens.warning, size: 30),
-                              ),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Terminal Root Access", style: IrisTextStyles.settingTitle(context).copyWith(fontWeight: FontWeight.w900, color: IrisTokens.warning, letterSpacing: 1)),
-                                    Text("Authorized Personnel Only", style: IrisTextStyles.settingSubtitle(context).copyWith(color: IrisTokens.warning.withOpacity(0.7), fontSize: 11)),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.arrow_forward_ios_rounded, color: IrisTokens.warning, size: 16),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 40),
-                  
-                  // LOGOUT / TERMINATE BUTTON
-                  SizedBox(
-                    width: double.infinity,
-                    height: 64,
-                    child: LiquidGlass(
-                      settings: IrisGlass.settings(
-                        context,
-                        blur: 15,
-                        ambientStrength: 0.6,
-                        lightAngle: 0.25 * 3.14,
-                        thickness: 18,
-                        glassColor: (user == null
-                                ? IrisTokens.brand
-                                : IrisTokens.error)
-                            .withOpacity(0.1),
-                        minBlur: 10,
-                        minThickness: 14,
-                      ),
-                      shape: IrisGlass.shape(20),
-                      child: ElevatedButton(
-                        onPressed: user == null ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())) : _handleLogout,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: (user == null ? IrisTokens.brand : IrisTokens.error).withOpacity(0.15),
-                          foregroundColor: user == null ? IrisTokens.brand : IrisTokens.error,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(color: (user == null ? IrisTokens.brand : IrisTokens.error).withOpacity(0.3)),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          user == null ? "VERIFY IDENTITY" : "TERMINATE SESSION",
-                          style: IrisTextStyles.settingTitle(context).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.5),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-                  Center(
-                    child: Opacity(
-                      opacity: 0.3,
-                      child: Column(
-                        children: [
-                          const Icon(Icons.blur_on_rounded, size: 40, color: IrisTokens.brand),
-                          const SizedBox(height: 12),
-                          Text(
-                            "IRIS HUB • v2.1.0-STABLE",
-                            style: IrisTextStyles.caption(context).copyWith(letterSpacing: 3, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : Colors.black87),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 80),
-                ],
-              ),
-            ),
-          )
         ],
       ),
     );
@@ -1043,6 +926,98 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
       ),
     );
   }
+
+  Widget _buildPickerOption(
+    bool isDark,
+    String title,
+    String subtitle,
+    bool selected,
+    VoidCallback onTap,
+  ) {
+    final activeColor = IrisTokens.brand;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          IrisHaptics.actionMedium();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: selected
+                ? activeColor.withOpacity(0.08)
+                : (isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.01)),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? activeColor.withOpacity(0.3)
+                  : Colors.white.withOpacity(0.05),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: IrisTextStyles.settingTitle(context).copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: selected
+                            ? (isDark ? Colors.white : Colors.black)
+                            : (isDark ? Colors.white70 : Colors.black87),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: IrisTextStyles.settingSubtitle(context).copyWith(
+                        fontSize: 13,
+                        color: selected
+                            ? (isDark ? Colors.white54 : Colors.black54)
+                            : (isDark ? Colors.white38 : Colors.black38),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected ? activeColor : (isDark ? Colors.white30 : Colors.black.withOpacity(0.3)),
+                    width: 2,
+                  ),
+                ),
+                child: selected
+                    ? Center(
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: activeColor,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Future<void> _setUserRole(String role) async {
     final prefs = await SharedPreferences.getInstance();

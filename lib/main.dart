@@ -32,6 +32,7 @@ import 'core/vital_theme.dart';
 import 'core/vital_motion.dart';
 import 'portal_screen.dart';
 import 'screens/about_screen.dart';
+import 'screens/academics_hub_screen.dart';
 import 'screens/faculty_dashboard_screen.dart' hide FacultyDashboard, LectureDuration, startClassNotificationTask;
 import 'screens/room_finder_screen.dart';
 import 'screens/setup_screens.dart';
@@ -6648,7 +6649,7 @@ class _DashboardState extends State<Dashboard>
     if (!mounted) return;
     if (_isStudentNavBusy) return;
     if (index == _bottomNavIndex) return;
-    index = index.clamp(0, 3);
+    index = index.clamp(0, 4);
     setState(() {
       _studentTabSlideDirection = index > _bottomNavIndex ? 1 : -1;
       _bottomNavIndex = index;
@@ -6662,8 +6663,8 @@ class _DashboardState extends State<Dashboard>
   void _handleStudentNavDrag(DragUpdateDetails details, double width) {
     if (width <= 0) return;
     final safeDx = details.localPosition.dx.clamp(0.0, width - 1);
-    final itemWidth = width / 4;
-    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 3);
+    final itemWidth = width / 5;
+    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 4);
     _setStudentTabFromDrag(targetIndex);
   }
 
@@ -6750,19 +6751,24 @@ class _DashboardState extends State<Dashboard>
           showBackButton: false,
         );
       case 2:
-        return _ToolsScreen(
+        return const AcademicsHubScreen(
+          key: PageStorageKey<String>('student_tab_academics'),
+        );
+      case 3:
+        return ToolsScreen(
           key: const PageStorageKey<String>('student_tab_tools'),
           memory: widget.memory,
           batch: widget.batch,
           brain: widget.brain,
           onRoleChanged: widget.onRoleChanged,
+          onBatchChanged: widget.onBatchChanged,
         );
-      case 3:
+      case 4:
         return AboutScreen(
           key: const PageStorageKey<String>('student_tab_about'),
           memory: widget.memory,
           onRoleChanged: widget.onRoleChanged,
-        onBatchChanged: widget.onBatchChanged,
+          onBatchChanged: widget.onBatchChanged,
         );
       default:
         return const SizedBox.shrink();
@@ -6770,7 +6776,7 @@ class _DashboardState extends State<Dashboard>
   }
 
   Widget _buildStudentBottomNavBar(bool isDark) {
-    final displayIndex = _studentNavDisplayIndex(4);
+    final displayIndex = _studentNavDisplayIndex(5);
     
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
@@ -6835,22 +6841,32 @@ class _DashboardState extends State<Dashboard>
                   ),
                   Expanded(
                     child: BouncyNavButton(
-                      icon: displayIndex == 2 ? Icons.build_rounded : Icons.build_outlined,
-                      label: 'Tools',
+                      icon: displayIndex == 2 ? Icons.school_rounded : Icons.school_outlined,
+                      label: 'Academics',
                       isDark: isDark,
                       isSelected: displayIndex == 2,
-                      activeColor: IrisTokens.success,
+                      activeColor: IrisTokens.brand,
                       onTap: () => _onBottomNavTap(2),
                     ),
                   ),
                   Expanded(
                     child: BouncyNavButton(
-                      icon: displayIndex == 3 ? Icons.info_rounded : Icons.info_outline_rounded,
-                      label: 'About',
+                      icon: displayIndex == 3 ? Icons.build_rounded : Icons.build_outlined,
+                      label: 'Tools',
                       isDark: isDark,
                       isSelected: displayIndex == 3,
-                      activeColor: IrisTokens.brand,
+                      activeColor: IrisTokens.success,
                       onTap: () => _onBottomNavTap(3),
+                    ),
+                  ),
+                  Expanded(
+                    child: BouncyNavButton(
+                      icon: displayIndex == 4 ? Icons.info_rounded : Icons.info_outline_rounded,
+                      label: 'About',
+                      isDark: isDark,
+                      isSelected: displayIndex == 4,
+                      activeColor: IrisTokens.brand,
+                      onTap: () => _onBottomNavTap(4),
                     ),
                   ),
                 ],
@@ -9943,11 +9959,11 @@ class _MetricChip extends StatelessWidget {
   }
 }
 
-class _ClassAnalyticsScreen extends StatelessWidget {
+class ClassAnalyticsScreen extends StatelessWidget {
   final OmniBrain brain;
   final String batch;
 
-  const _ClassAnalyticsScreen({required this.brain, required this.batch});
+  const ClassAnalyticsScreen({required this.brain, required this.batch});
 
   @override
   Widget build(BuildContext context) {
@@ -12194,7 +12210,7 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                   onTools: widget.brain != null
                       ? () => pushIconLaunchRoute(
                           context,
-                          page: _ToolsScreen(
+                          page: ToolsScreen(
                             memory: widget.memory,
                             batch: widget.currentBatch,
                             brain: widget.brain!,
@@ -12757,7 +12773,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       lightweight: true,
       transitionDuration: const Duration(milliseconds: 304),
       reverseTransitionDuration: const Duration(milliseconds: 240),
-      page: _ToolsScreen(
+      page: ToolsScreen(
         memory: widget.memory,
         batch: widget.batch,
         brain: widget.brain,

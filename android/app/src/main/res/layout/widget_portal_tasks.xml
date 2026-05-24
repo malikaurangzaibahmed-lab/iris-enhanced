@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/widget_glass_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/widget_fluffy_bg" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Header Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PORTAL UPDATES"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#5B7FFF"
+                android:letterSpacing="0.08" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/widget_last_sync"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Not Synced"
+                android:textSize="10sp"
+                android:textColor="#64748B" />
+        </LinearLayout>
+
+        <!-- Empty State View -->
+        <TextView
+            android:id="@+id/widget_empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="✓ All caught up!\nNo pending tasks"
+            android:textColor="#475569"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:lineSpacingMultiplier="1.2"
+            android:visibility="gone" />
+
+        <!-- Scrollable Tasks List -->
+        <ListView
+            android:id="@+id/widget_tasks_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="6dp"
+            android:scrollbarStyle="outsideOverlay" />
+
+    </LinearLayout>
+</FrameLayout>

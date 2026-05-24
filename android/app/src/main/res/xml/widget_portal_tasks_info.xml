@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+  Portal Tasks Home Widget Configuration
+  Defines widget properties, preview, and update frequency - 3x2 or 4x2 grid
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:initialLayout="@layout/widget_portal_tasks"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:updatePeriodMillis="600000"
+    android:description="@string/portal_widget_description"
+    android:previewImage="@mipmap/ic_launcher" />

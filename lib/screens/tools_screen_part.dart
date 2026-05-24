@@ -1,13 +1,13 @@
 part of '../main.dart';
 
-class _ToolsScreen extends StatefulWidget {
+class ToolsScreen extends StatefulWidget {
   final UniversityMemory memory;
   final String batch;
   final OmniBrain brain;
   final ValueChanged<String>? onRoleChanged;
   final ValueChanged<String>? onBatchChanged;
 
-  const _ToolsScreen({
+  const ToolsScreen({
     super.key,
     required this.memory,
     required this.batch,
@@ -17,10 +17,10 @@ class _ToolsScreen extends StatefulWidget {
   });
 
   @override
-  State<_ToolsScreen> createState() => _ToolsScreenState();
+  State<ToolsScreen> createState() => ToolsScreenState();
 }
 
-class _ToolsScreenState extends State<_ToolsScreen> {
+class ToolsScreenState extends State<ToolsScreen> {
   String _searchQuery = '';
   String _activeCategory = 'All';
 
@@ -476,7 +476,7 @@ class _ToolsScreenState extends State<_ToolsScreen> {
       case 'class_analytics':
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => _ClassAnalyticsScreen(brain: widget.brain, batch: widget.batch),
+            builder: (_) => ClassAnalyticsScreen(brain: widget.brain, batch: widget.batch),
           ),
         );
         return;
@@ -872,13 +872,14 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Semester Schedule'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      extendBodyBehindAppBar: true,
+      appBar: irisFrostedAppBar(
+        title: 'Semester Schedule',
+        isDark: isDark,
         actions: [
           IconButton(
             onPressed: _refresh,
@@ -904,44 +905,64 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
           return RefreshIndicator(
             onRefresh: _refresh,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(16, topInset, 16, 40),
               children: [
+                _ResourceHeroCard(
+                  title: 'Semester Schedule',
+                  subtitle: 'Academic schedule, exams, holidays and milestones for ${widget.batch}',
+                  icon: Icons.calendar_today_rounded,
+                  accent: VitalTokens.blue,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
                 GlassCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Semester milestones for ${widget.batch}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : Colors.black,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          payload.source == CampusScheduleSource.asset
+                              ? Icons.cloud_done_rounded
+                              : Icons.cloud_off_rounded,
+                          size: 16,
+                          color: payload.source == CampusScheduleSource.asset
+                              ? VitalTokens.blue
+                              : VitalTokens.orange,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        payload.source == CampusScheduleSource.asset
-                            ? 'Loaded from the campus schedule cache.'
-                            : 'Campus schedule cache is unavailable right now.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-                        ),
-                      ),
-                      if (payload.capturedAt != null) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          'Updated ${payload.capturedAt!.toLocal()}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                payload.source == CampusScheduleSource.asset
+                                    ? 'Loaded from local cache'
+                                    : 'Campus schedule cache is currently unavailable',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                                ),
+                              ),
+                              if (payload.capturedAt != null) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Last updated: ${payload.capturedAt!.toLocal().toString().split('.')[0]}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Text(
                   'Milestones',
                   style: TextStyle(
@@ -1565,6 +1586,7 @@ class _LibraryScheduleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
     final schedule = [
       {'day': 'Monday - Thursday', 'open': '08:30 AM', 'close': '09:00 PM', 'peak': '11:00 AM - 02:00 PM'},
       {'day': 'Friday', 'open': '08:30 AM', 'close': '05:00 PM', 'peak': '10:00 AM - 12:30 PM'},
@@ -1574,12 +1596,13 @@ class _LibraryScheduleScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: irisFrostedAppBar(title: 'Library Timetable', isDark: isDark),
       body: Stack(
         children: [
           ObsidianPulse(isDark: isDark),
           ListView(
-            padding: const EdgeInsets.fromLTRB(16, 110, 16, 40),
+            padding: EdgeInsets.fromLTRB(16, topInset, 16, 40),
             children: [
               _ResourceHeroCard(
                 title: 'Central Library',
@@ -1718,9 +1741,11 @@ class _TransportScheduleScreenState extends State<_TransportScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
     
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: irisFrostedAppBar(title: 'Transport Schedule', isDark: isDark),
       body: Stack(
         children: [
@@ -1740,7 +1765,7 @@ class _TransportScheduleScreenState extends State<_TransportScheduleScreen> {
              )
           else
             ListView(
-              padding: const EdgeInsets.fromLTRB(16, 110, 16, 40),
+              padding: EdgeInsets.fromLTRB(16, topInset, 16, 40),
               children: [
                 _ResourceHeroCard(
                   title: 'Campus Transport',

@@ -6,4 +6,5 @@
     <string name="widget_description">IRIS: Live Class Status</string>
     <string name="widget_system_idle">System Idle</string>
     <string name="widget_no_class">No active class</string>
+    <string name="portal_widget_description">IRIS: Pending assignments and quizzes</string>
 </resources>

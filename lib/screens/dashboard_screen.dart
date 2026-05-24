@@ -22,6 +22,7 @@ import '../widgets/vital_progress.dart';
 import '../widgets/neural_aura.dart';
 import '../widgets/smooth_scroll.dart';
 import '../widgets/portal_sync_card.dart';
+import '../widgets/dashboard_dock.dart';
 import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
 import '../services/notification_service.dart';
@@ -30,13 +31,14 @@ import '../services/helpdesk_campus_feed_service.dart';
 import '../services/helpdesk_schedule_data_service.dart';
 import '../services/ui_feedback.dart';
 import '../widget_service.dart';
+import '../main.dart';
 import '../portal_screen.dart';
+import '../services/portal_sync_service.dart';
 import 'about_screen.dart';
+import 'academics_hub_screen.dart';
 import 'room_finder_screen.dart';
 
 import 'teacher_locator_screen.dart';
-import 'makeup_lecture_scheduler.dart';
-import 'class_analytics_screen.dart';
 
 class Dashboard extends StatefulWidget {
   final UniversityMemory memory;
@@ -49,6 +51,7 @@ class Dashboard extends StatefulWidget {
   final String? userName;
   final ValueChanged<String>? onUserNameChanged;
   final ValueChanged<String> onRoleChanged;
+  final ValueChanged<String>? onBatchChanged;
 
   const Dashboard({
     required this.memory,
@@ -61,6 +64,7 @@ class Dashboard extends StatefulWidget {
     required this.onRoleChanged,
     this.userName,
     this.onUserNameChanged,
+    this.onBatchChanged,
     super.key,
   });
 
@@ -602,8 +606,16 @@ class _DashboardState extends State<Dashboard>
 
     setState(() => _isRefreshing = true);
 
-    // Simulate data refresh delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Trigger high-fidelity headless WebView deep scraper or fall back to high-speed background HTTP sync
+    try {
+      if (PortalSyncService.triggerHeadlessSync != null) {
+        await PortalSyncService.triggerHeadlessSync!();
+      } else {
+        await PortalSyncService.performBackgroundSync(force: true);
+      }
+    } catch (e) {
+      debugPrint('⚠️ Portal sync on refresh failed: $e');
+    }
 
     // Refresh schedule cache
     _updateScheduleCache();
@@ -620,12 +632,12 @@ class _DashboardState extends State<Dashboard>
       showIrisFrostedSnackBar(
         context,
         dedupeKey: 'schedule_refreshed_faculty',
-        content: const Row(
+        content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 12),
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
             Text(
-              'Schedule refreshed',
+              'Portal and schedule synced',
               style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
             ),
           ],
@@ -997,7 +1009,7 @@ class _DashboardState extends State<Dashboard>
     if (!mounted) return;
     if (_isStudentNavBusy) return;
     if (index == _bottomNavIndex) return;
-    index = index.clamp(0, 3);
+    index = index.clamp(0, 4);
     setState(() {
       _studentTabSlideDirection = index > _bottomNavIndex ? 1 : -1;
       _bottomNavIndex = index;
@@ -1011,8 +1023,8 @@ class _DashboardState extends State<Dashboard>
   void _handleStudentNavDrag(DragUpdateDetails details, double width) {
     if (width <= 0) return;
     final safeDx = details.localPosition.dx.clamp(0.0, width - 1);
-    final itemWidth = width / 4;
-    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 3);
+    final itemWidth = width / 5;
+    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 4);
     _setStudentTabFromDrag(targetIndex);
   }
 
@@ -1027,23 +1039,19 @@ class _DashboardState extends State<Dashboard>
           showBackButton: false,
         );
       case 2:
-        // Temporarily using a placeholder until ToolsScreen is moved
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.grid_view_rounded, size: 64, color: IrisTokens.brand),
-              const SizedBox(height: 16),
-              Text('Resources coming soon...', style: IrisTextStyles.headline(context).copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () => setState(() => _bottomNavIndex = 0),
-                child: const Text('Go Home'),
-              ),
-            ],
-          ),
+        return const AcademicsHubScreen(
+          key: PageStorageKey<String>('student_tab_academics'),
         );
       case 3:
+        return ToolsScreen(
+          key: const PageStorageKey<String>('student_tab_tools'),
+          memory: widget.memory,
+          batch: widget.batch,
+          brain: widget.brain,
+          onRoleChanged: widget.onRoleChanged,
+          onBatchChanged: widget.onBatchChanged,
+        );
+      case 4:
         return AboutScreen(
           key: const PageStorageKey<String>('student_tab_about'),
           memory: widget.memory,
@@ -1073,13 +1081,17 @@ class _DashboardState extends State<Dashboard>
         _studentTabSlideDirection = _bottomNavIndex < 1 ? 1 : -1;
         _bottomNavIndex = 1;
       }),
-      onTools: () => setState(() {
+      onClasses: () => setState(() {
         _studentTabSlideDirection = _bottomNavIndex < 2 ? 1 : -1;
         _bottomNavIndex = 2;
       }),
+      onTools: () => setState(() {
+        _studentTabSlideDirection = _bottomNavIndex < 3 ? 1 : -1;
+        _bottomNavIndex = 3;
+      }),
       onAbout: () => setState(() {
         _studentTabSlideDirection = 1;
-        _bottomNavIndex = 3;
+        _bottomNavIndex = 4;
       }),
     );
   }
@@ -1181,7 +1193,7 @@ class _DashboardState extends State<Dashboard>
               _buildBentoToolGrid(context, isDark),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: SliverToBoxAdapter(
+                sliver: SliverToBoxAdapter(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

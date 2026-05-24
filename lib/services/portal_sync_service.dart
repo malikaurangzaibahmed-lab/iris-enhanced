@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as hp;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../portal_screen.dart';
+import '../widget_service.dart';
 
 /// Data structure for passing parsing context to the Isolate
 class _ParserInput {
@@ -25,6 +26,9 @@ class PortalSyncService {
   
   /// A notifier to pause background sync when the user is actively in the portal
   static final ValueNotifier<bool> isSyncPaused = ValueNotifier<bool>(false);
+
+  /// Callback to manually trigger the background headless WebView scraper on demand
+  static Future<void> Function()? triggerHeadlessSync;
 
   /// Notifies all listeners that portal data has changed
   static void notifyUpdate() {
@@ -193,58 +197,95 @@ class PortalSyncService {
     return list;
   }
 
+  static const String _cachedTasksKey = 'iris_portal_student_cached_tasks';
+
+  static Future<List<PortalTask>> getCachedTasks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cachedTasksKey);
+      if (raw == null || raw.isEmpty) return [];
+      final List<dynamic> jsonList = jsonDecode(raw);
+      return jsonList.map((x) => PortalTask.fromJson(x)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveCachedTasks(List<PortalTask> tasks) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final serialized = jsonEncode(tasks.map((t) => t.toJson()).toList());
+      await prefs.setString(_cachedTasksKey, serialized);
+    } catch (_) {}
+  }
+
   static Future<void> _updateStoredTasks(List<PortalTask> newTasks, SharedPreferences prefs) async {
-    const host = 'swl-sis.comsats.edu.pk';
-    const scope = 'student';
-    final sessionKey = 'iris_portal_${scope}_session_$host';
-    final raw = prefs.getString(sessionKey);
-    
-    if (raw != null) {
-      try {
-        final sessionData = jsonDecode(raw) as Map<String, dynamic>;
-        final session = PortalSession.fromJson(sessionData);
-        
-        final existingTasks = session.tasks;
-        final mergedMap = <String, PortalTask>{};
-        
-        // 1. Start with existing tasks that haven't expired yet
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        
-        for (final et in existingTasks) {
-          final key = '${et.subject}_${et.title}_${et.type}';
-          
-          // Keep it if it's completed OR if the due date hasn't passed yet
-          // (daysRemaining returns 999 if unparseable, which is fine to keep)
-          if (et.isCompleted || et.daysRemaining >= 0) {
-            mergedMap[key] = et;
-          }
-        }
-
-        // 2. Merge in new tasks from the latest scrape
-        for (final nt in newTasks) {
-          final key = '${nt.subject}_${nt.title}_${nt.type}';
-          final existing = mergedMap[key];
-          
-          if (existing != null) {
-            // Update existing with new portal data but preserve user completion status
-            mergedMap[key] = nt.copyWith(
-              isCompleted: existing.isCompleted || nt.isCompleted,
-            );
-          } else {
-            // Found a brand new task
-            mergedMap[key] = nt;
-          }
-        }
-
-        final updatedSession = session.copyWith(
-          tasks: mergedMap.values.toList(),
-          lastSyncAt: DateTime.now().millisecondsSinceEpoch,
-        );
-        await prefs.setString(sessionKey, jsonEncode(updatedSession.toJson()));
-      } catch (e) {
-        debugPrint('Error merging portal tasks: $e');
+    try {
+      // 1. Load existing tasks from the independent cache
+      final rawCached = prefs.getString(_cachedTasksKey);
+      final List<PortalTask> existingTasks = [];
+      if (rawCached != null && rawCached.isNotEmpty) {
+        try {
+          final List<dynamic> jsonList = jsonDecode(rawCached);
+          existingTasks.addAll(jsonList.map((x) => PortalTask.fromJson(x)));
+        } catch (_) {}
       }
+
+      final mergedMap = <String, PortalTask>{};
+      
+      // 2. Start with existing tasks that haven't expired yet
+      for (final et in existingTasks) {
+        final key = '${et.subject.trim().toLowerCase()}_${et.title.trim().toLowerCase()}_${et.type.trim().toLowerCase()}';
+        
+        // Keep it if it's completed OR if the due date has not passed yet
+        // (allowing 1 day grace period for timezone and midnight scrapers)
+        if (et.isCompleted || et.daysRemaining >= -1) {
+          mergedMap[key] = et;
+        }
+      }
+
+      // 3. Merge in new tasks from the latest scrape
+      for (final nt in newTasks) {
+        final key = '${nt.subject.trim().toLowerCase()}_${nt.title.trim().toLowerCase()}_${nt.type.trim().toLowerCase()}';
+        final existing = mergedMap[key];
+        
+        if (existing != null) {
+          // Update existing with new portal data but preserve user completion status
+          mergedMap[key] = nt.copyWith(
+            isCompleted: existing.isCompleted || nt.isCompleted,
+          );
+        } else {
+          // Found a brand new task
+          mergedMap[key] = nt;
+        }
+      }
+
+      final mergedList = mergedMap.values.toList();
+
+      // 4. Save merged tasks back to the independent cache
+      await prefs.setString(_cachedTasksKey, jsonEncode(mergedList.map((t) => t.toJson()).toList()));
+
+      // 5. As a backup/compatibility layer, also try to update active session if it exists
+      const host = 'swl-sis.comsats.edu.pk';
+      const scope = 'student';
+      final sessionKey = 'iris_portal_${scope}_session_$host';
+      final rawSession = prefs.getString(sessionKey);
+      if (rawSession != null) {
+        try {
+          final sessionData = jsonDecode(rawSession) as Map<String, dynamic>;
+          final session = PortalSession.fromJson(sessionData);
+          final updatedSession = session.copyWith(
+            tasks: mergedList,
+            lastSyncAt: DateTime.now().millisecondsSinceEpoch,
+          );
+          await prefs.setString(sessionKey, jsonEncode(updatedSession.toJson()));
+        } catch (_) {}
+      }
+
+      // 6. Push update to scrollable PortalTasksWidget homescreen widget
+      await WidgetService.updatePortalTasksWidget(mergedList);
+    } catch (e) {
+      debugPrint('Error merging portal tasks: $e');
     }
   }
 
@@ -252,5 +293,25 @@ class PortalSyncService {
   static Future<void> updatePersistence(List<PortalTask> tasks) async {
     final prefs = await SharedPreferences.getInstance();
     await _updateStoredTasks(tasks, prefs);
+  }
+
+  static const String _academicsKey = 'iris_portal_student_academics_json';
+
+  static Future<Map<String, dynamic>?> getCachedAcademics() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_academicsKey);
+      if (raw == null || raw.isEmpty) return null;
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> saveCachedAcademics(Map<String, dynamic> data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_academicsKey, jsonEncode(data));
+    } catch (_) {}
   }
 }
