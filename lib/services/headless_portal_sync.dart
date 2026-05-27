@@ -169,11 +169,11 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
   late final WebViewController _controller;
   Timer? _periodicSyncTimer;
   Completer<void>? _syncCompleter;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initController();
     PortalSyncService.isSyncPaused.addListener(_handlePauseChange);
     PortalSyncService.triggerHeadlessSync = _manualTrigger;
 
@@ -183,6 +183,15 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
         debugPrint('IRIS Headless: Periodic background sync cycle waking up...');
         _restoreCookiesAndLoad();
       }
+    });
+
+    // Defer heavy WebView initialization to prevent UI stutter/jank on app launch and role switches
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) {
+          _initController();
+        }
+      });
     });
   }
 
@@ -204,6 +213,10 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
   }
 
   Future<void> _manualTrigger() async {
+    if (!_isInitialized) {
+      debugPrint('IRIS Headless: Deferring manual sync trigger until WebView is initialized...');
+      return;
+    }
     if (_syncCompleter != null && !_syncCompleter!.isCompleted) {
       return _syncCompleter!.future;
     }
@@ -247,10 +260,15 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
         ),
       );
     
+    setState(() {
+      _isInitialized = true;
+    });
+    
     _restoreCookiesAndLoad();
   }
 
   Future<void> _restoreCookiesAndLoad() async {
+    if (!_isInitialized) return;
     try {
       final prefs = await SharedPreferences.getInstance();
       final uri = Uri.parse(widget.url);
@@ -539,6 +557,9 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const SizedBox.shrink();
+    }
     // Keep it tiny and invisible
     return SizedBox(
       width: 1,

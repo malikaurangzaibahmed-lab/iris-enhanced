@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
   hide NotificationVisibility;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -37,6 +38,7 @@ import 'screens/faculty_dashboard_screen.dart' hide FacultyDashboard, LectureDur
 import 'screens/room_finder_screen.dart';
 import 'screens/setup_screens.dart';
 import 'screens/teacher_locator_screen.dart';
+import 'services/remote_config_service.dart';
 import 'services/helpdesk_campus_feed_service.dart';
 import 'services/helpdesk_faculty_service.dart';
 import 'services/helpdesk_schedule_data_service.dart';
@@ -61,6 +63,7 @@ const MethodChannel _notificationChannel = MethodChannel('iris/notification_chan
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   tz.initializeTimeZones();
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
@@ -5652,6 +5655,7 @@ class _DashboardState extends State<Dashboard>
     with SingleTickerProviderStateMixin {
   static const String _customMakeupSessionsPrefsKey = 'custom_makeup_sessions';
   late Timer _ticker;
+  String? _dismissedAnnouncementText;
   ClassSession? _previousClass;
   int? _previousProgressPercent;
   String? _previousNotificationHash;
@@ -5943,8 +5947,12 @@ class _DashboardState extends State<Dashboard>
   @override
   void initState() {
     super.initState();
+    _loadDismissedAnnouncement();
+
+    // Start remote Firestore listener for real-time announcements, modes & OTA timetable upgrades
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        RemoteConfigService.startRemoteListener(context);
         setState(() => _navBarReady = true);
       }
     });
@@ -6775,102 +6783,471 @@ class _DashboardState extends State<Dashboard>
     }
   }
 
+  Future<void> _loadDismissedAnnouncement() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _dismissedAnnouncementText = prefs.getString('iris_dismissed_announcement');
+      });
+    }
+  }
+
+  Future<void> _dismissAnnouncement(String text) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('iris_dismissed_announcement', text);
+    if (mounted) {
+      setState(() {
+        _dismissedAnnouncementText = text;
+      });
+    }
+    IrisHaptics.actionSoft();
+  }
+
+  Widget _buildAnnouncementBanner(BuildContext context, Map<String, dynamic> announcement) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final message = announcement['message']?.toString() ?? '';
+    
+    if (message.isEmpty || _dismissedAnnouncementText == message) {
+      return const SizedBox.shrink();
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: Container(
+        key: ValueKey(message),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.25 : 0.15),
+                      blurRadius: 18,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: GlassSurface(
+                settings: IrisGlass.settings(
+                  context,
+                  blur: 20,
+                  ambientStrength: 0.85,
+                  lightAngle: 0.15 * math.pi,
+                  thickness: 18,
+                  glassColor: isDark 
+                      ? const Color(0xFFF59E0B).withValues(alpha: 0.09)
+                      : Colors.white.withValues(alpha: 0.92),
+                ),
+                radius: 20,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.45),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                        ),
+                        child: Icon(
+                          Icons.campaign_rounded,
+                          size: 20,
+                          color: isDark ? Colors.white : const Color(0xFFD97706),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'CAMPUS BROADCAST',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                                color: isDark ? Colors.amber[200] : const Color(0xFFB45309),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              message,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                height: 1.4,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => _dismissAnnouncement(message),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPersistentAnnouncementCard(BuildContext context, bool isDark) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      sliver: SliverToBoxAdapter(
+        child: ValueListenableBuilder<Map<String, dynamic>?>(
+          valueListenable: RemoteConfigService.liveAnnouncement,
+          builder: (context, announcement, _) {
+            if (announcement == null) {
+              return _buildEmptyNoticeboard(context, isDark);
+            }
+            
+            final message = announcement['message']?.toString() ?? '';
+            if (message.isEmpty) {
+              return _buildEmptyNoticeboard(context, isDark);
+            }
+
+            return _buildActiveNoticeCard(context, isDark, message, announcement);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyNoticeboard(BuildContext context, bool isDark) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: GlassSurface(
+        settings: IrisGlass.settings(
+          context,
+          blur: 15,
+          ambientStrength: 0.7,
+          lightAngle: 0.15 * math.pi,
+          thickness: 10,
+          glassColor: isDark 
+              ? Colors.white.withValues(alpha: 0.02)
+              : Colors.black.withValues(alpha: 0.01),
+        ),
+        radius: 20,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+              width: 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
+                ),
+                child: Icon(
+                  Icons.notifications_off_rounded,
+                  size: 18,
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'CAMPUS NOTICEBOARD',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'All Quiet on Campus • No active broadcasts right now',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveNoticeCard(
+    BuildContext context,
+    bool isDark,
+    String message,
+    Map<String, dynamic> announcement,
+  ) {
+    final hasDismissedBanner = _dismissedAnnouncementText == message;
+    final accentColor = const Color(0xFFF59E0B);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: isDark ? 0.12 : 0.06),
+            blurRadius: 20,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: GlassSurface(
+          settings: IrisGlass.settings(
+            context,
+            blur: 24,
+            ambientStrength: 0.85,
+            lightAngle: 0.15 * math.pi,
+            thickness: 18,
+            glassColor: isDark 
+                ? accentColor.withValues(alpha: 0.08)
+                : Colors.white.withValues(alpha: 0.90),
+          ),
+          radius: 20,
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: accentColor.withValues(alpha: isDark ? 0.35 : 0.25),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _PulsingRadarBadge(
+                  icon: Icons.campaign_rounded,
+                  color: accentColor,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'CAMPUS NOTICEBOARD',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.5,
+                                color: isDark ? Colors.amber[200] : const Color(0xFFB45309),
+                              ),
+                            ),
+                          ),
+                          if (hasDismissedBanner)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.visibility_off_rounded,
+                                    size: 10,
+                                    color: (isDark ? Colors.white54 : Colors.black54),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'BANNER DISMISSED',
+                                    style: TextStyle(
+                                      fontSize: 7.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                      color: (isDark ? Colors.white54 : Colors.black54),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        message,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          height: 1.45,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.wifi_tethering_rounded,
+                                size: 12,
+                                color: isDark ? Colors.white54 : Colors.black54,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'REAL-TIME BROADCAST',
+                                style: TextStyle(
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                  color: isDark ? Colors.white54 : Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'IRIS NETWORK',
+                            style: TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                              color: isDark ? Colors.amber[200]!.withOpacity(0.5) : const Color(0xFFD97706).withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStudentBottomNavBar(bool isDark) {
     final displayIndex = _studentNavDisplayIndex(5);
     
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-      child: Material(
-        color: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isDark
-                      ? [
-                          Colors.white.withValues(alpha: 0.08),
-                          Colors.white.withValues(alpha: 0.04),
-                        ]
-                      : [
-                          Colors.white.withValues(alpha: 0.85),
-                          Colors.white.withValues(alpha: 0.70),
-                        ],
-                ),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.06),
-                  width: 1.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: IrisTokens.brand.withValues(alpha: isDark ? 0.15 : 0.08),
-                    blurRadius: 24,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.4)
+                  : Colors.white.withValues(alpha: 0.8),
+              border: Border.all(
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.08 : 0.05),
+                width: 1.2,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: displayIndex == 0 ? Icons.home_filled : Icons.home_rounded,
-                      label: 'Home',
-                      isDark: isDark,
-                      isSelected: displayIndex == 0,
-                      activeColor: IrisTokens.brand,
-                      onTap: () => _onBottomNavTap(0),
-                    ),
-                  ),
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: Icons.public_rounded,
-                      label: 'Feed',
-                      isDark: isDark,
-                      isSelected: displayIndex == 1,
-                      activeColor: IrisTokens.purple,
-                      onTap: () => _onBottomNavTap(1),
-                    ),
-                  ),
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: displayIndex == 2 ? Icons.school_rounded : Icons.school_outlined,
-                      label: 'Academics',
-                      isDark: isDark,
-                      isSelected: displayIndex == 2,
-                      activeColor: IrisTokens.brand,
-                      onTap: () => _onBottomNavTap(2),
-                    ),
-                  ),
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: displayIndex == 3 ? Icons.build_rounded : Icons.build_outlined,
-                      label: 'Tools',
-                      isDark: isDark,
-                      isSelected: displayIndex == 3,
-                      activeColor: IrisTokens.success,
-                      onTap: () => _onBottomNavTap(3),
-                    ),
-                  ),
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: displayIndex == 4 ? Icons.info_rounded : Icons.info_outline_rounded,
-                      label: 'About',
-                      isDark: isDark,
-                      isSelected: displayIndex == 4,
-                      activeColor: IrisTokens.brand,
-                      onTap: () => _onBottomNavTap(4),
-                    ),
-                  ),
-                ],
-              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _StudentCapsuleNavButton(
+                  icon: displayIndex == 0 ? Icons.grid_view_rounded : Icons.grid_view_outlined,
+                  label: 'Portal',
+                  isSelected: displayIndex == 0,
+                  activeColor: IrisTokens.brand,
+                  isDark: isDark,
+                  onTap: () => _onBottomNavTap(0),
+                ),
+                _StudentCapsuleNavButton(
+                  icon: Icons.wifi_tethering_rounded,
+                  label: 'Feed',
+                  isSelected: displayIndex == 1,
+                  activeColor: IrisTokens.purple,
+                  isDark: isDark,
+                  onTap: () => _onBottomNavTap(1),
+                ),
+                _StudentCapsuleNavButton(
+                  icon: Icons.school_rounded,
+                  label: 'Academics',
+                  isSelected: displayIndex == 2,
+                  activeColor: const Color(0xFFF59E0B),
+                  isDark: isDark,
+                  onTap: () => _onBottomNavTap(2),
+                ),
+                _StudentCapsuleNavButton(
+                  icon: Icons.construction_rounded,
+                  label: 'Tools',
+                  isSelected: displayIndex == 3,
+                  activeColor: IrisTokens.success,
+                  isDark: isDark,
+                  onTap: () => _onBottomNavTap(3),
+                ),
+                _StudentCapsuleNavButton(
+                  icon: Icons.offline_bolt_rounded,
+                  label: 'About',
+                  isSelected: displayIndex == 4,
+                  activeColor: IrisTokens.error,
+                  isDark: isDark,
+                  onTap: () => _onBottomNavTap(4),
+                ),
+              ],
             ),
           ),
         ),
@@ -7505,6 +7882,7 @@ class _DashboardState extends State<Dashboard>
                     ),
                   ),
                   SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
+                  _buildPersistentAnnouncementCard(context, isDark),
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -7661,6 +8039,23 @@ class _DashboardState extends State<Dashboard>
                   ),
                   const SliverPadding(padding: EdgeInsets.only(bottom: 126)),
                 ],
+              ),
+            ),
+          ),
+          // App-wide floating System Announcement Banner
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: SafeArea(
+              child: ValueListenableBuilder<Map<String, dynamic>?>(
+                valueListenable: RemoteConfigService.liveAnnouncement,
+                builder: (context, announcement, _) {
+                  if (announcement != null) {
+                    return _buildAnnouncementBanner(context, announcement);
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ),
           ),
@@ -14207,4 +14602,176 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       ),
     );
 }
+}
+
+class _PulsingRadarBadge extends StatefulWidget {
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+
+  const _PulsingRadarBadge({
+    required this.icon,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  State<_PulsingRadarBadge> createState() => _PulsingRadarBadgeState();
+}
+
+class _PulsingRadarBadgeState extends State<_PulsingRadarBadge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4500),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        final breathOpacity = 0.05 + (0.15 * _pulseController.value);
+        final glowScale = 1.0 + (0.12 * _pulseController.value);
+
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 38 * glowScale,
+              height: 38 * glowScale,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.color.withValues(alpha: breathOpacity),
+                border: Border.all(
+                  color: widget.color.withValues(alpha: 0.15 * _pulseController.value),
+                  width: 1.0,
+                ),
+              ),
+            ),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.color.withValues(alpha: 0.12),
+                border: Border.all(
+                  color: widget.color.withValues(alpha: 0.25),
+                  width: 1.2,
+                ),
+              ),
+              child: Icon(
+                widget.icon,
+                size: 20,
+                color: widget.isDark ? Colors.white : widget.color,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StudentCapsuleNavButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final Color activeColor;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _StudentCapsuleNavButton({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.activeColor,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        IrisHaptics.actionSoft();
+        onTap();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        tween: Tween<double>(begin: isSelected ? 0.0 : 1.0, end: isSelected ? 1.0 : 0.0),
+        builder: (context, animValue, child) {
+          final scale = 1.0 + (0.08 * animValue);
+          
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Transform.scale(
+                scale: scale,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: activeColor.withValues(
+                      alpha: 0.12 * animValue,
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 22,
+                    color: isSelected 
+                        ? activeColor 
+                        : (isDark ? Colors.white70 : Colors.black54),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                  letterSpacing: 0.2,
+                  color: isSelected 
+                      ? (isDark ? Colors.white : Colors.black)
+                      : (isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.3)),
+                ),
+              ),
+              const SizedBox(height: 2),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: isSelected ? 6 : 0,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: activeColor,
+                  borderRadius: BorderRadius.circular(2),
+                  boxShadow: isSelected ? [
+                    BoxShadow(
+                      color: activeColor.withValues(alpha: 0.6),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ] : null,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 }

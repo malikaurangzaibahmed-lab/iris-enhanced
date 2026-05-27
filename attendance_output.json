@@ -1,0 +1,116 @@
+{
+    "student": "Malik Aurangzaib Ahmad",
+    "student_id": "CIIT/FA25-BCS-101/SWL",
+    "extracted_at": "2026-05-18T14:02:15Z",
+    "semester_summary": {
+        "total_courses": 6,
+        "total_pending_tasks": 8,
+        "overall_attendance_avg": "78.2%"
+    },
+    "courses": [
+        {
+            "code": "CSC241",
+            "name": "Object Oriented Programming",
+            "instructor": "Hamza Arif",
+            "credits": "4",
+            "attendance": "93% (Theory) / 85% (Lab)",
+            "assignments": [
+                {
+                    "title": "Class Assignment 3",
+                    "due": "2026-05-20",
+                    "status": "OPEN"
+                },
+                {
+                    "title": "Class Assignment 4",
+                    "due": "2026-05-20",
+                    "status": "OPEN"
+                },
+                {
+                    "title": "Lab Assignment 3",
+                    "due": "2026-05-20",
+                    "status": "OPEN"
+                },
+                {
+                    "title": "Lab Assignment 4",
+                    "due": "2026-05-20",
+                    "status": "OPEN"
+                }
+            ],
+            "quizzes": [
+                {
+                    "title": "Quiz 3",
+                    "due": "2026-05-20",
+                    "status": "OPEN"
+                },
+                {
+                    "title": "Quiz 4",
+                    "due": "2026-05-20",
+                    "status": "OPEN"
+                }
+            ]
+        },
+        {
+            "code": "HUM120",
+            "name": "Expository Writing",
+            "instructor": "Dr. Ammar Ashraf",
+            "credits": "3",
+            "attendance": "0%",
+            "assignments": [
+                {
+                    "title": "Assignment 4 - Expository writing",
+                    "due": "2026-05-18",
+                    "status": "OPEN"
+                }
+            ],
+            "quizzes": [
+                {
+                    "title": "Quiz 4",
+                    "due": "2026-05-17",
+                    "status": "CLOSED"
+                }
+            ]
+        },
+        {
+            "code": "PHY124",
+            "name": "Applied Physics",
+            "instructor": "Hassan Iqbal",
+            "credits": "3",
+            "attendance": "93% (Theory) / 100% (Lab)",
+            "assignments": [],
+            "quizzes": []
+        },
+        {
+            "code": "CSC102",
+            "name": "Discrete Structures",
+            "instructor": "Shaheen Akhter",
+            "credits": "3",
+            "attendance": "97%",
+            "assignments": [],
+            "quizzes": []
+        },
+        {
+            "code": "CSC291",
+            "name": "Software Engineering",
+            "instructor": "Kanwal Fatima",
+            "credits": "3",
+            "attendance": "82%",
+            "assignments": [],
+            "quizzes": []
+        },
+        {
+            "code": "HUM161",
+            "name": "Holy Quran – I",
+            "instructor": "Muhammad Yasin",
+            "credits": "1",
+            "attendance": "93%",
+            "assignments": [
+                {
+                    "title": "Assignment No. 4",
+                    "due": "2026-05-18",
+                    "status": "OPEN"
+                }
+            ],
+            "quizzes": []
+        }
+    ]
+}

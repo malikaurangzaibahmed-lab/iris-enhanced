@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Simple OTA (Over-The-Air) timetable update service
 /// Enables pushing timetable updates to users without requiring app rebuild
@@ -37,47 +37,16 @@ class TimetableOTAService {
   /// Check if new timetable version is available
   static Future<bool> isUpdateAvailable() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      
-      // If no metadata endpoint, check if we have never downloaded before
-      if (METADATA_URL == null) {
-        final cachedTimetable = prefs.getString(PREF_CACHED_TIMETABLE);
-        if (cachedTimetable == null) {
-          print('✅ No cached timetable - update available');
-          return true;
-        }
+      final doc = await FirebaseFirestore.instance.collection('config').doc('global').get();
+      if (doc.exists) {
+        final data = doc.data() ?? {};
+        final remoteTimetableVersion = data['active_timetable_version'] as int? ?? 0;
         
-        // For simple setups: download and compare content
-        print('📡 Checking timetable for changes...');
-        // Add cache-busting parameter to force GitHub to serve fresh file
-        final cacheBustUrl = '$TIMETABLE_URL?t=${DateTime.now().millisecondsSinceEpoch}';
-        final response = await http.get(Uri.parse(cacheBustUrl))
-            .timeout(const Duration(seconds: 10));
+        final prefs = await SharedPreferences.getInstance();
+        final currentVersion = prefs.getInt(PREF_TIMETABLE_VERSION) ?? 0;
         
-        if (response.statusCode == 200) {
-          final isDifferent = response.body != cachedTimetable;
-          if (isDifferent) {
-            print('✅ Timetable has changed - update available');
-          } else {
-            print('✅ Timetable is up-to-date');
-          }
-          return isDifferent;
-        }
-        return false;
-      }
-      
-      // With metadata endpoint
-      final currentVersion = prefs.getInt(PREF_TIMETABLE_VERSION) ?? 0;
-      print('📡 Checking for timetable updates...');
-      final response = await http.get(Uri.parse(METADATA_URL!))
-          .timeout(const Duration(seconds: 10));
-      
-      if (response.statusCode == 200) {
-        final metadata = jsonDecode(response.body) as Map<String, dynamic>;
-        final latestVersion = metadata['version'] as int? ?? 1;
-        
-        if (latestVersion > currentVersion) {
-          print('✅ New timetable available! Version $latestVersion (current: $currentVersion)');
+        if (remoteTimetableVersion > currentVersion) {
+          print('✅ New timetable available! Version $remoteTimetableVersion (current: $currentVersion)');
           return true;
         } else {
           print('✅ Timetable is up-to-date (version $currentVersion)');
@@ -92,49 +61,44 @@ class TimetableOTAService {
   /// Download and cache new timetable
   static Future<int> downloadTimetableUpdate() async {
     try {
-      print('📥 Downloading timetable update...');
-      // Add cache-busting parameter to force GitHub to serve fresh file
-      final cacheBustUrl = '$TIMETABLE_URL?t=${DateTime.now().millisecondsSinceEpoch}';
-      final response = await http.get(Uri.parse(cacheBustUrl))
-          .timeout(const Duration(seconds: 30));
-      
-      if (response.statusCode == 200) {
-        // Validate JSON before caching
-        final data = jsonDecode(response.body);
+      print('📥 Downloading timetable update from Firestore...');
+      final doc = await FirebaseFirestore.instance.collection('config').doc('global').get();
+      if (doc.exists) {
+        final data = doc.data() ?? {};
+        final remoteTimetableJson = data['active_timetable_json']?.toString() ?? '';
+        final remoteTimetableVersion = data['active_timetable_version'] as int? ?? 0;
         
-        // Support both formats:
-        // 1. Direct array: [{"batch":...}, ...]
-        // 2. Object with sessions key: {"sessions": [...]}
-        int sessionCount = 0;
-        if (data is List) {
-          sessionCount = data.length;
-        } else if (data is Map && data['sessions'] is List) {
-          sessionCount = (data['sessions'] as List).length;
-        } else {
-          throw Exception('Invalid timetable format');
-        }
-        
-        final prefs = await SharedPreferences.getInstance();
-        
-        // Check if content actually changed
-        final cached = prefs.getString(PREF_CACHED_TIMETABLE);
-        if (cached == response.body) {
-          print('ℹ️ Timetable is already up-to-date (no changes)');
-          // Still update last check time even if no change
+        if (remoteTimetableJson.isNotEmpty) {
+          // Validate JSON before caching
+          final decoded = jsonDecode(remoteTimetableJson);
+          int sessionCount = 0;
+          if (decoded is List) {
+            sessionCount = decoded.length;
+          } else if (decoded is Map && decoded['sessions'] is List) {
+            sessionCount = (decoded['sessions'] as List).length;
+          } else {
+            throw Exception('Invalid timetable format');
+          }
+          
+          final prefs = await SharedPreferences.getInstance();
+          
+          // Check if content actually changed
+          final cached = prefs.getString(PREF_CACHED_TIMETABLE);
+          if (cached == remoteTimetableJson) {
+            print('ℹ️ Timetable is already up-to-date (no changes)');
+            // Still update last check time even if no change
+            await prefs.setInt(PREF_LAST_CHECK_TIME, DateTime.now().millisecondsSinceEpoch);
+            return 0; // No update available
+          }
+          
+          // Cache the timetable JSON only if different
+          await prefs.setString(PREF_CACHED_TIMETABLE, remoteTimetableJson);
+          await prefs.setInt(PREF_TIMETABLE_VERSION, remoteTimetableVersion);
           await prefs.setInt(PREF_LAST_CHECK_TIME, DateTime.now().millisecondsSinceEpoch);
-          return 0; // No update available
+          
+          print('✅ Timetable updated from Firestore! ($sessionCount sessions)');
+          return 1;
         }
-        
-        // Cache the timetable JSON only if different
-        await prefs.setString(PREF_CACHED_TIMETABLE, response.body);
-        
-        // Use current timestamp as version (simple but effective)
-        final version = DateTime.now().millisecondsSinceEpoch;
-        await prefs.setInt(PREF_TIMETABLE_VERSION, version);
-        await prefs.setInt(PREF_LAST_CHECK_TIME, version);
-        
-        print('✅ Timetable updated! ($sessionCount sessions, ${response.body.length} bytes)');
-        return 1;
       }
     } catch (e) {
       print('❌ Download failed: $e');

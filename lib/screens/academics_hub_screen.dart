@@ -8,6 +8,8 @@ import '../core/animations.dart';
 import '../core/theme_signals.dart';
 import '../services/portal_sync_service.dart';
 import '../services/ui_feedback.dart';
+import '../services/remote_config_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AcademicsHubScreen extends StatefulWidget {
   const AcademicsHubScreen({super.key});
@@ -25,6 +27,7 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
   String? _savedUserBatch;
   
   late final AnimationController _syncAnimCtrl;
+  late final AnimationController _auraAnimCtrl;
 
   String _extractProgram(String? reg) {
     if (reg == null || reg.isEmpty) return 'BCS';
@@ -34,6 +37,18 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
     final parts = reg.split('-');
     if (parts.length >= 2) return parts[1].toUpperCase();
     return 'UG';
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return 'S';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return 'S';
   }
 
   Map<String, dynamic> _getMockAcademicsData() {
@@ -157,13 +172,19 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
       vsync: this,
       duration: const Duration(seconds: 2),
     );
+    _auraAnimCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
     _loadLocalData();
     PortalSyncService.syncNotifier.addListener(_onPortalUpdated);
+    RemoteConfigService.startRemoteListener(context);
   }
 
   @override
   void dispose() {
     _syncAnimCtrl.dispose();
+    _auraAnimCtrl.dispose();
     PortalSyncService.syncNotifier.removeListener(_onPortalUpdated);
     super.dispose();
   }
@@ -501,9 +522,29 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
     final studentId = _cleanStudentId(data['student_id']?.toString() ?? _savedUserBatch ?? '');
     final totalCourses = data['semester_summary']?['total_courses'] ?? 0;
     final totalPendingTasks = data['semester_summary']?['total_pending_tasks'] ?? 0;
-    final rawAttendanceAvg = data['semester_summary']?['overall_attendance_avg']?.toString() ?? 'N/A';
-    final attendanceAvg = _cleanAttendanceString(rawAttendanceAvg);
     final coursesList = data['courses'] as List<dynamic>? ?? [];
+    
+    // Dynamically calculate the true overall attendance average from the actual course list records
+    double calculatedOverallAtt = 0.0;
+    if (coursesList.isNotEmpty) {
+      double totalAttPct = 0.0;
+      int validCourses = 0;
+      for (final course in coursesList) {
+        final attStr = course['attendance']?.toString() ?? '';
+        final pct = _parseAttendancePct(attStr);
+        totalAttPct += pct;
+        validCourses++;
+      }
+      if (validCourses > 0) {
+        calculatedOverallAtt = totalAttPct / validCourses;
+      }
+    } else {
+      final rawAttendanceAvg = data['semester_summary']?['overall_attendance_avg']?.toString() ?? '0%';
+      calculatedOverallAtt = _parseAttendancePct(rawAttendanceAvg);
+    }
+    
+    final attendanceAvg = '${calculatedOverallAtt.toInt()}%';
+    final rawAttendanceAvg = '${calculatedOverallAtt.toInt()}%';
 
     final glassSettings = IrisGlass.settings(
       context,
@@ -518,45 +559,81 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
       body: Stack(
         children: [
           // Background Gradient meshes
-          if (isDark) ...[
-            Positioned(
-              top: -100,
-              right: -100,
-              child: Container(
-                width: 320,
-                height: 320,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: IrisTokens.brand.withValues(alpha: 0.18),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 100,
-              left: -150,
-              child: Container(
-                width: 350,
-                height: 350,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: IrisTokens.purple.withValues(alpha: 0.14),
-                ),
-              ),
-            ),
-          ] else ...[
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: IrisTokens.brandLight.withValues(alpha: 0.22),
-                ),
-              ),
-            ),
-          ],
+          AnimatedBuilder(
+            animation: _auraAnimCtrl,
+            builder: (context, child) {
+              final scale = 1.0 + (_auraAnimCtrl.value * 0.15);
+              final opacityScale = 0.8 + (_auraAnimCtrl.value * 0.2);
+              
+              return Stack(
+                children: [
+                  if (isDark) ...[
+                    Positioned(
+                      top: -100,
+                      right: -100,
+                      child: Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          width: 320,
+                          height: 320,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: IrisTokens.brand.withValues(alpha: 0.18 * opacityScale),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 100,
+                      left: -150,
+                      child: Transform.scale(
+                        scale: 1.25 - (_auraAnimCtrl.value * 0.1),
+                        child: Container(
+                          width: 350,
+                          height: 350,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: IrisTokens.purple.withValues(alpha: 0.14 * opacityScale),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    Positioned(
+                      top: -80,
+                      right: -80,
+                      child: Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          width: 280,
+                          height: 280,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: IrisTokens.brandLight.withValues(alpha: 0.22 * opacityScale),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 80,
+                      left: -100,
+                      child: Transform.scale(
+                        scale: 1.2 - (_auraAnimCtrl.value * 0.08),
+                        child: Container(
+                          width: 300,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: IrisTokens.purple.withValues(alpha: 0.12 * opacityScale),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
           
           SafeArea(
             child: RefreshIndicator(
@@ -565,29 +642,39 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 110), // Padding bottom for dock
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // TOP BAR
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
+                child: ValueListenableBuilder<String>(
+                  valueListenable: RemoteConfigService.activeAcademicPeriod,
+                  builder: (context, activePeriod, _) {
+                    return ValueListenableBuilder<Map<String, dynamic>?>(
+                      valueListenable: RemoteConfigService.latestApkUpdate,
+                      builder: (context, updateInfo, _) {
+                        return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Academics Hub',
-                              style: IrisTextStyles.title(context).copyWith(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 30,
-                                letterSpacing: -0.8,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'COMSATS Student Workspace',
-                              style: IrisTextStyles.caption(context),
-                            ),
+                            if (updateInfo != null) _buildSystemUpdateBanner(context, updateInfo),
+                            // TOP BAR
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Academics Hub',
+                                      style: IrisTextStyles.title(context).copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 30,
+                                        letterSpacing: -0.8,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'ACTIVE PERIOD: ${activePeriod.replaceAll('_', ' ').toUpperCase()} 📝',
+                                      style: IrisTextStyles.caption(context).copyWith(
+                                        color: _getModeColor(activePeriod),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                           ],
                         ),
                         // Refresh/Sync button
@@ -626,6 +713,7 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                         child: Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.12),
                               width: 1.5,
@@ -637,10 +725,64 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                               // Student profile header
                               Row(
                                 children: [
-                                  CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: IrisTokens.brand.withValues(alpha: 0.2),
-                                    child: Icon(Icons.person_rounded, color: IrisTokens.brand, size: 24),
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: IrisTokens.brand.withValues(alpha: isDark ? 0.35 : 0.25),
+                                            width: 1.8,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: IrisTokens.brand.withValues(alpha: isDark ? 0.2 : 0.08),
+                                              blurRadius: 8,
+                                              spreadRadius: 1,
+                                            ),
+                                          ],
+                                        ),
+                                        child: CircleAvatar(
+                                          radius: 26,
+                                          backgroundColor: isDark 
+                                              ? Colors.white.withValues(alpha: 0.05) 
+                                              : IrisTokens.brand.withValues(alpha: 0.08),
+                                          child: Text(
+                                            _getInitials(studentName),
+                                            style: TextStyle(
+                                              color: isDark ? Colors.white : IrisTokens.brand,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF10B981), // Synced Green
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                                              width: 1.8,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                                                blurRadius: 4,
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
@@ -649,10 +791,10 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                                       children: [
                                         Text(
                                           studentName,
-                                          style: IrisTextStyles.headline(context).copyWith(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 21,
-                                            letterSpacing: -0.4,
+                                          style: IrisTextStyles.title(context).copyWith(
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 22,
+                                            letterSpacing: -0.5,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -729,38 +871,154 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                               ),
                               const Divider(height: 30, color: Colors.white10),
                               
-                              // Main metrics row
+                              // Main metrics capsules row
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  // Enrolled Courses metric
-                                  _buildSummaryMetric(
-                                    context,
+                                  // Enrolled Courses capsule
+                                  _buildFrostedMetricCapsule(
+                                    context: context,
                                     title: 'COURSES',
                                     value: '$totalCourses',
                                     subtitle: 'Enrolled',
                                     accentColor: IrisTokens.brand,
-                                    icon: Icons.school_outlined,
+                                    visual: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: IrisTokens.brand.withValues(alpha: isDark ? 0.15 : 0.10),
+                                      ),
+                                      child: Icon(
+                                        Icons.school_rounded,
+                                        size: 16,
+                                        color: isDark ? Colors.white70 : IrisTokens.brand,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      IrisHaptics.selectionClick();
+                                      showIrisFrostedSnackBar(
+                                        context,
+                                        content: Text('You are enrolled in $totalCourses courses this semester.'),
+                                        tint: IrisTokens.brand,
+                                      );
+                                    },
                                   ),
                                   
-                                  // Attendance widget
-                                  _buildSummaryMetric(
-                                    context,
+                                  // Attendance capsule (with micro progress ring)
+                                  _buildFrostedMetricCapsule(
+                                    context: context,
                                     title: 'ATTENDANCE',
                                     value: attendanceAvg,
                                     subtitle: 'Overall Avg',
-                                    accentColor: IrisTokens.success,
-                                    icon: Icons.analytics_outlined,
+                                    accentColor: _getAttendanceColor(_parseAttendancePct(rawAttendanceAvg) > 0 ? _parseAttendancePct(rawAttendanceAvg) : 85.0),
+                                    visual: SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          CircularProgressIndicator(
+                                            value: (_parseAttendancePct(rawAttendanceAvg) / 100.0).clamp(0.0, 1.0),
+                                            strokeWidth: 2.5,
+                                            backgroundColor: (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.1)),
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              _getAttendanceColor(_parseAttendancePct(rawAttendanceAvg) > 0 ? _parseAttendancePct(rawAttendanceAvg) : 85.0),
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.analytics_rounded,
+                                            size: 14,
+                                            color: _getAttendanceColor(_parseAttendancePct(rawAttendanceAvg) > 0 ? _parseAttendancePct(rawAttendanceAvg) : 85.0),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      IrisHaptics.selectionClick();
+                                      final overallAttPct = _parseAttendancePct(rawAttendanceAvg);
+                                      final attColor = _getAttendanceColor(overallAttPct > 0 ? overallAttPct : 85.0);
+                                      String statusMsg;
+                                      if (overallAttPct >= 85.0) {
+                                        statusMsg = 'Excellent! Your attendance is in the safe zone.';
+                                      } else if (overallAttPct >= 75.0) {
+                                        statusMsg = 'Caution. Your attendance is close to the threshold.';
+                                      } else {
+                                        statusMsg = 'Warning! Attendance is below 75% requirements.';
+                                      }
+                                      showIrisFrostedSnackBar(
+                                        context,
+                                        content: Text('$statusMsg ($attendanceAvg)'),
+                                        tint: attColor,
+                                      );
+                                    },
                                   ),
                                   
-                                  // Pending Tasks widget
-                                  _buildSummaryMetric(
-                                    context,
+                                  // Pending Tasks capsule (with pulsing notification badge)
+                                  _buildFrostedMetricCapsule(
+                                    context: context,
                                     title: 'PENDING TASKS',
                                     value: '$totalPendingTasks',
                                     subtitle: 'Open Tasks',
                                     accentColor: IrisTokens.warning,
-                                    icon: Icons.assignment_late_outlined,
+                                    visual: AnimatedBuilder(
+                                      animation: _auraAnimCtrl,
+                                      builder: (context, child) {
+                                        final pulse = 0.7 + (_auraAnimCtrl.value * 0.3);
+                                        return SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: Stack(
+                                            alignment: Alignment.center,
+                                            clipBehavior: Clip.none,
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: IrisTokens.warning.withValues(alpha: isDark ? 0.15 : 0.10),
+                                                ),
+                                                child: Icon(
+                                                  Icons.assignment_late_rounded,
+                                                  size: 16,
+                                                  color: IrisTokens.warning,
+                                                ),
+                                              ),
+                                              if (totalPendingTasks > 0)
+                                                Positioned(
+                                                  top: -1,
+                                                  right: -1,
+                                                  child: Transform.scale(
+                                                    scale: pulse,
+                                                    child: Container(
+                                                      width: 8,
+                                                      height: 8,
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: IrisTokens.error,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: IrisTokens.error.withValues(alpha: 0.6),
+                                                            blurRadius: 4,
+                                                            spreadRadius: 1,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    onTap: () {
+                                      IrisHaptics.selectionClick();
+                                      showIrisFrostedSnackBar(
+                                        context,
+                                        content: Text('You have $totalPendingTasks open assignments or quizzes remaining.'),
+                                        tint: IrisTokens.warning,
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -806,6 +1064,7 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                               decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.08),
                                   width: 1.0,
@@ -883,21 +1142,40 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                           final attPct = _parseAttendancePct(attendance);
                           final attColor = _getAttendanceColor(attPct);
 
-                          return ClipRRect(
-                            borderRadius: IrisTokens.cardRadius,
-                            child: GlassSurface(
-                              settings: glassSettings,
-                              radius: 20,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: (isDark ? Colors.white : IrisTokens.brand).withValues(
-                                      alpha: isExpanded ? 0.22 : 0.08,
+                          return Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              if (isExpanded)
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: attColor.withValues(alpha: isDark ? 0.22 : 0.15),
+                                          blurRadius: 20,
+                                          spreadRadius: 2,
+                                        ),
+                                      ],
                                     ),
-                                    width: isExpanded ? 1.5 : 1.0,
                                   ),
                                 ),
-                                child: InkWell(
+                              ClipRRect(
+                                borderRadius: IrisTokens.cardRadius,
+                                child: GlassSurface(
+                                  settings: glassSettings,
+                                  radius: 20,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isExpanded
+                                            ? attColor.withValues(alpha: isDark ? 0.55 : 0.7)
+                                            : (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.08),
+                                        width: isExpanded ? 1.5 : 1.0,
+                                      ),
+                                    ),
+                                    child: InkWell(
                                   onTap: () {
                                     IrisHaptics.selectionClick();
                                     setState(() {
@@ -957,38 +1235,53 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                                                     ),
                                                   ],
                                                 ),
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                  decoration: BoxDecoration(
-                                                    color: attColor.withValues(alpha: 0.15),
-                                                    borderRadius: BorderRadius.circular(6),
-                                                    border: Border.all(
-                                                      color: attColor.withValues(alpha: 0.3),
-                                                      width: 0.5,
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                      decoration: BoxDecoration(
+                                                        color: attColor.withValues(alpha: 0.15),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                        border: Border.all(
+                                                          color: attColor.withValues(alpha: 0.3),
+                                                          width: 0.5,
+                                                        ),
+                                                      ),
+                                                      child: Row(
+                                                        children: [
+                                                          Container(
+                                                            width: 6,
+                                                            height: 6,
+                                                            decoration: BoxDecoration(
+                                                              shape: BoxShape.circle,
+                                                              color: attColor,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 6),
+                                                          Text(
+                                                            _cleanAttendanceString(attendance),
+                                                            style: TextStyle(
+                                                              color: attColor,
+                                                              fontSize: 11,
+                                                              fontWeight: FontWeight.w800,
+                                                              letterSpacing: 0.2,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      Container(
-                                                        width: 6,
-                                                        height: 6,
-                                                        decoration: BoxDecoration(
-                                                          shape: BoxShape.circle,
-                                                          color: attColor,
-                                                        ),
+                                                    const SizedBox(width: 6),
+                                                    AnimatedRotation(
+                                                      turns: isExpanded ? 0.5 : 0.0,
+                                                      duration: const Duration(milliseconds: 300),
+                                                      curve: IrisMotion.standard,
+                                                      child: Icon(
+                                                        Icons.keyboard_arrow_down_rounded,
+                                                        size: 18,
+                                                        color: (isDark ? Colors.white54 : Colors.black45),
                                                       ),
-                                                      const SizedBox(width: 6),
-                                                      Text(
-                                                        _cleanAttendanceString(attendance),
-                                                        style: TextStyle(
-                                                          color: attColor,
-                                                          fontSize: 11,
-                                                          fontWeight: FontWeight.w800,
-                                                          letterSpacing: 0.2,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
@@ -1031,26 +1324,52 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                                       // Dynamic Attendance Gradient Line
                                       Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(3),
-                                          child: Container(
-                                            height: 4,
-                                            color: (isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05)),
-                                            child: FractionallySizedBox(
-                                              alignment: Alignment.centerLeft,
-                                              widthFactor: (attPct / 100.0).clamp(0.0, 1.0),
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    colors: [
-                                                      attColor.withValues(alpha: 0.7),
-                                                      attColor,
+                                        child: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            // Soft glowing background shadow
+                                            Positioned.fill(
+                                              child: FractionallySizedBox(
+                                                alignment: Alignment.centerLeft,
+                                                widthFactor: (attPct / 100.0).clamp(0.0, 1.0),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(3),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: attColor.withValues(alpha: isDark ? 0.35 : 0.25),
+                                                        blurRadius: 6,
+                                                        spreadRadius: 0.5,
+                                                        offset: const Offset(0, 1),
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ),
+                                            // Core progress bar
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(3),
+                                              child: Container(
+                                                height: 4.5,
+                                                color: (isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05)),
+                                                child: FractionallySizedBox(
+                                                  alignment: Alignment.centerLeft,
+                                                  widthFactor: (attPct / 100.0).clamp(0.0, 1.0),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          attColor.withValues(alpha: 0.75),
+                                                          attColor,
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                       const SizedBox(height: 14),
@@ -1068,10 +1387,16 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                                 ),
                               ),
                             ),
-                          );
+                          ),
+                        ],
+                      );
                         },
                       ),
                   ],
+                );
+                      },
+                    );
+                  },
                 ),
               ),
             ),
@@ -1091,6 +1416,7 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                       child: Container(
                         padding: const EdgeInsets.all(28),
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.12),
                             width: 1.5,
@@ -1169,54 +1495,97 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
     );
   }
 
-  Widget _buildSummaryMetric(
-    BuildContext context, {
+  Widget _buildFrostedMetricCapsule({
+    required BuildContext context,
     required String title,
     required String value,
     required String subtitle,
     required Color accentColor,
-    required IconData icon,
+    required Widget visual,
+    required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
+    final capsuleSettings = IrisGlass.settings(
+      context,
+      blur: 8,
+      ambientStrength: 0.7,
+      lightAngle: 0.15 * math.pi,
+      thickness: 12,
+      glassColor: isDark 
+          ? Colors.white.withValues(alpha: 0.04) 
+          : Colors.black.withValues(alpha: 0.02),
+    );
+
     return Expanded(
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: isDark ? Colors.white38 : Colors.black38,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-              color: isDark ? Colors.white60 : Colors.black54,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: GlassSurface(
+            settings: capsuleSettings,
+            radius: 16,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: isDark ? 0.25 : 0.4),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: isDark ? 0.03 : 0.01),
+                      blurRadius: 8,
+                      spreadRadius: 0.5,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    visual,
+                    const SizedBox(height: 10),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        color: isDark ? Colors.white54 : Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: IrisTextStyles.headline(context).copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                        color: accentColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: IrisTextStyles.overline(context).copyWith(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white38 : Colors.black45,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: IrisTextStyles.headline(context).copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-              color: accentColor,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: IrisTextStyles.overline(context).copyWith(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white38 : Colors.black38,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1491,5 +1860,163 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
         ],
       ),
     );
+  }
+
+  Widget _buildSystemUpdateBanner(BuildContext context, Map<String, dynamic> update) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final vName = update['version_name']?.toString() ?? '1.1.0';
+    final notes = update['release_notes']?.toString() ?? '';
+    final apkUrl = update['apk_url']?.toString() ?? '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: IrisTokens.brand.withValues(alpha: isDark ? 0.25 : 0.15),
+                    blurRadius: 16,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ClipRRect(
+            borderRadius: IrisTokens.cardRadius,
+            child: GlassSurface(
+              settings: IrisGlass.settings(
+                context,
+                blur: 20,
+                ambientStrength: 0.8,
+                lightAngle: 0.15 * math.pi,
+                thickness: 18,
+                glassColor: isDark 
+                    ? IrisTokens.brand.withValues(alpha: 0.12)
+                    : Colors.white.withValues(alpha: 0.85),
+              ),
+              radius: 20,
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: IrisTokens.brand.withValues(alpha: 0.45),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: IrisTokens.brand.withValues(alpha: 0.15),
+                          ),
+                          child: Icon(
+                            Icons.system_update_rounded,
+                            size: 18,
+                            color: isDark ? Colors.white : IrisTokens.brand,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'SYSTEM UPDATE AVAILABLE',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2,
+                                  color: isDark ? Colors.white70 : IrisTokens.brand,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'IRIS Enhanced v$vName',
+                                style: IrisTextStyles.headline(context).copyWith(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (notes.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        notes,
+                        style: IrisTextStyles.caption(context).copyWith(
+                          fontSize: 11.5,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: IrisTokens.brand,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: IrisTokens.buttonRadius,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                        elevation: 0,
+                      ),
+                      onPressed: () async {
+                        IrisHaptics.actionHeavy();
+                        if (apkUrl.isNotEmpty) {
+                          final uri = Uri.tryParse(apkUrl);
+                          if (uri != null && await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          } else {
+                            if (context.mounted) {
+                              showIrisFrostedSnackBar(
+                                context,
+                                content: const Text('Could not open APK download link.'),
+                                tint: IrisTokens.error,
+                              );
+                            }
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.download_rounded, size: 16),
+                      label: const Text(
+                        'Install Update Now',
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getModeColor(String period) {
+    switch (period) {
+      case 'classes': return const Color(0xFF3A86FF);
+      case 'midterms': return const Color(0xFFF59E0B);
+      case 'finals': return const Color(0xFFF43F5E);
+      case 'sports_week': return const Color(0xFF10B981);
+      default: return const Color(0xFF3A86FF);
+    }
   }
 }

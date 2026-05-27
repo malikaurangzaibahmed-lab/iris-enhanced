@@ -1,0 +1,3 @@
+- [ ] admin controls 
+- [ ] app updates
+- [ ] right now this is for regular class and stuff, we should get stuff for when it is classes , finals, mids, sports week ,etc

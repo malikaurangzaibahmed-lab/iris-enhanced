@@ -13,9 +13,13 @@ service cloud.firestore {
 
     // 2. The Quota-Shield Admin Check
     // Instead of querying collections, this performs a targeted check using 'exists()'.
-    // If the requesting UID exists in the 'admins' collection, they are granted God-Mode.
+    // If the requesting UID exists in the 'admins' collection, or if their email matches
+    // the owner's email, they are granted administrative access.
     function isAdmin() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == "malikaurangzaibahmed@gmail.com"
+      );
     }
 
     // ---------------------------------------------------------
@@ -46,6 +50,13 @@ service cloud.firestore {
     // Anyone logged in can read the timetable structure. Only admins (or the OTA Cloudflare worker) modify it.
     match /timetables/{document=**} {
       allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Global App Configuration
+    // Public read-access is required for unauthenticated student apps to sync configuration.
+    match /config/{document=**} {
+      allow read: if true;
       allow write: if isAdmin();
     }
 

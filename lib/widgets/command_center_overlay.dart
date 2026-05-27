@@ -6,7 +6,6 @@ import '../core/tokens.dart';
 import '../services/ui_feedback.dart';
 import '../core/animations.dart';
 import '../screens/login_screen.dart';
-import '../screens/admin_god_mode_dashboard.dart';
 import '../screens/iris_hub_screen.dart';
 
 /// A powerful 3D gesture wrapper that pushes your main application into the background,
@@ -203,29 +202,7 @@ class CommandCenterOverlayState extends State<CommandCenterOverlay> with SingleT
             pushIconLaunchRoute(context, page: const IrisHubScreen());
           }),
           
-          // Secret Admin Detection Layer
-          if (user != null)
-            FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance.collection('admins').doc(user.uid).get(),
-              builder: (context, snapshot) {
-                // If they have a document in the admins collection, reveal the God-Mode button
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: _buildMenuItem(
-                      Icons.admin_panel_settings_rounded, 
-                      "God-Mode Panel", 
-                      () {
-                        toggle(); // Close overlay immediately
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminGodModeDashboard()));
-                      }, 
-                      color: IrisTokens.warning
-                    ),
-                  );
-                }
-                return const SizedBox.shrink(); // Not an admin
-              },
-            ),
+          // Admin Panel removed in favor of centralized Web Admin Portal (https://iris-138ef.web.app)
 
           const Spacer(),
           

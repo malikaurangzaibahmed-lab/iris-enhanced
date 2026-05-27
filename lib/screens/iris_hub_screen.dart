@@ -11,7 +11,6 @@ import '../core/app_signals.dart';
 import '../core/theme_signals.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../widgets/native_liquid_glass.dart';
-import 'admin_god_mode_dashboard.dart';
 import 'login_screen.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
@@ -42,7 +41,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
   late AnimationController _profileAnimController;
   late AnimationController _pulseController;
   
-  bool _isGodMode = false;
   String _userRole = 'student';
   String _appearanceMode = 'system';
   bool _uiSoundsEnabled = true;
@@ -71,7 +69,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
     )..repeat(reverse: true);
     
     _loadSettings();
-    _checkAdminStatus();
   }
 
   Future<void> _loadSettings() async {
@@ -102,17 +99,7 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
     });
   }
 
-  Future<void> _checkAdminStatus() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    try {
-      final doc = await FirebaseFirestore.instance.collection('admins').doc(user.uid).get();
-      if (doc.exists && mounted) {
-        setState(() => _isGodMode = true);
-        IrisHaptics.actionMedium();
-      }
-    } catch (e) { debugPrint(e.toString()); }
-  }
+  // Admin checks pruned for client-side security optimization
 
   @override
   void dispose() {
@@ -165,10 +152,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                     _buildSectionHeader("MAINTENANCE", isDark),
                     const SizedBox(height: 16),
                     _buildOTACardPremium(isDark),
-                    if (_isGodMode) ...[
-                      const SizedBox(height: 32),
-                      _buildGodModeCard(isDark),
-                    ],
                     const SizedBox(height: 48),
                     _buildLogoutButton(user),
                     const SizedBox(height: 120),
@@ -318,7 +301,7 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                       child: CircularProgressIndicator(
                         value: _profileAnimController.value,
                         strokeWidth: 2,
-                        color: (_isGodMode ? VitalTokens.orange : VitalTokens.blue).withValues(alpha: 0.2),
+                        color: VitalTokens.blue.withValues(alpha: 0.2),
                       ),
                     );
                   },
@@ -328,24 +311,22 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: _isGodMode 
-                        ? [VitalTokens.orange, VitalTokens.orange.withValues(alpha: 0.8)]
-                        : [VitalTokens.blue, VitalTokens.purple],
+                      colors: [VitalTokens.blue, VitalTokens.purple],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (_isGodMode ? VitalTokens.orange : VitalTokens.blue).withValues(alpha: 0.3),
+                        color: VitalTokens.blue.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Icon(
-                      _isGodMode ? Icons.security_rounded : Icons.person_rounded,
+                      Icons.person_rounded,
                       size: 48,
                       color: Colors.white,
                     ),
@@ -368,19 +349,19 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: (_isGodMode ? VitalTokens.orange : VitalTokens.blue).withValues(alpha: 0.1),
+                color: VitalTokens.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: (_isGodMode ? VitalTokens.orange : VitalTokens.blue).withValues(alpha: 0.2),
+                  color: VitalTokens.blue.withValues(alpha: 0.2),
                 ),
               ),
               child: Text(
-                _isGodMode ? "GOD-MODE TERMINAL" : _userRole.toUpperCase(),
-                style: TextStyle(
+                _userRole.toUpperCase(),
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
-                  color: _isGodMode ? VitalTokens.orange : VitalTokens.blue,
+                  color: VitalTokens.blue,
                 ),
               ),
             ),
@@ -551,33 +532,7 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
     );
   }
 
-  Widget _buildGodModeCard(bool isDark) {
-    return VitalCard(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminGodModeDashboard())),
-      backgroundColor: VitalTokens.orange.withValues(alpha: 0.1),
-      border: Border.all(color: VitalTokens.orange.withValues(alpha: 0.2)),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: VitalTokens.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
-            child: const Icon(Icons.admin_panel_settings_rounded, color: VitalTokens.orange, size: 30),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Terminal Root Access", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: VitalTokens.orange, letterSpacing: 0.5)),
-                Text("Authorized Personnel Only", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: VitalTokens.orange.withValues(alpha: 0.6))),
-              ],
-            ),
-          ),
-          const Icon(Icons.arrow_forward_ios_rounded, color: VitalTokens.orange, size: 14),
-        ],
-      ),
-    );
-  }
+  // God Mode Card helper widget pruned
 
   Widget _buildLogoutButton(User? user) {
     final color = user == null ? VitalTokens.blue : VitalTokens.error;
@@ -1122,7 +1077,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
 
   Future<void> _handleLogout() async {
     await FirebaseAuth.instance.signOut();
-    setState(() => _isGodMode = false);
     IrisHaptics.actionHeavy();
   }
 }
