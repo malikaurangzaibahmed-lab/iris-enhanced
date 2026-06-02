@@ -675,8 +675,40 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                          ],
-                        ),
+                                    if (_academicsData != null && _academicsData!['extracted_at'] != null) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            width: 6,
+                                            height: 6,
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF10B981), // Emerald green
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                                                  blurRadius: 4,
+                                                  spreadRadius: 1,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Script last ran: ${RemoteConfigService.formatTimestamp(DateTime.tryParse(_academicsData!['extracted_at'].toString()))}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: (isDark ? Colors.white70 : Colors.black54),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
                         // Refresh/Sync button
                         GestureDetector(
                           onTap: _triggerManualSync,
@@ -1981,15 +2013,24 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                         IrisHaptics.actionHeavy();
                         if (apkUrl.isNotEmpty) {
                           final uri = Uri.tryParse(apkUrl);
-                          if (uri != null && await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
-                          } else {
-                            if (context.mounted) {
-                              showIrisFrostedSnackBar(
-                                context,
-                                content: const Text('Could not open APK download link.'),
-                                tint: IrisTokens.error,
-                              );
+                          if (uri != null) {
+                            try {
+                              // Launch directly without checking canLaunchUrl to bypass Android 11+ package query filters
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            } catch (e) {
+                              print('Failed to launch URL with externalApplication: $e');
+                              try {
+                                await launchUrl(uri, mode: LaunchMode.platformDefault);
+                              } catch (e2) {
+                                print('Failed to launch URL with platformDefault: $e2');
+                                if (context.mounted) {
+                                  showIrisFrostedSnackBar(
+                                    context,
+                                    content: const Text('Could not open APK download link. Try copying it manually.'),
+                                    tint: IrisTokens.error,
+                                  );
+                                }
+                              }
                             }
                           }
                         }

@@ -17,6 +17,7 @@ class GlassCard extends StatelessWidget {
   final int elevation;
   final Color? accentColor;
   final Color? backgroundColor;
+  final BoxBorder? border;
   final bool tilt;
   final VoidCallback? onTap;
 
@@ -34,6 +35,7 @@ class GlassCard extends StatelessWidget {
     this.backgroundColor,
     this.tilt = false,
     this.onTap,
+    this.border,
     super.key,
   });
 
@@ -142,7 +144,7 @@ class GlassCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: glassColor,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: borderColor, width: 1.2),
+        border: border ?? Border.all(color: borderColor, width: 1.2),
         // Subtle highlight gradient for premium depth
         gradient: glow
             ? LinearGradient(

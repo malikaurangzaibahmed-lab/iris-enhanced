@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'services/ui_feedback.dart';
 import 'services/portal_sync_service.dart';
 import 'services/headless_portal_sync.dart';
+import 'services/session_refresher_service.dart';
 import 'widgets/iris_background.dart';
 import 'core/tokens.dart';
 import 'core/animations.dart';
@@ -583,9 +584,31 @@ class _PortalScreenState extends State<PortalScreen>
   const title = (document.title || '').toLowerCase();
   const pwd = document.querySelector('input[type="password"]:not([disabled])');
   const scope = (pwd && pwd.form) ? pwd.form : document;
-  const user = scope.querySelector(
-    'input[type="email"], input[autocomplete="username"], input[name*="user" i], input[id*="user" i], input[name*="login" i], input[id*="login" i], input[name*="roll" i], input[name*="reg" i], input[type="text"]'
-  );
+  
+  const scoreField = (element) => {
+    if (element === pwd) return -100;
+    const type = (element.type || '').toLowerCase();
+    if (type === 'hidden' || type === 'password' || type === 'submit' || type === 'button' || type === 'checkbox' || type === 'radio') return -100;
+    
+    const meta = [element.name, element.id, element.placeholder, element.autocomplete, element.type].filter(Boolean).join(' ').toLowerCase();
+    let score = 0;
+    if (/email|user|username|login|roll|reg|id|student|account/.test(meta)) score += 5;
+    if (/search|query|find|filter/.test(meta)) score -= 5;
+    if (/captcha|code|verif|validate|security/i.test(meta)) score -= 20;
+    
+    // Check visibility
+    const style = window.getComputedStyle(element);
+    const isVisible = style && style.display !== 'none' && style.visibility !== 'hidden' && element.getClientRects().length > 0;
+    if (!isVisible) score -= 10;
+    
+    return score;
+  };
+
+  const candidates = Array.from(scope.querySelectorAll('input, textarea'))
+    .sort((a, b) => scoreField(b) - scoreField(a));
+  
+  const user = (candidates.length > 0 && scoreField(candidates[0]) > 0) ? candidates[0] : null;
+
   const hasUpload = document.querySelector('input[type="file"]') != null;
   const focusMatchesLogin = (element) => {
     if (!element) return false;
@@ -676,6 +699,22 @@ class _PortalScreenState extends State<PortalScreen>
       if (_hasLoginForm && _hasSavedLogin && mounted) {
         await _autofillSavedLogin();
       }
+
+      // Intelligent Scraper: Auto-trigger silent deep sync when logged in on the portal dashboard
+      if (_currentUrl.contains('comsats.edu.pk') && !_hasLoginForm && !_isSyncing && mounted) {
+        final lastAutoSync = prefs.getInt('portal_last_auto_sync') ?? 0;
+        final nowMs = DateTime.now().millisecondsSinceEpoch;
+        if (nowMs - lastAutoSync > 5 * 60 * 1000) { // 5 minutes cooldown
+          await prefs.setInt('portal_last_auto_sync', nowMs);
+          debugPrint('🤖 [IRIS] Intelligent Scraper: Auto-triggering silent deep sync...');
+          // Trigger sync after a small delay to let page fully settle
+          Future.delayed(const Duration(milliseconds: 1200), () {
+            if (mounted) {
+              _syncPortalTasks(silent: true);
+            }
+          });
+        }
+      }
     } catch (_) {}
   }
 
@@ -714,14 +753,31 @@ class _PortalScreenState extends State<PortalScreen>
   }
 
   bool _looksDownloadableUrl(String url) {
-    final lower = url.toLowerCase();
-    return lower.contains('download') ||
-        lower.endsWith('.pdf') ||
-        lower.endsWith('.doc') ||
-        lower.endsWith('.docx') ||
-        lower.endsWith('.ppt') ||
-        lower.endsWith('.pptx') ||
-        lower.endsWith('.zip');
+    final cleanUrl = url.toLowerCase().split('?').first.split('#').first;
+    
+    // Check path segments / query for common download triggers
+    final fullLower = url.toLowerCase();
+    if (fullLower.contains('download') ||
+        fullLower.contains('getfile') ||
+        fullLower.contains('export') ||
+        fullLower.contains('attachment') ||
+        fullLower.contains('viewfile') ||
+        fullLower.contains('stream') ||
+        fullLower.contains('generate') ||
+        fullLower.contains('getassignment') ||
+        fullLower.contains('assignmentfile') ||
+        fullLower.contains('resultcard') ||
+        fullLower.contains('challan') ||
+        fullLower.contains('fee_challan') ||
+        fullLower.contains('printchallan')) {
+      return true;
+    }
+
+    final extensions = [
+      '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', 
+      '.zip', '.rar', '.7z', '.apk', '.png', '.jpg', '.jpeg', '.txt', '.csv'
+    ];
+    return extensions.any((ext) => cleanUrl.endsWith(ext));
   }
 
   Future<void> _handlePrintDocument(String url) async {
@@ -830,7 +886,17 @@ class _PortalScreenState extends State<PortalScreen>
 
   // Update session timestamp and cookies validity
   Future<void> _updateSessionMetadata() async {
+    String? nextUrl;
+    if (_currentUrl.isNotEmpty &&
+        !_currentUrl.startsWith('data:') &&
+        !_currentUrl.startsWith('blob:') &&
+        _currentUrl != 'about:blank' &&
+        !_looksDownloadableUrl(_currentUrl)) {
+      nextUrl = _currentUrl;
+    }
+
     _currentSession = _currentSession.copyWith(
+      url: nextUrl,
       lastAccessedAt: DateTime.now().millisecondsSinceEpoch,
       hasValidCookies: true,
     );
@@ -1672,11 +1738,13 @@ class _PortalScreenState extends State<PortalScreen>
     if (!element) return false;
     element.value = value;
     try {
-      const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
+      const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') || 
+                         Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
       if (descriptor && descriptor.set) {
         descriptor.set.call(element, value);
       }
     } catch (_) {}
+    element.dispatchEvent(new Event('focus', { bubbles: true }));
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
     element.dispatchEvent(new Event('blur', { bubbles: true }));
@@ -1688,76 +1756,92 @@ class _PortalScreenState extends State<PortalScreen>
     return !!element && style && style.display !== 'none' && style.visibility !== 'hidden' && element.getClientRects().length > 0;
   };
 
+  const isCaptcha = (element) => {
+    const meta = [element.id, element.name, element.placeholder, element.className].filter(Boolean).join(" ").toLowerCase();
+    return /captcha|code|verif|validate|security/i.test(meta);
+  };
+
   const scoreField = (element) => {
     const meta = [element.name, element.id, element.placeholder, element.autocomplete, element.type].filter(Boolean).join(' ').toLowerCase();
     let score = 0;
-    if (/email|user|username|login|roll|reg|id|student|account/.test(meta)) score += 3;
-    if (/password/.test(meta)) score -= 8;
+    if (/email|user|username|login|roll|reg|id|student|account/.test(meta)) score += 5;
+    if (/search|query|find|filter/.test(meta)) score -= 5;
     if (element.type === 'text' || element.type === 'email' || element.type === 'tel' || element.type === 'number') score += 1;
-    if (!isVisible(element)) score -= 4;
+    if (!isVisible(element)) score -= 10;
+    if (isCaptcha(element)) score -= 20; // Ensure captcha inputs never match as username
     return score;
   };
 
-  const pwd = document.querySelector('input[type="password"]');
-  const scope = document;
-  const candidates = Array.from(scope.querySelectorAll('input, textarea'))
-    .filter((element) => element !== pwd)
-    .filter((element) => {
-      const type = (element.type || '').toLowerCase();
-      return type !== 'hidden' && type !== 'password';
-    })
-    .sort((a, b) => scoreField(b) - scoreField(a));
-  const user = candidates[0] || null;
+  let attempts = 0;
+  const tryFill = () => {
+    attempts++;
+    const pwd = document.querySelector('input[type="password"]');
+    const scope = document;
+    const candidates = Array.from(scope.querySelectorAll('input, textarea'))
+      .filter((element) => element !== pwd)
+      .filter((element) => {
+        const type = (element.type || '').toLowerCase();
+        return type !== 'hidden' && type !== 'password';
+      })
+      .sort((a, b) => scoreField(b) - scoreField(a));
+    const user = candidates[0] || null;
 
-  if (user) {
-    user.focus();
-    setNativeValue(user, $jsUser);
-  }
-  if (pwd) {
-    pwd.focus();
-    setNativeValue(pwd, $jsPass);
-  }
+    let filledUser = false;
+    let filledPass = false;
 
-  // Smoothly focus and scroll to the captcha field if one exists
-  const captchaInput = Array.from(document.querySelectorAll('input')).find(input => {
-    const type = (input.type || '').toLowerCase();
-    if (type !== "text" && type !== "number") return false;
-    const meta = [input.id, input.name, input.placeholder, input.className].filter(Boolean).join(" ").toLowerCase();
-    return /captcha|code|validate|verif|security/i.test(meta);
-  });
-  
-  if (captchaInput) {
-    // Attempt to automatically solve simple mathematical captchas (e.g., "5 + 3 = ?")
-    const solveMath = () => {
-      const textElements = Array.from(document.querySelectorAll('label, span, div, p, td, b'));
-      for (const el of textElements) {
-        const text = el.innerText || '';
-        const match = text.match(/(\d+)\s*([\+\-\*])\s*(\d+)/) || 
-                      text.match(/(\d+)\s*(plus|minus|times)\s*(\d+)/i);
-        if (match) {
-          const num1 = parseInt(match[1]);
-          const op = match[2].toLowerCase();
-          const num2 = parseInt(match[3]);
-          let ans = null;
-          if (op === '+' || op === 'plus') ans = num1 + num2;
-          else if (op === '-' || op === 'minus') ans = num1 - num2;
-          else if (op === '*' || op === 'times') ans = num1 * num2;
-          if (ans !== null) return ans.toString();
+    if (user) {
+      filledUser = setNativeValue(user, $jsUser);
+    }
+    if (pwd) {
+      filledPass = setNativeValue(pwd, $jsPass);
+    }
+
+    if ((filledUser && filledPass) || attempts >= 8) {
+      // Find and solve captcha if filled successfully
+      const captchaInput = Array.from(document.querySelectorAll('input')).find(input => {
+        const type = (input.type || '').toLowerCase();
+        if (type !== "text" && type !== "number") return false;
+        const meta = [input.id, input.name, input.placeholder, input.className].filter(Boolean).join(" ").toLowerCase();
+        return /captcha|code|validate|verif|security/i.test(meta);
+      });
+      
+      if (captchaInput) {
+        const solveMath = () => {
+          const textElements = Array.from(document.querySelectorAll('label, span, div, p, td, b'));
+          for (const el of textElements) {
+            const text = el.innerText || '';
+            const match = text.match(/(\\d+)\\s*([\\+\\-\\*])\\s*(\\d+)/) || 
+                          text.match(/(\\d+)\\s*(plus|minus|times)\\s*(\\d+)/i);
+            if (match) {
+              const num1 = parseInt(match[1]);
+              const op = match[2].toLowerCase();
+              const num2 = parseInt(match[3]);
+              let ans = null;
+              if (op === '+' || op === 'plus') ans = num1 + num2;
+              else if (op === '-' || op === 'minus') ans = num1 - num2;
+              else if (op === '*' || op === 'times') ans = num1 * num2;
+              if (ans !== null) return ans.toString();
+            }
+          }
+          return null;
+        };
+
+        const solvedVal = solveMath();
+        if (solvedVal) {
+          setNativeValue(captchaInput, solvedVal);
+        } else {
+          setTimeout(() => {
+            captchaInput.focus();
+            captchaInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 300);
         }
       }
-      return null;
-    };
-
-    const solvedVal = solveMath();
-    if (solvedVal) {
-      setNativeValue(captchaInput, solvedVal);
     } else {
-      setTimeout(() => {
-        captchaInput.focus();
-        captchaInput.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 300);
+      setTimeout(tryFill, 250); // Retry after 250ms
     }
-  }
+  };
+
+  tryFill();
 })();
 ''';
     await _controller.runJavaScript(script);
@@ -1833,20 +1917,24 @@ class _PortalScreenState extends State<PortalScreen>
 
   Future<Directory> _resolveDownloadDirectory() async {
     if (Platform.isAndroid) {
-      final publicDownload = Directory('/storage/emulated/0/Download');
-      if (await publicDownload.exists()) {
-        return publicDownload;
-      }
-
-      final dirs = await getExternalStorageDirectories(
-        type: StorageDirectory.downloads,
-      );
-      if (dirs != null && dirs.isNotEmpty) {
-        return dirs.first;
-      }
-      return publicDownload;
+      try {
+        final dirs = await getExternalStorageDirectories(
+          type: StorageDirectory.downloads,
+        );
+        if (dirs != null && dirs.isNotEmpty) {
+          return dirs.first;
+        }
+      } catch (_) {}
     }
-    return getApplicationDocumentsDirectory();
+    try {
+      return await getApplicationDocumentsDirectory();
+    } catch (_) {
+      try {
+        return await getTemporaryDirectory();
+      } catch (_) {
+        return Directory('/storage/emulated/0/Download');
+      }
+    }
   }
 
   Future<void> _saveDownloadData(
@@ -2157,6 +2245,65 @@ class _PortalScreenState extends State<PortalScreen>
     });
     await _showMessage('Starting download...');
 
+    // Try System Download Manager on Android first
+    if (Platform.isAndroid) {
+      try {
+        final cookieHeader = await _readPortalCookieHeader();
+        final currentUri = Uri.tryParse(
+          _currentUrl.isEmpty ? widget.url : _currentUrl,
+        );
+        final sameHost =
+            currentUri != null &&
+            (uri.host == currentUri.host ||
+                uri.host.endsWith('.${currentUri.host}') ||
+                currentUri.host.endsWith('.${uri.host}'));
+        final referer = sameHost
+            ? currentUri.toString()
+            : '${uri.scheme}://${uri.host}/';
+
+        final fileName = _fileNameFromUrl(uri);
+
+        final result = await _androidDownloadChannel.invokeMapMethod<String, dynamic>(
+          'enqueueSystemDownload',
+          {
+            'url': uri.toString(),
+            'userAgent': _portalUserAgent,
+            'referer': referer,
+            'cookie': cookieHeader,
+            'fileName': fileName,
+          },
+        );
+
+        if (result != null) {
+          final downloadId = result['downloadId']?.toString() ?? '';
+          final finalFileName = result['fileName']?.toString() ?? fileName;
+          final filePath = result['filePath']?.toString() ?? '';
+
+          await _trackDownload(
+            filename: finalFileName,
+            filePath: filePath,
+            sourceUrl: uri.toString(),
+            state: 'running',
+            backend: 'system',
+            downloadId: downloadId,
+          );
+
+          IrisSfx.downloadSuccess();
+          await _showMessage('Download started: $finalFileName. Check system notifications.');
+          
+          if (mounted) {
+            setState(() {
+              _isDownloading = false;
+              _downloadProgress = -1;
+            });
+          }
+          return;
+        }
+      } catch (e) {
+        debugPrint('Android System DownloadManager failed, falling back to native client: $e');
+      }
+    }
+
     try {
       // Execute the robust native download
       await _downloadFileFast(uri);
@@ -2177,6 +2324,7 @@ class _PortalScreenState extends State<PortalScreen>
         sourceUrl: uri.toString(),
         state: 'failed',
         backend: 'native',
+        downloadId: '',
       );
       
       IrisSfx.error();
@@ -3068,8 +3216,13 @@ class _PortalScreenState extends State<PortalScreen>
             _lastRenderedProgress = value;
             setState(() => _progress = value);
           },
-          onPageStarted: (_) {
+          onPageStarted: (url) {
             if (!mounted) return;
+            if (_looksDownloadableUrl(url)) {
+              _downloadFile(url);
+              _controller.goBack().catchError((_) {});
+              return;
+            }
             _stopLoginFocusWatch();
             setState(() {
               _isLoading = true;
@@ -3082,6 +3235,13 @@ class _PortalScreenState extends State<PortalScreen>
           },
           onPageFinished: (url) async {
             if (!mounted) return;
+            if (_looksDownloadableUrl(url)) {
+              _downloadFile(url);
+              if (await _controller.canGoBack()) {
+                await _controller.goBack();
+              }
+              return;
+            }
             _currentUrl = url;
             await _controller.runJavaScript(_modernizeFormScript);
             await _controller.runJavaScript(_savePasswordScript);
@@ -3263,6 +3423,33 @@ class _PortalScreenState extends State<PortalScreen>
           primary: true,
           onTap: () async {
             await _autofillSavedLogin();
+          },
+        ),
+      );
+    }
+
+
+
+    // Warm Session chip
+    if (_currentUrl.contains('comsats.edu.pk') && _hasSavedLogin) {
+      chips.add(
+        _buildHeaderQuickActionChip(
+          isDark: isDark,
+          icon: Icons.flash_on_rounded,
+          label: 'Warm Session',
+          onTap: () async {
+            IrisSfx.pillTap();
+            await _showMessage('Warming session in background...');
+            final success = await SessionRefresherService.warmSession(
+              _hostKey,
+              _scopeSanitized,
+            );
+            if (success) {
+              await _showMessage('✓ Session warmed! Reloading Webview...');
+              await _controller.reload();
+            } else {
+              await _showMessage('❌ Session warming failed. Try logging in manually.');
+            }
           },
         ),
       );

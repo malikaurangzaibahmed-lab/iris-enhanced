@@ -9,12 +9,26 @@ import '../services/ui_feedback.dart';
 /// Establishes real-time listeners with Firebase Firestore to toggle academic modes,
 /// sync OTA timetable schedules, and notify users about system update APKs.
 class RemoteConfigService {
-  static const int CURRENT_VERSION_CODE = 1;
-  static const String CURRENT_VERSION_NAME = '1.0.0';
+  static const int CURRENT_VERSION_CODE = 2;
+  static const String CURRENT_VERSION_NAME = '1.0.1';
 
   static final ValueNotifier<String> activeAcademicPeriod = ValueNotifier<String>('classes');
   static final ValueNotifier<Map<String, dynamic>?> latestApkUpdate = ValueNotifier<Map<String, dynamic>?>(null);
   static final ValueNotifier<Map<String, dynamic>?> liveAnnouncement = ValueNotifier<Map<String, dynamic>?>(null);
+  static final ValueNotifier<DateTime?> lastConfigUpdateTime = ValueNotifier<DateTime?>(null);
+  static final ValueNotifier<DateTime?> lastTimetableUpdateTime = ValueNotifier<DateTime?>(null);
+
+  /// Helper to format raw timestamps/DateTimes safely in a custom, premium aesthetic
+  static String formatTimestamp(DateTime? dateTime) {
+    if (dateTime == null) return 'Never';
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final month = months[dateTime.month - 1];
+    final day = dateTime.day;
+    final hourVal = dateTime.hour == 0 ? 12 : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
+    final minuteVal = dateTime.minute.toString().padLeft(2, '0');
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$month $day, $hourVal:$minuteVal $period';
+  }
   
   static bool _isListening = false;
 
@@ -37,6 +51,18 @@ class RemoteConfigService {
 
       final data = doc.data() as Map<String, dynamic>? ?? {};
 
+      // Parse config update time
+      final dynamic configUpdateRaw = data['updated_at'];
+      if (configUpdateRaw != null) {
+        if (configUpdateRaw is Timestamp) {
+          lastConfigUpdateTime.value = configUpdateRaw.toDate();
+        } else if (configUpdateRaw is DateTime) {
+          lastConfigUpdateTime.value = configUpdateRaw;
+        } else if (configUpdateRaw is String) {
+          lastConfigUpdateTime.value = DateTime.tryParse(configUpdateRaw);
+        }
+      }
+
       // 1. Process Academic Period Mode Swapping
       final remotePeriod = data['academic_period']?.toString() ?? 'classes';
       if (remotePeriod != activeAcademicPeriod.value) {
@@ -58,9 +84,17 @@ class RemoteConfigService {
       }
 
       // 2. Process OTA Timetable Upgrades
-      final remoteTimetableVersion = data['active_timetable_version'] as int? ?? 0;
+      final remoteTimetableVersion = (data['active_timetable_version'] as num?)?.toInt() ?? 0;
       final remoteTimetableJson = data['active_timetable_json']?.toString() ?? '';
       
+      if (remoteTimetableVersion > 0) {
+        if (remoteTimetableVersion.toString().length == 10) {
+          lastTimetableUpdateTime.value = DateTime.fromMillisecondsSinceEpoch(remoteTimetableVersion * 1000);
+        } else {
+          lastTimetableUpdateTime.value = DateTime.fromMillisecondsSinceEpoch(remoteTimetableVersion);
+        }
+      }
+
       if (remoteTimetableJson.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
         final currentTimetableVersion = prefs.getInt(TimetableOTAService.PREF_TIMETABLE_VERSION) ?? 0;
@@ -75,6 +109,15 @@ class RemoteConfigService {
               sessionCount = decoded.length;
             } else if (decoded is Map && decoded['sessions'] is List) {
               sessionCount = (decoded['sessions'] as List).length;
+            }
+            
+            final oldJson = prefs.getString(TimetableOTAService.PREF_CACHED_TIMETABLE) ?? '';
+            final userBatch = prefs.getString('user_batch') ?? '';
+            if (oldJson.isNotEmpty && userBatch.isNotEmpty) {
+              final diffs = _calculateTimetableDiffs(oldJson, remoteTimetableJson, userBatch);
+              if (diffs.isNotEmpty) {
+                await prefs.setString('ota_timetable_changes', jsonEncode(diffs));
+              }
             }
             
             // Persist locally
@@ -98,15 +141,21 @@ class RemoteConfigService {
       }
 
       // 3. Process Remote APK Update Notifications
-      final updateData = data['latest_apk_update'] as Map<String, dynamic>?;
+      final rawUpdate = data['latest_apk_update'];
+      Map<String, dynamic>? updateData;
+      if (rawUpdate is Map) {
+        updateData = Map<String, dynamic>.from(rawUpdate);
+      }
       if (updateData != null) {
-        final remoteCode = updateData['version_code'] as int? ?? 1;
+        final remoteCode = (updateData['version_code'] as num?)?.toInt() ?? 1;
         if (remoteCode > CURRENT_VERSION_CODE) {
           print('🚀 IRIS Remote Engine: APK System Update available! version_code: $remoteCode');
           latestApkUpdate.value = updateData;
         } else {
           latestApkUpdate.value = null; // Up-to-date
         }
+      } else {
+        latestApkUpdate.value = null;
       }
 
       // 4. Process Live Broadcast Announcement Banners
@@ -135,5 +184,113 @@ class RemoteConfigService {
       case 'sports_week': return const Color(0xFF10B981); // Emerald
       default: return const Color(0xFF3A86FF);
     }
+  }
+
+  static List<String> _calculateTimetableDiffs(
+      String oldJson, String newJson, String userBatch) {
+    final List<String> diffs = [];
+    try {
+      final oldDecoded = jsonDecode(oldJson);
+      final newDecoded = jsonDecode(newJson);
+
+      List<dynamic> oldList = [];
+      if (oldDecoded is List) {
+        oldList = oldDecoded;
+      } else if (oldDecoded is Map && oldDecoded['sessions'] is List) {
+        oldList = oldDecoded['sessions'] as List;
+      }
+
+      List<dynamic> newList = [];
+      if (newDecoded is List) {
+        newList = newDecoded;
+      } else if (newDecoded is Map && newDecoded['sessions'] is List) {
+        newList = newDecoded['sessions'] as List;
+      }
+
+      final targetBatchLower = userBatch.trim().toLowerCase();
+
+      // Helper to match batch
+      bool matchesBatch(dynamic item) {
+        if (item is! Map) return false;
+        final batchVal = (item['batch'] ?? item['class_name'] ?? item['section'] ?? '').toString().trim().toLowerCase();
+        return batchVal == targetBatchLower;
+      }
+
+      final oldSessions = oldList
+          .where(matchesBatch)
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+      final newSessions = newList
+          .where(matchesBatch)
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+
+      // Helpers to identify key fields
+      String getDay(Map<String, dynamic> item) => (item['day'] ?? item['weekday'] ?? 'Monday').toString();
+      String getSubject(Map<String, dynamic> item) => (item['subject'] ?? item['course'] ?? item['title'] ?? 'Unknown').toString();
+      String getRoom(Map<String, dynamic> item) => (item['room'] ?? item['location'] ?? 'TBD').toString();
+      String getTeacher(Map<String, dynamic> item) => (item['teacher'] ?? item['instructor'] ?? item['staff'] ?? 'Unknown').toString();
+      String getTime(Map<String, dynamic> item) {
+        if (item['start'] != null) {
+          return '${item['start']}-${item['end']}';
+        }
+        return (item['time'] ?? item['period'] ?? '00:00').toString();
+      }
+
+      // Check for room changes or teacher changes or removed classes
+      for (final oldItem in oldSessions) {
+        final oldDay = getDay(oldItem);
+        final oldTime = getTime(oldItem);
+        final oldSubj = getSubject(oldItem);
+
+        // Find match in new sessions
+        final match = newSessions.firstWhere(
+          (newItem) =>
+              getDay(newItem).toLowerCase() == oldDay.toLowerCase() &&
+              getTime(newItem).toLowerCase() == oldTime.toLowerCase() &&
+              getSubject(newItem).toLowerCase() == oldSubj.toLowerCase(),
+          orElse: () => <String, dynamic>{},
+        );
+
+        if (match.isEmpty) {
+          // Class was removed
+          diffs.add('Cancelled class: $oldSubj on $oldDay at $oldTime');
+        } else {
+          final oldRoom = getRoom(oldItem);
+          final newRoom = getRoom(match);
+          if (oldRoom.toLowerCase() != newRoom.toLowerCase()) {
+            diffs.add('Room changed: $oldSubj now in $newRoom (was $oldRoom) on $oldDay at $oldTime');
+          }
+
+          final oldTeach = getTeacher(oldItem);
+          final newTeach = getTeacher(match);
+          if (oldTeach.toLowerCase() != newTeach.toLowerCase()) {
+            diffs.add('Instructor changed: $oldSubj now taught by $newTeach on $oldDay');
+          }
+        }
+      }
+
+      // Check for newly added classes
+      for (final newItem in newSessions) {
+        final newDay = getDay(newItem);
+        final newTime = getTime(newItem);
+        final newSubj = getSubject(newItem);
+
+        final exists = oldSessions.any(
+          (oldItem) =>
+              getDay(oldItem).toLowerCase() == newDay.toLowerCase() &&
+              getTime(oldItem).toLowerCase() == newTime.toLowerCase() &&
+              getSubject(oldItem).toLowerCase() == newSubj.toLowerCase(),
+        );
+
+        if (!exists) {
+          final newRoom = getRoom(newItem);
+          diffs.add('New class added: $newSubj in $newRoom on $newDay at $newTime');
+        }
+      }
+    } catch (e) {
+      print('⚠️ Failed to calculate timetable diffs: $e');
+    }
+    return diffs;
   }
 }

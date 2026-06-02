@@ -40,7 +40,7 @@ class TimetableOTAService {
       final doc = await FirebaseFirestore.instance.collection('config').doc('global').get();
       if (doc.exists) {
         final data = doc.data() ?? {};
-        final remoteTimetableVersion = data['active_timetable_version'] as int? ?? 0;
+        final remoteTimetableVersion = (data['active_timetable_version'] as num?)?.toInt() ?? 0;
         
         final prefs = await SharedPreferences.getInstance();
         final currentVersion = prefs.getInt(PREF_TIMETABLE_VERSION) ?? 0;
@@ -66,7 +66,7 @@ class TimetableOTAService {
       if (doc.exists) {
         final data = doc.data() ?? {};
         final remoteTimetableJson = data['active_timetable_json']?.toString() ?? '';
-        final remoteTimetableVersion = data['active_timetable_version'] as int? ?? 0;
+        final remoteTimetableVersion = (data['active_timetable_version'] as num?)?.toInt() ?? 0;
         
         if (remoteTimetableJson.isNotEmpty) {
           // Validate JSON before caching

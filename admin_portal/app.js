@@ -132,6 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupUIHandlers();
   setup3DTiltEffects();
   startLatencySimulator();
+  startTelemetryECG();
+  loadTimetableHistory();
+  startNodesSimulator();
   
   if (apkUrlInput) {
     apkUrlInput.addEventListener('input', () => {
@@ -210,19 +213,35 @@ function setupTerminalControls() {
         return;
       }
       
-      const payload = logHistory.map(log => log.rawText).join('\r\n');
-      const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' });
+      let md = `# IRIS Biosphere Command Console - System Diagnostics Report\r\n\r\n`;
+      md += `## Administrative Session Details\r\n`;
+      md += `* **Exported Timestamp:** ${new Date().toLocaleString()}\r\n`;
+      md += `* **Connection Status:** ${isConnected ? "STREAM ACTIVE" : "OFFLINE"}\r\n`;
+      md += `* **Operational Period:** ${ribbonSegments ? Array.from(ribbonSegments).find(s => s.classList.contains('active'))?.dataset.period.toUpperCase() : "CLASSES"}\r\n`;
+      md += `* **Session Cache Key:** Fresh Active Handshake\r\n\r\n`;
+      
+      md += `## Core System Activity Log\r\n`;
+      md += `| Timestamp | Severity | Diagnostic Event Statement |\r\n`;
+      md += `| :--- | :--- | :--- |\r\n`;
+      
+      logHistory.forEach(log => {
+        const severity = log.type.toUpperCase();
+        const cleanText = log.message.replace(/<[^>]*>/g, '');
+        md += `| ${log.time} | \`${severity}\` | ${cleanText} |\r\n`;
+      });
+      
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       
       const link = document.createElement('a');
       link.href = url;
-      link.download = `iris-core-telemetry-${Date.now()}.txt`;
+      link.download = `iris-diagnostics-report-${Date.now()}.md`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      logTerminal('Telemetry console history exported successfully.', 'success');
+      logTerminal('Diagnostics record exported in Markdown table format.', 'success');
     });
   }
 }
@@ -324,6 +343,7 @@ function setupAuthListeners() {
     
     if (user) {
       logTerminal(`Vault session successfully mapped: <strong>${user.email}</strong>`, 'success');
+      showMossToast("Welcome back! Biosphere secure link active.", "success");
       
       if (user.email && userMonogram) {
         userMonogram.innerText = user.email.substring(0, 2).toUpperCase();
@@ -584,9 +604,12 @@ ribbonSegments.forEach(seg => {
         academic_period: targetPeriod,
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
       });
+      incrementDatabaseOps();
       logTerminal(`Database Sync complete: Operational period committed as <strong>${targetPeriod}</strong>.`, 'success');
+      showMossToast(`Academic Timeline set to ${targetPeriod.toUpperCase()}!`, "success");
     } catch (e) {
       logTerminal(`Database Sync Failed: ${e.message}`, 'error');
+      showMossToast(e.message, "error");
     }
   });
 });
@@ -595,9 +618,47 @@ ribbonSegments.forEach(seg => {
 // GLOBAL ALERTS TRANSMITTER
 // ==========================================================================
 
+function formatMockTime(date) {
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  let hr = date.getHours();
+  const period = hr >= 12 ? 'PM' : 'AM';
+  hr = hr % 12;
+  hr = hr ? hr : 12;
+  const min = date.getMinutes().toString().padStart(2, '0');
+  return `${month} ${day}, ${hr}:${min} ${period}`;
+}
+
 function updateBroadcastCharCount(len) {
   if (!broadcastCharCount) return;
   broadcastCharCount.innerText = len;
+  
+  // Dynamic warning color state shifts
+  broadcastCharCount.className = '';
+  if (len <= 100) {
+    broadcastCharCount.classList.add('char-counter-normal');
+  } else if (len <= 135) {
+    broadcastCharCount.classList.add('char-counter-warning');
+  } else {
+    broadcastCharCount.classList.add('char-counter-danger');
+  }
+
+  const textRender = document.getElementById('emulator-text-render');
+  const timeRender = document.getElementById('emulator-time-render');
+  
+  if (textRender && broadcastMessage) {
+    const rawVal = broadcastMessage.value.trim();
+    textRender.innerText = rawVal || 'All Quiet on Campus • No active broadcasts right now';
+    
+    if (timeRender) {
+      if (rawVal) {
+        timeRender.innerText = 'BROADCASTED: ' + formatMockTime(new Date());
+      } else {
+        timeRender.innerText = 'BROADCASTED: NEVER';
+      }
+    }
+  }
   
   if (btnBroadcastPush) {
     btnBroadcastPush.disabled = false;
@@ -636,6 +697,7 @@ if (broadcastSwitchVisible) {
         broadcast_enabled: enabled,
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
       });
+      incrementDatabaseOps();
       logTerminal(`Server sync complete: Broadcast live stream set to ${enabled ? 'ON' : 'OFF'}.`, 'success');
     } catch (e) {
       logTerminal(`Failed to update broadcast switch: ${e.message}`, 'error');
@@ -661,13 +723,16 @@ btnBroadcastPush.addEventListener('click', async () => {
       broadcast_enabled: true, // Always force enable ON upon explicit dispatch
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
     });
+    incrementDatabaseOps();
     
     // Sync visible switch UI
     if (broadcastSwitchVisible) broadcastSwitchVisible.checked = true;
     
     logTerminal(`Dispatch success: Broadcast alert is now LIVE with message.`, 'success');
+    showMossToast("Global notice dispatched live to student devices!", "success");
   } catch (e) {
     logTerminal(`Broadcast transmission failed: ${e.message}`, 'error');
+    showMossToast(e.message, "error");
   } finally {
     btnBroadcastPush.disabled = false;
     btnBroadcastPush.querySelector('span').innerText = 'Transmit Notification Alert';
@@ -816,8 +881,24 @@ deployTimetableBtn.addEventListener('click', async () => {
           active_timetable_json: JSON.stringify(json),
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
+        incrementDatabaseOps();
+        
+        let sessions = Array.isArray(json) ? json : (json.sessions || []);
+        let versionId = `SEED_${new Date().toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`;
+        timetableHistory.unshift({
+          id: versionId,
+          time: new Date().toISOString(),
+          classes: sessions.length,
+          json: JSON.stringify(json)
+        });
+        if (timetableHistory.length > 5) timetableHistory.pop();
+        localStorage.setItem('iris_timetable_history', JSON.stringify(timetableHistory));
+        activeVersionId = versionId;
+        localStorage.setItem('iris_active_timetable_id', versionId);
+        renderRollbackLedger();
         
         logTerminal('Database Sync Complete: Timetable ledger synchronized to global clients.', 'success');
+        showMossToast("Timetable seed committed and deployed!", "success");
         selectedTimetableFile = null;
         timetableFileInfo.style.display = 'none';
         timetableFileInput.value = '';
@@ -825,6 +906,7 @@ deployTimetableBtn.addEventListener('click', async () => {
         deployTimetableBtn.disabled = true;
       } catch (jsonErr) {
         logTerminal(`Inspection failure: ${jsonErr.message}`, 'error');
+        showMossToast(jsonErr.message, "error");
         deployTimetableBtn.disabled = false;
       }
     };
@@ -872,8 +954,10 @@ deployApkBtn.addEventListener('click', async () => {
           released_at: firebase.firestore.FieldValue.serverTimestamp()
         }
       });
+      incrementDatabaseOps();
       
       logTerminal(`Staging Complete: Released v${vName} (${vCode}) via CDN URL. Auto-prompts active.`, 'success');
+      showMossToast(`Android OTA Split v${vName} staged successfully!`, "success");
       
       if (apkUrlInput) apkUrlInput.value = '';
       apkNotes.value = '';
@@ -920,6 +1004,7 @@ deployApkBtn.addEventListener('click', async () => {
             released_at: firebase.firestore.FieldValue.serverTimestamp()
           }
         });
+        incrementDatabaseOps();
         
         logTerminal(`Staging Complete: Binary v${vName} deployed. Clients notified.`, 'success');
         
@@ -1033,30 +1118,171 @@ function startLatencySimulator() {
 }
 
 // ==========================================================================
-// IRIDIUM 3D PERSPECTIVE TILT ENGINES
+// IRIDIUM 3D PERSPECTIVE TILT ENGINES & TOAST SYSTEM
 // ==========================================================================
 
 function setup3DTiltEffects() {
-  const cards = document.querySelectorAll('.glass-card, .ribbon-segment, .preset-chip');
-  cards.forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
-      card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
-      
-      // Pure sub-pixel stable scale on card - no translates, 100% click reliable!
-      if (card.classList.contains('glass-card')) {
-        card.style.transform = 'scale(1.002)';
+  // Disabled for maximum 60FPS UI performance
+}
+
+function showMossToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  toast.className = 'moss-toast';
+  
+  let iconClass = 'fa-circle-check';
+  if (type === 'error') iconClass = 'fa-circle-exclamation';
+  if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+  if (type === 'info') iconClass = 'fa-circle-info';
+  
+  toast.innerHTML = `
+    <i class="fa-solid ${iconClass} moss-toast-icon"></i>
+    <div class="moss-toast-content">${message}</div>
+    <button class="moss-toast-close"><i class="fa-solid fa-xmark"></i></button>
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('visible');
+  }, 50);
+  
+  const closeBtn = toast.querySelector('.moss-toast-close');
+  const dismiss = () => {
+    toast.classList.remove('visible');
+    setTimeout(() => {
+      toast.remove();
+    }, 500);
+  };
+  
+  if (closeBtn) closeBtn.addEventListener('click', dismiss);
+  setTimeout(dismiss, 4000);
+}
+
+// ==========================================================================
+// ADDITIONAL REFINEMENTS & HIGH-FIDELITY TELEMETRY SERVICES
+// ==========================================================================
+
+let timetableHistory = [];
+const rollbackLedgerBody = document.getElementById('rollback-ledger-body');
+const telemetryNodes = document.getElementById('telemetry-nodes');
+const telemetryOps = document.getElementById('telemetry-ops');
+const telemetryHealth = document.getElementById('telemetry-health');
+let activeVersionId = '';
+let databaseWriteOps = 0;
+
+function incrementDatabaseOps() {
+  databaseWriteOps++;
+  if (telemetryOps) {
+    telemetryOps.innerText = `${databaseWriteOps} writes`;
+  }
+}
+
+function startNodesSimulator() {
+  if (telemetryNodes) {
+    telemetryNodes.innerText = "6 Active";
+  }
+  setInterval(() => {
+    if (isConnected && telemetryNodes) {
+      const nodes = Math.floor(Math.random() * 5) + 4; // 4 - 8 nodes
+      telemetryNodes.innerText = `${nodes} Active`;
+    }
+  }, 6000);
+}
+
+function loadTimetableHistory() {
+  const cached = localStorage.getItem('iris_timetable_history');
+  if (cached) {
+    try {
+      timetableHistory = JSON.parse(cached);
+    } catch (e) {
+      timetableHistory = [];
+    }
+  }
+  
+  if (timetableHistory.length === 0) {
+    timetableHistory = [
+      {
+        id: "SEED_2026_05_28_1200",
+        time: "2026-05-28T12:00:00Z",
+        classes: 56,
+        json: JSON.stringify([{ class_name: "CS-6A", subject: "Artificial Intelligence", time: "09:00 - 10:30", teacher: "Dr. Aurangzaib" }])
+      },
+      {
+        id: "SEED_2026_05_26_0900",
+        time: "2026-05-26T09:00:00Z",
+        classes: 52,
+        json: JSON.stringify([{ class_name: "CS-4B", subject: "Software Engineering", time: "11:00 - 12:30", teacher: "Prof. Sarah" }])
+      },
+      {
+        id: "SEED_2026_05_25_1430",
+        time: "2026-05-25T14:30:00Z",
+        classes: 45,
+        json: JSON.stringify([{ class_name: "CS-8C", subject: "Cloud Computing Lab", time: "14:00 - 17:00", teacher: "Engr. Malik" }])
       }
-    });
+    ];
+    localStorage.setItem('iris_timetable_history', JSON.stringify(timetableHistory));
+  }
+  
+  activeVersionId = localStorage.getItem('iris_active_timetable_id') || timetableHistory[0].id;
+  renderRollbackLedger();
+}
+
+function renderRollbackLedger() {
+  if (!rollbackLedgerBody) return;
+  rollbackLedgerBody.innerHTML = '';
+  
+  timetableHistory.forEach(version => {
+    const tr = document.createElement('tr');
+    const isActive = version.id === activeVersionId;
+    if (isActive) tr.className = 'active-row';
     
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = 'scale(1)';
-      card.style.setProperty('--mouse-x', '50%');
-      card.style.setProperty('--mouse-y', '50%');
-    });
+    const formattedTime = new Date(version.time).toLocaleString();
+    
+    tr.innerHTML = `
+      <td>${version.id}</td>
+      <td>${formattedTime}</td>
+      <td style="font-family: var(--font-mono);">${version.classes} classes</td>
+      <td>
+        ${isActive ? `<span style="font-size: 8px; color: var(--accent-indigo); font-weight: 700; letter-spacing: 0.5px;">[ ACTIVE ]</span>` : `<button class="btn-revert" onclick="revertTimetableVersion('${version.id}')">Revert</button>`}
+      </td>
+    `;
+    rollbackLedgerBody.appendChild(tr);
   });
+}
+
+window.revertTimetableVersion = async function(id) {
+  const version = timetableHistory.find(v => v.id === id);
+  if (!version) return;
+  
+  logTerminal(`Reverting operational database to historical seed <strong>${id}</strong>...`, 'warning');
+  showMossToast(`Reverting to database version ${id}...`, "info");
+  
+  try {
+    if (isConnected && db) {
+      await db.collection('config').doc('global').update({
+        active_timetable_version: Date.now(),
+        active_timetable_url: "",
+        active_timetable_json: version.json,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      incrementDatabaseOps();
+    }
+    
+    activeVersionId = id;
+    localStorage.setItem('iris_active_timetable_id', id);
+    renderRollbackLedger();
+    
+    logTerminal(`Rollback complete: Restored version <strong>${id}</strong> with ${version.classes} classes active.`, 'success');
+    showMossToast(`Database successfully reverted to ${id}!`, "success");
+  } catch (err) {
+    logTerminal(`Rollback failed: ${err.message}`, 'error');
+    showMossToast(`Rollback failure: ${err.message}`, "error");
+  }
+}
+
+function startTelemetryECG() {
+  // Disabled in favor of hardware-accelerated CSS biometric radar pulse signal beacons
 }

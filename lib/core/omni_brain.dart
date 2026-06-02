@@ -12,10 +12,7 @@ bool _isOneHourLecture(String subject) {
 }
 
 double _getActualEndTime(ClassSession session) {
-  if (_isOneHourLecture(session.subject)) {
-    return session.safeStartVal + 1.0; // 1 hour after start
-  }
-  return session.safeEndVal;
+  return session.actualEndVal;
 }
 
 class TemporalInsight {
@@ -266,43 +263,44 @@ class OmniBrain {
     
     if (sameDaySessions.isEmpty) return session;
     
-    // Find the block containing this session
-    String? startTime;
-    String? endTime;
+    final blocks = <List<ClassSession>>[];
+    var currentBlock = <ClassSession>[];
     
-    for (int i = 0; i < sameDaySessions.length; i++) {
-      final s = sameDaySessions[i];
-      
-      // Check if current session is in this block
-      if (s.safeStartVal <= session.safeStartVal && s.safeEndVal > session.safeStartVal) {
-        startTime = s.startTime;
-        endTime = s.endTime;
-        
-        // Extend to all consecutive sessions
-        for (int j = i + 1; j < sameDaySessions.length; j++) {
-          final next = sameDaySessions[j];
-          if ((next.safeStartVal - sameDaySessions[j - 1].safeEndVal).abs() < 0.01) {
-            endTime = next.endTime;
-          } else {
-            break;
-          }
+    for (final s in sameDaySessions) {
+      if (currentBlock.isEmpty) {
+        currentBlock.add(s);
+      } else {
+        final last = currentBlock.last;
+        if ((s.safeStartVal - last.actualEndVal).abs() < 0.01) {
+          currentBlock.add(s);
+        } else {
+          blocks.add(currentBlock);
+          currentBlock = [s];
         }
-        break;
+      }
+    }
+    if (currentBlock.isNotEmpty) {
+      blocks.add(currentBlock);
+    }
+    
+    for (final block in blocks) {
+      final containsSession = block.any((s) => s.id == session.id || 
+          (s.safeStartVal == session.safeStartVal && s.safeEndVal == session.safeEndVal));
+      if (containsSession) {
+        return ClassSession(
+          id: block.first.id,
+          batchKey: block.first.batchKey,
+          dayIndex: block.first.dayIndex,
+          startTime: block.first.startTime,
+          endTime: block.last.endTime,
+          subject: block.first.subject,
+          teacher: block.first.teacher,
+          room: block.first.room,
+        );
       }
     }
     
-    if (startTime == null || endTime == null) return session;
-    
-    return ClassSession(
-      id: session.id,
-      batchKey: session.batchKey,
-      dayIndex: session.dayIndex,
-      startTime: startTime,
-      endTime: endTime,
-      subject: session.subject,
-      teacher: session.teacher,
-      room: session.room,
-    );
+    return session;
   }
 
   ClassSession? getCurrentClass(String batch, DateTime now) {

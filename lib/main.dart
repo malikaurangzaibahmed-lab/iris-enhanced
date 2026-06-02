@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
   hide NotificationVisibility;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -46,6 +47,7 @@ import 'services/headless_portal_sync.dart';
 import 'services/notification_service.dart';
 import 'services/timetable_ota_service.dart';
 import 'services/ui_feedback.dart';
+import 'services/session_refresher_service.dart';
 import 'widget_service.dart';
 import 'widgets/batch_selector.dart';
 import 'widgets/dashboard_dock.dart' hide NavActiveHalo, BouncyNavButton;
@@ -5672,6 +5674,7 @@ class _DashboardState extends State<Dashboard>
   DateTime? _lastScheduleUpdate;
   int? _lastMinute;
   bool _isRefreshing = false;
+  List<String> _pendingTimetableChanges = [];
   final Map<String, List<ClassSession>> _makeupReplacementHistory = {};
   final GlobalKey _studentPortalNavKey = GlobalKey(
     debugLabel: 'student_portal_nav',
@@ -5713,6 +5716,31 @@ class _DashboardState extends State<Dashboard>
       }
     } catch (e) {
       debugPrint('⚠️ Failed to load custom makeup sessions: $e');
+    }
+  }
+
+  Future<void> _checkPendingTimetableChanges() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('ota_timetable_changes');
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final List<dynamic> decoded = jsonDecode(raw);
+        if (mounted && decoded.isNotEmpty) {
+          setState(() {
+            _pendingTimetableChanges = List<String>.from(decoded);
+          });
+        }
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _clearPendingTimetableChanges() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('ota_timetable_changes');
+    if (mounted) {
+      setState(() {
+        _pendingTimetableChanges = [];
+      });
     }
   }
 
@@ -5948,12 +5976,16 @@ class _DashboardState extends State<Dashboard>
   void initState() {
     super.initState();
     _loadDismissedAnnouncement();
+    _checkPendingTimetableChanges();
 
     // Start remote Firestore listener for real-time announcements, modes & OTA timetable upgrades
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         RemoteConfigService.startRemoteListener(context);
         setState(() => _navBarReady = true);
+
+        // Background session warming on startup
+        unawaited(SessionRefresherService.warmSession('swl-sis.comsats.edu.pk', 'student'));
       }
     });
     _updateScheduleCache();
@@ -6257,11 +6289,17 @@ class _DashboardState extends State<Dashboard>
 
     setState(() => _isRefreshing = true);
 
+    // Background session warming on pull-to-refresh
+    unawaited(SessionRefresherService.warmSession('swl-sis.comsats.edu.pk', 'student'));
+
     // Simulate data refresh delay
     await Future.delayed(const Duration(milliseconds: 800));
 
     // Refresh schedule cache
     _updateScheduleCache();
+
+    // Check for pending timetable changes
+    await _checkPendingTimetableChanges();
 
     // Update widget and notifications
     _updateWidgetIfNeeded();
@@ -6811,6 +6849,17 @@ class _DashboardState extends State<Dashboard>
       return const SizedBox.shrink();
     }
 
+    final rawTime = announcement['updated_at'];
+    DateTime? dateTime;
+    if (rawTime is Timestamp) {
+      dateTime = rawTime.toDate();
+    } else if (rawTime is DateTime) {
+      dateTime = rawTime;
+    } else if (rawTime is String) {
+      dateTime = DateTime.tryParse(rawTime);
+    }
+    final formattedTime = RemoteConfigService.formatTimestamp(dateTime);
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: Container(
@@ -6876,14 +6925,30 @@ class _DashboardState extends State<Dashboard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'CAMPUS BROADCAST',
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.2,
-                                color: isDark ? Colors.amber[200] : const Color(0xFFB45309),
-                              ),
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                Text(
+                                  'CAMPUS BROADCAST',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.2,
+                                    color: isDark ? Colors.amber[200] : const Color(0xFFB45309),
+                                  ),
+                                ),
+                                Text(
+                                  formattedTime.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? Colors.amber[200]!.withOpacity(0.6) : const Color(0xFFB45309).withOpacity(0.7),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -7029,6 +7094,17 @@ class _DashboardState extends State<Dashboard>
     final hasDismissedBanner = _dismissedAnnouncementText == message;
     final accentColor = const Color(0xFFF59E0B);
 
+    final rawTime = announcement['updated_at'];
+    DateTime? dateTime;
+    if (rawTime is Timestamp) {
+      dateTime = rawTime.toDate();
+    } else if (rawTime is DateTime) {
+      dateTime = rawTime;
+    } else if (rawTime is String) {
+      dateTime = DateTime.tryParse(rawTime);
+    }
+    final formattedTime = RemoteConfigService.formatTimestamp(dateTime);
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -7082,7 +7158,7 @@ class _DashboardState extends State<Dashboard>
                         children: [
                           Expanded(
                             child: Text(
-                              'CAMPUS NOTICEBOARD',
+                               'CAMPUS NOTICEBOARD',
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w900,
@@ -7132,10 +7208,14 @@ class _DashboardState extends State<Dashboard>
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.wifi_tethering_rounded,
@@ -7155,12 +7235,12 @@ class _DashboardState extends State<Dashboard>
                             ],
                           ),
                           Text(
-                            'IRIS NETWORK',
+                            'BROADCASTED: ${formattedTime.toUpperCase()}',
                             style: TextStyle(
                               fontSize: 8.5,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
-                              color: isDark ? Colors.amber[200]!.withOpacity(0.5) : const Color(0xFFD97706).withOpacity(0.7),
+                              color: isDark ? Colors.amber[200]!.withOpacity(0.8) : const Color(0xFFD97706),
                             ),
                           ),
                         ],
@@ -7284,89 +7364,875 @@ class _DashboardState extends State<Dashboard>
     setState(() {});
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSystemUpdateBanner(BuildContext context, Map<String, dynamic> update) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final vName = update['version_name']?.toString() ?? '1.1.0';
+    final notes = update['release_notes']?.toString() ?? '';
+    final apkUrl = update['apk_url']?.toString() ?? '';
 
-    if (_bottomNavIndex != 0) {
-      return Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            ObsidianPulse(isDark: isDark),
-            Positioned.fill(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 420),
-                switchInCurve: IrisMotion.entrance,
-                switchOutCurve: IrisMotion.standard,
-                transitionBuilder: (child, animation) {
-                  final isIncoming =
-                      child.key == ValueKey<int>(_bottomNavIndex);
-                  final direction = _studentTabSlideDirection.toDouble();
-                  
-                  // Slide animation: more dramatic distance
-                  final slideBegin = isIncoming
-                      ? Offset(0.42 * direction, 0)
-                      : Offset.zero;
-                  final slideEnd = isIncoming
-                      ? Offset.zero
-                      : Offset(-0.42 * direction, 0);
-                  final slideAnimation = Tween<Offset>(begin: slideBegin, end: slideEnd).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: IrisTokens.brand.withValues(alpha: isDark ? 0.25 : 0.15),
+                    blurRadius: 16,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ClipRRect(
+            borderRadius: IrisTokens.cardRadius,
+            child: GlassSurface(
+              settings: IrisGlass.settings(
+                context,
+                blur: 20,
+                ambientStrength: 0.8,
+                lightAngle: 0.15 * math.pi,
+                thickness: 18,
+                glassColor: isDark 
+                    ? IrisTokens.brand.withValues(alpha: 0.12)
+                    : Colors.white.withValues(alpha: 0.85),
+              ),
+              radius: 20,
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: IrisTokens.brand.withValues(alpha: 0.45),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: IrisTokens.brand.withValues(alpha: 0.15),
+                          ),
+                          child: Icon(
+                            Icons.system_update_rounded,
+                            size: 18,
+                            color: isDark ? Colors.white : IrisTokens.brand,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'SYSTEM UPDATE AVAILABLE',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2,
+                                  color: isDark ? Colors.white70 : IrisTokens.brand,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'IRIS Enhanced v$vName',
+                                style: IrisTextStyles.headline(context).copyWith(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                  
-                  // Scale animation: adds depth
-                  final scaleBegin = isIncoming ? 0.92 : 1.0;
-                  final scaleEnd = isIncoming ? 1.0 : 0.96;
-                  final scaleAnimation = Tween<double>(begin: scaleBegin, end: scaleEnd).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
+                    if (notes.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        notes,
+                        style: IrisTextStyles.caption(context).copyWith(
+                          fontSize: 11.5,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: IrisTokens.brand,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: IrisTokens.buttonRadius,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                        elevation: 0,
+                      ),
+                      onPressed: () async {
+                        IrisHaptics.actionHeavy();
+                        if (apkUrl.isNotEmpty) {
+                          final uri = Uri.tryParse(apkUrl);
+                          if (uri != null) {
+                            try {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            } catch (e) {
+                              print('Failed to launch URL with externalApplication: $e');
+                              try {
+                                await launchUrl(uri, mode: LaunchMode.platformDefault);
+                              } catch (e2) {
+                                print('Failed to launch URL with platformDefault: $e2');
+                                if (context.mounted) {
+                                  showIrisFrostedSnackBar(
+                                    context,
+                                    content: const Text('Could not open APK download link. Try copying it manually.'),
+                                    tint: IrisTokens.error,
+                                  );
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.download_rounded, size: 16),
+                      label: const Text(
+                        'Install Update Now',
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+                      ),
                     ),
-                  );
-                  
-                  // Fade animation: smoother opacity change
-                  final opacityAnimation = Tween<double>(
-                    begin: isIncoming ? 0.0 : 1.0,
-                    end: isIncoming ? 1.0 : 0.0,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
-                    ),
-                  );
-                  
-                  return FadeTransition(
-                    opacity: opacityAnimation,
-                    child: ScaleTransition(
-                      scale: scaleAnimation,
-                      child: SlideTransition(position: slideAnimation, child: child),
-                    ),
-                  );
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(_bottomNavIndex),
-                  child: _buildStudentTabContent(),
+                  ],
                 ),
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                top: false,
-                child: _buildStudentBottomNavBar(isDark),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimetableDiffCard(bool isDark) {
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      borderRadius: 24.0,
+      border: Border.all(
+        color: IrisTokens.warning.withValues(alpha: isDark ? 0.3 : 0.2),
+        width: 1.5,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: IrisTokens.warning.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: IrisTokens.warning,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TIMETABLE MODIFIED',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        letterSpacing: 0.5,
+                        color: IrisTokens.warning,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Recent schedule updates for your batch',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ..._pendingTimetableChanges.map((change) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3, right: 10),
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: IrisTokens.warning.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      change,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  IrisHaptics.actionSoft();
+                  _clearPendingTimetableChanges();
+                },
+                icon: const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+                label: const Text(
+                  'Acknowledge & Dismiss',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: IrisTokens.warning,
+                  shadowColor: IrisTokens.warning.withValues(alpha: 0.3),
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomeDashboard(
+    BuildContext context,
+    bool isDark,
+    DateTime now,
+    String dateLabel,
+    TemporalInsight insight,
+    List<ClassSession> filteredSchedule,
+    List<ClassSession> schedule,
+  ) {
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: IrisTokens.brand,
+        backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+        child: CustomScrollView(
+          physics: const ButterScrollPhysics(),
+          cacheExtent: 500,
+          slivers: [
+            if (_pendingTimetableChanges.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: _buildTimetableDiffCard(isDark),
+                ),
+              ),
+            ValueListenableBuilder<Map<String, dynamic>?>(
+              valueListenable: RemoteConfigService.latestApkUpdate,
+              builder: (context, updateInfo, _) {
+                if (updateInfo == null) {
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                }
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: _buildSystemUpdateBanner(context, updateInfo),
+                  ),
+                );
+              },
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: GlassCard(
+                  padding: const EdgeInsets.all(24),
+                  borderRadius: 36.0,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [IrisTokens.brand, IrisTokens.purple],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: IrisTokens.brand.withValues(alpha: 0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'AM',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getSmartGreeting(now.hour),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.userName ?? 'Student',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(99),
+                                    border: Border.all(
+                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    widget.batch,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          onPressed: widget.onToggleTheme,
+                          icon: Icon(
+                            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                            size: 24,
+                            color: isDark ? Colors.white : IrisTokens.brand,
+                          ),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: GlassCard(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 336),
+                    switchInCurve: IrisMotion.entrance,
+                    switchOutCurve: IrisMotion.standard,
+                    transitionBuilder: (child, animation) {
+                      final offset = Tween<Offset>(
+                        begin: const Offset(0, 0.08),
+                        end: Offset.zero,
+                      ).animate(animation);
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: offset,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Column(
+                      key: ValueKey(
+                        '${insight.headline}-${insight.subline}',
+                      ),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: insight.isUrgent
+                                      ? [
+                                          IrisTokens.error,
+                                          const Color(0xFFFCA5A5),
+                                        ]
+                                      : insight.isLive
+                                      ? [
+                                          IrisTokens.success,
+                                          IrisTokens.success.withValues(alpha: 0.8),
+                                        ]
+                                      : [
+                                          IrisTokens.brand,
+                                          IrisTokens.brandLight,
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (insight.isUrgent
+                                            ? IrisTokens.error
+                                            : insight.isLive
+                                            ? IrisTokens.success
+                                            : IrisTokens.brand)
+                                        .withValues(alpha: 0.22),
+                                    blurRadius: insight.isLive ? 10 : 7,
+                                    spreadRadius: -2,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                insight.isUrgent
+                                    ? Icons.notifications_active
+                                    : insight.isLive
+                                    ? Icons.play_circle_filled_rounded
+                                    : Icons.insights_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    insight.headline,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 17,
+                                      letterSpacing: 0.3,
+                                      height: 1.2,
+                                      color: insight.isLive ? IrisTokens.success : null,
+                                    ),
+                                  ),
+                                  if (insight.timeInfo != null) ...[
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      insight.timeInfo!,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: insight.isUrgent
+                                            ? IrisTokens.error
+                                            : insight.isLive
+                                            ? IrisTokens.success
+                                            : IrisTokens.brand,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 3,
+                              height: 18,
+                              margin: const EdgeInsets.only(top: 2, right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(2),
+                                color: insight.isLive
+                                    ? IrisTokens.success.withValues(alpha: 0.4)
+                                    : IrisTokens.brand.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                insight.subline,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  letterSpacing: 0.2,
+                                  height: 1.4,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.72)
+                                      : Colors.black.withValues(alpha: 0.55),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (insight.isLive) ...[
+                          const SizedBox(height: 14),
+                          Builder(
+                            builder: (context) {
+                              final currentClass = widget.brain.getCurrentClass(widget.batch, now);
+                              if (currentClass != null) {
+                                final currentTime = now.hour + (now.minute / 60.0);
+                                final duration = LectureDuration.getActualDuration(currentClass);
+                                final actualEndTime = LectureDuration.getActualEndTime(currentClass);
+                                final progress = ((currentTime - currentClass.safeStartVal) / duration).clamp(0.0, 1.0);
+                                final minutesLeft = ((actualEndTime - currentTime) * 60).toInt().clamp(0, (duration * 60).toInt());
+
+                                String progressLabel = '';
+                                if (minutesLeft >= 60) {
+                                  final hours = minutesLeft ~/ 60;
+                                  final mins = minutesLeft % 60;
+                                  progressLabel = mins > 0 ? '${hours}h ${mins}m left' : '${hours}h left';
+                                } else {
+                                  progressLabel = '${minutesLeft}m left';
+                                }
+
+                                return Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: TweenAnimationBuilder<double>(
+                                        duration: const Duration(milliseconds: 768),
+                                        curve: IrisMotion.entrance,
+                                        tween: Tween<double>(begin: 0.0, end: progress),
+                                        builder: (context, value, child) => Container(
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: IrisTokens.success.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: value.clamp(0.0, 1.0),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [IrisTokens.success, IrisTokens.success, IrisTokens.successDark],
+                                                ),
+                                                borderRadius: BorderRadius.circular(6),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: IrisTokens.success.withValues(alpha: 0.28),
+                                                    blurRadius: 3,
+                                                    spreadRadius: -1,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          progressLabel,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            letterSpacing: 0.3,
+                                            fontWeight: FontWeight.w700,
+                                            color: IrisTokens.success,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${(progress * 100).toInt()}%',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            letterSpacing: 0.3,
+                                            fontWeight: FontWeight.w800,
+                                            color: IrisTokens.success.withValues(alpha: 0.7),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ],
+                        if (insight.teacherInfo != null && insight.teacherInfo!.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.black.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.10)
+                                    : Colors.black.withValues(alpha: 0.06),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: IrisTokens.brand.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    size: 12,
+                                    color: IrisTokens.brand.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    insight.teacherInfo!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
+            _buildPersistentAnnouncementCard(context, isDark),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: DaySwitcher(
+                  selectedDayIndex: _overrideDayIndex,
+                  onSelected: (value) => setState(() {
+                    _overrideDayIndex = value;
+                    _updateScheduleCache();
+                  }),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SectionHeader(
+                      title: _timelineTitle(schedule, now, _overrideDayIndex),
+                      subtitle: _timelineSubtitle(schedule, now, _overrideDayIndex),
+                      statusIndicator: _getTimelineStatusColor(widget.brain, widget.batch, now),
+                    ),
+                    ValueListenableBuilder<DateTime?>(
+                      valueListenable: RemoteConfigService.lastTimetableUpdateTime,
+                      builder: (context, lastSync, _) {
+                        if (lastSync == null) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 8, top: 4, bottom: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                                      blurRadius: 4,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Timetable synced: ${RemoteConfigService.formatTimestamp(lastSync)}',
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: (isDark ? Colors.white70 : Colors.black54),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              sliver: filteredSchedule.isEmpty
+                  ? SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                        child: GlassCard(
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      IrisTokens.brand.withValues(alpha: 0.15),
+                                      IrisTokens.brandLight.withValues(alpha: 0.08),
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: IrisTokens.brand.withValues(alpha: 0.14),
+                                      blurRadius: 8,
+                                      spreadRadius: -4,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.beach_access_rounded,
+                                  size: 40,
+                                  color: IrisTokens.brand.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'No classes scheduled',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 17,
+                                  letterSpacing: 0.3,
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.85),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Enjoy your free time! 🎉',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.4,
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (ctx, index) {
+                          final session = filteredSchedule[index];
+                          final fullIndex = schedule.indexOf(session);
+                          final nextSession = (fullIndex >= 0 && fullIndex + 1 < schedule.length) ? schedule[fullIndex + 1] : null;
+                          return StaggeredListItem(
+                            index: index,
+                            child: RepaintBoundary(
+                              child: ClassCard(
+                                key: ValueKey('class_${session.subject}_${session.startTime}'),
+                                session: session,
+                                nextSession: nextSession,
+                                isFacultyView: false,
+                                onRemoveMakeup: _isMakeupSession(session) ? () => _confirmAndRemoveMakeupSession(session) : null,
+                              ),
+                            ),
+                          );
+                        },
+                        childCount: filteredSchedule.length,
+                        addAutomaticKeepAlives: true,
+                        addRepaintBoundaries: true,
+                      ),
+                    ),
+            ),
+            const SliverPadding(padding: EdgeInsets.only(bottom: 126)),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
     final dateLabel = _formatDateLabel(now);
     final insight = widget.brain.buildTemporalInsight(widget.batch, now);
@@ -7385,664 +8251,38 @@ class _DashboardState extends State<Dashboard>
       body: Stack(
         children: [
           ObsidianPulse(isDark: isDark),
-          SafeArea(
-            child: RefreshIndicator(
-              onRefresh: _handleRefresh,
-              color: IrisTokens.brand,
-              backgroundColor: isDark
-                  ? IrisTokens.surfaceDarkElevated
-                  : Colors.white,
-              child: CustomScrollView(
-                physics: const ButterScrollPhysics(),
-                cacheExtent: 500,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(24),
-                        borderRadius: 36.0,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: [IrisTokens.brand, IrisTokens.purple],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: IrisTokens.brand.withValues(alpha: 0.2),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'AM',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 22,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _getSmartGreeting(now.hour),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    widget.userName ?? 'Student',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                                          borderRadius: BorderRadius.circular(99),
-                                          border: Border.all(
-                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          widget.batch,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w800,
-                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                onPressed: widget.onToggleTheme,
-                                icon: Icon(
-                                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                                  size: 24,
-                                  color: isDark ? Colors.white : IrisTokens.brand,
-                                ),
-                                padding: const EdgeInsets.all(12),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 14)),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: GlassCard(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 336),
-                          switchInCurve: IrisMotion.entrance,
-                          switchOutCurve: IrisMotion.standard,
-                          transitionBuilder: (child, animation) {
-                            final offset = Tween<Offset>(
-                              begin: const Offset(0, 0.08),
-                              end: Offset.zero,
-                            ).animate(animation);
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: offset,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Column(
-                            key: ValueKey(
-                              '${insight.headline}-${insight.subline}',
-                            ),
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  // Icon with live pulse glow (no glitchy circle)
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: insight.isUrgent
-                                            ? [
-                                                IrisTokens.error,
-                                                const Color(0xFFFCA5A5),
-                                              ]
-                                            : insight.isLive
-                                            ? [
-                                                IrisTokens.success,
-                                                IrisTokens.success.withValues(alpha: 
-                                                  0.8,
-                                                ),
-                                              ]
-                                            : [
-                                                IrisTokens.brand,
-                                                IrisTokens.brandLight,
-                                              ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(14),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color:
-                                              (insight.isUrgent
-                                                      ? IrisTokens.error
-                                                      : insight.isLive
-                                                      ? IrisTokens.success
-                                                      : IrisTokens.brand)
-                                                  .withValues(alpha: 0.22),
-                                          blurRadius: insight.isLive ? 10 : 7,
-                                          spreadRadius: -2,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      insight.isUrgent
-                                          ? Icons.notifications_active
-                                          : insight.isLive
-                                          ? Icons.play_circle_filled_rounded
-                                          : Icons.insights_rounded,
-                                      color: Colors.white,
-                                      size: 22,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          insight.headline,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 17,
-                                            letterSpacing: 0.3,
-                                            height: 1.2,
-                                            color: insight.isLive
-                                                ? IrisTokens.success
-                                                : null,
-                                          ),
-                                        ),
-                                        if (insight.timeInfo != null) ...[
-                                          const SizedBox(height: 3),
-                                          Text(
-                                            insight.timeInfo!,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color: insight.isUrgent
-                                                  ? IrisTokens.error
-                                                  : insight.isLive
-                                                  ? IrisTokens.success
-                                                  : IrisTokens.brand,
-                                              letterSpacing: 0.2,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              // Subline with accent bar
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 3,
-                                    height: 18,
-                                    margin: const EdgeInsets.only(
-                                      top: 2,
-                                      right: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(2),
-                                      color: insight.isLive
-                                          ? IrisTokens.success.withValues(
-                                              alpha: 0.4,
-                                            )
-                                          : IrisTokens.brand.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      insight.subline,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        letterSpacing: 0.2,
-                                        height: 1.4,
-                                        fontWeight: FontWeight.w500,
-                                        color: (isDark
-                                            ? Colors.white.withValues(
-                                                alpha: 0.72,
-                                              )
-                                            : Colors.black.withValues(
-                                                alpha: 0.55,
-                                              )),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              // Progress bar for live classes
-                              if (insight.isLive) ...[
-                                const SizedBox(height: 14),
-                                Builder(
-                                  builder: (context) {
-                                    final currentClass = widget.brain
-                                        .getCurrentClass(widget.batch, now);
-                                    if (currentClass != null) {
-                                      final currentTime =
-                                          now.hour + (now.minute / 60.0);
-                                      // Use actual lecture duration (1.0 for 1-hour lectures, full duration otherwise)
-                                      final duration =
-                                          LectureDuration.getActualDuration(
-                                            currentClass,
-                                          );
-                                      final actualEndTime =
-                                          LectureDuration.getActualEndTime(
-                                            currentClass,
-                                          );
-                                      final progress =
-                                          ((currentTime -
-                                                      currentClass
-                                                          .safeStartVal) /
-                                                  duration)
-                                              .clamp(0.0, 1.0);
-                                      final minutesLeft =
-                                          ((actualEndTime - currentTime) * 60)
-                                              .toInt()
-                                              .clamp(
-                                                0,
-                                                (duration * 60).toInt(),
-                                              );
-
-                                      String progressLabel = '';
-                                      if (minutesLeft >= 60) {
-                                        final hours = minutesLeft ~/ 60;
-                                        final mins = minutesLeft % 60;
-                                        progressLabel = mins > 0
-                                            ? '${hours}h ${mins}m left'
-                                            : '${hours}h left';
-                                      } else {
-                                        progressLabel = '${minutesLeft}m left';
-                                      }
-
-                                      return Column(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            child: TweenAnimationBuilder<double>(
-                                              duration: const Duration(
-                                                milliseconds: 768,
-                                              ),
-                                              curve: IrisMotion.entrance,
-                                              tween: Tween<double>(
-                                                begin: 0.0,
-                                                end: progress,
-                                              ),
-                                              builder:
-                                                  (
-                                                    context,
-                                                    value,
-                                                    child,
-                                                  ) => Container(
-                                                    height: 6,
-                                                    decoration: BoxDecoration(
-                                                      color: IrisTokens.success
-                                                          .withValues(
-                                                            alpha: 0.15,
-                                                          ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            6,
-                                                          ),
-                                                    ),
-                                                    child: FractionallySizedBox(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      widthFactor: value.clamp(
-                                                        0.0,
-                                                        1.0,
-                                                      ),
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                          gradient: LinearGradient(
-                                                            colors: [
-                                                              IrisTokens
-                                                                  .success,
-                                                              IrisTokens
-                                                                  .success,
-                                                              IrisTokens
-                                                                  .successDark,
-                                                            ],
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                6,
-                                                              ),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: IrisTokens
-                                                                  .success
-                                                                  .withValues(
-                                                                    alpha: 0.28,
-                                                                  ),
-                                                              blurRadius: 3,
-                                                              spreadRadius: -1,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                progressLabel,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  letterSpacing: 0.3,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: IrisTokens.success,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${(progress * 100).toInt()}%',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  letterSpacing: 0.3,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: IrisTokens.success
-                                                      .withValues(alpha: 0.7),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ],
-                              if (insight.teacherInfo != null &&
-                                  insight.teacherInfo!.isNotEmpty) ...[
-                                const SizedBox(height: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 7,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.06)
-                                        : Colors.black.withValues(alpha: 0.03),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.10)
-                                          : Colors.black.withValues(
-                                              alpha: 0.06,
-                                            ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          color: IrisTokens.brand.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.person_rounded,
-                                          size: 12,
-                                          color: IrisTokens.brand.withValues(
-                                            alpha: 0.8,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          insight.teacherInfo!,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color:
-                                                (isDark
-                                                        ? Colors.white
-                                                        : Colors.black)
-                                                    .withValues(alpha: 0.6),
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
-                  _buildPersistentAnnouncementCard(context, isDark),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
-                        child: DaySwitcher(
-                        selectedDayIndex: _overrideDayIndex,
-                        onSelected: (value) => setState(() {
-                          _overrideDayIndex = value;
-                          _updateScheduleCache();
-                        }),
-                      ),
-                    ),
-                  ),
-
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
-                      child: SectionHeader(
-                        title: _timelineTitle(schedule, now, _overrideDayIndex),
-                        subtitle: _timelineSubtitle(
-                          schedule,
-                          now,
-                          _overrideDayIndex,
-                        ),
-                        statusIndicator: _getTimelineStatusColor(
-                          widget.brain,
-                          widget.batch,
-                          now,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    sliver: filteredSchedule.isEmpty
-                        ? SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 24,
-                              ),
-                              child: GlassCard(
-                                child: Column(
-                                  children: [
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      padding: const EdgeInsets.all(20),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            IrisTokens.brand.withValues(
-                                              alpha: 0.15,
-                                            ),
-                                            IrisTokens.brandLight.withValues(
-                                              alpha: 0.08,
-                                            ),
-                                          ],
-                                        ),
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: IrisTokens.brand.withValues(
-                                              alpha: 0.14,
-                                            ),
-                                            blurRadius: 8,
-                                            spreadRadius: -4,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        Icons.beach_access_rounded,
-                                        size: 40,
-                                        color: IrisTokens.brand.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Text(
-                                      'No classes scheduled',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 17,
-                                        letterSpacing: 0.3,
-                                        color:
-                                            (isDark
-                                                    ? Colors.white
-                                                    : Colors.black)
-                                                .withValues(alpha: 0.85),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Enjoy your free time! 🎉',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        height: 1.4,
-                                        color:
-                                            (isDark
-                                                    ? Colors.white
-                                                    : Colors.black)
-                                                .withValues(alpha: 0.55),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
-                        : SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (ctx, index) {
-                                final session = filteredSchedule[index];
-                                final fullIndex = schedule.indexOf(session);
-                                final nextSession =
-                                    (fullIndex >= 0 &&
-                                        fullIndex + 1 < schedule.length)
-                                    ? schedule[fullIndex + 1]
-                                    : null;
-                                return StaggeredListItem(
-                                  index: index,
-                                  child: RepaintBoundary(
-                                    child: ClassCard(
-                                      key: ValueKey(
-                                        'class_${session.subject}_${session.startTime}',
-                                      ),
-                                      session: session,
-                                      nextSession: nextSession,
-                                      isFacultyView: false,
-                                      onRemoveMakeup: _isMakeupSession(session)
-                                          ? () =>
-                                                _confirmAndRemoveMakeupSession(
-                                                  session,
-                                                )
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                              childCount: filteredSchedule.length,
-                              addAutomaticKeepAlives: true,
-                              addRepaintBoundaries: true,
-                            ),
-                          ),
-                  ),
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 126)),
-                ],
-              ),
+          Positioned.fill(
+            child: IndexedStack(
+              index: _bottomNavIndex,
+              children: [
+                _buildHomeDashboard(context, isDark, now, dateLabel, insight, filteredSchedule, schedule),
+                const PortalScreen(
+                  key: PageStorageKey<String>('student_tab_portal'),
+                  url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+                  title: 'COMSATS Student Portal',
+                  sessionScope: 'student',
+                  showBackButton: false,
+                ),
+                const AcademicsHubScreen(
+                  key: PageStorageKey<String>('student_tab_academics'),
+                ),
+                ToolsScreen(
+                  key: const PageStorageKey<String>('student_tab_tools'),
+                  memory: widget.memory,
+                  batch: widget.batch,
+                  brain: widget.brain,
+                  onRoleChanged: widget.onRoleChanged,
+                  onBatchChanged: widget.onBatchChanged,
+                ),
+                AboutScreen(
+                  key: const PageStorageKey<String>('student_tab_about'),
+                  memory: widget.memory,
+                  onRoleChanged: widget.onRoleChanged,
+                  onBatchChanged: widget.onBatchChanged,
+                ),
+              ],
             ),
           ),
-          // App-wide floating System Announcement Banner
           Positioned(
             top: 16,
             left: 16,

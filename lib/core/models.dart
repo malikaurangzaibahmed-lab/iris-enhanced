@@ -68,9 +68,22 @@ class ClassSession {
   double get safeStartVal => FormatGuard.toDecimalTime(startTime);
   double get safeEndVal => FormatGuard.toDecimalTime(endTime);
 
+  bool get isOneHourLecture {
+    return subject.toLowerCase().contains('(1 hr)') ||
+           subject.toLowerCase().contains('(1hr)') ||
+           subject.toLowerCase().contains('1 hr)');
+  }
+
+  double get actualEndVal {
+    if (isOneHourLecture) {
+      return safeStartVal + 1.0;
+    }
+    return safeEndVal;
+  }
+
   bool isLive(DateTime now) {
     final currentT = now.hour + (now.minute / 60.0);
-    return dayIndex == now.weekday && currentT >= safeStartVal && currentT < safeEndVal;
+    return dayIndex == now.weekday && currentT >= safeStartVal && currentT < actualEndVal;
   }
 
   // Check if this session is consecutive with another
@@ -79,7 +92,7 @@ class ClassSession {
            subject == other.subject &&
            teacher == other.teacher &&
            room == other.room &&
-           (safeEndVal - other.safeStartVal).abs() < 0.01; // This session starts when other ends
+           (actualEndVal - other.safeStartVal).abs() < 0.01; // This session starts when other ends
   }
 
   // Check if two sessions are the same lecture (for merging)
@@ -102,16 +115,43 @@ class ClassSession {
       };
 
   static ClassSession fromJson(Map<String, dynamic> json) {
-    final batchKey = BatchKey.parse(json['batch'] as String? ?? 'UNKNOWN');
+    final batchStr = (json['batch'] ?? json['class_name'] ?? json['section'] ?? 'UNKNOWN').toString();
+    final batchKey = BatchKey.parse(batchStr);
+    
+    // Parse start and end times, supporting 'period' or 'time' splits
+    String start = '00:00';
+    String end = '00:00';
+    
+    if (json['start'] != null && json['end'] != null) {
+      start = json['start'].toString();
+      end = json['end'].toString();
+    } else {
+      final timeStr = (json['time'] ?? json['period'] ?? '').toString();
+      if (timeStr.isNotEmpty) {
+        final parts = timeStr.split('-');
+        if (parts.length >= 2) {
+          start = parts[0].trim();
+          end = parts[1].trim();
+        } else if (parts.isNotEmpty) {
+          start = parts[0].trim();
+        }
+      }
+    }
+    
+    final dayStr = (json['day'] ?? json['weekday'] ?? 'Monday').toString();
+    final subjectStr = (json['subject'] ?? json['course'] ?? json['title'] ?? 'Unknown').toString();
+    final teacherStr = (json['teacher'] ?? json['instructor'] ?? json['staff'] ?? 'Unknown').toString();
+    final roomStr = (json['room'] ?? json['location'] ?? 'TBD').toString();
+
     return ClassSession(
-      id: json['id'] as String? ?? '${batchKey.batch}-${json['day']}-${json['start']}',
+      id: json['id'] as String? ?? '${batchKey.batch}-$dayStr-$start',
       batchKey: batchKey,
-      dayIndex: FormatGuard.dayIndex(json['day'] as String? ?? 'Monday'),
-      startTime: json['start'] as String? ?? '00:00',
-      endTime: json['end'] as String? ?? '00:00',
-      subject: json['subject'] as String? ?? 'Unknown',
-      teacher: json['teacher'] as String? ?? 'Unknown',
-      room: FormatGuard.sanitizeRoom(json['room'] as String? ?? 'TBD'),
+      dayIndex: FormatGuard.dayIndex(dayStr),
+      startTime: start,
+      endTime: end,
+      subject: subjectStr,
+      teacher: teacherStr,
+      room: FormatGuard.sanitizeRoom(roomStr),
     );
   }
 }

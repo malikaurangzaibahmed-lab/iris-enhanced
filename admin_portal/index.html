@@ -3,79 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IRIS // Obsidian Command Console</title>
+  <title>IRIS // Biosphere Command Console</title>
   
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- 21st.dev Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=1.0.6">
+  <!-- 21st.dev Botanical Stylesheet -->
+  <link rel="stylesheet" href="styles.css?v=1.0.8">
 </head>
 <body>
 
-  <!-- PREMIUM 21ST.DEV GLASS HANDSHAKE LOADER -->
+  <!-- CELESTIAL BENTO GRAPHICS OVERLAYS ARE MANAGED VIA HIGH-PERFORMANCE CSS -->
+
+  <!-- PREMIUM BIOPHILIC LOADER -->
   <div id="initial-loader" class="loader-overlay">
     <div class="loader-content">
+      <div class="biophilic-glow-sphere"></div>
       <div class="system-svg-loader">
         <svg viewBox="0 0 50 50">
           <circle cx="25" cy="25" r="20"></circle>
         </svg>
       </div>
-      <div class="loader-title">IRIS // CORE</div>
-      <div class="loader-subtitle">telemetry link initialization...</div>
+      <div class="loader-title">IRIS // BIOSPHERE</div>
+      <div class="loader-subtitle">loading biophilic control streams...</div>
       <div class="loader-bar"><div class="bar-fill"></div></div>
     </div>
   </div>
 
-  <!-- AUTHENTICATION GLASS VAULT GATEWAY OVERLAY -->
+  <!-- GEOMETRICAL GREENERY SECURITY GATEWAY -->
   <div id="auth-overlay" class="glass-overlay" style="display: none;">
-    <div class="glass-card auth-card">
-      <!-- Direct config access sliders button -->
-      <button id="btn-auth-config" class="btn-close" style="position: absolute; right: 20px; top: 20px;" title="Verify telemetry configuration"><i class="fa-solid fa-sliders"></i></button>
+    <div class="leaf-card auth-card">
+      <button id="btn-auth-config" class="btn-close" style="position: absolute; right: 24px; top: 24px;" title="Configure Telemetry Link"><i class="fa-solid fa-sliders"></i></button>
       
-      <div class="logo-container">
-        <i class="fa-solid fa-vault logo-icon"></i>
+      <div class="organic-logo-badge">
+        <i class="fa-solid fa-seedling logo-icon"></i>
       </div>
-      <h2>Vault Security gateway</h2>
-      <p class="subtitle">authenticated security link handshake required</p>
+      <h2>Biosphere Control Gate</h2>
+      <p class="subtitle">authenticated botanical handshake required</p>
       
-      <!-- Connection health status beacon -->
       <div class="connection-beacon" id="auth-connection-beacon">
         <span class="beacon-dot"></span>
         <span id="connection-beacon-text">Telemetry secure link active</span>
       </div>
       
       <div class="input-group">
-        <i class="fa-solid fa-user-lock input-icon"></i>
-        <input type="email" id="auth-email" placeholder="Account Email Address" required autocomplete="email">
+        <i class="fa-solid fa-user-shield input-icon"></i>
+        <input type="email" id="auth-email" placeholder="Access Profile Email" required autocomplete="email">
       </div>
       <div class="input-group">
-        <i class="fa-solid fa-shield input-icon"></i>
-        <input type="password" id="auth-pass" placeholder="Vault Security Passkey" required autocomplete="current-password">
+        <i class="fa-solid fa-key input-icon"></i>
+        <input type="password" id="auth-pass" placeholder="Biosphere Access Key" required autocomplete="current-password">
         <button type="button" id="btn-toggle-password" class="password-toggle-btn" title="Toggle visibility">
           <i class="fa-solid fa-eye"></i>
         </button>
       </div>
       
-      <button id="btn-login" class="btn btn-primary btn-full" style="margin-top: 10px;">
-        <span>Verify Access Profile</span>
-        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+      <button id="btn-login" class="btn btn-primary btn-full">
+        <span>Verify Biosphere Access</span>
+        <i class="fa-solid fa-leaf"></i>
       </button>
       
       <div id="auth-error" class="error-msg"></div>
     </div>
   </div>
 
-  <!-- CORE DASHBOARD WORKSPACE -->
+  <!-- BIOSPHERE COMMAND WORKSPACE -->
   <div id="dashboard-container" class="app-layout" style="display: none;">
-    <!-- NAV BAR -->
-    <header class="glass-nav">
+    <!-- FLOATING CANOPY NAVBAR -->
+    <header class="floating-canopy-nav">
       <div class="brand">
-        <i class="fa-solid fa-microchip brand-icon"></i>
-        <span class="brand-name">iris // command console</span>
+        <i class="fa-solid fa-seedling brand-icon"></i>
+        <span class="brand-name">iris // biosphere console</span>
         <span class="badge">
           <span class="status-dot pulsing-green"></span>
-          <span>SECURE LINKED</span>
+          <span>BIOSPHERE SYNCED</span>
         </span>
         <span class="badge" style="background: rgba(255,255,255,0.01);" id="latency-badge">
           <i class="fa-solid fa-wifi" style="margin-right: 4px; color: var(--accent-indigo);"></i> <span id="latency-val" style="font-family: var(--font-mono); font-size: 9px;">8ms</span>
@@ -83,7 +84,7 @@
       </div>
       
       <div class="nav-actions">
-        <button id="btn-show-config" class="btn btn-icon" title="Console Telemetry Parameters">
+        <button id="btn-show-config" class="btn btn-icon" title="Biosphere Configuration">
           <i class="fa-solid fa-sliders"></i>
         </button>
         <div class="user-profile">
@@ -95,31 +96,31 @@
       </div>
     </header>
 
-    <!-- BALANCED 21ST.DEV DASHBOARD GRID -->
-    <main class="dashboard-grid">
+    <!-- ASYMMETRIC 3-COLUMN BOTANICAL WORKSPACE -->
+    <main class="sanctum-grid">
       
-      <!-- COLUMN 1: REMOTE SYSTEM SWITCHERS & DEPLOYERS -->
-      <section class="grid-col">
+      <!-- COLUMN 1: REMOTE SYSTEMS & MODE SWAPPERS (Narrow) -->
+      <section class="grid-col narrow-col">
         
-        <!-- CARD 1: ACADEMIC PERIOD SWITCHER -->
-        <div class="glass-card">
+        <!-- CARD 1: BOTANICAL TIMELINE HUB -->
+        <div class="leaf-card">
           <div style="display: flex; align-items: flex-start; justify-content: space-between;">
             <div>
               <div class="card-header">
-                <i class="fa-solid fa-calendar-alt icon-accent"></i>
-                <h3>Academic Timeline Hub</h3>
+                <i class="fa-solid fa-compass-drafting icon-accent"></i>
+                <h3>Timeline Swapper</h3>
               </div>
-              <p class="card-desc">Slide active semesters. Changes propagate live across all synchronized mobile clients.</p>
+              <p class="card-desc">Slide operational semesters. Dynamic shifts propagate live to mobile clients.</p>
             </div>
             
             <!-- Compact Interactive SVG Orbits indicator -->
             <div class="orbit-map-wrapper">
-              <svg class="orbit-map-canvas" id="orbit-map-svg" viewBox="0 0 120 120" style="width: 80px; height: 80px;">
+              <svg class="orbit-map-canvas" id="orbit-map-svg" viewBox="0 0 120 120" style="width: 72px; height: 72px;">
                 <circle class="track" cx="60" cy="60" r="16"></circle>
                 <circle class="track" cx="60" cy="60" r="28"></circle>
                 <circle class="track" cx="60" cy="60" r="40"></circle>
                 <circle class="track" cx="60" cy="60" r="52"></circle>
-                <circle cx="60" cy="60" r="4" fill="#fff"></circle>
+                <circle cx="60" cy="60" r="4" fill="#05f29b"></circle>
                 
                 <g class="orbiting-body" id="orbit-body-classes">
                   <circle class="planet" cx="60" cy="44" r="3" fill="#3b82f6"></circle>
@@ -137,12 +138,12 @@
             </div>
           </div>
           
-          <!-- Segmented Timeline Switcher -->
+          <!-- Segmented Vine Switcher -->
           <div class="ribbon-switcher" id="academic-ribbon">
-            <div class="ribbon-segment active" data-period="classes">CLASSES</div>
-            <div class="ribbon-segment" data-period="midterms">MIDTERMS</div>
-            <div class="ribbon-segment" data-period="finals">FINALS</div>
-            <div class="ribbon-segment" data-period="sports_week">SPORTS</div>
+            <div class="ribbon-segment active" data-period="classes"><i class="fa-solid fa-graduation-cap"></i> CLASSES</div>
+            <div class="ribbon-segment" data-period="midterms"><i class="fa-solid fa-pen-clip"></i> MIDS</div>
+            <div class="ribbon-segment" data-period="finals"><i class="fa-solid fa-award"></i> FINALS</div>
+            <div class="ribbon-segment" data-period="sports_week"><i class="fa-solid fa-volleyball"></i> SPORTS</div>
           </div>
           
           <div class="active-descriptor-deck" id="active-period-desc">
@@ -150,25 +151,74 @@
           </div>
         </div>
 
-        <!-- CARD 2: AIRPORT SCHEDULE DATABASE LEDGER -->
-        <div class="glass-card">
+        <!-- CARD 2: RELEASE PATCH CENTER -->
+        <div class="leaf-card">
           <div class="card-header">
-            <i class="fa-solid fa-table-list icon-accent"></i>
-            <h3>Timetable Synchronization ledger</h3>
+            <i class="fa-solid fa-mobile-screen-button icon-accent"></i>
+            <h3>Android OTA Binaries</h3>
           </div>
-          <p class="card-desc">Update schedule databases. Drop seed files below and inspect records before deploying.</p>
+          <p class="card-desc">Deploy compiled splits. Active devices automatically trigger update modals.</p>
+          
+          <div class="input-row">
+            <div class="input-group">
+              <input type="text" id="apk-version-name" placeholder="Ver String" value="1.2.0">
+            </div>
+            <div class="input-group">
+              <input type="number" id="apk-version-code" placeholder="Build" value="3">
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <textarea id="apk-notes" placeholder="Release patch changelogs..." style="min-height: 48px;"></textarea>
+          </div>
+          
+          <div class="input-group">
+            <input type="text" id="apk-url-input" placeholder="CDN Repository URL (Bypasses storage)">
+          </div>
+
+          <div class="dropzone-industrial" id="apk-dropzone">
+            <input type="file" id="file-apk" accept=".apk" style="display: none;">
+            <i class="fa-solid fa-circle-arrow-up drag-icon"></i>
+            <p>DRAG SPLIT APK HERE OR <span class="browse-link">BROWSE</span></p>
+            <p class="file-info" id="apk-file-info"></p>
+          </div>
+          
+          <div class="progress-container" id="upload-progress-container" style="display: none;">
+            <div style="flex-grow: 1; height: 3px; background: rgba(255,255,255,0.05); overflow: hidden; border-radius: 99px;">
+              <div id="upload-progress-fill" style="width: 0%; height: 100%; background: var(--accent-indigo); border-radius: 99px;"></div>
+            </div>
+            <span id="upload-progress-pct" style="font-family: var(--font-mono); font-size: 9px; color: var(--accent-indigo);">0%</span>
+          </div>
+
+          <button id="btn-deploy-apk" class="btn btn-secondary btn-full" disabled>
+            <span>Stage Binary Deploy</span>
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- COLUMN 2: TIMETABLE DATABASE LEDGER (Wide - Center Stage) -->
+      <section class="grid-col wide-col">
+        
+        <div class="leaf-card">
+          <div class="card-header">
+            <i class="fa-solid fa-cubes icon-accent"></i>
+            <h3>Timetable Seed Database</h3>
+          </div>
+          <p class="card-desc">Configure local schedules. Staging dropzones support rapid JSON departures preview.</p>
           
           <div class="timetable-ledger-deck">
             <div class="dropzone-industrial" id="timetable-dropzone">
               <input type="file" id="file-timetable" accept=".json" style="display: none;">
-              <i class="fa-solid fa-database drag-icon"></i>
-              <p>DRAG TIMETABLE SEED JSON HERE OR <span class="browse-link">BROWSE FILES</span></p>
+              <i class="fa-solid fa-leaf drag-icon" style="color: var(--accent-indigo);"></i>
+              <p>DRAG NEW TIMETABLE SEED JSON OR <span class="browse-link">BROWSE FILES</span></p>
               <p class="file-info" id="timetable-file-info"></p>
             </div>
             
             <!-- Airport Departures inspected table -->
             <div id="timetable-analytics" class="analytics-sheet" style="display: none; margin-bottom: 20px;">
-              <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged database departures (top records)</span>
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Database Departures</span>
               
               <div class="departure-ledger-container">
                 <table class="departure-ledger-table" id="timetable-preview-table">
@@ -187,47 +237,113 @@
               </div>
 
               <!-- Telemetry indicators -->
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-top: 14px;">
-                <div style="border: 1px solid var(--border-subtle); padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                  <span style="display: block; font-size: 8px; color: var(--text-caption); text-transform: uppercase; font-family: var(--font-mono);">Sessions</span>
-                  <strong id="stat-sessions" style="font-family: var(--font-mono); font-size: 13px; color: var(--text-title);">0</strong>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
+                <div class="telemetry-box">
+                  <span>Sessions</span>
+                  <strong id="stat-sessions">0</strong>
                 </div>
-                <div style="border: 1px solid var(--border-subtle); padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                  <span style="display: block; font-size: 8px; color: var(--text-caption); text-transform: uppercase; font-family: var(--font-mono);">Courses</span>
-                  <strong id="stat-courses" style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-indigo);">0</strong>
+                <div class="telemetry-box" style="border-color: rgba(5,242,155,0.25);">
+                  <span>Courses</span>
+                  <strong id="stat-courses" style="color: var(--accent-indigo);">0</strong>
                 </div>
-                <div style="border: 1px solid var(--border-subtle); padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                  <span style="display: block; font-size: 8px; color: var(--text-caption); text-transform: uppercase; font-family: var(--font-mono);">Labs</span>
-                  <strong id="stat-labs" style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-emerald);">0</strong>
+                <div class="telemetry-box">
+                  <span>Labs</span>
+                  <strong id="stat-labs">0</strong>
                 </div>
               </div>
             </div>
             
             <button id="btn-deploy-timetable" class="btn btn-secondary btn-full" disabled>
-              <span>Synchronize Seed Ledger</span>
+              <span>Commit Timetable Seed</span>
               <i class="fa-solid fa-arrows-spin"></i>
             </button>
           </div>
         </div>
 
+        <!-- CARD: TIMETABLE DATABASE ROLLBACK LEDGER -->
+        <div class="leaf-card">
+          <div class="card-header">
+            <i class="fa-solid fa-clock-rotate-left icon-accent"></i>
+            <h3>Database Rollback Ledger</h3>
+          </div>
+          <p class="card-desc">Review and redeploy historical timetable seeds. Restore active systems to safe previous states.</p>
+          
+          <div class="departure-ledger-container" style="max-height: 180px;">
+            <table class="departure-ledger-table">
+              <thead>
+                <tr>
+                  <th>Version ID</th>
+                  <th>Staged Timestamp</th>
+                  <th>Total Classes</th>
+                  <th>Control Action</th>
+                </tr>
+              </thead>
+              <tbody id="rollback-ledger-body">
+                <!-- dynamic ledger rows will build here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CARD: BIOSPHERE TELEMETRY MATRIX -->
+        <div class="leaf-card">
+          <div class="card-header">
+            <i class="fa-solid fa-chart-line icon-accent"></i>
+            <h3>Biosphere Telemetry Matrix</h3>
+          </div>
+          <p class="card-desc">Real-time health streams and active node connection metrics across global clusters.</p>
+          
+          <!-- Pulser Telemetry Radar Beacon -->
+          <div class="telemetry-sparkline-container">
+            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Biosphere Stream Sync Radar Heartbeat</span>
+            <div class="telemetry-radar-chassis">
+              <div class="radar-pings">
+                <span class="radar-pulse-ring r1"></span>
+                <span class="radar-pulse-ring r2"></span>
+                <span class="radar-pulse-ring r3"></span>
+                <span class="radar-beacon-center"></span>
+              </div>
+              <div class="radar-signal-status">
+                <span class="radar-signal-title">ACTIVE BROADCAST SIGNAL HEARTBEAT</span>
+                <span class="radar-signal-frequency">2.44 GHz // DUPLEX SYNCHRONOUS FLOW</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
+            <div class="telemetry-box">
+              <span>SYNC NODES</span>
+              <strong id="telemetry-nodes">-- active</strong>
+            </div>
+            <div class="telemetry-box" style="border-color: rgba(5,242,155,0.25);">
+              <span>DATABASE OPS</span>
+              <strong id="telemetry-ops" style="color: var(--accent-indigo);">0 writes</strong>
+            </div>
+            <div class="telemetry-box">
+              <span>STREAM HEALTH</span>
+              <strong id="telemetry-health">OPTIMAL</strong>
+            </div>
+          </div>
+        </div>
+
       </section>
 
-      <!-- COLUMN 2: ANNOUNCEMENTS, OTA UPDATES, & TERMINAL LOGS -->
-      <section class="grid-col">
+      <!-- COLUMN 3: BROADCAST TRANSCEIVER & SYSTEMS DEBUG TERMINAL (Medium) -->
+      <section class="grid-col medium-col">
         
-        <!-- CARD 3: DEDICATED GLOBAL BROADCAST CONSOLE -->
-        <div class="glass-card">
+        <!-- CARD 3: BIOLUMINESCENT BROADCAST STUDIO -->
+        <div class="leaf-card">
           <div class="card-header">
-            <i class="fa-solid fa-broadcast-tower icon-accent"></i>
-            <h3>Global Broadcast Studio</h3>
+            <i class="fa-solid fa-satellite icon-accent"></i>
+            <h3>Broadcast Transceiver</h3>
           </div>
-          <p class="card-desc">Push live notification alerts instantly to active student mobile interfaces.</p>
+          <p class="card-desc">Push live notification alerts instantly to active student mobile noticeboards.</p>
           
           <!-- Explicit industrial power toggle slide switch -->
           <div class="broadcast-flex-row">
             <span class="broadcast-status-label">
-              <i class="fa-solid fa-satellite" style="color: var(--accent-indigo); font-size: 13px;"></i>
-              <span>BROADCAST LIVE EMISSIONS</span>
+              <i class="fa-solid fa-bullhorn" style="color: var(--accent-indigo); font-size: 13px;"></i>
+              <span>TRANSMIT LIVE SIGNALS</span>
             </span>
             <label class="industrial-toggle">
               <input type="checkbox" id="broadcast-switch-visible">
@@ -243,19 +359,50 @@
             <span class="preset-chip" data-preset="Academic records audit is complete. Midterm results are now live in portal. 🎓">🎓 Results Live</span>
           </div>
 
-          <div class="input-wrapper" style="margin-bottom: 0;">
+          <div class="input-wrapper">
             <div class="textarea-container">
-              <textarea id="broadcast-message" placeholder="Type notification statement here..." maxlength="150" style="min-height: 80px; resize: none; padding-left: 16px;"></textarea>
+              <textarea id="broadcast-message" placeholder="Type notification alert statement here..." maxlength="150" style="min-height: 72px; resize: none;"></textarea>
             </div>
             <div class="char-counter-panel">
-              <span>ALERT TRANSMITTER</span>
+              <span>ALERT RADAR DISPATCHER</span>
               <div>
                 <span id="broadcast-char-count">0</span> / 150 LIMIT
               </div>
             </div>
           </div>
+
+          <!-- PREMIUM MOBILE GLASS EMULATOR PREVIEW -->
+          <div class="emulator-container" style="margin-top: 14px; margin-bottom: 14px; border-top: 1px dashed rgba(16, 185, 129, 0.12); padding-top: 14px;">
+            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Mobile Glass Emulator (Real-time Preview)</span>
+            <div class="emulator-mobile-screen">
+              
+              <!-- Animated Leaf Silhouette Background Overlay -->
+              <svg class="emulator-leaf-overlay" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17,2C17,2 9,3 6,8C4.35,10.75 4,14 5.5,17C6.5,19 8.5,20.5 11,21C11.56,21.11 12,20.67 12,20.11V15.5C12,14.67 12.67,14 13.5,14C14.33,14 15,14.67 15,15.5V19.82C15.82,19.34 16.5,18.72 17,18C19,15.5 20,11.5 20,7C20,4.25 17,2 17,2Z" />
+              </svg>
+
+              <div class="glass-surface-mockup amber-theme" style="position: relative; z-index: 2;">
+                <div class="mock-badge-radar">
+                  <i class="fa-solid fa-bullhorn"></i>
+                  <span class="pulse-ring"></span>
+                </div>
+                <div class="message-core-mockup">
+                  <div class="header-row">
+                    <span class="header-title">CAMPUS NOTICEBOARD</span>
+                    <span class="badge-dismissed-mockup">LIVE PREVIEW</span>
+                  </div>
+                  <p id="emulator-text-render" class="message-body">
+                    All Quiet on Campus • No active broadcasts right now
+                  </p>
+                  <div class="footer-row">
+                    <span class="realtime-tag"><i class="fa-solid fa-wifi" style="margin-right: 4px;"></i> REAL-TIME BROADCAST</span>
+                    <span id="emulator-time-render" class="time-tag">BROADCASTED: NEVER</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           
-          <!-- Tactile LED broadcast trigger button -->
           <button id="btn-broadcast-push" class="btn btn-led-transmitter btn-full" disabled>
             <span>Transmit Notification Alert</span>
           </button>
@@ -266,65 +413,17 @@
           <svg style="display:none;"><circle id="char-ring-fill"></circle></svg>
         </div>
 
-        <!-- CARD 4: ANDROID OTA splits / CDN DEPLOYER -->
-        <div class="glass-card">
-          <div class="card-header">
-            <i class="fa-solid fa-mobile-alt icon-accent"></i>
-            <h3>Android OTA Binary Release Center</h3>
-          </div>
-          <p class="card-desc">Deploy compiled application releases. Active client systems automatically prompt updates.</p>
-          
-          <div class="input-row" style="display: flex; gap: 14px; margin-bottom: 14px;">
-            <div class="input-group" style="margin-bottom: 0;">
-              <input type="text" id="apk-version-name" placeholder="Version String" value="1.2.0" style="padding-left: 16px;">
-            </div>
-            <div class="input-group" style="margin-bottom: 0;">
-              <input type="number" id="apk-version-code" placeholder="Build Code" value="3" style="padding-left: 16px;">
-            </div>
-          </div>
-          
-          <div class="input-group" style="margin-bottom: 14px;">
-            <textarea id="apk-notes" placeholder="Release patch changelogs..." style="padding-left: 16px; min-height: 60px;"></textarea>
-          </div>
-          
-          <div class="input-group" style="margin-bottom: 14px;">
-            <input type="text" id="apk-url-input" placeholder="CDN binary repository URL link (Bypasses storage limits)" style="padding-left: 16px;">
-          </div>
-
-          <div class="dropzone-industrial" id="apk-dropzone">
-            <input type="file" id="file-apk" accept=".apk" style="display: none;">
-            <i class="fa-solid fa-folder-open drag-icon"></i>
-            <p>DRAG SPLIT APK BINARY HERE OR <span class="browse-link">BROWSE FILES</span></p>
-            <p class="file-info" id="apk-file-info"></p>
-          </div>
-          
-          <!-- progress bars -->
-          <div class="progress-container" id="upload-progress-container" style="display: none; align-items: center; gap: 10px; margin-bottom: 14px;">
-            <div style="flex-grow: 1; height: 2px; background: var(--border-subtle); overflow: hidden; border-radius: 99px;">
-              <div id="upload-progress-fill" style="width: 0%; height: 100%; background: #fff; border-radius: 99px;"></div>
-            </div>
-            <span id="upload-progress-pct" style="font-family: var(--font-mono); font-size: 9px; color: var(--text-caption);">0%</span>
-          </div>
-
-          <button id="btn-deploy-apk" class="btn btn-secondary btn-full" disabled>
-            <span>Launch OTA Release Staging</span>
-            <i class="fa-solid fa-rocket"></i>
-          </button>
-        </div>
-
-        <!-- CARD 5: SEARCHABLE DEV DEBUG TERMINAL -->
+        <!-- CARD 4: BIOLUMINESCENT SYSTEMS LOGS VIEW -->
         <div class="console-structural-deck">
           <div class="console-header-bar">
             <span>systems debug console</span>
             
             <div class="console-actions-panel">
-              <!-- Live Log search input -->
               <div class="terminal-search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="terminal-search" placeholder="Query log patterns...">
+                <input type="text" id="terminal-search" placeholder="Query patterns...">
               </div>
               
-              <!-- Filter dropdown -->
               <select id="terminal-filter" class="terminal-dropdown">
                 <option value="all">Severity: All</option>
                 <option value="success">Severity: Success</option>
@@ -332,7 +431,7 @@
                 <option value="error">Severity: Errors</option>
               </select>
 
-              <button id="btn-download-logs" class="btn btn-secondary btn-small" title="Export console session logs" style="padding: 6px 10px;">
+              <button id="btn-download-logs" class="btn btn-secondary btn-small" title="Export logs" style="padding: 6px 10px;">
                 <i class="fa-solid fa-download"></i>
               </button>
               <button id="btn-clear-terminal" class="btn btn-text btn-small" style="font-family: var(--font-mono); font-size: 9px; font-weight: 600;">WIPE</button>
@@ -352,9 +451,9 @@
 
   <!-- FIREBASE CONFIG MODAL -->
   <div id="config-modal" class="modal-overlay" style="display: none;">
-    <div class="glass-card modal-card">
+    <div class="leaf-card modal-card">
       <div class="modal-header">
-        <h3>Database Configuration Sliders</h3>
+        <h3>Biosphere Config Parameters</h3>
         <button id="btn-close-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <p class="modal-desc">Configure Web Credentials below to link the admin console platform directly with your Firestore database.</p>
@@ -363,7 +462,7 @@
         <textarea id="firebase-config-json" placeholder='{
   "apiKey": "AIzaSyAA...",
   "projectId": "iris-138ef"
-}' style="padding-left: 16px; min-height: 120px;"></textarea>
+}' style="min-height: 120px; font-family: var(--font-mono); font-size: 11.5px;"></textarea>
       </div>
       
       <div class="modal-actions">
@@ -372,17 +471,20 @@
     </div>
   </div>
 
-  <!-- SESSION TIMEOUT EXPR -->
+  <!-- SESSION TIMEOUT WARNING -->
   <div id="timeout-modal" class="modal-overlay" style="display: none;">
-    <div class="glass-card modal-card" style="text-align: center; max-width: 380px; padding: 40px 30px;">
-      <i class="fa-solid fa-hourglass-start" style="font-size: 32px; color: var(--accent-amber); margin-bottom: 20px;"></i>
-      <h3>Security Session Handshake Expiring</h3>
+    <div class="leaf-card modal-card" style="text-align: center; max-width: 380px; padding: 40px 30px;">
+      <i class="fa-solid fa-hourglass-start" style="font-size: 32px; color: var(--accent-amber); margin-bottom: 20px; text-shadow: 0 0 15px rgba(245,158,11,0.3);"></i>
+      <h3>Handshake Expiring</h3>
       <p class="modal-desc">Administrative telemetry link will close due to inactivity. Remaining time: <strong id="timeout-countdown" style="font-family: var(--font-mono); color: var(--accent-amber);">60</strong> seconds.</p>
       <div class="modal-actions" style="justify-content: center; width: 100%;">
         <button id="btn-extend-session" class="btn btn-primary btn-full">Hold Security Link Open</button>
       </div>
     </div>
   </div>
+
+  <!-- MOSS TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
 
   <!-- FIREBASE CLIENT CDNS -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -391,6 +493,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
   <!-- Console Script -->
-  <script src="app.js?v=1.0.6"></script>
+  <script src="app.js?v=1.0.8"></script>
 </body>
 </html>
