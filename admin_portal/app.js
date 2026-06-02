@@ -1040,14 +1040,18 @@ deployApkBtn.addEventListener('click', async () => {
     
     const uploadTask = storageRef.put(selectedApkFile);
     
+    let lastLoggedPct = -1;
     uploadTask.on('state_changed', 
       (snapshot) => {
         const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
         uploadProgressFill.style.width = `${pct}%`;
         uploadProgressPct.innerText = `${pct}%`;
         
-        if (pct % 20 === 0) {
-          logTerminal(`Uploading APK binaries: ${pct}% complete...`, 'info');
+        // Log every 5% progression step
+        const step = Math.floor(pct / 5) * 5;
+        if (step > lastLoggedPct) {
+          logTerminal(`Uploading APK binaries: ${pct}% complete... (${(snapshot.bytesTransferred / 1024 / 1024).toFixed(1)}MB / ${(snapshot.totalBytes / 1024 / 1024).toFixed(1)}MB)`, 'info');
+          lastLoggedPct = step;
         }
       }, 
       (err) => {
