@@ -1412,3 +1412,179 @@ h2 {
   color: var(--accent-indigo);
   z-index: 1;
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS OVERHAUL (PHONE & TABLET SUPPORT)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .floating-canopy-nav {
+    margin: 10px 15px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .brand {
+    width: 100%;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 10px;
+  }
+  
+  .nav-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .sanctum-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+    padding: 10px 15px 40px 15px;
+  }
+
+  .grid-col {
+    width: 100% !important;
+  }
+
+  .leaf-card, .glass-card {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  .card-header h3 {
+    font-size: 15px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .telemetry-sparkline-container {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 13px;
+  }
+
+  .auth-card {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .organic-logo-badge {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+  .subtitle {
+    font-size: 10px;
+    margin-bottom: 20px;
+  }
+
+  .connection-beacon {
+    margin-bottom: 20px;
+    padding: 4px 10px;
+  }
+
+  .input-group input, .input-group textarea, .input-row input {
+    padding: 12px 14px 12px 40px;
+    font-size: 13px;
+  }
+
+  .input-icon {
+    left: 14px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    font-size: 12.5px;
+  }
+
+  /* Segmented Swapper into 2x2 grid for mobile ergonomics */
+  .ribbon-switcher {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px;
+  }
+
+  .ribbon-segment {
+    padding: 8px 4px;
+    font-size: 9px;
+  }
+
+  /* Compact dropzone space */
+  .dropzone-industrial {
+    padding: 20px 10px;
+    margin-bottom: 14px;
+  }
+
+  .drag-icon {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  /* Dynamic Departure table column wraps */
+  .departure-ledger-table th, .departure-ledger-table td {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  /* Scrollable container overrides */
+  .departure-ledger-container {
+    max-height: 200px;
+  }
+  
+  /* Modal responsive sizes */
+  .modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 20px 16px !important;
+  }
+  
+  .modal-header h3 {
+    font-size: 16px;
+  }
+  
+  .modal-desc {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  /* Mobile latency indicator compact text */
+  #latency-badge {
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 400px) {
+  .floating-canopy-nav {
+    margin: 8px 8px;
+  }
+  
+  .sanctum-grid {
+    padding: 8px 8px 30px 8px;
+  }
+  
+  .brand-name {
+    font-size: 11px;
+  }
+
+  #latency-badge {
+    display: none !important; /* Hide latency to fit tiny screens */
+  }
+  
+  .ribbon-switcher {
+    grid-template-columns: 1fr !important; /* Stack vertically on very narrow screens */
+  }
+}

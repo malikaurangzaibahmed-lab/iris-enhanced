@@ -133,8 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setup3DTiltEffects();
   startLatencySimulator();
   startTelemetryECG();
-  loadTimetableHistory();
-  startNodesSimulator();
   
   if (apkUrlInput) {
     apkUrlInput.addEventListener('input', () => {
@@ -353,6 +351,8 @@ function setupAuthListeners() {
       dashboardContainer.style.display = 'flex';
       
       syncActivePeriodState();
+      loadTimetableHistory();
+      startNodesSimulator();
     } else {
       authOverlay.style.display = 'flex';
       dashboardContainer.style.display = 'none';
@@ -524,6 +524,16 @@ function syncActivePeriodState() {
       // Rotate Visual SVG Orbits
       rotateOrbitBodies(currentPeriod);
 
+      // Render active timetable statistics dynamically from database
+      if (data.active_timetable_json) {
+        try {
+          const parsedTimetable = JSON.parse(data.active_timetable_json);
+          updateActiveTimetablePreview(parsedTimetable);
+        } catch (e) {
+          console.warn("Failed to parse active timetable json:", e);
+        }
+      }
+
       // Announcement Transceiver synchronization
       if (broadcastSwitchVisible && broadcastMessage) {
         const isBroadcastOn = data.broadcast_enabled || false;
@@ -568,6 +578,56 @@ function syncActivePeriodState() {
   }, err => {
     logTerminal(`Database Sync Failure: ${err.message}`, 'error');
   });
+}
+
+function updateActiveTimetablePreview(json) {
+  let sessions = [];
+  if (Array.isArray(json)) {
+    sessions = json;
+  } else if (json.sessions && Array.isArray(json.sessions)) {
+    sessions = json.sessions;
+  } else {
+    return;
+  }
+
+  const sessionCount = sessions.length;
+  const uniqueSubjects = new Set();
+  let labCount = 0;
+  
+  // Build departures visual ledger rows for active timetable
+  timetablePreviewBody.innerHTML = '';
+  const previewLimit = Math.min(5, sessions.length);
+  
+  for (let i = 0; i < previewLimit; i++) {
+    const s = sessions[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${s.class_name || s.section || 'CORE-GEN'}</td>
+      <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'}</td>
+      <td>${s.time || s.period || 'ON SCHEDULE'}</td>
+      <td style="color: var(--text-caption);">${s.teacher || s.instructor || 'STAFF'}</td>
+    `;
+    timetablePreviewBody.appendChild(tr);
+  }
+  
+  sessions.forEach(s => {
+    if (s.subject) {
+      const cleanSub = s.subject.replace(/\s*\(\d*\s*hrs?\)\s*/gi, '')
+                               .replace(/\s*\(\d*\s*hr\)\s*/gi, '')
+                               .replace(/\s*\(Lab\)\s*/gi, '')
+                               .trim();
+      uniqueSubjects.add(cleanSub);
+      
+      if (s.subject.toLowerCase().includes('lab') || (s.room && s.room.toLowerCase().includes('lab'))) {
+        labCount++;
+      }
+    }
+  });
+
+  if (statSessions) statSessions.innerText = sessionCount;
+  if (statCourses) statCourses.innerText = uniqueSubjects.size;
+  if (statLabs) statLabs.innerText = labCount;
+  if (timetableAnalytics) timetableAnalytics.style.display = 'block';
 }
 
 // Ribbon Switch Snappy Selection Handler
@@ -875,27 +935,31 @@ deployTimetableBtn.addEventListener('click', async () => {
         
         logTerminal('Schema checked. Syncing database config global document...', 'info');
         
+        const versionId = `SEED_${new Date().toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`;
+        const timeStr = new Date().toISOString();
+        let sessions = Array.isArray(json) ? json : (json.sessions || []);
+        const classesCount = sessions.length;
+        const payload = JSON.stringify(json);
+
         await db.collection('config').doc('global').update({
           active_timetable_version: Date.now(),
           active_timetable_url: "", // storage cost bypassed
-          active_timetable_json: JSON.stringify(json),
+          active_timetable_json: payload,
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
         incrementDatabaseOps();
-        
-        let sessions = Array.isArray(json) ? json : (json.sessions || []);
-        let versionId = `SEED_${new Date().toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`;
-        timetableHistory.unshift({
+
+        // Write historical record in Firestore timetable_history collection
+        await db.collection('timetable_history').doc(versionId).set({
           id: versionId,
-          time: new Date().toISOString(),
-          classes: sessions.length,
-          json: JSON.stringify(json)
+          time: timeStr,
+          classes: classesCount,
+          json: payload
         });
-        if (timetableHistory.length > 5) timetableHistory.pop();
-        localStorage.setItem('iris_timetable_history', JSON.stringify(timetableHistory));
-        activeVersionId = versionId;
-        localStorage.setItem('iris_active_timetable_id', versionId);
-        renderRollbackLedger();
+        incrementDatabaseOps();
+        
+        // Reload timetable history to reflect the new version
+        await loadTimetableHistory();
         
         logTerminal('Database Sync Complete: Timetable ledger synchronized to global clients.', 'success');
         showMossToast("Timetable seed committed and deployed!", "success");
@@ -1105,16 +1169,32 @@ function setupUIHandlers() {
   });
 }
 
-// Simulated active core ping latency tracker
+// Real active core ping latency tracker (measures actual Firestore document read speed)
 function startLatencySimulator() {
   const valEl = document.getElementById('latency-val');
   
-  setInterval(() => {
-    if (isConnected) {
-      const ping = Math.floor(Math.random() * 10) + 4; // 4ms - 14ms
-      if (valEl) valEl.innerText = `${ping}ms`;
+  // Measure latency immediately
+  setTimeout(triggerPing, 1000);
+  
+  async function triggerPing() {
+    if (isConnected && db) {
+      const startTime = Date.now();
+      try {
+        await db.collection('config').doc('global').get();
+        const latency = Date.now() - startTime;
+        if (valEl) valEl.innerText = `${latency}ms`;
+        if (telemetryHealth) telemetryHealth.innerText = 'OPTIMAL';
+      } catch (err) {
+        console.warn("Latency query error:", err);
+        if (valEl) valEl.innerText = '--';
+        if (telemetryHealth) telemetryHealth.innerText = 'DEGRADED';
+      }
+    } else {
+      if (valEl) valEl.innerText = 'offline';
     }
-  }, 3500);
+  }
+
+  setInterval(triggerPing, 10000); // Trigger every 10 seconds to keep read counts reasonable
 }
 
 // ==========================================================================
@@ -1182,52 +1262,74 @@ function incrementDatabaseOps() {
 
 function startNodesSimulator() {
   if (telemetryNodes) {
-    telemetryNodes.innerText = "6 Active";
-  }
-  setInterval(() => {
-    if (isConnected && telemetryNodes) {
-      const nodes = Math.floor(Math.random() * 5) + 4; // 4 - 8 nodes
-      telemetryNodes.innerText = `${nodes} Active`;
+    if (db && db.app && db.app.options) {
+      telemetryNodes.innerText = db.app.options.projectId || "iris-138ef";
+    } else {
+      telemetryNodes.innerText = "iris-138ef";
     }
-  }, 6000);
+  }
 }
 
-function loadTimetableHistory() {
-  const cached = localStorage.getItem('iris_timetable_history');
-  if (cached) {
-    try {
-      timetableHistory = JSON.parse(cached);
-    } catch (e) {
-      timetableHistory = [];
-    }
-  }
-  
-  if (timetableHistory.length === 0) {
-    timetableHistory = [
-      {
-        id: "SEED_2026_05_28_1200",
-        time: "2026-05-28T12:00:00Z",
-        classes: 56,
-        json: JSON.stringify([{ class_name: "CS-6A", subject: "Artificial Intelligence", time: "09:00 - 10:30", teacher: "Dr. Aurangzaib" }])
-      },
-      {
-        id: "SEED_2026_05_26_0900",
-        time: "2026-05-26T09:00:00Z",
-        classes: 52,
-        json: JSON.stringify([{ class_name: "CS-4B", subject: "Software Engineering", time: "11:00 - 12:30", teacher: "Prof. Sarah" }])
-      },
-      {
-        id: "SEED_2026_05_25_1430",
-        time: "2026-05-25T14:30:00Z",
-        classes: 45,
-        json: JSON.stringify([{ class_name: "CS-8C", subject: "Cloud Computing Lab", time: "14:00 - 17:00", teacher: "Engr. Malik" }])
+async function loadTimetableHistory() {
+  if (!isConnected || !db) {
+    // Read from localStorage if offline
+    const cached = localStorage.getItem('iris_timetable_history');
+    if (cached) {
+      try {
+        timetableHistory = JSON.parse(cached);
+      } catch (e) {
+        timetableHistory = [];
       }
-    ];
-    localStorage.setItem('iris_timetable_history', JSON.stringify(timetableHistory));
+    }
+    renderRollbackLedger();
+    return;
   }
   
-  activeVersionId = localStorage.getItem('iris_active_timetable_id') || timetableHistory[0].id;
-  renderRollbackLedger();
+  try {
+    logTerminal('Fetching historical timetable seeds from Firestore ledger...', 'info');
+    const snapshot = await db.collection('timetable_history').orderBy('time', 'desc').limit(6).get();
+    
+    timetableHistory = [];
+    snapshot.forEach(doc => {
+      timetableHistory.push(doc.data());
+    });
+    
+    // Fallback: If database has no history records yet, populate with a record representing the current active configuration
+    if (timetableHistory.length === 0) {
+      logTerminal('History ledger empty. Creating initial seed record...', 'warning');
+      const globalDoc = await db.collection('config').doc('global').get();
+      if (globalDoc.exists) {
+        const data = globalDoc.data();
+        const activeVer = data.active_timetable_version || Date.now();
+        const activeJson = data.active_timetable_json || '[]';
+        let parsed = [];
+        try { parsed = JSON.parse(activeJson); } catch(e) {}
+        
+        const initialSeed = {
+          id: `SEED_${new Date(activeVer).toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`,
+          time: new Date(activeVer).toISOString(),
+          classes: Array.isArray(parsed) ? parsed.length : (parsed.sessions ? parsed.sessions.length : 0),
+          json: activeJson
+        };
+        
+        await db.collection('timetable_history').doc(initialSeed.id).set(initialSeed);
+        incrementDatabaseOps();
+        timetableHistory.push(initialSeed);
+      }
+    }
+    
+    localStorage.setItem('iris_timetable_history', JSON.stringify(timetableHistory));
+    activeVersionId = localStorage.getItem('iris_active_timetable_id') || (timetableHistory[0] ? timetableHistory[0].id : '');
+    renderRollbackLedger();
+  } catch (err) {
+    logTerminal(`Error fetching history from Firestore: ${err.message}`, 'warning');
+    // Fallback to localStorage on query failure
+    const cached = localStorage.getItem('iris_timetable_history');
+    if (cached) {
+      try { timetableHistory = JSON.parse(cached); } catch (e) {}
+    }
+    renderRollbackLedger();
+  }
 }
 
 function renderRollbackLedger() {
