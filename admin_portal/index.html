@@ -3,43 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IRIS // Biosphere Command Console</title>
+  <title>IRIS // Control Center Console</title>
   
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- 21st.dev Botanical Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=1.0.8">
+  <!-- Sleek Tech Stylesheet -->
+  <link rel="stylesheet" href="styles.css?v=1.0.9">
 </head>
 <body>
 
-  <!-- CELESTIAL BENTO GRAPHICS OVERLAYS ARE MANAGED VIA HIGH-PERFORMANCE CSS -->
-
-  <!-- PREMIUM BIOPHILIC LOADER -->
+  <!-- TECH LOADER -->
   <div id="initial-loader" class="loader-overlay">
     <div class="loader-content">
-      <div class="biophilic-glow-sphere"></div>
+      <div class="tech-glow-sphere"></div>
       <div class="system-svg-loader">
         <svg viewBox="0 0 50 50">
           <circle cx="25" cy="25" r="20"></circle>
         </svg>
       </div>
-      <div class="loader-title">IRIS // BIOSPHERE</div>
-      <div class="loader-subtitle">loading biophilic control streams...</div>
+      <div class="loader-title">IRIS // CONTROL CENTER</div>
+      <div class="loader-subtitle">initializing administrative console...</div>
       <div class="loader-bar"><div class="bar-fill"></div></div>
     </div>
   </div>
 
-  <!-- GEOMETRICAL GREENERY SECURITY GATEWAY -->
+  <!-- SECURITY ACCESS GATEWAY -->
   <div id="auth-overlay" class="glass-overlay" style="display: none;">
-    <div class="leaf-card auth-card">
+    <div class="tech-card auth-card">
       <button id="btn-auth-config" class="btn-close" style="position: absolute; right: 24px; top: 24px;" title="Configure Telemetry Link"><i class="fa-solid fa-sliders"></i></button>
       
-      <div class="organic-logo-badge">
-        <i class="fa-solid fa-seedling logo-icon"></i>
+      <div class="tech-logo-badge">
+        <i class="fa-solid fa-circle-nodes logo-icon"></i>
       </div>
-      <h2>Biosphere Control Gate</h2>
-      <p class="subtitle">authenticated botanical handshake required</p>
+      <h2>IRIS Control Console</h2>
+      <p class="subtitle">secure administrator authentication required</p>
       
       <div class="connection-beacon" id="auth-connection-beacon">
         <span class="beacon-dot"></span>
@@ -52,39 +50,39 @@
       </div>
       <div class="input-group">
         <i class="fa-solid fa-key input-icon"></i>
-        <input type="password" id="auth-pass" placeholder="Biosphere Access Key" required autocomplete="current-password">
+        <input type="password" id="auth-pass" placeholder="Security Access Key" required autocomplete="current-password">
         <button type="button" id="btn-toggle-password" class="password-toggle-btn" title="Toggle visibility">
           <i class="fa-solid fa-eye"></i>
         </button>
       </div>
       
       <button id="btn-login" class="btn btn-primary btn-full">
-        <span>Verify Biosphere Access</span>
-        <i class="fa-solid fa-leaf"></i>
+        <span>Verify Access Portal</span>
+        <i class="fa-solid fa-shield-halved"></i>
       </button>
       
       <div id="auth-error" class="error-msg"></div>
     </div>
   </div>
 
-  <!-- BIOSPHERE COMMAND WORKSPACE -->
+  <!-- SYSTEM WORKSPACE -->
   <div id="dashboard-container" class="app-layout" style="display: none;">
-    <!-- FLOATING CANOPY NAVBAR -->
-    <header class="floating-canopy-nav">
+    <!-- FLOATING MAIN NAVBAR -->
+    <header class="system-header-nav">
       <div class="brand">
-        <i class="fa-solid fa-seedling brand-icon"></i>
-        <span class="brand-name">iris // biosphere console</span>
+        <i class="fa-solid fa-circle-nodes brand-icon"></i>
+        <span class="brand-name">iris // control center</span>
         <span class="badge">
-          <span class="status-dot pulsing-green"></span>
-          <span>BIOSPHERE SYNCED</span>
+          <span class="status-dot pulsing-active"></span>
+          <span>SYSTEM CONNECTED</span>
         </span>
-        <span class="badge" style="background: rgba(255,255,255,0.01);" id="latency-badge">
+        <span class="badge" style="background: rgba(0,0,0,0.02);" id="latency-badge">
           <i class="fa-solid fa-wifi" style="margin-right: 4px; color: var(--accent-indigo);"></i> <span id="latency-val" style="font-family: var(--font-mono); font-size: 9px;">8ms</span>
         </span>
       </div>
       
       <div class="nav-actions">
-        <button id="btn-show-config" class="btn btn-icon" title="Biosphere Configuration">
+        <button id="btn-show-config" class="btn btn-icon" title="System Configuration">
           <i class="fa-solid fa-sliders"></i>
         </button>
         <div class="user-profile">
@@ -96,21 +94,21 @@
       </div>
     </header>
 
-    <!-- ASYMMETRIC 3-COLUMN BOTANICAL WORKSPACE -->
-    <main class="sanctum-grid">
+    <!-- ASYMMETRIC 3-COLUMN WORKSPACE -->
+    <main class="dashboard-grid">
       
       <!-- COLUMN 1: REMOTE SYSTEMS & MODE SWAPPERS (Narrow) -->
       <section class="grid-col narrow-col">
         
-        <!-- CARD 1: BOTANICAL TIMELINE HUB -->
-        <div class="leaf-card">
+        <!-- CARD 1: TERM SCHEDULER HUB -->
+        <div class="tech-card">
           <div style="display: flex; align-items: flex-start; justify-content: space-between;">
             <div>
               <div class="card-header">
-                <i class="fa-solid fa-compass-drafting icon-accent"></i>
-                <h3>Timeline Swapper</h3>
+                <i class="fa-solid fa-calendar-days icon-accent"></i>
+                <h3>Term Scheduler</h3>
               </div>
-              <p class="card-desc">Slide operational semesters. Dynamic shifts propagate live to mobile clients.</p>
+              <p class="card-desc">Select active semester configurations. Changes propagate live to mobile client noticeboards.</p>
             </div>
             
             <!-- Compact Interactive SVG Orbits indicator -->
@@ -120,7 +118,7 @@
                 <circle class="track" cx="60" cy="60" r="28"></circle>
                 <circle class="track" cx="60" cy="60" r="40"></circle>
                 <circle class="track" cx="60" cy="60" r="52"></circle>
-                <circle cx="60" cy="60" r="4" fill="#05f29b"></circle>
+                <circle cx="60" cy="60" r="4" fill="#4f46e5"></circle>
                 
                 <g class="orbiting-body" id="orbit-body-classes">
                   <circle class="planet" cx="60" cy="44" r="3" fill="#3b82f6"></circle>
@@ -138,7 +136,7 @@
             </div>
           </div>
           
-          <!-- Segmented Vine Switcher -->
+          <!-- Segmented Switcher -->
           <div class="ribbon-switcher" id="academic-ribbon">
             <div class="ribbon-segment active" data-period="classes"><i class="fa-solid fa-graduation-cap"></i> CLASSES</div>
             <div class="ribbon-segment" data-period="midterms"><i class="fa-solid fa-pen-clip"></i> MIDS</div>
@@ -152,12 +150,12 @@
         </div>
 
         <!-- CARD 2: RELEASE PATCH CENTER -->
-        <div class="leaf-card">
+        <div class="tech-card">
           <div class="card-header">
-            <i class="fa-solid fa-mobile-screen-button icon-accent"></i>
-            <h3>Android OTA Binaries</h3>
+            <i class="fa-solid fa-mobile-screen icon-accent"></i>
+            <h3>OTA Software Releases</h3>
           </div>
-          <p class="card-desc">Deploy compiled splits. Active devices automatically trigger update modals.</p>
+          <p class="card-desc">Distribute OTA build releases. Connected client devices will receive automatic updates.</p>
           
           <div class="input-row">
             <div class="input-group">
@@ -181,13 +179,13 @@
 
           <div class="dropzone-industrial" id="apk-dropzone">
             <input type="file" id="file-apk" accept=".apk" style="display: none;">
-            <i class="fa-solid fa-circle-arrow-up drag-icon"></i>
-            <p>DRAG SPLIT APK HERE OR <span class="browse-link">BROWSE</span></p>
+            <i class="fa-solid fa-cloud-arrow-up drag-icon"></i>
+            <p>DRAG STAGED APK FILE HERE OR <span class="browse-link">BROWSE</span></p>
             <p class="file-info" id="apk-file-info"></p>
           </div>
           
           <div class="progress-container" id="upload-progress-container" style="display: none;">
-            <div style="flex-grow: 1; height: 3px; background: rgba(255,255,255,0.05); overflow: hidden; border-radius: 99px;">
+            <div style="flex-grow: 1; height: 3px; background: rgba(0,0,0,0.05); overflow: hidden; border-radius: 99px;">
               <div id="upload-progress-fill" style="width: 0%; height: 100%; background: var(--accent-indigo); border-radius: 99px;"></div>
             </div>
             <span id="upload-progress-pct" style="font-family: var(--font-mono); font-size: 9px; color: var(--accent-indigo);">0%</span>
@@ -204,18 +202,18 @@
       <!-- COLUMN 2: TIMETABLE DATABASE LEDGER (Wide - Center Stage) -->
       <section class="grid-col wide-col">
         
-        <div class="leaf-card">
+        <div class="tech-card">
           <div class="card-header">
-            <i class="fa-solid fa-cubes icon-accent"></i>
-            <h3>Timetable Seed Database</h3>
+            <i class="fa-solid fa-database icon-accent"></i>
+            <h3>Timetable Database Seeder</h3>
           </div>
-          <p class="card-desc">Configure local schedules. Staging dropzones support rapid JSON departures preview.</p>
+          <p class="card-desc">Import and stage academic timetable schemas. Drag and drop JSON payloads for preview.</p>
           
           <div class="timetable-ledger-deck">
             <div class="dropzone-industrial" id="timetable-dropzone">
               <input type="file" id="file-timetable" accept=".json" style="display: none;">
-              <i class="fa-solid fa-leaf drag-icon" style="color: var(--accent-indigo);"></i>
-              <p>DRAG NEW TIMETABLE SEED JSON OR <span class="browse-link">BROWSE FILES</span></p>
+              <i class="fa-solid fa-file-code drag-icon" style="color: var(--accent-indigo);"></i>
+              <p>DRAG NEW TIMETABLE JSON FILE OR <span class="browse-link">BROWSE</span></p>
               <p class="file-info" id="timetable-file-info"></p>
             </div>
             
@@ -245,7 +243,7 @@
                   <span>Sessions</span>
                   <strong id="stat-sessions">0</strong>
                 </div>
-                <div class="telemetry-box" style="border-color: rgba(5,242,155,0.25);">
+                <div class="telemetry-box" style="border-color: rgba(79, 70, 229, 0.25);">
                   <span>Courses</span>
                   <strong id="stat-courses" style="color: var(--accent-indigo);">0</strong>
                 </div>
@@ -264,10 +262,10 @@
         </div>
 
         <!-- CARD: TIMETABLE DATABASE ROLLBACK LEDGER -->
-        <div class="leaf-card">
+        <div class="tech-card">
           <div class="card-header">
             <i class="fa-solid fa-clock-rotate-left icon-accent"></i>
-            <h3>Database Rollback Ledger</h3>
+            <h3>Rollback & History Ledger</h3>
           </div>
           <p class="card-desc">Review and redeploy historical timetable seeds. Restore active systems to safe previous states.</p>
           
@@ -288,17 +286,17 @@
           </div>
         </div>
 
-        <!-- CARD: BIOSPHERE TELEMETRY MATRIX -->
-        <div class="leaf-card">
+        <!-- CARD: HEALTH & TELEMETRY -->
+        <div class="tech-card">
           <div class="card-header">
             <i class="fa-solid fa-chart-line icon-accent"></i>
-            <h3>Biosphere Telemetry Matrix</h3>
+            <h3>System Health & Telemetry</h3>
           </div>
-          <p class="card-desc">Real-time health streams and active node connection metrics across global clusters.</p>
+          <p class="card-desc">Monitor real-time network latency, database traffic loads, and service health metrics.</p>
           
-          <!-- Pulser Telemetry Radar Beacon -->
+          <!-- Telemetry Sync Beacon -->
           <div class="telemetry-sparkline-container">
-            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Biosphere Stream Sync Radar Heartbeat</span>
+            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Network Telemetry Beacon Sync Pulse</span>
             <div class="telemetry-radar-chassis">
               <div class="radar-pings">
                 <span class="radar-pulse-ring r1"></span>
@@ -318,7 +316,7 @@
               <span>PROJECT ID</span>
               <strong id="telemetry-nodes">--</strong>
             </div>
-            <div class="telemetry-box" style="border-color: rgba(5,242,155,0.25);">
+            <div class="telemetry-box" style="border-color: rgba(79, 70, 229, 0.25);">
               <span>DATABASE OPS</span>
               <strong id="telemetry-ops" style="color: var(--accent-indigo);">0 writes</strong>
             </div>
@@ -331,16 +329,16 @@
 
       </section>
 
-      <!-- COLUMN 3: BROADCAST TRANSCEIVER & SYSTEMS DEBUG TERMINAL (Medium) -->
+      <!-- COLUMN 3: BROADCAST TRANSCEIVER & SYSTEMS ACTIVITY TERMINAL (Medium) -->
       <section class="grid-col medium-col">
         
-        <!-- CARD 3: BIOLUMINESCENT BROADCAST STUDIO -->
-        <div class="leaf-card">
+        <!-- CARD 3: BROADCAST STUDIO -->
+        <div class="tech-card">
           <div class="card-header">
-            <i class="fa-solid fa-satellite icon-accent"></i>
-            <h3>Broadcast Transceiver</h3>
+            <i class="fa-solid fa-tower-broadcast icon-accent"></i>
+            <h3>Alert Notification Studio</h3>
           </div>
-          <p class="card-desc">Push live notification alerts instantly to active student mobile noticeboards.</p>
+          <p class="card-desc">Dispatch real-time announcements directly to active student device dashboards.</p>
           
           <!-- Explicit industrial power toggle slide switch -->
           <div class="broadcast-flex-row">
@@ -367,22 +365,20 @@
               <textarea id="broadcast-message" placeholder="Type notification alert statement here..." maxlength="150" style="min-height: 72px; resize: none;"></textarea>
             </div>
             <div class="char-counter-panel">
-              <span>ALERT RADAR DISPATCHER</span>
+              <span>ALERT DISPATCH CONTROLLER</span>
               <div>
                 <span id="broadcast-char-count">0</span> / 150 LIMIT
               </div>
             </div>
           </div>
 
-          <!-- PREMIUM MOBILE GLASS EMULATOR PREVIEW -->
-          <div class="emulator-container" style="margin-top: 14px; margin-bottom: 14px; border-top: 1px dashed rgba(16, 185, 129, 0.12); padding-top: 14px;">
+          <!-- MOBILE GLASS EMULATOR PREVIEW -->
+          <div class="emulator-container" style="margin-top: 14px; margin-bottom: 14px; border-top: 1px dashed rgba(79, 70, 229, 0.12); padding-top: 14px;">
             <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Mobile Glass Emulator (Real-time Preview)</span>
             <div class="emulator-mobile-screen">
               
-              <!-- Animated Leaf Silhouette Background Overlay -->
-              <svg class="emulator-leaf-overlay" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17,2C17,2 9,3 6,8C4.35,10.75 4,14 5.5,17C6.5,19 8.5,20.5 11,21C11.56,21.11 12,20.67 12,20.11V15.5C12,14.67 12.67,14 13.5,14C14.33,14 15,14.67 15,15.5V19.82C15.82,19.34 16.5,18.72 17,18C19,15.5 20,11.5 20,7C20,4.25 17,2 17,2Z" />
-              </svg>
+              <!-- Subtle tech backdrop grid lines -->
+              <div class="emulator-screen-grid"></div>
 
               <div class="glass-surface-mockup amber-theme" style="position: relative; z-index: 2;">
                 <div class="mock-badge-radar">
@@ -416,10 +412,10 @@
           <svg style="display:none;"><circle id="char-ring-fill"></circle></svg>
         </div>
 
-        <!-- CARD 4: BIOLUMINESCENT SYSTEMS LOGS VIEW -->
+        <!-- ACTIVITY CONSOLE TERMINAL -->
         <div class="console-structural-deck">
           <div class="console-header-bar">
-            <span>systems debug console</span>
+            <span>systems activity console</span>
             
             <div class="console-actions-panel">
               <div class="terminal-search-box">
@@ -454,12 +450,12 @@
 
   <!-- FIREBASE CONFIG MODAL -->
   <div id="config-modal" class="modal-overlay" style="display: none;">
-    <div class="leaf-card modal-card">
+    <div class="tech-card modal-card">
       <div class="modal-header">
-        <h3>Biosphere Config Parameters</h3>
+        <h3>System Connection Parameters</h3>
         <button id="btn-close-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="modal-desc">Configure Web Credentials below to link the admin console platform directly with your Firestore database.</p>
+      <p class="modal-desc">Define your configuration parameters below to synchronize this terminal with Firestore.</p>
       
       <div class="input-wrapper" style="margin-bottom: 20px;">
         <textarea id="firebase-config-json" placeholder='{
@@ -476,17 +472,17 @@
 
   <!-- SESSION TIMEOUT WARNING -->
   <div id="timeout-modal" class="modal-overlay" style="display: none;">
-    <div class="leaf-card modal-card" style="text-align: center; max-width: 380px; padding: 40px 30px;">
-      <i class="fa-solid fa-hourglass-start" style="font-size: 32px; color: var(--accent-amber); margin-bottom: 20px; text-shadow: 0 0 15px rgba(245,158,11,0.3);"></i>
-      <h3>Handshake Expiring</h3>
-      <p class="modal-desc">Administrative telemetry link will close due to inactivity. Remaining time: <strong id="timeout-countdown" style="font-family: var(--font-mono); color: var(--accent-amber);">60</strong> seconds.</p>
+    <div class="tech-card modal-card" style="text-align: center; max-width: 380px; padding: 40px 30px;">
+      <i class="fa-solid fa-hourglass-start" style="font-size: 32px; color: var(--accent-amber); margin-bottom: 20px;"></i>
+      <h3>Authentication Expiring</h3>
+      <p class="modal-desc">Your secure administrative session is about to expire due to inactivity. Remaining time: <strong id="timeout-countdown" style="font-family: var(--font-mono); color: var(--accent-amber);">60</strong> seconds.</p>
       <div class="modal-actions" style="justify-content: center; width: 100%;">
         <button id="btn-extend-session" class="btn btn-primary btn-full">Hold Security Link Open</button>
       </div>
     </div>
   </div>
 
-  <!-- MOSS TOAST NOTIFICATION CONTAINER -->
+  <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- FIREBASE CLIENT CDNS -->
@@ -496,6 +492,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
   <!-- Console Script -->
-  <script src="app.js?v=1.0.8"></script>
+  <script src="app.js?v=1.0.9"></script>
 </body>
 </html>
