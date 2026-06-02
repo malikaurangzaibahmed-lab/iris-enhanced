@@ -1412,35 +1412,90 @@ body {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN ADAPTATIONS
+   RESPONSIVE DESIGN ADAPTATIONS & MOBILE BROWSER OPTIMIZATIONS
    ========================================================================== */
 
+/* Core mobile-friendly scroll touch rules */
+.departure-ledger-container,
+.console-terminal-view {
+  -webkit-overflow-scrolling: touch; /* Inertial physics on iOS Safari */
+}
+
 @media (max-width: 768px) {
+  /* Prevent iOS Safari auto-zoom on input focus by forcing 16px font-size */
+  .input-group input, 
+  .input-group textarea, 
+  .input-row input, 
+  .terminal-search-box input, 
+  .terminal-dropdown, 
+  #firebase-config-json {
+    font-size: 16px !important;
+  }
+
+  /* Compact Horizontal Single-row Navigation for Mobile */
   .system-header-nav {
-    margin: 12px 16px;
-    padding: 10px 14px;
+    margin: 10px 12px;
+    padding: 8px 12px;
     border-radius: 8px;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
   }
   
   .brand {
-    width: 100%;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border-subtle);
-    padding-bottom: 8px;
+    width: auto;
+    border-bottom: none;
+    padding-bottom: 0;
+    gap: 6px;
+  }
+  
+  .brand-name {
+    font-size: 12px;
+  }
+
+  .brand .badge {
+    padding: 3px 6px;
+    font-size: 8px;
   }
   
   .nav-actions {
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 8px;
   }
 
+  .user-profile {
+    border-left: none;
+    padding-left: 0;
+    gap: 8px;
+  }
+
+  .monogram {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+    border-radius: 4px;
+  }
+
+  .btn-logout {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+  }
+
+  .system-header-nav .btn-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+  }
+
+  /* Dashboard stack grid */
   .dashboard-grid {
     grid-template-columns: 1fr !important;
-    gap: 16px;
-    padding: 10px 16px 30px 16px;
+    gap: 14px;
+    padding: 8px 12px 24px 12px;
   }
 
   .grid-col {
@@ -1449,6 +1504,7 @@ body {
 
   .tech-card {
     padding: 16px;
+    border-radius: 8px;
   }
 
   .card-header h3 {
@@ -1457,13 +1513,13 @@ body {
 
   .card-desc {
     font-size: 11.5px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 }
 
 @media (max-width: 600px) {
   .auth-card {
-    padding: 24px 20px;
+    padding: 24px 16px;
   }
 
   h2 {
@@ -1472,7 +1528,6 @@ body {
 
   .input-group input, .input-group textarea, .input-row input {
     padding: 10px 12px 10px 38px;
-    font-size: 12.5px;
   }
 
   .input-icon {
@@ -1480,7 +1535,7 @@ body {
   }
 
   .btn {
-    padding: 10px 18px;
+    padding: 10px 16px;
     font-size: 12px;
   }
 
@@ -1499,8 +1554,8 @@ body {
   }
 
   .departure-ledger-table th, .departure-ledger-table td {
-    padding: 6px 10px;
-    font-size: 9.5px;
+    padding: 6px 8px;
+    font-size: 9px;
   }
 
   .modal-card {
@@ -1508,26 +1563,89 @@ body {
     max-width: 95vw !important;
     padding: 16px 14px !important;
   }
+
+  /* Activity console mobile adjustments */
+  .console-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .console-actions-panel {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .terminal-search-box {
+    flex-grow: 1;
+  }
+
+  .terminal-search-box input {
+    width: 100%;
+  }
+
+  /* Compact Brand Elements for Small Screens */
+  .brand .badge span:not(.status-dot) {
+    display: none; /* Hide 'SYSTEM CONNECTED' text, keep only active status dot */
+  }
+
+  .brand .badge {
+    padding: 4px;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    justify-content: center;
+  }
+
+  /* Toast Notification Centering for Phones */
+  .toast-container {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+
+  .moss-toast {
+    min-width: 100%;
+    max-width: 100%;
+    transform: translateY(120%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+  }
+
+  .moss-toast.visible {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide Instructor column on mobile browser to prevent overflow layout wrapping */
+  .departure-ledger-table th:nth-child(4),
+  .departure-ledger-table td:nth-child(4) {
+    display: none;
+  }
 }
 
 @media (max-width: 400px) {
   .system-header-nav {
-    margin: 8px 8px;
+    margin: 6px 6px;
   }
   
   .dashboard-grid {
-    padding: 8px;
+    padding: 6px;
   }
   
   .brand-name {
-    font-size: 11px;
+    font-size: 10.5px;
   }
 
   #latency-badge {
-    display: none !important;
+    display: none !important; /* Save space on extremely narrow screens */
   }
   
   .ribbon-switcher {
     grid-template-columns: 1fr !important;
   }
 }
+
