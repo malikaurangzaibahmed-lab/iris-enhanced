@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
-import 'portal_screen.dart';
+import '../screens/portal_screen.dart';
 
 class BlurLevel {
   static const int none = 0;

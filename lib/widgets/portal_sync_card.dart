@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import '../services/portal_sync_service.dart';
-import '../portal_screen.dart';
+import '../screens/portal_screen.dart';
 import '../core/tokens.dart';
 import '../core/theme_signals.dart';
 import '../core/vital_theme.dart';

@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as hp;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../portal_screen.dart';
-import '../widget_service.dart';
+import '../screens/portal_screen.dart';
+import 'widget_service.dart';
 
 /// Data structure for passing parsing context to the Isolate
 class _ParserInput {

@@ -12,13 +12,13 @@ import '../core/models.dart';
 import '../services/ui_feedback.dart';
 import '../services/notification_service.dart';
 import '../services/timetable_ota_service.dart';
-import '../widget_service.dart';
+import '../services/widget_service.dart';
 import '../widgets/neural_aura.dart';
 import '../widgets/smooth_scroll.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/batch_selector.dart';
 import '../widgets/dashboard_dock.dart';
-import '../portal_screen.dart';
+import 'portal_screen.dart';
 import '../core/vital_theme.dart';
 
 class AboutScreen extends StatefulWidget {

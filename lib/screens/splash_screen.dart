@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'login_screen.dart';
-import '../portal_screen.dart'; // Adjust if your main dashboard is named differently
+import 'portal_screen.dart'; // Adjust if your main dashboard is named differently
 import '../core/tokens.dart';
 
 class SplashScreen extends StatefulWidget {

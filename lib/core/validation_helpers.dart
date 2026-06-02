@@ -1,4 +1,4 @@
-import 'core/format_guard.dart';
+import 'format_guard.dart';
 
 class FormatGuardValidator {
   static bool isValidTime(String raw) {

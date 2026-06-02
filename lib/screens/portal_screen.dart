@@ -17,14 +17,14 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'services/ui_feedback.dart';
-import 'services/portal_sync_service.dart';
-import 'services/headless_portal_sync.dart';
-import 'services/session_refresher_service.dart';
-import 'widgets/iris_background.dart';
-import 'core/tokens.dart';
-import 'core/animations.dart';
-import 'core/theme_signals.dart';
+import '../services/ui_feedback.dart';
+import '../services/portal_sync_service.dart';
+import '../services/headless_portal_sync.dart';
+import '../services/session_refresher_service.dart';
+import '../widgets/iris_background.dart';
+import '../core/tokens.dart';
+import '../core/animations.dart';
+import '../core/theme_signals.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 /// Portal session metadata persisted across app restarts

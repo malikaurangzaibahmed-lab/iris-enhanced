@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../portal_screen.dart';
+import '../screens/portal_screen.dart';
 import 'portal_sync_service.dart';
 
 /// A hidden WebView that performs background scraping without interrupting the user.
