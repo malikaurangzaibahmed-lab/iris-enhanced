@@ -143,6 +143,52 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  const pullGithubBtn = document.getElementById('btn-pull-github');
+  if (pullGithubBtn) {
+    pullGithubBtn.addEventListener('click', async () => {
+      logTerminal('Contacting GitHub API for latest release payload...', 'info');
+      pullGithubBtn.disabled = true;
+      const originalText = pullGithubBtn.innerHTML;
+      pullGithubBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> FETCHING RELEASE...';
+      
+      try {
+        const response = await fetch(`https://api.github.com/repos/malikaurangzaibahmed-lab/iris-enhanced/releases/latest`);
+        if (!response.ok) {
+          throw new Error(`HTTP Error ${response.status}: Repository may be private or not found.`);
+        }
+        
+        const release = await response.json();
+        const tagName = release.tag_name || "";
+        const versionName = tagName.replace(/^v/i, "");
+        
+        let apkUrl = "";
+        if (release.assets && release.assets.length > 0) {
+          const targetAsset = release.assets.find(a => a.name.includes("arm64-v8a")) || 
+                              release.assets.find(a => a.name.endsWith(".apk"));
+          if (targetAsset) {
+            apkUrl = targetAsset.browser_download_url;
+          }
+        }
+        
+        if (apkVersionName) apkVersionName.value = versionName;
+        if (apkNotes) apkNotes.value = release.body || "";
+        if (apkUrlInput) {
+          apkUrlInput.value = apkUrl;
+          deployApkBtn.disabled = false;
+        }
+        
+        logTerminal(`Autofill success: Pulled version <strong>${versionName}</strong> from GitHub.`, 'success');
+        showMossToast(`Fetched release ${tagName} successfully!`, "success");
+      } catch (err) {
+        logTerminal(`GitHub fetch failed: ${err.message}`, 'error');
+        showMossToast(err.message, "error");
+      } finally {
+        pullGithubBtn.disabled = false;
+        pullGithubBtn.innerHTML = originalText;
+      }
+    });
+  }
 });
 
 // ==========================================================================
@@ -531,6 +577,17 @@ function syncActivePeriodState() {
           updateActiveTimetablePreview(parsedTimetable);
         } catch (e) {
           console.warn("Failed to parse active timetable json:", e);
+        }
+      }
+
+      // Dynamic pre-fill version code from database
+      if (data.latest_apk_update) {
+        const ota = data.latest_apk_update;
+        if (apkVersionName && (!apkVersionName.value || apkVersionName.value === '1.2.0')) {
+          apkVersionName.value = ota.version_name || '1.2.0';
+        }
+        if (apkVersionCode && (!apkVersionCode.value || apkVersionCode.value === '3')) {
+          apkVersionCode.value = (parseInt(ota.version_code) || 0) + 1;
         }
       }
 

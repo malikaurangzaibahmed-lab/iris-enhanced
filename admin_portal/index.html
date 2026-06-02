@@ -171,10 +171,13 @@
           <div class="input-group">
             <textarea id="apk-notes" placeholder="Release patch changelogs..." style="min-height: 48px;"></textarea>
           </div>
-          
           <div class="input-group">
             <input type="text" id="apk-url-input" placeholder="CDN Repository URL (Bypasses storage)">
           </div>
+          
+          <button type="button" id="btn-pull-github" class="btn btn-secondary btn-full" style="margin-bottom: 16px; font-size: 11px; padding: 10px 16px;">
+            <i class="fa-brands fa-github"></i> Autofill from Latest GitHub Release
+          </button>
 
           <div class="dropzone-industrial" id="apk-dropzone">
             <input type="file" id="file-apk" accept=".apk" style="display: none;">
