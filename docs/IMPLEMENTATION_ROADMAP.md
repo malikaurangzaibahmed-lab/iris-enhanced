@@ -204,27 +204,27 @@ For each screen you optimize, follow this pattern:
 ## 📚 Documentation Guide
 
 ### For Quick Start
-→ **OPTIMIZATION_QUICK_REF.md**
+→ **[docs/OPTIMIZATION_QUICK_REF.md](docs/OPTIMIZATION_QUICK_REF.md)**
 - Copy-paste code snippets
 - Common patterns
 - Debugging tips
 
 ### For Deep Dive
-→ **PERFORMANCE_OPTIMIZATION.md**
+→ **[docs/PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md)**
 - Comprehensive guide
 - Detailed examples
 - Best practices
 - Integration guide
 
 ### For Examples
-→ **examples/smart_systems_example.dart**
+→ **[lib/examples/smart_systems_example.dart](lib/examples/smart_systems_example.dart)**
 - Complete working screen
 - All systems integrated
 - Real-world patterns
 - Copy-paste ready
 
 ### For Overview
-→ **SMART_SYSTEMS_SUMMARY.md**
+→ **[docs/SMART_SYSTEMS_SUMMARY.md](docs/SMART_SYSTEMS_SUMMARY.md)**
 - What was added
 - Key features
 - Before/after comparison
@@ -566,10 +566,10 @@ After full integration, you'll see:
 
 ## 📞 Quick Reference Links
 
-- **Setup Guide:** PERFORMANCE_OPTIMIZATION.md
-- **Quick Snippets:** OPTIMIZATION_QUICK_REF.md  
-- **Working Code:** examples/smart_systems_example.dart
-- **Summary:** SMART_SYSTEMS_SUMMARY.md
+- **Setup Guide:** [docs/PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md)
+- **Quick Snippets:** [docs/OPTIMIZATION_QUICK_REF.md](docs/OPTIMIZATION_QUICK_REF.md)  
+- **Working Code:** [lib/examples/smart_systems_example.dart](lib/examples/smart_systems_example.dart)
+- **Summary:** [docs/SMART_SYSTEMS_SUMMARY.md](docs/SMART_SYSTEMS_SUMMARY.md)
 
 ---
 

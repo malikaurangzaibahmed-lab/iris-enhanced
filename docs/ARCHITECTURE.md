@@ -238,6 +238,32 @@ BackdropFilter(filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5)) // BAD
 
 ---
 
+## 📂 Folderization & Layout Rules
+
+To ensure a clean codebase as features scale, the project follows strict folderization guidelines. Files must be organized under `lib/` based on their role:
+
+1. **`lib/core/`**: Models, design tokens, theme engines (`theme.dart`, `neo_theme.dart`), central state management blocks (`omni_brain.dart`), and standalone validation helpers (`validation_helpers.dart`). No direct UI rendering or database access logic should live here.
+2. **`lib/services/`**: Network managers (`smart_api_client.dart`), persistent background sync operations (`headless_portal_sync.dart`), WebView cookie handlers (`session_refresher_service.dart`), local file parser engines (`pdf_timetable_parser.dart`), and hardware integration listeners.
+3. **`lib/screens/`**: High-level structural routing views and complete screen interfaces (e.g., `portal_screen.dart`, `academics_hub_screen.dart`, `setup_screens.dart`). Avoid writing tiny modular widgets here; delegate them to `lib/widgets/`.
+4. **`lib/widgets/`**: Low-level layout constructs (`glass_card.dart`, `spring_button.dart`), interactive controls (`batch_selector.dart`), and dashboard card variants (`portal_sync_card.dart`). These must be atomic, reusable, and strictly themed.
+
+---
+
+## 🔄 Headless Portal Session Refresher & WebView Noticeboard Caching
+
+To guarantee students never lose portal states or experience session timeouts, IRIS implements a combination of background warming and screen caching.
+
+### 1. Headless Session Warming (`SessionRefresherService`)
+- **Automated Login**: Solves math CAPTCHA queries in HTML text (`\d+ \s* [\+\-\*] \s* \d+` and textual patterns like "plus") using lightweight regex matchers.
+- **Cookie Injection**: Authenticates credentials in the background via POST, stores valid `ASP.NET_SessionId` tokens in `SharedPreferences`, and injects them directly into `webview_flutter`'s native `WebViewCookieManager`.
+- **Warming Lifecycle**: Fired asynchronously during app initialization inside `unawaited` tags, as well as manually via the portal's "Warm Session" quick action chip.
+
+### 2. Noticeboard WebView Caching (`IndexedStack`)
+- **State Preservation**: The root application shell uses an `IndexedStack` to cache the student portal screen along with other hub views.
+- **Scroll & Form Cache**: Attaches distinct `PageStorageKey` identifiers to tabs to natively preserve page offsets, text-field values, and active HTML frame instances during navigation.
+
+---
+
 ## 🔐 Code Modification Guidelines
 
 ### ✅ SAFE Modifications:
@@ -305,6 +331,6 @@ Before merging any changes, verify:
 
 ---
 
-**Last Updated**: February 11, 2026  
-**Version**: 2.0 (Neural Edition)  
+**Last Updated**: June 2, 2026  
+**Version**: 2.5 (Folderized Edition)  
 **Maintainer**: OMNI-FLOW OS Team

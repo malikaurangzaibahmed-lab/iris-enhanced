@@ -26,6 +26,14 @@ These are the rules you've established for how I should work with you on this pr
 - Add new rules immediately as they're established during development.
 - Review rules before making decisions; they may affect implementation.
 
+#### 5. **Folderization & Code Placement Rules**
+- Never add new files directly under the `lib/` root directory (with the sole exception of `main.dart`).
+- All code files must be placed inside their respective subdirectories: `lib/core/` (models/theme/signals), `lib/services/` (network/storage/parsers/sync), `lib/screens/` (complete views/pages), or `lib/widgets/` (reusable/modular UI elements).
+- Loose documentation, scripts, tools, and UI mockups must reside in `docs/`, `tools/`, or `design/` respectively.
+
+#### 6. **No Biometric Authentication**
+- Biometrics (via `local_auth` or similar) are permanently decommissioned from the codebase to avoid packaging bloat, dependency conflicts, and Gradle failures. Under no circumstance should they be re-introduced.
+
 ---
 
 ## Smart Pill Architecture

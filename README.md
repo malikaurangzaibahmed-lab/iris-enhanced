@@ -3,9 +3,10 @@
 Intelligent timetable and schedule management app with OTA updates, PDF parsing, persistent notifications, and home widgets.
 
 ## 📋 Session Handoff & Context Recovery
-**Starting a new session or lost context?** See **[docs/SESSION_SUMMARY_MAY_2026.md](docs/SESSION_SUMMARY_MAY_2026.md)** for:
-- Recent dynamic transport integration summary
-- Faculty UI refinement details
+**Starting a new session or lost context?** See **[docs/SESSION_SUMMARY_JUNE_2026.md](docs/SESSION_SUMMARY_JUNE_2026.md)** for:
+- Folderization and architecture layout rules
+- Headless cookie session refresher and math captcha parsing
+- Tab caching using IndexedStack
 - Build results and release APK locations
 
 ## Core Features
@@ -52,7 +53,7 @@ flutter build apk --split-per-abi
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Design principles, glassmorphism, Z-axis hierarchy
 - **[docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)** - Feature status matrix
 - **[docs/WIDGET_GUIDE.md](docs/WIDGET_GUIDE.md)** / **[docs/WIDGET_QUICK_REF.md](docs/WIDGET_QUICK_REF.md)** - Component library
-- **[docs/OTA_SETUP_GUIDE.md](docs/docs/OTA_SETUP_GUIDE.md)** / **[docs/OTA_QUICK_START.md](docs/OTA_QUICK_START.md)** - OTA system docs
+- **[docs/OTA_SETUP_GUIDE.md](docs/OTA_SETUP_GUIDE.md)** / **[docs/OTA_QUICK_START.md](docs/OTA_QUICK_START.md)** - OTA system docs
 - **[docs/PDF_PARSER_DOCUMENTATION_INDEX.md](docs/PDF_PARSER_DOCUMENTATION_INDEX.md)** - Parser pipeline reference
 
 ## Getting Started (Development)
