@@ -6,7 +6,7 @@
   - [x] Synchronize **Progressive Haptics** (`selectionClick` -> `lightImpact` -> `mediumImpact` -> `heavyImpact`) mapped to animation curves.
   - [x] Implement a Hero handoff animation seamlessly transitioning the orb into the login screen logo.
 - [x] **Frictionless Login Screen**:
-  - [ ] Implement primary Native Biometric Auth (`local_auth` for FaceID/Fingerprint) to skip forms entirely.
+  - [x] ~~Implement primary Native Biometric Auth (`local_auth` for FaceID/Fingerprint) to skip forms entirely.~~ *(Decommissioned to avoid Gradle conflicts and package bloat; replaced by persistent Session Refresher).*
   - [x] Setup UI for Email/Password & Magic Links fallback.
   - [x] Design a glassmorphic pane (`BackdropFilter`) over drifting gradient blur orbs.
   - [x] Implement fluid in-pane transitions (no hard cuts) between "Login", "Sign-Up", and "Forgot Password" states.
