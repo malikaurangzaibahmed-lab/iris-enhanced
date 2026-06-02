@@ -177,6 +177,18 @@
             <i class="fa-brands fa-github"></i> Autofill from Latest GitHub Release
           </button>
 
+          <!-- App update visibility toggle -->
+          <div class="broadcast-flex-row" style="margin-top: 8px; margin-bottom: 16px;">
+            <span class="broadcast-status-label">
+              <i class="fa-solid fa-eye" style="color: var(--accent-indigo); font-size: 13px;"></i>
+              <span>DISPLAY UPDATE BANNER</span>
+            </span>
+            <label class="industrial-toggle">
+              <input type="checkbox" id="apk-switch-visible" checked>
+              <span class="industrial-slider"></span>
+            </label>
+          </div>
+
           <div class="dropzone-industrial" id="apk-dropzone">
             <input type="file" id="file-apk" accept=".apk" style="display: none;">
             <i class="fa-solid fa-cloud-arrow-up drag-icon"></i>

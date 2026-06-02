@@ -51,6 +51,7 @@ const apkVersionName = document.getElementById('apk-version-name');
 const apkVersionCode = document.getElementById('apk-version-code');
 const apkNotes = document.getElementById('apk-notes');
 const deployApkBtn = document.getElementById('btn-deploy-apk');
+const apkSwitchVisible = document.getElementById('apk-switch-visible');
 const apkUrlInput = document.getElementById('apk-url-input');
 const uploadProgressContainer = document.getElementById('upload-progress-container');
 const uploadProgressFill = document.getElementById('upload-progress-fill');
@@ -589,6 +590,9 @@ function syncActivePeriodState() {
         if (apkVersionCode && (!apkVersionCode.value || apkVersionCode.value === '3')) {
           apkVersionCode.value = (parseInt(ota.version_code) || 0) + 1;
         }
+        if (apkSwitchVisible) {
+          apkSwitchVisible.checked = ota.show_update_card !== false;
+        }
       }
 
       // Announcement Transceiver synchronization
@@ -1072,7 +1076,8 @@ deployApkBtn.addEventListener('click', async () => {
           version_code: vCode,
           apk_url: pastedUrl,
           release_notes: notes || 'Production system optimization patches.',
-          released_at: firebase.firestore.FieldValue.serverTimestamp()
+          released_at: firebase.firestore.FieldValue.serverTimestamp(),
+          show_update_card: true
         }
       });
       incrementDatabaseOps();
@@ -1126,7 +1131,8 @@ deployApkBtn.addEventListener('click', async () => {
             version_code: vCode,
             apk_url: downloadUrl,
             release_notes: notes || 'Production system optimization patches.',
-            released_at: firebase.firestore.FieldValue.serverTimestamp()
+            released_at: firebase.firestore.FieldValue.serverTimestamp(),
+            show_update_card: true
           }
         });
         incrementDatabaseOps();
@@ -1146,7 +1152,36 @@ deployApkBtn.addEventListener('click', async () => {
     deployApkBtn.disabled = false;
     if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
   }
-});
+// App update visibility toggle listener
+if (apkSwitchVisible) {
+  apkSwitchVisible.addEventListener('change', async () => {
+    if (!isConnected) return;
+    
+    const enabled = apkSwitchVisible.checked;
+    logTerminal(`Updating app update card visibility: ${enabled ? 'VISIBLE' : 'HIDDEN'}...`, 'info');
+    
+    try {
+      const doc = await db.collection('config').doc('global').get();
+      if (doc.exists) {
+        const data = doc.data();
+        const currentUpdate = data.latest_apk_update || {};
+        currentUpdate.show_update_card = enabled;
+        
+        await db.collection('config').doc('global').update({
+          latest_apk_update: currentUpdate,
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        incrementDatabaseOps();
+        logTerminal(`Server sync complete: App update card set to ${enabled ? 'VISIBLE' : 'HIDDEN'}.`, 'success');
+        showMossToast(`App Update Banner is now ${enabled ? 'VISIBLE' : 'HIDDEN'} on client screens!`, "success");
+      }
+    } catch (e) {
+      logTerminal(`Failed to update visibility toggle: ${e.message}`, 'error');
+      showMossToast(e.message, "error");
+      apkSwitchVisible.checked = !enabled;
+    }
+  });
+}
 
 // ==========================================================================
 // SESSION TIMEOUTS & HARDWARE BEACONS

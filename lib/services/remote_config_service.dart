@@ -147,12 +147,11 @@ class RemoteConfigService {
         updateData = Map<String, dynamic>.from(rawUpdate);
       }
       if (updateData != null) {
-        final remoteCode = (updateData['version_code'] as num?)?.toInt() ?? 1;
-        if (remoteCode > CURRENT_VERSION_CODE) {
-          print('🚀 IRIS Remote Engine: APK System Update available! version_code: $remoteCode');
+        final showUpdate = updateData['show_update_card'] as bool? ?? true;
+        if (showUpdate) {
           latestApkUpdate.value = updateData;
         } else {
-          latestApkUpdate.value = null; // Up-to-date
+          latestApkUpdate.value = null;
         }
       } else {
         latestApkUpdate.value = null;
