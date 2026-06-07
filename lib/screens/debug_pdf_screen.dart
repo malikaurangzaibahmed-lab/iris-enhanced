@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'services/pdf_debug_parser.dart';
-import 'widgets/native_liquid_glass.dart';
+import '../services/pdf_debug_parser.dart';
+import '../widgets/native_liquid_glass.dart';
 
 /// Debug screen for testing PDF parser
 class PDFDebugScreen extends StatefulWidget {

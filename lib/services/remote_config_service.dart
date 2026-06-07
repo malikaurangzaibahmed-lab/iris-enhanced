@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'timetable_ota_service.dart';
 import '../services/ui_feedback.dart';
 
@@ -21,9 +20,6 @@ class RemoteConfigService {
   static final ValueNotifier<DateTime?> lastTimetableUpdateTime = ValueNotifier<DateTime?>(null);
   static final ValueNotifier<List<dynamic>> midtermExams = ValueNotifier<List<dynamic>>([]);
   static final ValueNotifier<List<dynamic>> finalExams = ValueNotifier<List<dynamic>>([]);
-
-  static StreamSubscription<QuerySnapshot>? _announcementsSubscription;
-  static final ValueNotifier<List<Map<String, dynamic>>> activeAnnouncements = ValueNotifier<List<Map<String, dynamic>>>([]);
 
 
   /// Helper to format raw timestamps/DateTimes safely in a custom, premium aesthetic
@@ -364,99 +360,5 @@ class RemoteConfigService {
     return diffs;
   }
 
-  /// Start Firestore real-time listener for announcements matching the student's batch and subjects
-  static Future<void> startAnnouncementsListener(BuildContext context) async {
-    if (_announcementsSubscription != null) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final userBatch = prefs.getString('user_batch') ?? '';
-    if (userBatch.isEmpty) return;
-
-    final List<String> topics = ['global', 'batch_${userBatch.trim()}'];
-
-    // Retrieve active timetable to extract course codes/subjects
-    final timetableJson = prefs.getString(TimetableOTAService.PREF_CACHED_TIMETABLE) ?? '';
-    if (timetableJson.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(timetableJson);
-        List<dynamic> sessionsList = [];
-        if (decoded is List) {
-          sessionsList = decoded;
-        } else if (decoded is Map && decoded['sessions'] is List) {
-          sessionsList = decoded['sessions'] as List;
-        }
-
-        final targetBatchLower = userBatch.trim().toLowerCase();
-        final subjects = <String>{};
-
-        for (final session in sessionsList) {
-          if (session is Map) {
-            final batchVal = (session['batch'] ?? session['class_name'] ?? session['section'] ?? '').toString().trim().toLowerCase();
-            if (batchVal == targetBatchLower) {
-              final subject = (session['subject'] ?? session['course'] ?? session['title'] ?? '').toString().trim();
-              if (subject.isNotEmpty) {
-                subjects.add(subject);
-              }
-            }
-          }
-        }
-
-        for (final subject in subjects) {
-          topics.add('course_${userBatch.trim()}_$subject');
-        }
-      } catch (e) {
-        print('⚠️ Error parsing subjects for announcements: $e');
-      }
-    }
-
-    print('📡 IRIS Remote Engine: Subscribing to targeted announcements stream for topics: $topics');
-
-    // Automatically register native FCM topics for background push alerts
-    try {
-      final messaging = FirebaseMessaging.instance;
-      for (final topic in topics) {
-        String normalizedTopic;
-        if (topic == 'global') {
-          normalizedTopic = 'global_announcements';
-        } else {
-          normalizedTopic = topic.replaceAll(RegExp(r'[^a-zA-Z0-9-_.~%]'), '_');
-        }
-        messaging.subscribeToTopic(normalizedTopic).then((_) {
-          print('🔔 FCM: Registered subscription to topic: $normalizedTopic');
-        }).catchError((err) {
-          print('⚠️ FCM: Topic registration failed for $normalizedTopic: $err');
-        });
-      }
-    } catch (e) {
-      print('⚠️ FCM: Error subscribing to native topics: $e');
-    }
-
-    // Query announcements where the visibleTo list contains one of the user's subscribed topics
-    _announcementsSubscription = FirebaseFirestore.instance
-        .collection('announcements')
-        .where('visibleTo', arrayContainsAny: topics)
-        .orderBy('timestamp', descending: true)
-        .limit(20)
-        .snapshots()
-        .listen((QuerySnapshot snapshot) {
-      final List<Map<String, dynamic>> list = [];
-      for (final doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
-        list.add(data);
-      }
-      activeAnnouncements.value = list;
-      print('🔔 IRIS Remote Engine: Loaded ${list.length} targeted announcements.');
-    }, onError: (err) {
-      print('⚠️ IRIS Remote Engine Announcements Stream Error: $err');
-    });
-  }
-
-  /// Restart announcements listener when student changes their batch settings
-  static void restartAnnouncementsListener(BuildContext context) {
-    _announcementsSubscription?.cancel();
-    _announcementsSubscription = null;
-    startAnnouncementsListener(context);
-  }
 }
 
