@@ -87,9 +87,24 @@ const statSessions = document.getElementById('stat-sessions');
 const statCourses = document.getElementById('stat-courses');
 const statLabs = document.getElementById('stat-labs');
 
+// Date Sheet Excel Converter Bindings
+const examsDropzone = document.getElementById('exams-dropzone');
+const examsFileInput = document.getElementById('file-exams');
+const examsFileInfo = document.getElementById('exams-file-info');
+const btnDeployMidterms = document.getElementById('btn-deploy-midterms');
+const btnDeployFinals = document.getElementById('btn-deploy-finals');
+const examsPreviewBody = document.getElementById('exams-preview-body');
+const examsStatTotal = document.getElementById('exams-stat-total');
+const examsStatBatches = document.getElementById('exams-stat-batches');
+const examsStatSubjects = document.getElementById('exams-stat-subjects');
+const examsAnalytics = document.getElementById('exams-analytics');
+
 // Upload Buffers
 let selectedTimetableFile = null;
+let stagedTimetableFiles = [];
 let selectedApkFile = null;
+let parsedExams = [];
+let stagedTimetablePayload = null;
 
 // Initialize Interface Scripts
 document.addEventListener('DOMContentLoaded', () => {
@@ -190,6 +205,89 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // WORKSPACE SEEDER TABS TOGGLER
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabPanes = document.querySelectorAll('.workspace-tab-pane');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text-muted)';
+        b.style.boxShadow = 'none';
+      });
+      btn.classList.add('active');
+      btn.style.background = '#ffffff';
+      btn.style.color = 'var(--accent-indigo)';
+      btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+      
+      const targetTab = btn.dataset.workspaceTab;
+      tabPanes.forEach(pane => {
+        if (pane.id === `workspace-tab-${targetTab}`) {
+          pane.style.display = 'block';
+        } else {
+          pane.style.display = 'none';
+        }
+      });
+      logTerminal(`Workspace switch: Staging <strong>${targetTab.toUpperCase()}</strong> workspace interface.`, 'info');
+      
+      // Auto-load live data when switching tabs
+      if (targetTab === 'classes') {
+        refreshLiveClassesInspector();
+      } else if (targetTab === 'exams') {
+        refreshLiveExamsInspector();
+      }
+    });
+  });
+
+  // Live Inspector Search Listeners
+  const classesSearch = document.getElementById('inspector-classes-search');
+  if (classesSearch) {
+    classesSearch.addEventListener('input', renderLiveClassesInspector);
+  }
+  const examsSearch = document.getElementById('inspector-exams-search');
+  if (examsSearch) {
+    examsSearch.addEventListener('input', renderLiveExamsInspector);
+  }
+
+  // Refresh and Wipe Button Bindings
+  const btnRefreshClasses = document.getElementById('btn-refresh-inspector-classes');
+  if (btnRefreshClasses) {
+    btnRefreshClasses.addEventListener('click', refreshLiveClassesInspector);
+  }
+  const btnRefreshExams = document.getElementById('btn-refresh-inspector-exams');
+  if (btnRefreshExams) {
+    btnRefreshExams.addEventListener('click', refreshLiveExamsInspector);
+  }
+  const btnWipeExams = document.getElementById('btn-wipe-exams');
+  if (btnWipeExams) {
+    btnWipeExams.addEventListener('click', wipeLiveExams);
+  }
+  const btnWipeClasses = document.getElementById('btn-wipe-classes');
+  if (btnWipeClasses) {
+    btnWipeClasses.addEventListener('click', wipeLiveClasses);
+  }
+  const btnClearStagedFiles = document.getElementById('btn-clear-staged-files');
+  if (btnClearStagedFiles) {
+    btnClearStagedFiles.addEventListener('click', () => {
+      stagedTimetableFiles = [];
+      recomputeStagedTimetables();
+      logTerminal('Purged all staged daily class timetable files.', 'info');
+    });
+  }
+
+  // Inspector Exams Mids/Finals Period switcher
+  const inspectorExamSegments = document.querySelectorAll('#inspector-exam-period-switcher .ribbon-segment');
+  inspectorExamSegments.forEach(seg => {
+    seg.addEventListener('click', () => {
+      inspectorExamSegments.forEach(s => s.classList.remove('active'));
+      seg.classList.add('active');
+      activeInspectorExamPeriod = seg.dataset.inspectorPeriod;
+      logTerminal(`Live Inspector switched: Viewing active <strong>${activeInspectorExamPeriod.toUpperCase()}</strong>.`, 'info');
+      refreshLiveExamsInspector();
+    });
+  });
 });
 
 // ==========================================================================
@@ -319,6 +417,15 @@ function loadFirebaseConfig() {
   if (configJsonArea) {
     configJsonArea.value = JSON.stringify(configToUse, null, 2);
   }
+
+  // Load Cloudflare Worker configurations
+  const savedWorkerUrl = localStorage.getItem('iris_fcm_worker_url') || '';
+  const savedWorkerToken = localStorage.getItem('iris_fcm_worker_token') || '';
+  const workerUrlInput = document.getElementById('fcm-worker-url');
+  const workerTokenInput = document.getElementById('fcm-worker-token');
+  if (workerUrlInput) workerUrlInput.value = savedWorkerUrl;
+  if (workerTokenInput) workerTokenInput.value = savedWorkerToken;
+
   initializeFirebase(configToUse);
 }
 
@@ -396,6 +503,8 @@ function setupAuthListeners() {
       
       authOverlay.style.display = 'none';
       dashboardContainer.style.display = 'flex';
+      
+      applyRolePermissions(user);
       
       syncActivePeriodState();
       loadTimetableHistory();
@@ -503,6 +612,13 @@ saveConfigBtn.addEventListener('click', () => {
       return;
     }
     localStorage.setItem('iris_admin_firebase_config', JSON.stringify(config));
+
+    // Save Cloudflare Worker Bridge configurations
+    const workerUrlInput = document.getElementById('fcm-worker-url');
+    const workerTokenInput = document.getElementById('fcm-worker-token');
+    if (workerUrlInput) localStorage.setItem('iris_fcm_worker_url', workerUrlInput.value.trim());
+    if (workerTokenInput) localStorage.setItem('iris_fcm_worker_token', workerTokenInput.value.trim());
+
     configModal.style.display = 'none';
     
     initializeFirebase(config);
@@ -828,130 +944,742 @@ if (broadcastSwitchVisible) {
   });
 }
 
-// Dedicated Dispatch Signal button (explicitly turns alert ON with textarea message)
+// Dedicated Dispatch Signal button (explicitly turns alert ON with target type and payload)
 btnBroadcastPush.addEventListener('click', async () => {
-  if (!isConnected) return;
+  if (!isConnected || !db) return;
   
   const msg = broadcastMessage.value.trim();
-  logTerminal(`Preparing to dispatch broadcast signal packet...`, 'info');
+  if (!msg) {
+    showMossToast("Please enter announcement message content.", "warning");
+    return;
+  }
+
+  const targetType = document.getElementById('broadcast-target-type').value;
+  const targetBatch = document.getElementById('broadcast-target-batch').value;
+  const targetCourse = document.getElementById('broadcast-target-course').value;
+
+  // Validate dropdown selections
+  if (targetType === 'batch' && !targetBatch) {
+    showMossToast("Please select a target batch.", "warning");
+    return;
+  }
+  if (targetType === 'course' && (!targetBatch || !targetCourse)) {
+    showMossToast("Please select both target batch and target course.", "warning");
+    return;
+  }
+
+  logTerminal(`Preparing to dispatch targeted notice document: type=${targetType}...`, 'info');
   
   btnBroadcastPush.disabled = true;
-  btnBroadcastPush.querySelector('span').innerText = 'TRANSMITTING EMISSION WAVE...';
+  const originalHtml = btnBroadcastPush.innerHTML;
+  btnBroadcastPush.innerHTML = '<span>TRANSMITTING EMISSION WAVE...</span> <i class="fa-solid fa-spinner fa-spin"></i>';
   
   try {
-    await db.collection('config').doc('global').update({
-      broadcast_message: msg,
-      broadcast_enabled: true, // Always force enable ON upon explicit dispatch
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    const user = firebase.auth().currentUser;
+    
+    // Construct visibleTo authorization lookup tags
+    const visibleTo = ["global"];
+    if (targetType === 'batch') {
+      visibleTo.push(`batch_${targetBatch}`);
+    } else if (targetType === 'course') {
+      visibleTo.push(`batch_${targetBatch}`);
+      visibleTo.push(`course_${targetBatch}_${targetCourse}`);
+    }
+
+    const payload = {
+      message: msg,
+      senderUid: user ? user.uid : "unknown",
+      senderName: currentUserProfile.name || (user ? user.email.split('@')[0] : "System"),
+      senderRole: currentUserProfile.role || "admin",
+      targetType: targetType,
+      targetBatch: targetBatch || null,
+      targetCourse: targetCourse || null,
+      visibleTo: visibleTo,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Write notice to history list
+    await db.collection('announcements').add(payload);
     incrementDatabaseOps();
+
+    // If global target, also update config/global for persistent homepage header card
+    if (targetType === 'global') {
+      await db.collection('config').doc('global').update({
+        broadcast_message: msg,
+        broadcast_enabled: true,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      incrementDatabaseOps();
+      if (broadcastSwitchVisible) broadcastSwitchVisible.checked = true;
+    }
     
-    // Sync visible switch UI
-    if (broadcastSwitchVisible) broadcastSwitchVisible.checked = true;
+    // Trigger Push Notification via Cloudflare Worker if configured
+    const workerUrl = localStorage.getItem('iris_fcm_worker_url') || '';
+    const workerToken = localStorage.getItem('iris_fcm_worker_token') || '';
     
-    logTerminal(`Dispatch success: Broadcast alert is now LIVE with message.`, 'success');
-    showMossToast("Global notice dispatched live to student devices!", "success");
+    if (workerUrl) {
+      logTerminal('FCM Bridge: Triggering background push notification via Cloudflare Worker...', 'info');
+      
+      let pushTopic = 'global_announcements';
+      let pushTitle = 'New Announcement';
+      const senderName = currentUserProfile.name || (user ? user.email.split('@')[0] : "System");
+      
+      if (targetType === 'batch' && targetBatch) {
+        const normalizedBatch = targetBatch.replace(/[^a-zA-Z0-9-_.~%]/g, '_');
+        pushTopic = `batch_${normalizedBatch}`;
+        pushTitle = `${senderName} (CR)`;
+      } else if (targetType === 'course' && targetBatch && targetCourse) {
+        const normalizedBatch = targetBatch.replace(/[^a-zA-Z0-9-_.~%]/g, '_');
+        const normalizedCourse = targetCourse.replace(/[^a-zA-Z0-9-_.~%]/g, '_');
+        pushTopic = `course_${normalizedBatch}_${normalizedCourse}`;
+        pushTitle = `Prof. ${senderName}`;
+      } else {
+        pushTitle = `System Alert: ${senderName}`;
+      }
+      
+      fetch(workerUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${workerToken || 'IRIS_SECRET_TOKEN_2026_SWL'}`
+        },
+        body: JSON.stringify({
+          topic: pushTopic,
+          title: pushTitle,
+          message: msg,
+          data: {
+            type: 'announcement',
+            targetType: targetType,
+            targetBatch: targetBatch || '',
+            targetCourse: targetCourse || '',
+            senderName: senderName
+          }
+        })
+      })
+      .then(async response => {
+        const resText = await response.text();
+        if (response.ok) {
+          logTerminal(`FCM Bridge: Background push notification transmitted successfully to topic [<strong>${pushTopic}</strong>].`, 'success');
+        } else {
+          logTerminal(`FCM Bridge: Transmission failed. Status: ${response.status}. Response: ${resText}`, 'error');
+        }
+      })
+      .catch(err => {
+        logTerminal(`FCM Bridge Error: ${err.message}`, 'error');
+      });
+    } else {
+      logTerminal('FCM Bridge: No Cloudflare Worker URL configured. Background push notification bypassed.', 'warning');
+    }
+    
+    logTerminal(`Broadcast dispatched successfully to target: ${targetType === 'global' ? 'Global' : (targetType === 'batch' ? targetBatch : targetBatch + ' - ' + targetCourse)}.`, 'success');
+    showMossToast("Announcement dispatched live!", "success");
+    broadcastMessage.value = "";
+    if (document.getElementById('broadcast-char-count')) {
+      document.getElementById('broadcast-char-count').innerText = "0";
+    }
   } catch (e) {
     logTerminal(`Broadcast transmission failed: ${e.message}`, 'error');
     showMossToast(e.message, "error");
   } finally {
     btnBroadcastPush.disabled = false;
-    btnBroadcastPush.querySelector('span').innerText = 'Transmit Notification Alert';
+    btnBroadcastPush.innerHTML = originalHtml;
   }
 });
+
 
 // ==========================================================================
 // TIMETABLE DEPLOYMENT ENGINE (AIRPORT DEPARTURES LEDGER)
 // ==========================================================================
 
-function setupDragAndDrop() {
-  // Timetable JSON
-  setupDropzone(timetableDropzone, timetableFileInput, (file) => {
-    selectedTimetableFile = file;
-    timetableFileInfo.innerText = `Inspected seed: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-    timetableFileInfo.style.display = 'block';
-    deployTimetableBtn.disabled = false;
-    logTerminal(`Staged Timetable JSON file: <strong>${file.name}</strong>`, 'info');
-    
-    // Parse client side for departure inspection ledger
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target.result;
-        const json = JSON.parse(text);
-        let sessions = [];
-        if (Array.isArray(json)) {
-          sessions = json;
-        } else if (json.sessions && Array.isArray(json.sessions)) {
-          sessions = json.sessions;
-        } else {
-          throw new Error('Unrecognized JSON structure. Expected array of sessions.');
-        }
+// ==========================================================================
+// TIMETABLE DEPLOYMENT ENGINE (AIRPORT DEPARTURES LEDGER)
+// ==========================================================================
 
-        const sessionCount = sessions.length;
-        const uniqueSubjects = new Set();
-        let labCount = 0;
-        
-        // Build departures visual ledger rows
-        timetablePreviewBody.innerHTML = '';
-        const previewLimit = Math.min(5, sessions.length);
-        
-        for (let i = 0; i < previewLimit; i++) {
-          const s = sessions[i];
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${s.class_name || s.section || 'CORE-GEN'}</td>
-            <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'}</td>
-            <td>${s.time || s.period || 'ON SCHEDULE'}</td>
-            <td style="color: var(--text-caption);">${s.teacher || s.instructor || 'STAFF'}</td>
-          `;
-          timetablePreviewBody.appendChild(tr);
+const BATCH_RE = /\b[A-Z]{2}\d{2}-[A-Z0-9]+/i;
+
+const GRID_COLUMNS = [
+  { name: "Batch", minX: 0, maxX: 100 },
+  { name: "Slot 1", minX: 100, maxX: 204 },
+  { name: "Slot 2", minX: 204, maxX: 319 },
+  { name: "Slot 3", minX: 319, maxX: 434 },
+  { name: "Slot 4", minX: 434, maxX: 549 },
+  { name: "Slot 5", minX: 549, maxX: 664 },
+  { name: "Slot 6", minX: 664, maxX: 780 }
+];
+
+const DEPT_CODES = new Set(["CS", "SE", "MS", "EE", "ME", "CVE", "BBA", "MBA", "MT", "VS", "HUM", "CE", "BI"]);
+const TEACHER_TITLE_RE = /\b(Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam)\b/i;
+const CAPACITY_RE = /\s*\(\d+\)\s*/g;
+
+const SUBJECT_KEYWORDS = new Set([
+  "programming", "engineering", "structures", "systems", "calculus",
+  "algebra", "physics", "chemistry", "communication", "technology",
+  "network", "database", "security", "intelligence", "learning",
+  "design", "architecture", "development", "operating", "digital",
+  "web", "mobile", "software", "compiler", "automata", "quran",
+  "marketing", "management", "psychology", "commerce", "civics",
+  "lab", "fundamentals", "advanced", "introduction", "applied",
+  "quantum", "machine", "formal", "methods", "data", "mining",
+  "patterns", "interaction", "resource", "functional", "english",
+  "pre-calculus", "engagement", "community", "probability",
+  "statistics", "analysis", "computing", "science", "theory",
+  "information", "numerical", "discrete", "linear", "islamic",
+  "studies", "professional", "ethics", "technical", "writing",
+  "computer", "organization", "graphics", "visualization",
+  "parallel", "distributed", "artificial", "deep"
+]);
+
+const ROOM_PATTERNS = [
+  /\bPhysics\s+Lab\b/i,
+  /\bNetworking\s+Lab\b/i,
+  /\bDLD\s+Lab\b/i,
+  /\bBio\s+Lab\b/i,
+  /\bFP\s+Lab\b/i,
+  /\bFA\s+Lab\b/i,
+  /\bDigital\s+Lab\b/i,
+  /\bElectric\s+Machines\s+Lab\b/i,
+  /\bMechanical\s+Vibrations\s+Lab\b/i,
+  /\bIC\s+Engines\s+Lab\b/i,
+  /\bHMT\s+Lab\b/i,
+  /\bThermodynamics\s+Lab\b/i,
+  /\bThermo\s+Lab\b/i,
+  /\bFluid\s+Mechanics\s+Lab\b/i,
+  /\bPower\s+Lab\b/i,
+  /\bC\s*&\s*E\s+Lab\b/i,
+  /\bD\s*Block\s+Seminar\s+Room\b/i,
+  /\bMOM\s*Lab\b/i,
+  /\bEFM\s*Lab\b/i,
+  /\bMechanical\s+Lab\b/i,
+  /\bElectronics\s+Lab\b/i,
+  /\bHardware\s+Lab\b/i,
+  /\bCircuit\s+Lab\b/i,
+  /\bSoftware\s+Lab\b/i,
+  /\bComputer\s+Lab\b/i,
+  /\bCLab-?\d*\b/i,
+  /\b[A-Z]\d+(?:\.\d)?\b/i
+];
+
+function stripCapacity(text) {
+  return text.replace(CAPACITY_RE, "").trim();
+}
+
+function isTeacherLine(line) {
+  if (TEACHER_TITLE_RE.test(line)) return true;
+  let words = line.split(/\s+/);
+  if (words.length >= 2) {
+    let first = words[0].replace(/\.$/, "").toUpperCase();
+    if (DEPT_CODES.has(first)) {
+      let rest = words.slice(1).join(" ");
+      if (!looksLikeSubject(rest) && !matchRoom(rest)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function cleanTeacherName(raw) {
+  let cleaned = stripCapacity(raw).trim();
+  let words = cleaned.split(/\s+/);
+  if (words.length >= 2) {
+    let first = words[0].replace(/\.$/, "").toUpperCase();
+    if (DEPT_CODES.has(first)) {
+      cleaned = words.slice(1).join(" ");
+    }
+  }
+  
+  let subjectCode = "";
+  words = cleaned.split(/\s+/);
+  if (words.length >= 3) {
+    let lastWord = words[words.length - 1].trim();
+    if (/^[A-Z]{2,4}$/.test(lastWord) && !DEPT_CODES.has(lastWord)) {
+      subjectCode = lastWord;
+      cleaned = words.slice(0, -1).join(" ");
+    }
+  }
+  
+  return { name: cleaned.trim(), subjectCode };
+}
+
+function looksLikeSubject(text) {
+  let lower = text.toLowerCase();
+  for (let kw of SUBJECT_KEYWORDS) {
+    if (lower.includes(kw)) return true;
+  }
+  return false;
+}
+
+function matchRoom(text) {
+  let stripped = stripCapacity(text);
+  for (let pat of ROOM_PATTERNS) {
+    let m = stripped.match(pat);
+    if (m) return m[0];
+  }
+  return null;
+}
+
+function cleanRoomFromText(text) {
+  let cleaned = text;
+  for (let pat of ROOM_PATTERNS) {
+    cleaned = cleaned.replace(pat, "");
+  }
+  return stripCapacity(cleaned).trim();
+}
+
+function cleanSubject(text) {
+  let cleaned = cleanRoomFromText(text);
+  cleaned = cleaned.replace(/\s{2,}/g, " ").trim();
+  return cleaned;
+}
+
+function isNameContinuation(line) {
+  let words = line.split(/\s+/);
+  if (words.length === 0) return false;
+  
+  if (words.length >= 2 && words[0].endsWith('.')) {
+    if (words[0].length <= 6 && words[1].length <= 6) {
+      return false;
+    }
+  }
+  
+  if (words.length >= 2) {
+    if (words.some(w => w.length > 5)) return false;
+    if (line.length > 12) return false;
+  }
+  
+  if (/^[A-Z]+\.\s+[A-Z]/i.test(line)) return false;
+  
+  if (words.length === 1 && words[0].length >= 2 && words[0].length <= 4 && words[0] === words[0].toUpperCase() && !DEPT_CODES.has(words[0])) {
+    return false;
+  }
+  
+  if (words.length === 1) {
+    let word = words[0];
+    if (word.length > 6 && /^[A-Z][a-z]+$/.test(word)) {
+      let vowels = (word.toLowerCase().match(/[aeiou]/g) || []).length;
+      if (vowels >= 2) return false;
+    }
+  }
+  
+  for (let w of words) {
+    if (!/^[A-Z]/.test(w)) return false;
+    if (!/^[A-Z][a-z]*\.?$/.test(w)) return false;
+  }
+  
+  if (looksLikeSubject(line)) return false;
+  if (matchRoom(line)) return false;
+  
+  return true;
+}
+
+function parseBatch(text) {
+  if (!text) return null;
+  let cleaned = text.replace(/\(.*?\)/g, "").trim().replace(/\s+/g, "");
+  let parts = cleaned.split("-");
+  if (parts.length >= 2) {
+    let program = parts[1];
+    return {
+      batch: cleaned,
+      department: program
+    };
+  }
+  return {
+    batch: cleaned,
+    department: "Unknown"
+  };
+}
+
+function parseClassCell(cellText) {
+  if (!cellText) return null;
+  let flat = cellText.replace(/\n/g, " ").trim();
+  if (!flat || /Break|kaerB/i.test(flat)) return null;
+
+  let lines = cellText.split("\n").map(l => l.trim()).filter(l => l);
+  if (lines.length === 0) return null;
+
+  let teacher = "Unknown";
+  let room = "TBD";
+  let subject = "";
+  
+  let teacherIdx = -1;
+  let teacherContIdx = -1;
+  let roomIdx = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (isTeacherLine(lines[i])) {
+      let cleanedTeacher = cleanTeacherName(lines[i]);
+      teacher = cleanedTeacher.name;
+      teacherIdx = i;
+      
+      if (i + 1 < lines.length) {
+        let nextLine = lines[i + 1];
+        if (isNameContinuation(nextLine)) {
+          teacher = teacher + " " + nextLine;
+          teacherContIdx = i + 1;
         }
-        
-        sessions.forEach(s => {
-          if (s.subject) {
-            const cleanSub = s.subject.replace(/\s*\(\d*\s*hrs?\)\s*/gi, '')
-                                     .replace(/\s*\(\d*\s*hr\)\s*/gi, '')
-                                     .replace(/\s*\(Lab\)\s*/gi, '')
-                                     .trim();
-            uniqueSubjects.add(cleanSub);
-            
-            if (s.subject.toLowerCase().includes('lab') || (s.room && s.room.toLowerCase().includes('lab'))) {
-              labCount++;
+      }
+      break;
+    }
+  }
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (i === teacherIdx || i === teacherContIdx) continue;
+    let line = lines[i];
+    let stripped = stripCapacity(line);
+    let roomMatch = matchRoom(stripped);
+    if (roomMatch) {
+      let ratio = roomMatch.length / Math.max(stripped.length, 1);
+      if (ratio > 0.35) {
+        room = roomMatch;
+        roomIdx = i;
+        break;
+      }
+    }
+  }
+
+  let subjectParts = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (i === teacherIdx || i === teacherContIdx) continue;
+    let cleaned = stripCapacity(lines[i]);
+    if (i === roomIdx) {
+      cleaned = cleanRoomFromText(cleaned);
+    }
+    if (cleaned) {
+      subjectParts.push(cleaned);
+    }
+  }
+
+  subject = subjectParts.join(" ") || "Unknown";
+  subject = cleanSubject(subject);
+
+  if (!subject || subject.trim() === '') return null;
+
+  return { subject, teacher, room };
+}
+
+async function parseTimetablePdf(arrayBuffer) {
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let allSessions = [];
+  let currentDay = "Monday";
+  
+  for (let pNum = 1; pNum <= pdf.numPages; pNum++) {
+    const page = await pdf.getPage(pNum);
+    const textContent = await page.getTextContent();
+    const items = textContent.items;
+    
+    // 1. Detect Day
+    let pageDay = null;
+    for (let item of items) {
+      let str = item.str.trim();
+      let dayMatch = str.match(/\b(Mon|Monday|Tue|Tues|Tuesday|Wed|Wednesday|Thu|Thur|Thurs|Thursday|Fri|Friday|Sat|Saturday|Sun|Sunday)\b/i);
+      if (dayMatch) {
+        let rawDay = dayMatch[1].toLowerCase();
+        const DAY_MAP = {
+          mon: "Monday", monday: "Monday",
+          tue: "Tuesday", tues: "Tuesday", tuesday: "Tuesday",
+          wed: "Wednesday", wednesday: "Wednesday",
+          thu: "Thursday", thur: "Thursday", thurs: "Thursday", thursday: "Thursday",
+          fri: "Friday", friday: "Friday",
+          sat: "Saturday", saturday: "Saturday",
+          sun: "Sunday", sunday: "Sunday"
+        };
+        pageDay = DAY_MAP[rawDay];
+        break;
+      }
+    }
+    if (pageDay) {
+      currentDay = pageDay;
+    }
+    
+    // 2. Identify time headers
+    let timeWords = [];
+    for (let item of items) {
+      if (/\b\d{1,2}:\d{2}\b/.test(item.str)) {
+        timeWords.push(item);
+      }
+    }
+    let timeLines = {};
+    for (let tw of timeWords) {
+      let roundedY = Math.round(tw.transform[5] / 5) * 5;
+      if (!timeLines[roundedY]) timeLines[roundedY] = [];
+      timeLines[roundedY].push(tw);
+    }
+    let headerY = -1;
+    let maxCount = 0;
+    for (let yVal in timeLines) {
+      if (timeLines[yVal].length > maxCount) {
+        maxCount = timeLines[yVal].length;
+        headerY = parseFloat(yVal);
+      }
+    }
+    
+    let slotTimes = Array(7).fill(null).map(() => ({ start: "00:00", end: "00:00", isBreak: false }));
+    const DEFAULT_TIMES = [
+      { start: "00:00", end: "00:00", isBreak: false },
+      { start: "08:00", end: "09:00", isBreak: false },
+      { start: "09:00", end: "10:00", isBreak: false },
+      { start: "10:00", end: "11:00", isBreak: false },
+      { start: "11:00", end: "12:00", isBreak: false },
+      { start: "12:00", end: "01:00", isBreak: true },
+      { start: "01:00", end: "02:00", isBreak: false }
+    ];
+    for (let c = 0; c < 7; c++) {
+      slotTimes[c] = { ...DEFAULT_TIMES[c] };
+    }
+    
+    if (headerY !== -1) {
+      let headerItems = items.filter(item => Math.abs(item.transform[5] - headerY) <= 8 && item.str.trim() !== '');
+      for (let c = 1; c < 7; c++) {
+        let col = GRID_COLUMNS[c];
+        let colItems = headerItems.filter(item => {
+          let centerX = item.transform[4] + (item.width || 0) / 2;
+          return centerX >= col.minX && centerX < col.maxX;
+        });
+        colItems.sort((a, b) => a.transform[4] - b.transform[4]);
+        let text = colItems.map(item => item.str).join(" ").trim();
+        if (text) {
+          if (/break|kaerb/i.test(text)) {
+            slotTimes[c].isBreak = true;
+          } else {
+            let m = text.match(/(\d{1,2})[:.]?(\d{2})\s*-\s*(\d{1,2})[:.]?(\d{2})/);
+            if (m) {
+              slotTimes[c].start = `${m[1].padStart(2, '0')}:${m[2]}`;
+              slotTimes[c].end = `${m[3].padStart(2, '0')}:${m[4]}`;
             }
           }
-        });
-
-        statSessions.innerText = sessionCount;
-        statCourses.innerText = uniqueSubjects.size;
-        statLabs.innerText = labCount;
-        timetableAnalytics.style.display = 'block';
-        logTerminal(`Ledger preview compiled: Inspected ${sessionCount} classes, ${uniqueSubjects.size} courses mapped.`, 'success');
-      } catch (err) {
-        logTerminal(`Ledger Inspection Failed: ${err.message}`, 'warning');
-        timetableAnalytics.style.display = 'none';
+        }
       }
-    };
-    reader.readAsText(file);
+    }
+    
+    // 3. Cluster batch rows
+    let col0Groups = {};
+    for (let item of items) {
+      let x = item.transform[4];
+      let y = item.transform[5];
+      if (x < 100 && item.str.trim() !== '') {
+        let roundedY = Math.round(y / 5) * 5;
+        if (!col0Groups[roundedY]) col0Groups[roundedY] = [];
+        col0Groups[roundedY].push(item);
+      }
+    }
+    
+    let rowStarts = [];
+    for (let roundedY in col0Groups) {
+      let groupItems = col0Groups[roundedY];
+      groupItems.sort((a, b) => a.transform[4] - b.transform[4]);
+      let text = groupItems.map(item => item.str).join("").trim();
+      if (BATCH_RE.test(text)) {
+        rowStarts.push({ text: text, y: parseFloat(roundedY) });
+      }
+    }
+    rowStarts.sort((a, b) => b.y - a.y);
+    
+    if (rowStarts.length === 0) continue;
+    
+    // 4. Construct cells
+    let reconstructedRows = [];
+    for (let i = 0; i < rowStarts.length; i++) {
+      reconstructedRows.push({
+        batch: rowStarts[i].text,
+        cells: Array(7).fill(""),
+        cellItems: Array(7).fill(null).map(() => [])
+      });
+    }
+    
+    for (let item of items) {
+      let str = item.str.trim();
+      if (str === '') continue;
+      
+      let x = item.transform[4];
+      let y = item.transform[5];
+      
+      if (y > rowStarts[0].y + 15) continue;
+      
+      let targetRowIdx = -1;
+      for (let i = 0; i < rowStarts.length; i++) {
+        let startY = rowStarts[i].y + 12;
+        let endY = i + 1 < rowStarts.length ? rowStarts[i+1].y + 12 : -9999;
+        if (y <= startY && y > endY) {
+          targetRowIdx = i;
+          break;
+        }
+      }
+      if (targetRowIdx === -1) continue;
+      
+      let targetColIdx = -1;
+      let centerX = x + (item.width || 0) / 2;
+      for (let colIdx = 0; colIdx < GRID_COLUMNS.length; colIdx++) {
+        let col = GRID_COLUMNS[colIdx];
+        if (centerX >= col.minX && centerX < col.maxX) {
+          targetColIdx = colIdx;
+          break;
+        }
+      }
+      if (targetColIdx !== -1) {
+        reconstructedRows[targetRowIdx].cellItems[targetColIdx].push(item);
+      }
+    }
+    
+    // Reconstruct strings
+    for (let row of reconstructedRows) {
+      for (let c = 0; c < 7; c++) {
+        let cellItems = row.cellItems[c];
+        if (cellItems.length === 0) continue;
+        let lines = {};
+        for (let item of cellItems) {
+          let roundedY = Math.round(item.transform[5] / 3) * 3;
+          if (!lines[roundedY]) lines[roundedY] = [];
+          lines[roundedY].push(item);
+        }
+        let sortedY = Object.keys(lines).map(Number).sort((a, b) => b - a);
+        let lineTexts = [];
+        for (let yVal of sortedY) {
+          let lineItems = lines[yVal];
+          lineItems.sort((a, b) => a.transform[4] - b.transform[4]);
+          lineTexts.push(lineItems.map(item => item.str).join(" ").trim());
+        }
+        row.cells[c] = lineTexts.join("\n");
+      }
+    }
+    
+    // 5. Parse cell content and merge consecutive columns (for lab slots)
+    for (let row of reconstructedRows) {
+      let batchInfo = parseBatch(row.batch);
+      if (!batchInfo) continue;
+      
+      let c = 1;
+      while (c <= 6) {
+        let cellText = row.cells[c];
+        if (!cellText || cellText.trim() === '') {
+          c++;
+          continue;
+        }
+        
+        if (slotTimes[c].isBreak || /break|kaerb/i.test(cellText)) {
+          c++;
+          continue;
+        }
+        
+        let parsed = parseClassCell(cellText);
+        if (!parsed) {
+          c++;
+          continue;
+        }
+        
+        let startTime = slotTimes[c].start;
+        let endTime = slotTimes[c].end;
+        
+        let j = c + 1;
+        while (j <= 6) {
+          if (!row.cells[j] || row.cells[j].trim() === '') {
+            if (slotTimes[j].isBreak) {
+              break;
+            }
+            endTime = slotTimes[j].end;
+            j++;
+          } else {
+            break;
+          }
+        }
+        
+        // Handle "(1 hr)" marker - adjust end time to be exactly 1 hour from start
+        if (/(1\s*hr)/i.test(parsed.subject)) {
+          let [sh, sm] = startTime.split(':').map(Number);
+          let eh = sh + 1;
+          let em = sm;
+          endTime = `${eh.toString().padStart(2, '0')}:${em.toString().padStart(2, '0')}`;
+        }
+        
+        allSessions.push({
+          department: batchInfo.department,
+          batch: batchInfo.batch,
+          day: currentDay,
+          start: startTime,
+          end: endTime,
+          subject: parsed.subject,
+          teacher: parsed.teacher,
+          room: parsed.room
+        });
+        
+        c = j;
+      }
+    }
+  }
+  return allSessions;
+}
+
+function updateTimetablePreview(sessions) {
+  const sessionCount = sessions.length;
+  const uniqueSubjects = new Set();
+  let labCount = 0;
+  
+  timetablePreviewBody.innerHTML = '';
+  const previewLimit = Math.min(10, sessions.length);
+  
+  for (let i = 0; i < previewLimit; i++) {
+    const s = sessions[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${s.batch || 'CORE-GEN'}</td>
+      <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'}</td>
+      <td>${s.day} // ${s.start} - ${s.end}</td>
+      <td style="color: var(--text-caption);">${s.teacher || 'STAFF'}</td>
+    `;
+    timetablePreviewBody.appendChild(tr);
+  }
+  
+  sessions.forEach(s => {
+    if (s.subject) {
+      const cleanSub = s.subject.replace(/\s*\(\d*\s*hrs?\)\s*/gi, '')
+                               .replace(/\s*\(\d*\s*hr\)\s*/gi, '')
+                               .replace(/\s*\(Lab\)\s*/gi, '')
+                               .trim();
+      uniqueSubjects.add(cleanSub);
+      
+      if (s.subject.toLowerCase().includes('lab') || (s.room && s.room.toLowerCase().includes('lab'))) {
+        labCount++;
+      }
+    }
+  });
+
+  statSessions.innerText = sessionCount;
+  statCourses.innerText = uniqueSubjects.size;
+  statLabs.innerText = labCount;
+  timetableAnalytics.style.display = 'block';
+}
+
+function setupDragAndDrop() {
+  // Timetable JSON/PDF (supports multiple)
+  setupDropzone(timetableDropzone, timetableFileInput, async (files) => {
+    await handleTimetableFilesSelect(files);
   });
   
-  // Android APK OTA split drops
-  setupDropzone(apkDropzone, apkFileInput, (file) => {
-    selectedApkFile = file;
-    apkFileInfo.innerText = `OTA split APK: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-    apkFileInfo.style.display = 'block';
-    deployApkBtn.disabled = false;
-    logTerminal(`Staged Android OTA package: <strong>${file.name}</strong>`, 'info');
+  // Android APK OTA split drops (single file)
+  setupDropzone(apkDropzone, apkFileInput, (files) => {
+    if (files.length > 0) {
+      selectedApkFile = files[0];
+      apkFileInfo.innerText = `OTA split APK: ${files[0].name} (${(files[0].size / 1024 / 1024).toFixed(2)} MB)`;
+      apkFileInfo.style.display = 'block';
+      deployApkBtn.disabled = false;
+      logTerminal(`Staged Android OTA package: <strong>${files[0].name}</strong>`, 'info');
+    }
+  });
+
+  // Excel Date Sheets (single file)
+  setupDropzone(examsDropzone, examsFileInput, (files) => {
+    if (files.length > 0) {
+      handleExamsFileSelect(files[0]);
+    }
   });
 }
 
-function setupDropzone(dropzone, input, onFileSelect) {
+function setupDropzone(dropzone, input, onFilesSelect) {
   if (!dropzone || !input) return;
   dropzone.addEventListener('click', () => input.click());
   
   input.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
-      onFileSelect(e.target.files[0]);
+      onFilesSelect(Array.from(e.target.files));
     }
   });
   
@@ -972,72 +1700,189 @@ function setupDropzone(dropzone, input, onFileSelect) {
   dropzone.addEventListener('drop', (e) => {
     const dt = e.dataTransfer;
     if (dt.files.length > 0) {
-      onFileSelect(dt.files[0]);
+      onFilesSelect(Array.from(dt.files));
     }
   }, false);
 }
 
-deployTimetableBtn.addEventListener('click', async () => {
-  if (!isConnected || !selectedTimetableFile) return;
+async function handleTimetableFilesSelect(files) {
+  logTerminal(`Staging ${files.length} daily timetable file(s)...`, 'info');
   
-  logTerminal('Initiating timetable ledger uploader sequence...', 'info');
+  for (let file of files) {
+    if (stagedTimetableFiles.some(f => f.name === file.name && f.size === file.size)) {
+      logTerminal(`File <strong>${file.name}</strong> is already staged. Skipping.`, 'warning');
+      continue;
+    }
+    
+    if (file.name.toLowerCase().endsWith('.pdf')) {
+      logTerminal(`Processing Timetable PDF file: <strong>${file.name}</strong>...`, 'info');
+      showMossToast(`Parsing PDF Timetable: ${file.name}...`, "info");
+      deployTimetableBtn.disabled = true;
+      deployTimetableBtn.querySelector('span').innerText = 'PARSING PDF...';
+      
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const sessions = await parseTimetablePdf(arrayBuffer);
+        
+        if (sessions.length === 0) {
+          throw new Error("No classes could be parsed from the PDF. Check template/coordinates.");
+        }
+        
+        stagedTimetableFiles.push({
+          name: file.name,
+          size: file.size,
+          sessions: sessions
+        });
+        
+        logTerminal(`Parsed ${sessions.length} sessions from <strong>${file.name}</strong> successfully!`, 'success');
+        showMossToast(`Extracted ${sessions.length} classes from ${file.name}!`, "success");
+      } catch (err) {
+        logTerminal(`PDF Parse Error for ${file.name}: ${err.message}`, 'error');
+        showMossToast(`PDF Parse Error for ${file.name}: ${err.message}`, "error");
+      }
+    } else if (file.name.toLowerCase().endsWith('.json')) {
+      logTerminal(`Processing Timetable JSON file: <strong>${file.name}</strong>...`, 'info');
+      try {
+        const jsonText = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = (err) => reject(err);
+          reader.readAsText(file);
+        });
+        
+        const json = JSON.parse(jsonText);
+        let sessions = Array.isArray(json) ? json : (json.sessions || []);
+        
+        if (sessions.length === 0) {
+          throw new Error("JSON file has no sessions.");
+        }
+        
+        stagedTimetableFiles.push({
+          name: file.name,
+          size: file.size,
+          sessions: sessions
+        });
+        
+        logTerminal(`Parsed ${sessions.length} sessions from JSON <strong>${file.name}</strong>.`, 'success');
+        showMossToast(`Loaded ${sessions.length} classes from ${file.name}!`, "success");
+      } catch (err) {
+        logTerminal(`JSON Parse Error for ${file.name}: ${err.message}`, 'error');
+        showMossToast(`JSON Parse Error for ${file.name}: ${err.message}`, "error");
+      }
+    } else {
+      logTerminal(`Unsupported file format for <strong>${file.name}</strong>. Only .pdf and .json are supported.`, 'warning');
+      showMossToast(`Unsupported format: ${file.name}`, "warning");
+    }
+  }
+  
+  recomputeStagedTimetables();
+}
+
+function recomputeStagedTimetables() {
+  const container = document.getElementById('staged-files-container');
+  const list = document.getElementById('staged-files-list');
+  if (!container || !list) return;
+  
+  list.innerHTML = '';
+  stagedTimetablePayload = [];
+  
+  if (stagedTimetableFiles.length === 0) {
+    container.style.display = 'none';
+    timetableFileInfo.style.display = 'none';
+    timetableAnalytics.style.display = 'none';
+    deployTimetableBtn.disabled = true;
+    deployTimetableBtn.querySelector('span').innerText = 'Commit Timetable Seed';
+    return;
+  }
+  
+  container.style.display = 'block';
+  timetableFileInfo.style.display = 'none';
+  
+  stagedTimetableFiles.forEach((file, index) => {
+    stagedTimetablePayload.push(...file.sessions);
+    
+    const li = document.createElement('li');
+    li.style.display = 'flex';
+    li.style.justifyContent = 'space-between';
+    li.style.alignItems = 'center';
+    li.style.padding = '8px 12px';
+    li.style.background = 'white';
+    li.style.border = '1px solid var(--border-subtle)';
+    li.style.borderRadius = '6px';
+    li.style.fontSize = '11px';
+    
+    li.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid ${file.name.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf' : 'fa-file-code'}" style="color: var(--accent-indigo);"></i>
+        <div>
+          <strong style="color: var(--text-title);">${file.name}</strong>
+          <span style="color: var(--text-muted); font-size: 9.5px; margin-left: 6px;">(${(file.size / 1024).toFixed(1)} KB)</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="badge" style="background: rgba(79, 70, 229, 0.08); color: var(--accent-indigo); font-weight: bold; border: 1px solid rgba(79, 70, 229, 0.15);">${file.sessions.length} sessions</span>
+        <button type="button" class="btn-remove-staged" onclick="removeStagedTimetableFile(${index})" style="background: transparent; border: none; color: var(--accent-rose); cursor: pointer; padding: 4px;" title="Remove file"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+  
+  updateTimetablePreview(stagedTimetablePayload);
+  deployTimetableBtn.disabled = false;
+  deployTimetableBtn.querySelector('span').innerText = `Commit Timetable Seed (${stagedTimetablePayload.length} sessions)`;
+}
+
+window.removeStagedTimetableFile = function(index) {
+  const removed = stagedTimetableFiles.splice(index, 1)[0];
+  logTerminal(`Removed staged file: <strong>${removed.name}</strong>`, 'info');
+  recomputeStagedTimetables();
+};
+
+deployTimetableBtn.addEventListener('click', async () => {
+  if (!isConnected || !stagedTimetablePayload || stagedTimetablePayload.length === 0) {
+    logTerminal('No valid timetable payload staged for deployment.', 'warning');
+    return;
+  }
+  
+  logTerminal('Initiating timetable ledger deployment sequence...', 'info');
   deployTimetableBtn.disabled = true;
   
   try {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const text = e.target.result;
-        const json = JSON.parse(text);
-        
-        if (!Array.isArray(json) && !(json.sessions && Array.isArray(json.sessions))) {
-          throw new Error('Invalid timetable JSON structure.');
-        }
-        
-        logTerminal('Schema checked. Syncing database config global document...', 'info');
-        
-        const versionId = `SEED_${new Date().toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`;
-        const timeStr = new Date().toISOString();
-        let sessions = Array.isArray(json) ? json : (json.sessions || []);
-        const classesCount = sessions.length;
-        const payload = JSON.stringify(json);
+    const versionId = `SEED_${new Date().toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`;
+    const timeStr = new Date().toISOString();
+    const classesCount = stagedTimetablePayload.length;
+    const payload = JSON.stringify(stagedTimetablePayload);
 
-        await db.collection('config').doc('global').update({
-          active_timetable_version: Date.now(),
-          active_timetable_url: "", // storage cost bypassed
-          active_timetable_json: payload,
-          updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        incrementDatabaseOps();
+    await db.collection('config').doc('global').update({
+      active_timetable_version: Date.now(),
+      active_timetable_url: "", 
+      active_timetable_json: payload,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    incrementDatabaseOps();
 
-        // Write historical record in Firestore timetable_history collection
-        await db.collection('timetable_history').doc(versionId).set({
-          id: versionId,
-          time: timeStr,
-          classes: classesCount,
-          json: payload
-        });
-        incrementDatabaseOps();
-        
-        // Reload timetable history to reflect the new version
-        await loadTimetableHistory();
-        
-        logTerminal('Database Sync Complete: Timetable ledger synchronized to global clients.', 'success');
-        showMossToast("Timetable seed committed and deployed!", "success");
-        selectedTimetableFile = null;
-        timetableFileInfo.style.display = 'none';
-        timetableFileInput.value = '';
-        timetableAnalytics.style.display = 'none';
-        deployTimetableBtn.disabled = true;
-      } catch (jsonErr) {
-        logTerminal(`Inspection failure: ${jsonErr.message}`, 'error');
-        showMossToast(jsonErr.message, "error");
-        deployTimetableBtn.disabled = false;
-      }
-    };
-    reader.readAsText(selectedTimetableFile);
+    await db.collection('timetable_history').doc(versionId).set({
+      id: versionId,
+      time: timeStr,
+      classes: classesCount,
+      json: payload
+    });
+    incrementDatabaseOps();
+    
+    await loadTimetableHistory();
+    
+    logTerminal(`Database Sync Complete: Timetable ledger (${classesCount} classes) synchronized globally.`, 'success');
+    showMossToast("Timetable seed committed and deployed!", "success");
+    
+    // Reset state
+    stagedTimetableFiles = [];
+    stagedTimetablePayload = [];
+    recomputeStagedTimetables();
+    
+    refreshLiveClassesInspector();
   } catch (e) {
-    logTerminal(`Timetable ledger synchronization aborted: ${e.message}`, 'error');
+    logTerminal(`Deployment failed: ${e.message}`, 'error');
+    showMossToast(e.message, "error");
     deployTimetableBtn.disabled = false;
   }
 });
@@ -1152,6 +1997,7 @@ deployApkBtn.addEventListener('click', async () => {
     deployApkBtn.disabled = false;
     if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
   }
+});
 // App update visibility toggle listener
 if (apkSwitchVisible) {
   apkSwitchVisible.addEventListener('change', async () => {
@@ -1481,6 +2327,724 @@ window.revertTimetableVersion = async function(id) {
   }
 }
 
+// ==========================================================================
+// DATE SHEET EXCEL PARSER AND DEPLOYMENT CORE
+// ==========================================================================
+
+function handleExamsFileSelect(file) {
+  parsedExams = [];
+  examsFileInfo.innerText = `Parsing: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  examsFileInfo.style.display = 'block';
+  btnDeployMidterms.disabled = true;
+  btnDeployFinals.disabled = true;
+  logTerminal(`Staged Excel Date Sheet: <strong>${file.name}</strong>`, 'info');
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array', cellDates: false, cellNF: true, cellText: true });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
+      
+      if (rows.length < 4) {
+        throw new Error("Excel sheet contains too few rows. Header row 3 expected.");
+      }
+      
+      // Header is on Row 3 (index 2)
+      const headerRow = rows[2] || [];
+      const rooms = [];
+      for (let c = 2; c < headerRow.length; c++) {
+        const val = headerRow[c];
+        if (val !== undefined && val !== null) {
+          rooms.push({ colIdx: c, name: String(val).trim() });
+        }
+      }
+      
+      if (rooms.length === 0) {
+        throw new Error("No exam rooms/venues detected on row 3.");
+      }
+      
+      logTerminal(`Detected ${rooms.length} exam rooms/venues in header.`, 'info');
+      
+      let r = 3; // Row 4 (index 3)
+      let currentDate = null;
+      let currentTime = null;
+      
+      while (r < rows.length) {
+        const row = rows[r] || [];
+        const nextRow = rows[r + 1] || [];
+        
+        const rowDate = row[0];
+        const rowTime = row[1];
+        
+        const rowDateStr = (rowDate !== undefined && rowDate !== null) ? String(rowDate).trim() : "";
+        const rowTimeStr = (rowTime !== undefined && rowTime !== null) ? String(rowTime).trim() : "";
+        
+        // Skip header/subheader rows
+        if (rowDateStr.toLowerCase() === "date" || rowTimeStr.toLowerCase() === "time") {
+          r += 1;
+          continue;
+        }
+        
+        // Skip empty rows
+        if (!rowTimeStr) {
+          r += 1;
+          continue;
+        }
+        
+        if (rowDateStr) {
+          currentDate = rowDateStr;
+        }
+        currentTime = rowTimeStr;
+        
+        for (const room of rooms) {
+          const batchCell = row[room.colIdx];
+          const subjectCell = nextRow[room.colIdx];
+          
+          if (batchCell !== undefined && batchCell !== null && 
+              subjectCell !== undefined && subjectCell !== null) {
+            const batchStr = String(batchCell).trim();
+            const subjectStr = String(subjectCell).trim();
+            
+            if (batchStr === "" || subjectStr === "") {
+              continue;
+            }
+            
+            if (batchStr.toLowerCase() === "date" || batchStr.toLowerCase() === "time" || 
+                subjectStr.toLowerCase() === "date" || subjectStr.toLowerCase() === "time") {
+              continue;
+            }
+            if (batchStr === room.name) {
+              continue;
+            }
+            if (rooms.some(rm => rm.name === batchStr)) {
+              continue;
+            }
+            
+            const batches = splitCombinedCell(batchStr);
+            const subjects = splitCombinedCell(subjectStr);
+            
+            const maxLen = Math.max(batches.length, subjects.length);
+            for (let idx = 0; idx < maxLen; idx++) {
+              const b = idx < batches.length ? batches[idx] : batches[batches.length - 1];
+              const s = idx < subjects.length ? subjects[idx] : subjects[subjects.length - 1];
+              
+              parsedExams.push({
+                date: currentDate || "Unknown Date",
+                time: currentTime,
+                room: room.name,
+                batch: b,
+                subject: s
+              });
+            }
+          }
+        }
+        r += 2;
+      }
+      
+      if (parsedExams.length === 0) {
+        throw new Error("No exam entries extracted. Check format of sheet.");
+      }
+      
+      logTerminal(`Successfully extracted ${parsedExams.length} individual exam slots.`, 'success');
+      
+      // Compile stats
+      const uniqueBatches = new Set();
+      const uniqueSubjects = new Set();
+      
+      // Render preview
+      examsPreviewBody.innerHTML = '';
+      const previewLimit = Math.min(10, parsedExams.length);
+      for (let i = 0; i < previewLimit; i++) {
+        const ex = parsedExams[i];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${ex.date}</td>
+          <td>${ex.time}</td>
+          <td>${ex.room}</td>
+          <td style="font-weight: 600; color: var(--accent-indigo);">${ex.batch}</td>
+          <td style="color: var(--text-title);">${ex.subject}</td>
+        `;
+        examsPreviewBody.appendChild(tr);
+      }
+      
+      parsedExams.forEach(ex => {
+        uniqueBatches.add(ex.batch);
+        uniqueSubjects.add(ex.subject);
+      });
+      
+      examsStatTotal.innerText = parsedExams.length;
+      examsStatBatches.innerText = uniqueBatches.size;
+      examsStatSubjects.innerText = uniqueSubjects.size;
+      examsAnalytics.style.display = 'block';
+      
+      btnDeployMidterms.disabled = false;
+      btnDeployFinals.disabled = false;
+      
+    } catch (err) {
+      logTerminal(`Excel Date Sheet Parsing Failed: ${err.message}`, 'error');
+      examsAnalytics.style.display = 'none';
+      btnDeployMidterms.disabled = true;
+      btnDeployFinals.disabled = true;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function splitCombinedCell(val) {
+  if (!val) return [];
+  
+  val = val.trim().replace(/-+$/, '');
+  const parts = val.split(/-(?=FA\d{2}|SP\d{2})/i);
+  
+  const result = [];
+  for (const part of parts) {
+    const trimmedPart = part.trim();
+    const match = trimmedPart.match(/^((?:FA|SP)\d{2}-[A-Z0-9]+)(?:-([A-Z0-9,\s/&]+))?$/i);
+    if (match) {
+      const base = match[1];
+      const suffix = match[2];
+      if (suffix) {
+        const sections = suffix.split(/[,/&]/).map(s => s.trim()).filter(s => s);
+        if (sections.every(s => s.length <= 3)) {
+          for (const s of sections) {
+            result.push(`${base}-${s}`);
+          }
+        } else {
+          result.push(trimmedPart);
+        }
+      } else {
+        result.push(base);
+      }
+    } else {
+      const altParts = trimmedPart.split(/[,/]/).map(p => p.trim()).filter(p => p);
+      result.push(...altParts);
+    }
+  }
+  
+  return result.map(r => r.trim().replace(/-+$/, '')).filter(r => r);
+}
+
+btnDeployMidterms.addEventListener('click', async () => {
+  if (!isConnected || parsedExams.length === 0) return;
+  btnDeployMidterms.disabled = true;
+  btnDeployFinals.disabled = true;
+  logTerminal('Deploying parsed Midterm Date Sheet to cloud Firestore...', 'info');
+  
+  try {
+    const payload = JSON.stringify(parsedExams);
+    await db.collection('config').doc('global').update({
+      active_midterm_json: payload,
+      active_midterm_version: Date.now(),
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    incrementDatabaseOps();
+    logTerminal(`Cloud update complete: Midterm Date Sheet live with ${parsedExams.length} entries.`, 'success');
+    showMossToast("Midterm Date Sheet successfully committed!", "success");
+    
+    // Clear state
+    parsedExams = [];
+    examsFileInfo.style.display = 'none';
+    examsFileInput.value = '';
+    examsAnalytics.style.display = 'none';
+  } catch (err) {
+    logTerminal(`Failed to deploy Midterm Date Sheet: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+    btnDeployMidterms.disabled = false;
+    btnDeployFinals.disabled = false;
+  }
+});
+
+btnDeployFinals.addEventListener('click', async () => {
+  if (!isConnected || parsedExams.length === 0) return;
+  btnDeployMidterms.disabled = true;
+  btnDeployFinals.disabled = true;
+  logTerminal('Deploying parsed Final Term Date Sheet to cloud Firestore...', 'info');
+  
+  try {
+    const payload = JSON.stringify(parsedExams);
+    await db.collection('config').doc('global').update({
+      active_finals_json: payload,
+      active_finals_version: Date.now(),
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    incrementDatabaseOps();
+    logTerminal(`Cloud update complete: Final Term Date Sheet live with ${parsedExams.length} entries.`, 'success');
+    showMossToast("Final Term Date Sheet successfully committed!", "success");
+    
+    // Clear state
+    parsedExams = [];
+    examsFileInfo.style.display = 'none';
+    examsFileInput.value = '';
+    examsAnalytics.style.display = 'none';
+  } catch (err) {
+    logTerminal(`Failed to deploy Final Term Date Sheet: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+    btnDeployMidterms.disabled = false;
+    btnDeployFinals.disabled = false;
+  }
+});
+
 function startTelemetryECG() {
   // Disabled in favor of hardware-accelerated CSS biometric radar pulse signal beacons
 }
+
+let activeClassesData = [];
+let activeExamsData = [];
+let activeInspectorExamPeriod = 'midterms';
+
+async function refreshLiveClassesInspector() {
+  const tbody = document.getElementById('inspector-classes-body');
+  if (!tbody) return;
+  
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-indigo); padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Reading active timetable from live database...</td></tr>`;
+  
+  try {
+    if (!isConnected || !db) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Offline: Cannot query live database.</td></tr>`;
+      return;
+    }
+    const doc = await db.collection('config').doc('global').get();
+    if (doc.exists) {
+      const data = doc.data();
+      const jsonStr = data.active_timetable_json || '[]';
+      const parsed = JSON.parse(jsonStr);
+      activeClassesData = Array.isArray(parsed) ? parsed : (parsed.sessions || []);
+      renderLiveClassesInspector();
+    } else {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No active configuration found on Firestore.</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-rose); padding: 20px;">Error loading data: ${err.message}</td></tr>`;
+  }
+}
+
+function renderLiveClassesInspector() {
+  const tbody = document.getElementById('inspector-classes-body');
+  const searchInput = document.getElementById('inspector-classes-search');
+  if (!tbody) return;
+  
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  let filtered = activeClassesData;
+  
+  if (query) {
+    filtered = activeClassesData.filter(s => {
+      return (s.batch || '').toLowerCase().includes(query) ||
+             (s.class_name || '').toLowerCase().includes(query) ||
+             (s.section || '').toLowerCase().includes(query) ||
+             (s.subject || '').toLowerCase().includes(query) ||
+             (s.teacher || '').toLowerCase().includes(query) ||
+             (s.room || '').toLowerCase().includes(query) ||
+             (s.day || '').toLowerCase().includes(query);
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No classes matching search criteria.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  const renderLimit = Math.min(100, filtered.length);
+  for (let i = 0; i < renderLimit; i++) {
+    const s = filtered[i];
+    const tr = document.createElement('tr');
+    
+    const batchDisplay = s.batch || s.class_name || s.section || 'N/A';
+    const timeDisplay = s.start && s.end ? `${s.start} - ${s.end}` : (s.time || s.period || 'N/A');
+    
+    tr.innerHTML = `
+      <td style="font-weight: 600; color: var(--accent-indigo);">${batchDisplay}</td>
+      <td>${s.day}</td>
+      <td>${timeDisplay}</td>
+      <td style="color: var(--text-title); font-weight: 500;">${s.subject}</td>
+      <td>${s.teacher}</td>
+      <td style="font-family: var(--font-mono);">${s.room}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  
+  if (filtered.length > 100) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="6" style="text-align: center; font-style: italic; color: var(--text-muted); font-size: 9.5px; padding: 10px;">Truncated: displaying first 100 of ${filtered.length} active classes.</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+async function wipeLiveClasses() {
+  if (!isConnected || !db) return;
+  if (!confirm("WARNING: Are you sure you want to completely WIPE the active daily class timetable from the live database? This will clear the schedule for all student devices.")) {
+    return;
+  }
+  
+  logTerminal("Wiping live active daily class timetable...", "warning");
+  
+  try {
+    await db.collection('config').doc('global').update({
+      active_timetable_json: '[]',
+      active_timetable_version: Date.now(),
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    incrementDatabaseOps();
+    
+    logTerminal("Live Wipe Success: Cleared active daily class timetable database payload.", "success");
+    showMossToast("Wiped active daily class timetable!", "success");
+    
+    refreshLiveClassesInspector();
+  } catch (err) {
+    logTerminal(`Wipe failed: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+  }
+}
+
+async function refreshLiveExamsInspector() {
+  const tbody = document.getElementById('inspector-exams-body');
+  if (!tbody) return;
+  
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-rose); padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Reading ${activeInspectorExamPeriod.toUpperCase()} schedule from live database...</td></tr>`;
+  
+  try {
+    if (!isConnected || !db) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Offline: Cannot query live database.</td></tr>`;
+      return;
+    }
+    const doc = await db.collection('config').doc('global').get();
+    if (doc.exists) {
+      const data = doc.data();
+      let jsonStr = '[]';
+      if (activeInspectorExamPeriod === 'midterms') {
+        jsonStr = data.active_midterm_json || '[]';
+      } else {
+        jsonStr = data.active_finals_json || '[]';
+      }
+      const parsed = JSON.parse(jsonStr);
+      activeExamsData = Array.isArray(parsed) ? parsed : [];
+      renderLiveExamsInspector();
+    } else {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No active configuration found on Firestore.</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-rose); padding: 20px;">Error loading data: ${err.message}</td></tr>`;
+  }
+}
+
+function renderLiveExamsInspector() {
+  const tbody = document.getElementById('inspector-exams-body');
+  const searchInput = document.getElementById('inspector-exams-search');
+  if (!tbody) return;
+  
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  let filtered = activeExamsData;
+  
+  if (query) {
+    filtered = activeExamsData.filter(ex => {
+      return (ex.batch || '').toLowerCase().includes(query) ||
+             (ex.subject || '').toLowerCase().includes(query) ||
+             (ex.room || '').toLowerCase().includes(query) ||
+             (ex.date || '').toLowerCase().includes(query) ||
+             (ex.time || '').toLowerCase().includes(query);
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No exams matching search criteria.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  const renderLimit = Math.min(100, filtered.length);
+  for (let i = 0; i < renderLimit; i++) {
+    const ex = filtered[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${ex.date}</td>
+      <td>${ex.time}</td>
+      <td style="font-family: var(--font-mono); font-weight: 500;">${ex.room}</td>
+      <td style="font-weight: 600; color: var(--accent-indigo);">${ex.batch}</td>
+      <td style="color: var(--text-title);">${ex.subject}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  
+  if (filtered.length > 100) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="5" style="text-align: center; font-style: italic; color: var(--text-muted); font-size: 9.5px; padding: 10px;">Truncated: displaying first 100 of ${filtered.length} active exams.</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+async function wipeLiveExams() {
+  if (!isConnected || !db) return;
+  if (!confirm(`WARNING: Are you sure you want to completely WIPE all active ${activeInspectorExamPeriod.toUpperCase()} exams from the live database? This will remove all schedules on student devices.`)) {
+    return;
+  }
+  
+  logTerminal(`Wiping live active ${activeInspectorExamPeriod} schedules...`, 'warning');
+  
+  try {
+    let updateObj = {};
+    if (activeInspectorExamPeriod === 'midterms') {
+      updateObj.active_midterm_json = '[]';
+      updateObj.active_midterm_version = Date.now();
+    } else {
+      updateObj.active_finals_json = '[]';
+      updateObj.active_finals_version = Date.now();
+    }
+    updateObj.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+    
+    await db.collection('config').doc('global').update(updateObj);
+    incrementDatabaseOps();
+    
+    logTerminal(`Live Wipe Success: Cleared active ${activeInspectorExamPeriod} exams schedule database payload.`, 'success');
+    showMossToast(`Wiped ${activeInspectorExamPeriod.toUpperCase()} schedule!`, "success");
+    
+    refreshLiveExamsInspector();
+  } catch (err) {
+    logTerminal(`Wipe failed: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+  }
+}
+
+// ==========================================================================
+// ROLE-BASED ACCESS CONTROL (RBAC) CONTROLLERS
+// ==========================================================================
+
+let currentUserProfile = { role: 'admin', name: 'System' };
+
+async function applyRolePermissions(user) {
+  currentUserProfile = { role: 'admin', name: 'System' };
+  
+  try {
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    if (userDoc.exists) {
+      const data = userDoc.data();
+      currentUserProfile.role = data.role || 'student';
+      currentUserProfile.name = data.name || user.email.split('@')[0];
+    } else {
+      // Default fallback for owner/main admin if doc not created yet
+      if (user.email === 'malikaurangzaibahmed@gmail.com') {
+        currentUserProfile.role = 'admin';
+        currentUserProfile.name = 'Owner Admin';
+      } else {
+        currentUserProfile.role = 'student'; // Fallback
+      }
+    }
+  } catch (err) {
+    console.error("Error reading user profile:", err);
+    logTerminal(`Error loading user role: ${err.message}`, 'error');
+  }
+
+  logTerminal(`User identity mapped: <strong>${currentUserProfile.name}</strong> as <strong>${currentUserProfile.role.toUpperCase()}</strong>.`, 'info');
+
+  // Load assignments if not main admin
+  let assignments = [];
+  try {
+    if (currentUserProfile.role !== 'admin') {
+      const snap = await db.collection('users').doc(user.uid).collection('assignments').get();
+      assignments = snap.docs.map(doc => doc.id); // Array of strings (e.g. batch or batch_course)
+    }
+  } catch (err) {
+    console.error("Error loading user assignments:", err);
+  }
+
+  // Adjust UI panel visibilities based on role
+  const isUserAdmin = currentUserProfile.role === 'admin';
+  const isCR = currentUserProfile.role === 'cr';
+  const isProf = currentUserProfile.role === 'professor';
+
+  // Toggle visible sections:
+  // 1. Column 1 (Term Scheduler, OTA Software Releases)
+  const col1Cards = document.querySelectorAll('.narrow-col .tech-card');
+  if (col1Cards.length >= 2) {
+    col1Cards[0].style.display = isUserAdmin ? 'block' : 'none'; // Term Scheduler
+    col1Cards[1].style.display = isUserAdmin ? 'block' : 'none'; // OTA Releases
+  }
+
+  // 2. Column 2 (Timetables/Exams, Rollback, Inspectors)
+  const tabBtnClasses = document.querySelector('[data-workspace-tab="classes"]');
+  const tabBtnExams = document.querySelector('[data-workspace-tab="exams"]');
+  
+  // Find timetable database seeder card and rollback card and inspectors
+  const timetableSeederCard = document.getElementById('timetable-dropzone') ? document.getElementById('timetable-dropzone').closest('.tech-card') : null;
+  const rollbackCard = document.getElementById('rollback-ledger-body') ? document.getElementById('rollback-ledger-body').closest('.tech-card') : null;
+  const inspectorClassesCard = document.getElementById('inspector-classes-body') ? document.getElementById('inspector-classes-body').closest('.tech-card') : null;
+  const examConverterCard = document.getElementById('exams-dropzone') ? document.getElementById('exams-dropzone').closest('.tech-card') : null;
+  const inspectorExamsCard = document.getElementById('inspector-exams-body') ? document.getElementById('inspector-exams-body').closest('.tech-card') : null;
+  
+  if (tabBtnClasses && tabBtnExams) {
+    tabBtnClasses.style.display = isUserAdmin ? 'flex' : 'none';
+    tabBtnExams.style.display = isUserAdmin ? 'flex' : 'none';
+  }
+  if (timetableSeederCard) timetableSeederCard.style.display = isUserAdmin ? 'block' : 'none';
+  if (rollbackCard) rollbackCard.style.display = isUserAdmin ? 'block' : 'none';
+  if (inspectorClassesCard) inspectorClassesCard.style.display = isUserAdmin ? 'block' : 'none';
+  if (examConverterCard) examConverterCard.style.display = isUserAdmin ? 'block' : 'none';
+  if (inspectorExamsCard) inspectorExamsCard.style.display = isUserAdmin ? 'block' : 'none';
+
+  // Target selectors config
+  const targetTypeSelect = document.getElementById('broadcast-target-type');
+  const targetDetailsRow = document.getElementById('target-details-row');
+  const targetBatchSelect = document.getElementById('broadcast-target-batch');
+  const targetCourseGroup = document.getElementById('target-course-group');
+  const targetCourseSelect = document.getElementById('broadcast-target-course');
+
+  // Reset dropdowns
+  targetTypeSelect.innerHTML = '';
+  targetBatchSelect.innerHTML = '<option value="">-- Choose Batch --</option>';
+  targetCourseSelect.innerHTML = '<option value="">-- Choose Course --</option>';
+
+  if (isUserAdmin) {
+    // Admin: access to all targets
+    targetTypeSelect.innerHTML = `
+      <option value="global">Global (All Students)</option>
+      <option value="batch">Specific Batch / Section</option>
+      <option value="course">Specific Course / Class</option>
+    `;
+    targetTypeSelect.disabled = false;
+    targetDetailsRow.style.display = 'none';
+    targetCourseGroup.style.display = 'none';
+    
+    // Load all unique batches and courses from active Daily Class timetable to populate dropdowns
+    populateAdminDropdowns();
+  } else if (isCR) {
+    // CR: restricted to batch-level announcements for assigned batches
+    targetTypeSelect.innerHTML = `
+      <option value="batch">Specific Batch / Section</option>
+    `;
+    targetTypeSelect.value = 'batch';
+    targetTypeSelect.disabled = true;
+    targetDetailsRow.style.display = 'flex';
+    targetCourseGroup.style.display = 'none';
+
+    // Populate batch dropdown with CR's assigned batches
+    assignments.forEach(batch => {
+      const opt = document.createElement('option');
+      opt.value = batch;
+      opt.innerText = batch;
+      targetBatchSelect.appendChild(opt);
+    });
+  } else if (isProf) {
+    // Professor: restricted to course-level announcements for assigned course+batch
+    targetTypeSelect.innerHTML = `
+      <option value="course">Specific Course / Class</option>
+    `;
+    targetTypeSelect.value = 'course';
+    targetTypeSelect.disabled = true;
+    targetDetailsRow.style.display = 'flex';
+    targetCourseGroup.style.display = 'block';
+
+    // Populate batch & course dropdowns from assignments (assignments are formatted as batch_course)
+    const uniqueBatches = new Set();
+    const parsedAssignments = assignments.map(a => {
+      const idx = a.indexOf('_');
+      if (idx !== -1) {
+        return { batch: a.substring(0, idx), course: a.substring(idx + 1) };
+      }
+      return null;
+    }).filter(Boolean);
+
+    parsedAssignments.forEach(a => uniqueBatches.add(a.batch));
+    uniqueBatches.forEach(batch => {
+      const opt = document.createElement('option');
+      opt.value = batch;
+      opt.innerText = batch;
+      targetBatchSelect.appendChild(opt);
+    });
+
+    targetBatchSelect.onchange = () => {
+      targetCourseSelect.innerHTML = '<option value="">-- Choose Course --</option>';
+      const selected = targetBatchSelect.value;
+      parsedAssignments.filter(a => a.batch === selected).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.course;
+        opt.innerText = a.course;
+        targetCourseSelect.appendChild(opt);
+      });
+    };
+  } else {
+    // Standard student (should not log in, but handle gracefully)
+    targetTypeSelect.innerHTML = `<option value="">Access Denied</option>`;
+    targetTypeSelect.disabled = true;
+    logTerminal('Warning: Student access mapped. Announcement broadcasting disabled.', 'warning');
+  }
+}
+
+async function populateAdminDropdowns() {
+  const targetBatchSelect = document.getElementById('broadcast-target-batch');
+  const targetCourseSelect = document.getElementById('broadcast-target-course');
+  if (!targetBatchSelect) return;
+
+  try {
+    const doc = await db.collection('config').doc('global').get();
+    if (doc.exists) {
+      const data = doc.data();
+      const rawTimetable = data.active_timetable_json || '[]';
+      const parsed = JSON.parse(rawTimetable);
+      const sessions = Array.isArray(parsed) ? parsed : [];
+      
+      const batches = new Set();
+      const coursesByBatch = {}; // { batch: Set(courses) }
+
+      sessions.forEach(s => {
+        const batch = (s.batch || s.class_name || s.section || '').toString().trim();
+        const course = (s.subject || s.course || s.title || '').toString().trim();
+        
+        if (batch) {
+          batches.add(batch);
+          if (!coursesByBatch[batch]) {
+            coursesByBatch[batch] = new Set();
+          }
+          if (course) {
+            coursesByBatch[batch].add(course);
+          }
+        }
+      });
+
+      // Populate batch selector
+      const sortedBatches = Array.from(batches).sort();
+      sortedBatches.forEach(batch => {
+        const opt = document.createElement('option');
+        opt.value = batch;
+        opt.innerText = batch;
+        targetBatchSelect.appendChild(opt);
+      });
+
+      // Dynamic course populating based on selected batch
+      targetBatchSelect.onchange = () => {
+        targetCourseSelect.innerHTML = '<option value="">-- Choose Course --</option>';
+        const selectedBatch = targetBatchSelect.value;
+        if (selectedBatch && coursesByBatch[selectedBatch]) {
+          const sortedCourses = Array.from(coursesByBatch[selectedBatch]).sort();
+          sortedCourses.forEach(course => {
+            const opt = document.createElement('option');
+            opt.value = course;
+            opt.innerText = course;
+            targetCourseSelect.appendChild(opt);
+          });
+        }
+      };
+    }
+  } catch (err) {
+    console.error("Error populating admin dropdowns:", err);
+  }
+}
+
+// Bind Target Type visibility toggle
+document.getElementById('broadcast-target-type').addEventListener('change', (e) => {
+  const type = e.target.value;
+  const detailsRow = document.getElementById('target-details-row');
+  const courseGroup = document.getElementById('target-course-group');
+
+  if (type === 'global') {
+    detailsRow.style.display = 'none';
+  } else if (type === 'batch') {
+    detailsRow.style.display = 'flex';
+    courseGroup.style.display = 'none';
+  } else if (type === 'course') {
+    detailsRow.style.display = 'flex';
+    courseGroup.style.display = 'block';
+  }
+});
+

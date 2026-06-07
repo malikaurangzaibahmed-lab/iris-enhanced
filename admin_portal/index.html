@@ -214,91 +214,274 @@
       <!-- COLUMN 2: TIMETABLE DATABASE LEDGER (Wide - Center Stage) -->
       <section class="grid-col wide-col">
         
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-database icon-accent"></i>
-            <h3>Timetable Database Seeder</h3>
-          </div>
-          <p class="card-desc">Import and stage academic timetable schemas. Drag and drop JSON payloads for preview.</p>
-          
-          <div class="timetable-ledger-deck">
-            <div class="dropzone-industrial" id="timetable-dropzone">
-              <input type="file" id="file-timetable" accept=".json" style="display: none;">
-              <i class="fa-solid fa-file-code drag-icon" style="color: var(--accent-indigo);"></i>
-              <p>DRAG NEW TIMETABLE JSON FILE OR <span class="browse-link">BROWSE</span></p>
-              <p class="file-info" id="timetable-file-info"></p>
+        <!-- WORKSPACE SEEDER TABS -->
+        <div class="workspace-tabs" style="display: flex; gap: 8px; margin-bottom: 4px; background: #e2e8f0; padding: 4px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+          <button class="tab-btn active" data-workspace-tab="classes" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: #ffffff; color: var(--accent-indigo); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <i class="fa-solid fa-calendar-days"></i> Daily Timetables
+          </button>
+          <button class="tab-btn" data-workspace-tab="exams" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
+            <i class="fa-solid fa-pen-clip"></i> Exam Schedules
+          </button>
+        </div>
+
+        <!-- TIMETABLE WORKSPACE TAB (CLASSES) -->
+        <div id="workspace-tab-classes" class="workspace-tab-pane active-pane">
+          <!-- CARD: TIMETABLE DATABASE SEEDER -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-database icon-accent"></i>
+              <h3>Timetable Database Seeder</h3>
             </div>
+            <p class="card-desc">Import and stage academic daily class timetables. Drag and drop daily class schedule PDFs or JSON files directly to preview and deploy them.</p>
             
-            <!-- Airport Departures inspected table -->
-            <div id="timetable-analytics" class="analytics-sheet" style="display: none; margin-bottom: 20px;">
-              <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Database Departures</span>
+            <div class="timetable-ledger-deck">
+              <div class="dropzone-industrial" id="timetable-dropzone">
+                <input type="file" id="file-timetable" accept=".json,.pdf" style="display: none;" multiple>
+                <i class="fa-solid fa-file-pdf drag-icon" style="color: var(--accent-indigo);"></i>
+                <p>DRAG TIMETABLE PDF(s) OR JSON FILE OR <span class="browse-link">BROWSE</span></p>
+                <p class="file-info" id="timetable-file-info"></p>
+              </div>
               
-              <div class="departure-ledger-container">
-                <table class="departure-ledger-table" id="timetable-preview-table">
-                  <thead>
-                    <tr>
-                      <th>Class ID</th>
-                      <th>Subject Title</th>
-                      <th>Interval time</th>
-                      <th>Instructor</th>
-                    </tr>
-                  </thead>
-                  <tbody id="timetable-preview-body">
-                    <!-- dynamic rows -->
-                  </tbody>
-                </table>
+              <!-- Staged Files list -->
+              <div id="staged-files-container" style="display: none; margin-bottom: 20px; background: rgba(0,0,0,0.015); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+                <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Timetable Files</span>
+                <ul id="staged-files-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                  <!-- dynamically populated staged files -->
+                </ul>
+                <button type="button" id="btn-clear-staged-files" class="btn btn-logout" style="margin-top: 10px; font-size: 9px; padding: 6px 12px; height: auto; text-transform: uppercase; font-family: var(--font-mono); font-weight: bold; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); color: var(--accent-rose);">
+                  <i class="fa-solid fa-trash-can" style="margin-right: 4px;"></i> Clear All Staged Files
+                </button>
               </div>
+              
+              <!-- Airport Departures inspected table -->
+              <div id="timetable-analytics" class="analytics-sheet" style="display: none; margin-bottom: 20px;">
+                <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Database Departures</span>
+                
+                <div class="departure-ledger-container">
+                  <table class="departure-ledger-table" id="timetable-preview-table">
+                    <thead>
+                      <tr>
+                        <th>Class ID</th>
+                        <th>Subject Title</th>
+                        <th>Interval time</th>
+                        <th>Instructor</th>
+                      </tr>
+                    </thead>
+                    <tbody id="timetable-preview-body">
+                      <!-- dynamic rows -->
+                    </tbody>
+                  </table>
+                </div>
 
-              <!-- Telemetry indicators -->
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
-                <div class="telemetry-box">
-                  <span>Sessions</span>
-                  <strong id="stat-sessions">0</strong>
+                <!-- Telemetry indicators -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
+                  <div class="telemetry-box">
+                    <span>Sessions</span>
+                    <strong id="stat-sessions">0</strong>
+                  </div>
+                  <div class="telemetry-box" style="border-color: rgba(79, 70, 229, 0.25);">
+                    <span>Courses</span>
+                    <strong id="stat-courses" style="color: var(--accent-indigo);">0</strong>
+                  </div>
+                  <div class="telemetry-box">
+                    <span>Labs</span>
+                    <strong id="stat-labs">0</strong>
+                  </div>
                 </div>
-                <div class="telemetry-box" style="border-color: rgba(79, 70, 229, 0.25);">
-                  <span>Courses</span>
-                  <strong id="stat-courses" style="color: var(--accent-indigo);">0</strong>
+              </div>
+              
+              <button id="btn-deploy-timetable" class="btn btn-secondary btn-full" disabled>
+                <span>Commit Timetable Seed</span>
+                <i class="fa-solid fa-arrows-spin"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- CARD: TIMETABLE DATABASE ROLLBACK LEDGER -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-clock-rotate-left icon-accent"></i>
+              <h3>Rollback & History Ledger</h3>
+            </div>
+            <p class="card-desc">Review and redeploy historical timetable seeds. Restore active systems to safe previous states.</p>
+            
+            <div class="departure-ledger-container" style="max-height: 180px;">
+              <table class="departure-ledger-table">
+                <thead>
+                  <tr>
+                    <th>Version ID</th>
+                    <th>Staged Timestamp</th>
+                    <th>Total Classes</th>
+                    <th>Control Action</th>
+                  </tr>
+                </thead>
+                <tbody id="rollback-ledger-body">
+                  <!-- dynamic ledger rows will build here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CARD: LIVE CLASS TIMETABLE INSPECTOR -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-satellite-dish icon-accent"></i>
+              <h3>Live Timetable Inspector</h3>
+            </div>
+            <p class="card-desc">Inspect and search active daily classes currently synchronized on the live database.</p>
+            
+            <div class="inspector-controls" style="display: flex; gap: 12px; margin-bottom: 16px;">
+              <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                <i class="fa-solid fa-magnifying-glass input-icon" style="top: 21px;"></i>
+                <input type="text" id="inspector-classes-search" placeholder="Search by batch, subject, room, or teacher..." style="padding-left: 42px; height: 42px;">
+              </div>
+              <button id="btn-refresh-inspector-classes" class="btn btn-secondary" style="padding: 10px 16px; height: 42px;" title="Reload from Firestore">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+              <button id="btn-wipe-classes" class="btn btn-logout" style="padding: 10px 16px; font-size: 11px; white-space: nowrap; height: 42px;" title="Clear Active Class Timetable from Database">
+                <i class="fa-solid fa-trash-can"></i> WIPE LIVE
+              </button>
+            </div>
+            
+            <div class="departure-ledger-container" style="max-height: 250px;">
+              <table class="departure-ledger-table">
+                <thead>
+                  <tr>
+                    <th>Batch</th>
+                    <th>Day</th>
+                    <th>Time Slot</th>
+                    <th>Subject</th>
+                    <th>Instructor</th>
+                    <th>Venue</th>
+                  </tr>
+                </thead>
+                <tbody id="inspector-classes-body">
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No timetable loaded. Click refresh to query database.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXAM SCHEDULE WORKSPACE TAB (MIDS & FINALS) -->
+        <div id="workspace-tab-exams" class="workspace-tab-pane" style="display: none;">
+          <!-- CARD: DATE SHEET EXCEL-TO-JSON CONVERTER -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-file-excel icon-accent" style="color: #10b981;"></i>
+              <h3>Date Sheet Excel Converter</h3>
+            </div>
+            <p class="card-desc">Convert and upload Midterm/Final term date sheets. Drag & drop CUI Excel sheets to parse them instantly to JSON.</p>
+            
+            <div class="timetable-ledger-deck">
+              <div class="dropzone-industrial" id="exams-dropzone" style="border-color: rgba(16, 185, 129, 0.2);">
+                <input type="file" id="file-exams" accept=".xlsx" style="display: none;">
+                <i class="fa-solid fa-file-excel drag-icon" style="color: #10b981;"></i>
+                <p>DRAG DATE SHEET EXCEL (.xlsx) OR <span class="browse-link" style="color: #10b981;">BROWSE</span></p>
+                <p class="file-info" id="exams-file-info"></p>
+              </div>
+              
+              <!-- Preview and Action section -->
+              <div id="exams-analytics" class="analytics-sheet" style="display: none; margin-top: 20px; margin-bottom: 20px;">
+                <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Date Sheet Preview</span>
+                
+                <div class="departure-ledger-container" style="max-height: 250px;">
+                  <table class="departure-ledger-table" id="exams-preview-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Room</th>
+                        <th>Batch</th>
+                        <th>Subject</th>
+                      </tr>
+                    </thead>
+                    <tbody id="exams-preview-body">
+                      <!-- dynamic rows -->
+                    </tbody>
+                  </table>
                 </div>
-                <div class="telemetry-box">
-                  <span>Labs</span>
-                  <strong id="stat-labs">0</strong>
+                
+                <!-- Stat blocks -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
+                  <div class="telemetry-box" style="border-color: rgba(16, 185, 129, 0.25);">
+                    <span>Total Exam Slots</span>
+                    <strong id="exams-stat-total" style="color: #10b981;">0</strong>
+                  </div>
+                  <div class="telemetry-box">
+                    <span>Unique Batches</span>
+                    <strong id="exams-stat-batches">0</strong>
+                  </div>
+                  <div class="telemetry-box">
+                    <span>Unique Subjects</span>
+                    <strong id="exams-stat-subjects">0</strong>
+                  </div>
                 </div>
+              </div>
+              
+              <div style="display: flex; gap: 12px; margin-top: 16px;">
+                <button id="btn-deploy-midterms" class="btn btn-secondary btn-full" disabled style="border-color: rgba(245, 158, 11, 0.4); color: #d97706; flex: 1;">
+                  <span>Commit Midterms</span>
+                  <i class="fa-solid fa-pen-clip"></i>
+                </button>
+                <button id="btn-deploy-finals" class="btn btn-secondary btn-full" disabled style="border-color: rgba(244, 63, 94, 0.4); color: #f43f5e; flex: 1;">
+                  <span>Commit Finals</span>
+                  <i class="fa-solid fa-award"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD: LIVE EXAM SCHEDULE INSPECTOR -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-network-wired icon-accent" style="color: #f43f5e;"></i>
+              <h3>Live Exam Schedule Inspector</h3>
+            </div>
+            <p class="card-desc">Inspect, search, and clear active midterm or final exam entries currently synchronized on the live database.</p>
+            
+            <div class="inspector-controls" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+              <div style="display: flex; gap: 12px; width: 100%;">
+                <div class="ribbon-switcher" id="inspector-exam-period-switcher" style="flex: 1; margin-bottom: 0;">
+                  <div class="ribbon-segment active" data-inspector-period="midterms" style="padding: 8px 2px;"><i class="fa-solid fa-pen-clip"></i> MIDTERMS</div>
+                  <div class="ribbon-segment" data-inspector-period="finals" style="padding: 8px 2px;"><i class="fa-solid fa-award"></i> FINALS</div>
+                </div>
+                <button id="btn-refresh-inspector-exams" class="btn btn-secondary" style="padding: 10px 16px;" title="Reload from Firestore">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+              </div>
+              
+              <div style="display: flex; gap: 12px; width: 100%;">
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                  <i class="fa-solid fa-magnifying-glass input-icon" style="top: 21px;"></i>
+                  <input type="text" id="inspector-exams-search" placeholder="Search by batch, subject, room, or date..." style="padding-left: 42px; height: 42px;">
+                </div>
+                <button id="btn-wipe-exams" class="btn btn-logout" style="padding: 10px 16px; font-size: 11px; white-space: nowrap; height: 42px;" title="Clear Active Period Exams from Database">
+                  <i class="fa-solid fa-trash-can"></i> WIPE LIVE
+                </button>
               </div>
             </div>
             
-            <button id="btn-deploy-timetable" class="btn btn-secondary btn-full" disabled>
-              <span>Commit Timetable Seed</span>
-              <i class="fa-solid fa-arrows-spin"></i>
-            </button>
+            <div class="departure-ledger-container" style="max-height: 250px;">
+              <table class="departure-ledger-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Time Slot</th>
+                    <th>Room</th>
+                    <th>Batch</th>
+                    <th>Subject</th>
+                  </tr>
+                </thead>
+                <tbody id="inspector-exams-body">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No exams loaded. Click refresh to query database.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- CARD: TIMETABLE DATABASE ROLLBACK LEDGER -->
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-clock-rotate-left icon-accent"></i>
-            <h3>Rollback & History Ledger</h3>
-          </div>
-          <p class="card-desc">Review and redeploy historical timetable seeds. Restore active systems to safe previous states.</p>
-          
-          <div class="departure-ledger-container" style="max-height: 180px;">
-            <table class="departure-ledger-table">
-              <thead>
-                <tr>
-                  <th>Version ID</th>
-                  <th>Staged Timestamp</th>
-                  <th>Total Classes</th>
-                  <th>Control Action</th>
-                </tr>
-              </thead>
-              <tbody id="rollback-ledger-body">
-                <!-- dynamic ledger rows will build here -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- CARD: HEALTH & TELEMETRY -->
+        <!-- CARD: HEALTH & TELEMETRY (Always visible at the bottom) -->
         <div class="tech-card">
           <div class="card-header">
             <i class="fa-solid fa-chart-line icon-accent"></i>
@@ -362,6 +545,31 @@
               <input type="checkbox" id="broadcast-switch-visible">
               <span class="industrial-slider"></span>
             </label>
+          </div>
+
+          <!-- TARGET AUDIENCE SELECTORS FOR RBAC -->
+          <div class="input-group" id="target-type-group" style="margin-top: 12px; margin-bottom: 12px;">
+            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 6px;">Target Audience</span>
+            <select id="broadcast-target-type" class="terminal-dropdown" style="width: 100%; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-weight: 500; font-size: 11px;">
+              <option value="global">Global (All Students)</option>
+              <option value="batch">Specific Batch / Section</option>
+              <option value="course">Specific Course / Class</option>
+            </select>
+          </div>
+
+          <div class="input-row" id="target-details-row" style="display: none; gap: 8px; margin-bottom: 12px;">
+            <div class="input-group" id="target-batch-group" style="flex: 1; margin-bottom: 0;">
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 6px;">Target Batch</span>
+              <select id="broadcast-target-batch" class="terminal-dropdown" style="width: 100%; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-weight: 500; font-size: 11px;">
+                <option value="">-- Choose Batch --</option>
+              </select>
+            </div>
+            <div class="input-group" id="target-course-group" style="flex: 1; margin-bottom: 0; display: none;">
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 6px;">Target Course</span>
+              <select id="broadcast-target-course" class="terminal-dropdown" style="width: 100%; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-weight: 500; font-size: 11px;">
+                <option value="">-- Choose Course --</option>
+              </select>
+            </div>
           </div>
 
           <!-- Quick presetting channel badges -->
@@ -475,6 +683,16 @@
   "projectId": "iris-138ef"
 }' style="min-height: 120px; font-family: var(--font-mono); font-size: 11.5px;"></textarea>
       </div>
+
+      <div style="border-top: 1px dashed var(--border-subtle); margin-top: 16px; padding-top: 16px; margin-bottom: 20px;">
+        <h4 style="font-family: var(--font-display); font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--accent-indigo); margin-bottom: 12px; letter-spacing: 0.5px;">Cloudflare Push Notification Bridge</h4>
+        <div class="input-group" style="margin-bottom: 12px;">
+          <input type="text" id="fcm-worker-url" placeholder="Worker Bridge URL (e.g. https://iris-fcm-bridge.username.workers.dev)" style="font-family: var(--font-mono); font-size: 11px; height: 38px; width: 100%; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title);">
+        </div>
+        <div class="input-group" style="margin-bottom: 0;">
+          <input type="password" id="fcm-worker-token" placeholder="Worker Shared Auth Token" style="font-family: var(--font-mono); font-size: 11px; height: 38px; width: 100%; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title);">
+        </div>
+      </div>
       
       <div class="modal-actions">
         <button id="btn-save-config" class="btn btn-primary btn-full">Save & Re-handshake Credentials</button>
@@ -502,6 +720,15 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+  <!-- PDF.js Library for client-side PDF Parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+  </script>
+
+  <!-- SheetJS Library for client-side Excel Parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- Console Script -->
   <script src="app.js?v=1.0.9"></script>
