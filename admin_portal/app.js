@@ -486,12 +486,7 @@ function initializeFirebase(config) {
     db = firebase.firestore();
     storage = firebase.storage();
     
-    try {
-      db.enablePersistence().catch(() => {});
-    } catch (e) {
-      console.warn("Persistence initialization bypassed:", e);
-    }
-    
+
     isConnected = true;
     logTerminal('Credentials authenticated securely.', 'success');
     
