@@ -3213,7 +3213,7 @@ function renderUsersList() {
       <td style="font-weight: 600; color: var(--text-title);">${u.name}</td>
       <td style="font-family: var(--font-mono); font-size: 11px;">${u.email || '<span style="color: var(--text-muted);">No Email</span>'}</td>
       <td>
-        <span class="badge" style="background: ${u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : u.role === 'professor' ? 'rgba(59, 130, 246, 0.1)' : u.role === 'cr' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(0,0,0,0.05)'}; color: ${u.role === 'admin' ? 'var(--accent-rose)' : u.role === 'professor' ? 'var(--accent-indigo)' : '#059669' : 'var(--text-muted)'}; font-weight: bold; text-transform: uppercase;">
+        <span class="badge" style="background: ${u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : u.role === 'professor' ? 'rgba(59, 130, 246, 0.1)' : u.role === 'cr' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(0,0,0,0.05)'}; color: ${u.role === 'admin' ? 'var(--accent-rose)' : u.role === 'professor' ? 'var(--accent-indigo)' : u.role === 'cr' ? '#059669' : 'var(--text-muted)'}; font-weight: bold; text-transform: uppercase;">
           ${u.role}
         </span>
       </td>
