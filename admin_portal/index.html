@@ -222,6 +222,9 @@
           <button class="tab-btn" data-workspace-tab="exams" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
             <i class="fa-solid fa-pen-clip"></i> Exam Schedules
           </button>
+          <button class="tab-btn" id="tab-btn-users" data-workspace-tab="users" style="flex: 1; display: none; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
+            <i class="fa-solid fa-user-gear"></i> User Roles
+          </button>
         </div>
 
         <!-- TIMETABLE WORKSPACE TAB (CLASSES) -->
@@ -481,6 +484,48 @@
           </div>
         </div>
 
+        <!-- USER MANAGEMENT WORKSPACE TAB -->
+        <div id="workspace-tab-users" class="workspace-tab-pane" style="display: none;">
+          <!-- CARD: USER MANAGEMENT PANEL -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-users-gear icon-accent" style="color: var(--accent-indigo);"></i>
+              <h3>User Accounts & Roles</h3>
+            </div>
+            <p class="card-desc">Create, promote, and manage CR and Professor access profiles. Assign specific batches or courses to limit their broadcasting scope.</p>
+
+            <div class="inspector-controls" style="display: flex; gap: 12px; margin-bottom: 16px;">
+              <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                <i class="fa-solid fa-magnifying-glass input-icon" style="top: 21px;"></i>
+                <input type="text" id="inspector-users-search" placeholder="Search by name, email, or role..." style="padding-left: 42px; height: 42px; width: 100%; border-radius: 6px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title);">
+              </div>
+              <button id="btn-refresh-users" class="btn btn-secondary" style="padding: 10px 16px; height: 42px;" title="Reload Users">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+              <button id="btn-show-preauth-modal" class="btn btn-primary" style="padding: 10px 16px; height: 42px; white-space: nowrap;">
+                <i class="fa-solid fa-user-plus"></i> Pre-Authorize User
+              </button>
+            </div>
+
+            <div class="departure-ledger-container" style="max-height: 400px;">
+              <table class="departure-ledger-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Assignments</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading users list...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- CARD: HEALTH & TELEMETRY (Always visible at the bottom) -->
         <div class="tech-card">
           <div class="card-header">
@@ -696,6 +741,89 @@
       
       <div class="modal-actions">
         <button id="btn-save-config" class="btn btn-primary btn-full">Save & Re-handshake Credentials</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER ACCESS EDITOR MODAL -->
+  <div id="user-edit-modal" class="modal-overlay" style="display: none; z-index: 1100;">
+    <div class="tech-card modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="user-modal-title">User Access Profile</h3>
+        <button id="btn-close-user-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="modal-desc" id="user-modal-desc">Configure role hierarchy level and database scopes for this identity.</p>
+
+      <input type="hidden" id="user-edit-uid">
+
+      <div class="input-group" style="margin-bottom: 12px;">
+        <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 6px;">Email Address</span>
+        <input type="email" id="user-edit-email" placeholder="email@example.com" style="font-family: var(--font-mono); font-size: 11px; height: 38px; width: 100%; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title);">
+      </div>
+
+      <div class="input-group" style="margin-bottom: 12px;">
+        <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 6px;">Display Name</span>
+        <input type="text" id="user-edit-name" placeholder="John Doe" style="font-family: var(--font-display); font-size: 11px; height: 38px; width: 100%; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title);">
+      </div>
+
+      <div class="input-group" style="margin-bottom: 16px;">
+        <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 6px;">Access Role</span>
+        <select id="user-edit-role" class="terminal-dropdown" style="width: 100%; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-weight: 500; font-size: 11px;">
+          <option value="student">Student (Read-only)</option>
+          <option value="cr">Class Representative (CR)</option>
+          <option value="professor">Professor / Faculty</option>
+          <option value="admin">System Administrator</option>
+        </select>
+      </div>
+
+      <!-- Scoped Access Assignments Panel (Visible for CR and Prof) -->
+      <div id="user-assignments-panel" style="display: none; border-top: 1px dashed var(--border-subtle); margin-top: 16px; padding-top: 16px; margin-bottom: 16px;">
+        <h4 style="font-family: var(--font-display); font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--accent-indigo); margin-bottom: 12px; letter-spacing: 0.5px;">Scope Assignments</h4>
+        
+        <!-- CR Access Selector -->
+        <div id="cr-assign-section" style="display: none; margin-bottom: 12px;">
+          <div style="display: flex; gap: 8px;">
+            <select id="user-assign-cr-batch" class="terminal-dropdown" style="flex: 1; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-size: 11px;">
+              <option value="">-- Select Batch --</option>
+            </select>
+            <button id="btn-add-cr-assignment" class="btn btn-secondary" style="height: 38px; font-size: 11px; padding: 0 12px;"><i class="fa-solid fa-plus"></i> Add Scope</button>
+          </div>
+        </div>
+
+        <!-- Professor Access Selector -->
+        <div id="prof-assign-section" style="display: none; margin-bottom: 12px;">
+          <!-- Suggest from timetable row -->
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <select id="user-assign-prof-teacher" class="terminal-dropdown" style="flex: 1; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-size: 11px;">
+              <option value="">-- Map to Timetable Teacher --</option>
+            </select>
+            <button id="btn-suggest-prof-assignments" class="btn btn-secondary" style="height: 38px; font-size: 10px; padding: 0 8px; white-space: nowrap;"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Fill Scopes</button>
+          </div>
+
+          <!-- Manual Assign Row -->
+          <div style="display: flex; gap: 8px;">
+            <select id="user-assign-prof-batch" class="terminal-dropdown" style="flex: 1; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-size: 11px;">
+              <option value="">-- Batch --</option>
+            </select>
+            <select id="user-assign-prof-course" class="terminal-dropdown" style="flex: 1; height: 38px; border-radius: 6px; padding: 0 10px; background: #ffffff; border: 1px solid var(--border-subtle); color: var(--text-title); font-family: var(--font-display); font-size: 11px;">
+              <option value="">-- Course --</option>
+            </select>
+            <button id="btn-add-prof-assignment" class="btn btn-secondary" style="height: 38px; font-size: 11px; padding: 0 12px;"><i class="fa-solid fa-plus"></i></button>
+          </div>
+        </div>
+
+        <!-- Active Scopes Ledger -->
+        <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-top: 12px; margin-bottom: 6px;">Active Access Scopes</span>
+        <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.01);">
+          <ul id="user-edit-assignments-list" style="list-style: none; padding: 0; margin: 0; width: 100%;">
+            <!-- dynamically added scopes -->
+            <li style="padding: 8px 12px; text-align: center; color: var(--text-muted); font-size: 11px;">No active scopes assigned.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-save-user-profile" class="btn btn-primary btn-full">Save Access Profile & Permissions</button>
       </div>
     </div>
   </div>

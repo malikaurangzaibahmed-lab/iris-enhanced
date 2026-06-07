@@ -106,6 +106,35 @@ let selectedApkFile = null;
 let parsedExams = [];
 let stagedTimetablePayload = null;
 
+// User Roles Management Bindings
+const tabBtnUsers = document.getElementById('tab-btn-users');
+const userEditModal = document.getElementById('user-edit-modal');
+const btnCloseUserModal = document.getElementById('btn-close-user-modal');
+const btnSaveUserProfile = document.getElementById('btn-save-user-profile');
+const usersTableBody = document.getElementById('users-table-body');
+const btnRefreshUsers = document.getElementById('btn-refresh-users');
+const btnShowPreauthModal = document.getElementById('btn-show-preauth-modal');
+const inspectorUsersSearch = document.getElementById('inspector-users-search');
+
+const userEditUid = document.getElementById('user-edit-uid');
+const userEditEmail = document.getElementById('user-edit-email');
+const userEditName = document.getElementById('user-edit-name');
+const userEditRole = document.getElementById('user-edit-role');
+const userAssignmentsPanel = document.getElementById('user-assignments-panel');
+const crAssignSection = document.getElementById('cr-assign-section');
+const profAssignSection = document.getElementById('prof-assign-section');
+const userAssignCrBatch = document.getElementById('user-assign-cr-batch');
+const userAssignProfTeacher = document.getElementById('user-assign-prof-teacher');
+const userAssignProfBatch = document.getElementById('user-assign-prof-batch');
+const userAssignProfCourse = document.getElementById('user-assign-prof-course');
+const btnAddCrAssignment = document.getElementById('btn-add-cr-assignment');
+const btnSuggestProfAssignments = document.getElementById('btn-suggest-prof-assignments');
+const btnAddProfAssignment = document.getElementById('btn-add-prof-assignment');
+const userEditAssignmentsList = document.getElementById('user-edit-assignments-list');
+
+let activeUsersList = [];
+let activeUserAssignments = []; // Local assignments array buffer for user currently being edited
+
 // Initialize Interface Scripts
 document.addEventListener('DOMContentLoaded', () => {
   setupTerminalControls();
@@ -237,9 +266,22 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshLiveClassesInspector();
       } else if (targetTab === 'exams') {
         refreshLiveExamsInspector();
+      } else if (targetTab === 'users') {
+        refreshUsersList();
       }
     });
   });
+
+  // User Management Event Listeners
+  if (btnRefreshUsers) btnRefreshUsers.addEventListener('click', refreshUsersList);
+  if (inspectorUsersSearch) inspectorUsersSearch.addEventListener('input', renderUsersList);
+  if (btnShowPreauthModal) btnShowPreauthModal.addEventListener('click', () => openUserEditModal(null));
+  if (btnCloseUserModal) btnCloseUserModal.addEventListener('click', () => { userEditModal.style.display = 'none'; });
+  if (userEditRole) userEditRole.addEventListener('change', handleUserRoleChangeUI);
+  if (btnAddCrAssignment) btnAddCrAssignment.addEventListener('click', addCRAssignmentUI);
+  if (btnSuggestProfAssignments) btnSuggestProfAssignments.addEventListener('click', suggestProfessorAssignmentsUI);
+  if (btnAddProfAssignment) btnAddProfAssignment.addEventListener('click', addProfAssignmentUI);
+  if (btnSaveUserProfile) btnSaveUserProfile.addEventListener('click', saveUserProfile);
 
   // Live Inspector Search Listeners
   const classesSearch = document.getElementById('inspector-classes-search');
@@ -2818,10 +2860,45 @@ async function wipeLiveExams() {
 let currentUserProfile = { role: 'admin', name: 'System' };
 
 async function applyRolePermissions(user) {
-  currentUserProfile = { role: 'admin', name: 'System' };
+  currentUserProfile = { role: 'student', name: 'System' };
   
   try {
-    const userDoc = await db.collection('users').doc(user.uid).get();
+    let userDoc = await db.collection('users').doc(user.uid).get();
+    
+    // First-time login: check if pre-authorized by email (using email as doc ID)
+    if (!userDoc.exists && user.email) {
+      logTerminal(`Profile checking: Checking pre-authorization for email <strong>${user.email}</strong>...`, 'info');
+      const emailDocRef = db.collection('users').doc(user.email.toLowerCase().trim());
+      const emailDoc = await emailDocRef.get();
+      
+      if (emailDoc.exists) {
+        logTerminal(`Pre-authorization match! Porting permissions for <strong>${user.email}</strong>...`, 'success');
+        const preAuthData = emailDoc.data();
+        
+        // Write profile to actual UID document
+        await db.collection('users').doc(user.uid).set({
+          email: user.email.toLowerCase().trim(),
+          name: preAuthData.name || user.email.split('@')[0],
+          role: preAuthData.role || 'student',
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Copy assignments from the subcollection
+        const assignmentsSnap = await emailDocRef.collection('assignments').get();
+        for (const doc of assignmentsSnap.docs) {
+          await db.collection('users').doc(user.uid).collection('assignments').doc(doc.id).set(doc.data());
+          await emailDocRef.collection('assignments').doc(doc.id).delete();
+        }
+        
+        // Delete the temporary email-indexed placeholder doc
+        await emailDocRef.delete();
+        logTerminal(`Access permissions successfully ported to session profile. Handshake complete.`, 'success');
+        
+        // Fetch the newly created profile doc
+        userDoc = await db.collection('users').doc(user.uid).get();
+      }
+    }
+    
     if (userDoc.exists) {
       const data = userDoc.data();
       currentUserProfile.role = data.role || 'student';
@@ -2831,6 +2908,13 @@ async function applyRolePermissions(user) {
       if (user.email === 'malikaurangzaibahmed@gmail.com') {
         currentUserProfile.role = 'admin';
         currentUserProfile.name = 'Owner Admin';
+        // Auto-create document to prevent checks next time
+        await db.collection('users').doc(user.uid).set({
+          email: user.email,
+          name: 'Owner Admin',
+          role: 'admin',
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
       } else {
         currentUserProfile.role = 'student'; // Fallback
       }
@@ -2880,6 +2964,9 @@ async function applyRolePermissions(user) {
   if (tabBtnClasses && tabBtnExams) {
     tabBtnClasses.style.display = isUserAdmin ? 'flex' : 'none';
     tabBtnExams.style.display = isUserAdmin ? 'flex' : 'none';
+  }
+  if (tabBtnUsers) {
+    tabBtnUsers.style.display = isUserAdmin ? 'flex' : 'none';
   }
   if (timetableSeederCard) timetableSeederCard.style.display = isUserAdmin ? 'block' : 'none';
   if (rollbackCard) rollbackCard.style.display = isUserAdmin ? 'block' : 'none';
@@ -3051,4 +3138,379 @@ document.getElementById('broadcast-target-type').addEventListener('change', (e) 
     courseGroup.style.display = 'block';
   }
 });
+
+
+// ==========================================================================
+// USER ACCESS MANAGEMENT CONTROLLER (RBAC DASHBOARD)
+// ==========================================================================
+
+async function refreshUsersList() {
+  if (!isConnected || !db) return;
+  logTerminal('Querying user access profiles from database...', 'info');
+
+  try {
+    const usersSnap = await db.collection('users').get();
+    const list = [];
+
+    for (const doc of usersSnap.docs) {
+      const data = doc.data();
+      const userId = doc.id;
+      
+      // Load assignments for this user
+      const assignSnap = await db.collection('users').doc(userId).collection('assignments').get();
+      const assignments = assignSnap.docs.map(d => d.id);
+
+      list.push({
+        uid: userId,
+        email: data.email || (userId.includes('@') ? userId : ''), // If pre-auth email doc
+        name: data.name || 'Anonymous User',
+        role: data.role || 'student',
+        assignments: assignments
+      });
+    }
+
+    activeUsersList = list;
+    renderUsersList();
+    logTerminal(`Successfully loaded <strong>${list.length}</strong> access profiles.`, 'success');
+  } catch (err) {
+    logTerminal(`Error loading user profiles: ${err.message}`, 'error');
+    console.error(err);
+  }
+}
+
+function renderUsersList() {
+  if (!usersTableBody) return;
+  usersTableBody.innerHTML = '';
+
+  const searchVal = inspectorUsersSearch ? inspectorUsersSearch.value.toLowerCase().trim() : '';
+
+  const filtered = activeUsersList.filter(u => {
+    if (!searchVal) return true;
+    return u.name.toLowerCase().includes(searchVal) ||
+           u.email.toLowerCase().includes(searchVal) ||
+           u.role.toLowerCase().includes(searchVal) ||
+           u.assignments.some(a => a.toLowerCase().includes(searchVal));
+  });
+
+  if (filtered.length === 0) {
+    usersTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No user profiles found.</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(u => {
+    const tr = document.createElement('tr');
+    
+    // Format assignments nicely
+    let assignsText = '--';
+    if (u.assignments && u.assignments.length > 0) {
+      assignsText = u.assignments.map(a => {
+        const idx = a.indexOf('_');
+        if (idx !== -1) {
+          // professor mapping format: Batch: Course
+          return `<span class="badge" style="background: rgba(59, 130, 246, 0.1); color: var(--accent-indigo); margin: 2px; display: inline-block;">${a.substring(0, idx)} (${a.substring(idx + 1)})</span>`;
+        }
+        // cr batch format
+        return `<span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #059669; margin: 2px; display: inline-block;">${a}</span>`;
+      }).join(' ');
+    }
+
+    tr.innerHTML = `
+      <td style="font-weight: 600; color: var(--text-title);">${u.name}</td>
+      <td style="font-family: var(--font-mono); font-size: 11px;">${u.email || '<span style="color: var(--text-muted);">No Email</span>'}</td>
+      <td>
+        <span class="badge" style="background: ${u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : u.role === 'professor' ? 'rgba(59, 130, 246, 0.1)' : u.role === 'cr' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(0,0,0,0.05)'}; color: ${u.role === 'admin' ? 'var(--accent-rose)' : u.role === 'professor' ? 'var(--accent-indigo)' : '#059669' : 'var(--text-muted)'}; font-weight: bold; text-transform: uppercase;">
+          ${u.role}
+        </span>
+      </td>
+      <td>${assignsText}</td>
+      <td>
+        <button type="button" class="btn btn-secondary btn-small" onclick="openUserEditModal('${u.uid}')" style="padding: 6px 12px; font-size: 11px;">
+          <i class="fa-solid fa-user-pen"></i> Edit Scopes
+        </button>
+      </td>
+    `;
+    usersTableBody.appendChild(tr);
+  });
+}
+
+async function openUserEditModal(uid) {
+  if (!userEditModal) return;
+
+  // Clear modal fields
+  userEditUid.value = '';
+  userEditEmail.value = '';
+  userEditName.value = '';
+  userEditRole.value = 'student';
+  activeUserAssignments = [];
+  
+  userEditEmail.disabled = false;
+  
+  // Populate dropdowns from active timetable
+  await populateModalDropdowns();
+
+  if (!uid) {
+    // Pre-Authorize User Mode
+    document.getElementById('user-modal-title').innerText = 'Pre-Authorize Access Profile';
+    document.getElementById('user-modal-desc').innerText = 'Enter details and credentials below. Access rights will activate when the user signs in with this email.';
+  } else {
+    // Edit User Mode
+    document.getElementById('user-modal-title').innerText = 'User Access Profile';
+    document.getElementById('user-modal-desc').innerText = 'Configure role hierarchy levels and scopes assigned to this profile.';
+    
+    const user = activeUsersList.find(u => u.uid === uid);
+    if (user) {
+      userEditUid.value = user.uid;
+      userEditEmail.value = user.email;
+      userEditName.value = user.name;
+      userEditRole.value = user.role;
+      activeUserAssignments = [...user.assignments];
+      
+      // If editing existing user, lock the email field to maintain index
+      if (!user.uid.includes('@')) {
+        userEditEmail.disabled = true;
+      }
+    }
+  }
+
+  handleUserRoleChangeUI();
+  renderModalAssignmentsList();
+  
+  userEditModal.style.display = 'flex';
+}
+
+async function populateModalDropdowns() {
+  if (!userAssignCrBatch || !userAssignProfBatch || !userAssignProfCourse || !userAssignProfTeacher) return;
+
+  userAssignCrBatch.innerHTML = '<option value="">-- Select Batch --</option>';
+  userAssignProfBatch.innerHTML = '<option value="">-- Batch --</option>';
+  userAssignProfCourse.innerHTML = '<option value="">-- Course --</option>';
+  userAssignProfTeacher.innerHTML = '<option value="">-- Map to Timetable Teacher --</option>';
+
+  const sessions = await getTimetableSessions();
+  const batches = new Set();
+  const courses = new Set();
+  const teachers = new Set();
+
+  sessions.forEach(s => {
+    const batch = (s.batch || s.class_name || s.section || '').toString().trim();
+    const course = (s.subject || s.course || s.title || '').toString().trim();
+    const teacher = (s.teacher || s.instructor || '').toString().trim();
+
+    if (batch) batches.add(batch);
+    if (course) courses.add(course);
+    if (teacher && teacher !== 'Unknown' && teacher !== 'TBD') teachers.add(teacher);
+  });
+
+  // Populate Batch lists
+  Array.from(batches).sort().forEach(b => {
+    const opt1 = document.createElement('option');
+    opt1.value = b;
+    opt1.innerText = b;
+    userAssignCrBatch.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = b;
+    opt2.innerText = b;
+    userAssignProfBatch.appendChild(opt2);
+  });
+
+  // Populate Course list
+  Array.from(courses).sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.innerText = c;
+    userAssignProfCourse.appendChild(opt);
+  });
+
+  // Populate Teacher list
+  Array.from(teachers).sort().forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.innerText = t;
+    userAssignProfTeacher.appendChild(opt);
+  });
+}
+
+async function getTimetableSessions() {
+  try {
+    const doc = await db.collection('config').doc('global').get();
+    if (doc.exists) {
+      const data = doc.data();
+      const raw = data.active_timetable_json || '[]';
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error("Error loading active timetable json:", e);
+  }
+  return [];
+}
+
+function handleUserRoleChangeUI() {
+  const role = userEditRole.value;
+  if (role === 'cr' || role === 'professor') {
+    userAssignmentsPanel.style.display = 'block';
+    crAssignSection.style.display = role === 'cr' ? 'block' : 'none';
+    profAssignSection.style.display = role === 'professor' ? 'block' : 'none';
+  } else {
+    userAssignmentsPanel.style.display = 'none';
+  }
+}
+
+function renderModalAssignmentsList() {
+  if (!userEditAssignmentsList) return;
+  userEditAssignmentsList.innerHTML = '';
+
+  if (activeUserAssignments.length === 0) {
+    userEditAssignmentsList.innerHTML = `<li style="padding: 8px 12px; text-align: center; color: var(--text-muted); font-size: 11px;">No active scopes assigned.</li>`;
+    return;
+  }
+
+  activeUserAssignments.forEach((a, idx) => {
+    const li = document.createElement('li');
+    li.style.display = 'flex';
+    li.style.justify = 'space-between';
+    li.style.alignItems = 'center';
+    li.style.padding = '6px 12px';
+    li.style.borderBottom = '1px solid var(--border-subtle)';
+    li.style.fontSize = '11px';
+
+    const cleanLabel = a.includes('_') ? a.replace('_', ' // Course: ') : `Batch: ${a}`;
+
+    li.innerHTML = `
+      <span style="font-family: var(--font-mono); color: var(--text-title);">${cleanLabel}</span>
+      <button type="button" class="btn btn-logout" onclick="removeModalAssignment(${idx})" style="padding: 2px 6px; font-size: 9px; height: auto; border-color: rgba(239, 68, 68, 0.15); color: var(--accent-rose); background: rgba(239, 68, 68, 0.02);">
+        <i class="fa-solid fa-xmark"></i> Remove
+      </button>
+    `;
+    userEditAssignmentsList.appendChild(li);
+  });
+}
+
+function removeModalAssignment(idx) {
+  activeUserAssignments.splice(idx, 1);
+  renderModalAssignmentsList();
+}
+
+function addCRAssignmentUI() {
+  const batch = userAssignCrBatch.value;
+  if (!batch) {
+    showMossToast('Please select a batch scope.', 'warning');
+    return;
+  }
+  if (activeUserAssignments.includes(batch)) {
+    showMossToast('Scope already assigned.', 'warning');
+    return;
+  }
+  activeUserAssignments.push(batch);
+  renderModalAssignmentsList();
+}
+
+function addProfAssignmentUI() {
+  const batch = userAssignProfBatch.value;
+  const course = userAssignProfCourse.value;
+  if (!batch || !course) {
+    showMossToast('Please select both batch and course scopes.', 'warning');
+    return;
+  }
+  const assignmentId = `${batch}_${course}`;
+  if (activeUserAssignments.includes(assignmentId)) {
+    showMossToast('Scope already assigned.', 'warning');
+    return;
+  }
+  activeUserAssignments.push(assignmentId);
+  renderModalAssignmentsList();
+}
+
+async function suggestProfessorAssignmentsUI() {
+  const teacher = userAssignProfTeacher.value;
+  if (!teacher) {
+    showMossToast('Please select a teacher name.', 'warning');
+    return;
+  }
+
+  logTerminal(`Scraping timetable schedule for teacher <strong>${teacher}</strong>...`, 'info');
+  const sessions = await getTimetableSessions();
+  let matches = 0;
+
+  sessions.forEach(s => {
+    const sTeacher = (s.teacher || s.instructor || '').toString().trim();
+    if (sTeacher.toLowerCase() === teacher.toLowerCase()) {
+      const batch = (s.batch || s.class_name || s.section || '').toString().trim();
+      const course = (s.subject || s.course || s.title || '').toString().trim();
+      
+      if (batch && course) {
+        const assignmentId = `${batch}_${course}`;
+        if (!activeUserAssignments.includes(assignmentId)) {
+          activeUserAssignments.push(assignmentId);
+          matches++;
+        }
+      }
+    }
+  });
+
+  renderModalAssignmentsList();
+  if (matches > 0) {
+    showMossToast(`Auto-assigned ${matches} scopes based on schedule!`, 'success');
+    logTerminal(`Auto-fill complete: Registered <strong>${matches}</strong> timetabled schedules to professor profile.`, 'success');
+  } else {
+    showMossToast('No active courses found in timetable for this teacher.', 'warning');
+    logTerminal('Auto-fill complete: No matches found in active daily timetable ledger.', 'warning');
+  }
+}
+
+async function saveUserProfile() {
+  const uid = userEditUid.value;
+  const email = userEditEmail.value.trim().toLowerCase();
+  const name = userEditName.value.trim();
+  const role = userEditRole.value;
+
+  if (!email || !name) {
+    showMossToast('Email and Display Name parameters are required.', 'warning');
+    return;
+  }
+
+  btnSaveUserProfile.disabled = true;
+  btnSaveUserProfile.innerText = 'SAVING ACCESS PROFILE...';
+
+  try {
+    // If pre-authorizing new user, document ID is their email
+    const docId = uid || email;
+
+    // 1. Update Profile info
+    const profileRef = db.collection('users').doc(docId);
+    await profileRef.set({
+      email: email,
+      name: name,
+      role: role,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    // 2. Sync Scope Assignments
+    const currentAssignmentsSnap = await profileRef.collection('assignments').get();
+    
+    // Delete existing scopes
+    for (const doc of currentAssignmentsSnap.docs) {
+      await profileRef.collection('assignments').doc(doc.id).delete();
+    }
+
+    // Write new scopes
+    for (const scope of activeUserAssignments) {
+      await profileRef.collection('assignments').doc(scope).set({
+        assigned_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    logTerminal(`Successfully saved profile & scopes for <strong>${name}</strong> (${role}).`, 'success');
+    showMossToast('Profile saved successfully!', 'success');
+    
+    userEditModal.style.display = 'none';
+    refreshUsersList();
+  } catch (err) {
+    logTerminal(`Failed to save access profile: ${err.message}`, 'error');
+    showMossToast(`Error: ${err.message}`, 'error');
+  } finally {
+    btnSaveUserProfile.disabled = false;
+    btnSaveUserProfile.innerText = 'Save Access Profile & Permissions';
+  }
+}
 
