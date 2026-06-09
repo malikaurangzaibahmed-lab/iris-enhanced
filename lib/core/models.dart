@@ -15,6 +15,34 @@ class BatchKey {
     required this.intake,
   });
 
+  int get dynamicSemester => calculateSemester(intake);
+
+  static int calculateSemester(String intake, {DateTime? now}) {
+    final current = now ?? DateTime.now();
+    if (intake.length < 4) return 1;
+    final term = intake.substring(0, 2).toUpperCase();
+    final yearSuffix = intake.substring(2, 4);
+    final yearShort = int.tryParse(yearSuffix);
+    if (yearShort == null) return 1;
+    final intakeYear = 2000 + yearShort;
+
+    final currentYear = current.year;
+    final currentMonth = current.month;
+
+    int intakeIndex = intakeYear * 2;
+    if (term == 'FA') {
+      intakeIndex += 1;
+    }
+
+    int currentIndex = currentYear * 2;
+    if (currentMonth >= 8) {
+      currentIndex += 1;
+    }
+
+    final sem = currentIndex - intakeIndex + 1;
+    return sem.clamp(1, 8);
+  }
+
   factory BatchKey.parse(String batch) {
     final parts = batch.split('-');
     if (parts.length < 3) {
