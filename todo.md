@@ -10,12 +10,12 @@ This file tracks outstanding engineering and visual tasks throughout the Iris co
 - [ ] **Nav Bar Color & Polish**:
   - Overhaul the bottom navigation bar with a floating liquid-glass container.
   - Apply custom chromatic color borders, indicator glow rings, and micro-scale transition animations for tab states.
-- [ ] **Environmental Atmosphere & Nature-Inspired Physics**:
-  - Integrate ambient weather/time-of-day dynamic background shifts (simulated daylight, twilight, nature-like elements).
-  - Implement natural physical behaviors (wind ripples, gravity bounces, fluid sloshing driven by device gyroscope).
-- [ ] **Responsive Beings & Objects**:
-  - Add responsive background particle entities ("beings") that react to touch (gather at cursor/tap, scatter on impact, float organically like fireflies).
-  - Polish interactive objects (cards, buttons, icons) to react with weight, friction, inertia, and elastic boundary-springs.
+- [ ] **Environmental Atmosphere & Nature-Inspired Physics (Headers Only)**:
+  - Integrate ambient weather/time-of-day dynamic shifts (simulated daylight, twilight, nature-like elements) inside top header cards.
+  - Implement natural physical behaviors (wind ripples, gravity bounces, fluid sloshing driven by device gyroscope) applied specifically to header structures.
+- [ ] **Responsive Beings & Objects inside Headers**:
+  - Add responsive particle entities ("beings") within dashboard headers that react to touch (gathering at touch coordinates, scattering on click, floating organically like fireflies).
+  - Polish header cards ("objects") to respond with physical weights, friction, inertia, and elastic boundary-springs.
 - [ ] **Dynamic Glowing Text Borders**: Implement animating gradient color strips that grow and expand around text input fields when focused and active.
 - [ ] **3D Onboarding Screens**: Rebuild onboarding with depth-parallax sliding layers, device screenshots, and perspective tilts.
 - [ ] **System-Wide Liquid Glass Widgets**:

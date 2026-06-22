@@ -91,8 +91,8 @@ class DashboardDock extends StatefulWidget {
                   builder: (context, constraints) {
                     return Listener(
                       behavior: HitTestBehavior.translucent,
-                      onPointerDown: (event) => state.beginTracking(event.localPosition, constraints.maxWidth, itemCount, selectedIndex),
-                      onPointerMove: (event) => state.updateTracking(event.localPosition, constraints.maxWidth, itemCount),
+                      onPointerDown: (event) => state.beginTracking(event.localPosition, constraints.maxWidth, navHeight, itemCount, selectedIndex),
+                      onPointerMove: (event) => state.updateTracking(event.localPosition, constraints.maxWidth, navHeight, itemCount),
                       onPointerUp: (_) => state.endTracking(context, itemCount),
                       onPointerCancel: (_) => state.cancelTracking(),
                       child: Padding(
@@ -104,7 +104,7 @@ class DashboardDock extends StatefulWidget {
                               duration: state.isDragging
                                   ? Duration.zero
                                   : const Duration(milliseconds: 250),
-                              curve: Curves.easeOutCubic,
+                              curve: IrisMotion.spring,
                               top: 4,
                               bottom: 4,
                               left: state.interactionPosition(itemCount, selectedIndex) *
@@ -116,14 +116,33 @@ class DashboardDock extends StatefulWidget {
                                   color: activeColor.withValues(alpha: isDark ? 0.15 : 0.08),
                                   borderRadius: BorderRadius.circular(radius - 4),
                                   border: Border.all(
-                                    color: activeColor.withValues(alpha: isDark ? 0.35 : 0.20),
-                                    width: 1.0,
+                                    color: activeColor.withValues(alpha: isDark ? 0.45 : 0.25),
+                                    width: 1.2,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
+                                      color: activeColor.withValues(alpha: isDark ? 0.35 : 0.15),
                                       blurRadius: 10,
-                                      offset: const Offset(0, 2),
+                                      spreadRadius: 1,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                    BoxShadow(
+                                      color: (showFacultySet ? IrisTokens.purple : IrisTokens.brand).withValues(alpha: isDark ? 0.25 : 0.12),
+                                      blurRadius: 20,
+                                      spreadRadius: -2,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                    BoxShadow(
+                                      color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.15),
+                                      blurRadius: 6,
+                                      spreadRadius: -1,
+                                      offset: const Offset(-2, 0),
+                                    ),
+                                    BoxShadow(
+                                      color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.20 : 0.10),
+                                      blurRadius: 6,
+                                      spreadRadius: -1,
+                                      offset: const Offset(2, 0),
                                     ),
                                   ],
                                 ),
@@ -171,12 +190,14 @@ class DashboardDock extends StatefulWidget {
                             onPointerDown: (event) => state.beginTracking(
                               event.localPosition,
                               constraints.maxWidth,
+                              navHeight,
                               itemCount,
                               selectedIndex,
                             ),
                             onPointerMove: (event) => state.updateTracking(
                               event.localPosition,
                               constraints.maxWidth,
+                              navHeight,
                               itemCount,
                             ),
                             onPointerUp: (_) => state.endTracking(
@@ -198,7 +219,7 @@ class DashboardDock extends StatefulWidget {
                                       duration: state.isDragging
                                           ? Duration.zero
                                           : const Duration(milliseconds: 250),
-                                      curve: Curves.easeOutCubic,
+                                      curve: IrisMotion.spring,
                                       top: 3,
                                       bottom: 3,
                                       left: state.interactionPosition(itemCount, selectedIndex) *
@@ -210,9 +231,26 @@ class DashboardDock extends StatefulWidget {
                                           color: activeColor.withValues(alpha: isDark ? 0.12 : 0.06),
                                           borderRadius: BorderRadius.circular(radius - 4),
                                           border: Border.all(
-                                            color: activeColor.withValues(alpha: isDark ? 0.25 : 0.14),
+                                            color: activeColor.withValues(alpha: isDark ? 0.35 : 0.18),
                                             width: 1.0,
                                           ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                            BoxShadow(
+                                              color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.20 : 0.10),
+                                              blurRadius: 4,
+                                              offset: const Offset(-1, 0),
+                                            ),
+                                            BoxShadow(
+                                              color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.15 : 0.08),
+                                              blurRadius: 4,
+                                              offset: const Offset(1, 0),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -270,12 +308,14 @@ class DashboardDock extends StatefulWidget {
                                 onPointerDown: (event) => state.beginTracking(
                                   event.localPosition,
                                   constraints.maxWidth,
+                                  navHeight,
                                   itemCount,
                                   selectedIndex,
                                 ),
                                 onPointerMove: (event) => state.updateTracking(
                                   event.localPosition,
                                   constraints.maxWidth,
+                                  navHeight,
                                   itemCount,
                                 ),
                                 onPointerUp: (_) => state.endTracking(
@@ -297,7 +337,7 @@ class DashboardDock extends StatefulWidget {
                                         duration: state.isDragging
                                             ? Duration.zero
                                             : const Duration(milliseconds: 250),
-                                        curve: Curves.easeOutCubic,
+                                        curve: IrisMotion.spring,
                                         top: 4,
                                         bottom: 4,
                                         left: state.interactionPosition(itemCount, selectedIndex) *
@@ -309,14 +349,33 @@ class DashboardDock extends StatefulWidget {
                                             color: activeColor.withValues(alpha: isDark ? 0.16 : 0.08),
                                             borderRadius: BorderRadius.circular(radius - 4),
                                             border: Border.all(
-                                              color: activeColor.withValues(alpha: isDark ? 0.35 : 0.18),
-                                              width: 1.0,
+                                              color: activeColor.withValues(alpha: isDark ? 0.45 : 0.25),
+                                              width: 1.2,
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
-                                                blurRadius: 12,
-                                                offset: const Offset(0, 3),
+                                                color: activeColor.withValues(alpha: isDark ? 0.35 : 0.15),
+                                                blurRadius: 10,
+                                                spreadRadius: 1,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                              BoxShadow(
+                                                color: (showFacultySet ? IrisTokens.purple : IrisTokens.brand).withValues(alpha: isDark ? 0.25 : 0.12),
+                                                blurRadius: 20,
+                                                spreadRadius: -2,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                              BoxShadow(
+                                                color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.15),
+                                                blurRadius: 6,
+                                                spreadRadius: -1,
+                                                offset: const Offset(-2, 0),
+                                              ),
+                                              BoxShadow(
+                                                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.20 : 0.10),
+                                                blurRadius: 6,
+                                                spreadRadius: -1,
+                                                offset: const Offset(2, 0),
                                               ),
                                             ],
                                           ),
@@ -342,10 +401,21 @@ class DashboardDock extends StatefulWidget {
       },
     );
 
-    if (state._internalVisibility == null) return dockContent;
+    final tiltedDock = AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.0012)
+        ..rotateX(state._tiltX)
+        ..rotateY(state._tiltY),
+      alignment: Alignment.center,
+      child: dockContent,
+    );
+
+    if (state._internalVisibility == null) return tiltedDock;
 
     return ValueListenableBuilder<double>(
-      valueListenable: state._internalVisibility,
+      valueListenable: state._internalVisibility!,
       builder: (context, v, child) {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 400),
@@ -359,7 +429,7 @@ class DashboardDock extends StatefulWidget {
           ),
         );
       },
-      child: dockContent,
+      child: tiltedDock,
     );
   }
 
@@ -426,6 +496,8 @@ class _DashboardDockState extends State<DashboardDock> {
   bool _hasMoved = false;
   late final ValueNotifier<double> _internalVisibility;
   double _lastOffset = 0;
+  double _tiltX = 0.0;
+  double _tiltY = 0.0;
 
   @override
   void initState() {
@@ -486,10 +558,11 @@ class _DashboardDockState extends State<DashboardDock> {
   void beginTracking(
     Offset localPosition,
     double width,
+    double height,
     int itemCount,
     int selectedIndex,
   ) {
-    if (width <= 0) return;
+    if (width <= 0 || height <= 0) return;
     setState(() {
       _isDragging = true;
       _hasMoved = false;
@@ -499,15 +572,21 @@ class _DashboardDockState extends State<DashboardDock> {
         itemCount - 1.0,
       );
       _dragPosition ??= selectedIndex.toDouble();
+
+      final centerX = width / 2;
+      final centerY = height / 2;
+      _tiltX = ((localPosition.dy - centerY) / centerY) * -0.06;
+      _tiltY = ((localPosition.dx - centerX) / centerX) * 0.06;
     });
   }
 
   void updateTracking(
     Offset localPosition,
     double width,
+    double height,
     int itemCount,
   ) {
-    if (!_isDragging || width <= 0) return;
+    if (!_isDragging || width <= 0 || height <= 0) return;
     setState(() {
       _hasMoved = true;
       final slotWidth = width / itemCount;
@@ -515,6 +594,11 @@ class _DashboardDockState extends State<DashboardDock> {
         0.0,
         itemCount - 1.0,
       );
+
+      final centerX = width / 2;
+      final centerY = height / 2;
+      _tiltX = ((localPosition.dy - centerY) / centerY) * -0.06;
+      _tiltY = ((localPosition.dx - centerX) / centerX) * 0.06;
     });
   }
 
@@ -531,6 +615,8 @@ class _DashboardDockState extends State<DashboardDock> {
       _isDragging = false;
       _dragPosition = null;
       _hasMoved = false;
+      _tiltX = 0.0;
+      _tiltY = 0.0;
     });
     IrisHaptics.chipSelect();
     _activateIndex(context, targetIndex);
@@ -542,6 +628,8 @@ class _DashboardDockState extends State<DashboardDock> {
       _isDragging = false;
       _dragPosition = null;
       _hasMoved = false;
+      _tiltX = 0.0;
+      _tiltY = 0.0;
     });
   }
 
