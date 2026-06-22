@@ -1,0 +1,5784 @@
+[
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "A - 3 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.1 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.2 (42)",
+    "batch": "FA24-BSE-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.3 (42)",
+    "batch": "FA24-BSE-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "A -  2.1 (42)",
+    "batch": "FA24-BSE-C",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "A - 2.2 (42)",
+    "batch": "FA24-BSE-C",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-BSE-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 2 (54)",
+    "batch": "FA25-BSE-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 3 (44)",
+    "batch": "FA25-BSE-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 4 (54)",
+    "batch": "FA25-BSE-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "FA23-BEE",
+    "subject": "Expository Writing-Report Writing Skills"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "FA22-BEE",
+    "subject": "Expository Writing-Report Writing Skills"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "SP23-BBC",
+    "subject": "Expository Writing-Report Writing Skills"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 5 (20)",
+    "batch": "FA23-BSM",
+    "subject": "Complex Analysis"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 6 (20)",
+    "batch": "FA24-BEN",
+    "subject": "Psycholinguistics"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 6 (20)",
+    "batch": "SP24-BEN",
+    "subject": "Psycholinguistics"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 7 (42)",
+    "batch": "FA24-CVE",
+    "subject": "Mechanics of Solids II"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 10 (20)",
+    "batch": "FA25-BEN",
+    "subject": "Report Writing Skills"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 10 (20)",
+    "batch": "SP25-BEN",
+    "subject": "Report Writing Skills"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 12 (42)",
+    "batch": "FA25-BME",
+    "subject": "Introduction to Engineering Management-Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 12 (42)",
+    "batch": "FA24-BME",
+    "subject": "Introduction to Engineering Management-Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 13 (42)",
+    "batch": "FA22-BME",
+    "subject": "Finite Element Analysis"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "B 14 (50)",
+    "batch": "FA25-BBA",
+    "subject": "Report Writing Skills"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 1 (49)",
+    "batch": "FA24-BCS-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 2 (24)",
+    "batch": "FA24-BCS-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 3 (24)",
+    "batch": "FA24-BCS-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 4 (49)",
+    "batch": "FA24-BCS-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 5 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.1 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.2 (24)",
+    "batch": "FA24-BCS-D",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.3 (49)",
+    "batch": "FA24-BCS-D",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.4 (49)",
+    "batch": "SP26-BHD",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.4 (49)",
+    "batch": "FA24-BCS-E",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.2 (24)",
+    "batch": "FA24-BCS-E",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.5 (49)",
+    "batch": "FA24-BCS-F",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.3 (24)",
+    "batch": "FA24-BCS-F",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D1 (42)",
+    "batch": "FA25-BCS-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D2 (42)",
+    "batch": "FA25-BCS-A",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D3 (42)",
+    "batch": "FA25-BCS-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D4 (36)",
+    "batch": "FA25-BCS-B",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D5 (48)",
+    "batch": "FA25-BCS-C",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D6 (48)",
+    "batch": "FA25-BCS-D",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D7 (48)",
+    "batch": "FA25-BCS-D",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D8 (48)",
+    "batch": "FA25-BCS-E",
+    "subject": "Expository Writing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "SP24-BTY",
+    "subject": "Health Biotechnology"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA23-BTY",
+    "subject": "Health Biotechnology"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "A - 3 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.1 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.2 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.3 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "A -  2.1 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "A - 2.2 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 1 (44)",
+    "batch": "FA23-BSE-A",
+    "subject": "Software Quality Engineering"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 2 (54)",
+    "batch": "FA23-BSE-A",
+    "subject": "Software Quality Engineering"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 3 (44)",
+    "batch": "FA23-BSE-B",
+    "subject": "Software Quality Engineering"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 4 (54)",
+    "batch": "FA23-BSE-B",
+    "subject": "Software Quality Engineering"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 3 (50)",
+    "batch": "FA23-BEN",
+    "subject": "Translation Studies"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 4 (20)",
+    "batch": "FA23-CVE",
+    "subject": "Indeterminate Structural Analysis"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 5 (20)",
+    "batch": "FA25-BEE",
+    "subject": "Electric Circuits Analysis II"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 8 (20)",
+    "batch": "FA24-BMD",
+    "subject": "Ordinary Differential Equations"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 12 (42)",
+    "batch": "SP23-BEN",
+    "subject": "Literary Stylistics"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 12 (42)",
+    "batch": "FA22-BEN",
+    "subject": "Literary Stylistics"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 13 (42)",
+    "batch": "FA23-BME",
+    "subject": "Computer Aided Design and Manufacturing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 14 (50)",
+    "batch": "SP25-BBA",
+    "subject": "Fundamentals of Philosophy"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "B 14 (50)",
+    "batch": "SP24-BBA",
+    "subject": "Fundamentals of Philosophy"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 1 (49)",
+    "batch": "FA25-FSN",
+    "subject": "Tools for Quantitative Reasoning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 2 (24)",
+    "batch": "FA25-BTY",
+    "subject": "Tools for Quantitative Reasoning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 3 (24)",
+    "batch": "FA23-BME",
+    "subject": "Engineering Management and Economics"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 4 (49)",
+    "batch": "FA25-BCE",
+    "subject": "Linear Circuit Analysis"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 5 (49)",
+    "batch": "FA25-CVE",
+    "subject": "Quantitative Reasoning-II"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.1 (49)",
+    "batch": "FA22-BCS-A",
+    "subject": "E-Commerce and Digital Marketing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.2 (24)",
+    "batch": "FA22-BCS-A",
+    "subject": "E-Commerce and Digital Marketing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.3 (49)",
+    "batch": "FA22-BCS-B",
+    "subject": "E-Commerce and Digital Marketing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.4 (49)",
+    "batch": "FA22-BCS-C",
+    "subject": "E-Commerce and Digital Marketing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.2 (24)",
+    "batch": "FA22-BCS-C",
+    "subject": "E-Commerce and Digital Marketing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.5 (49)",
+    "batch": "FA22-BCS-D",
+    "subject": "E-Commerce and Digital Marketing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.3 (24)",
+    "batch": "FA22-BCS-D",
+    "subject": "E-Commerce and Digital Marketing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D1 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D2 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D3 (42)",
+    "batch": "SP24-BCS-B",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D4 (36)",
+    "batch": "SP24-BCS-B",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D5 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D6 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D7 (48)",
+    "batch": "SP24-BSE-A",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D8 (48)",
+    "batch": "SP24-BSE-B",
+    "subject": "Operating Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "FA22-BEE",
+    "subject": "Neural Networks"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "A - 3 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "A - 1.1 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "A - 1.2 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "A - 1.3 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "A -  2.1 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "A - 2.2 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 1 (44)",
+    "batch": "SP25-BTY",
+    "subject": "Metabolism"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 1 (44)",
+    "batch": "FA24-BTY",
+    "subject": "Metabolism"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 3 (44)",
+    "batch": "FA23-BME",
+    "subject": "Heat Transfer"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 4 (54)",
+    "batch": "SP23-FSN",
+    "subject": "Food Toxicology and Safety-Poultry and Egg Processing"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 3 (50)",
+    "batch": "SP23-BSE",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 4 (20)",
+    "batch": "SP23-BSE",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 7 (42)",
+    "batch": "FA23-BBA",
+    "subject": "Corporate Governance"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 8 (20)",
+    "batch": "SP23-BBA",
+    "subject": "Corporate Governance"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 9 (20)",
+    "batch": "FA24-CVE",
+    "subject": "Advanced Surveying"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 12 (42)",
+    "batch": "FA25-BME",
+    "subject": "Engineering Statics"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 13 (42)",
+    "batch": "SP26-BEN",
+    "subject": "Introduction to English Poetry and Drama"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 13 (42)",
+    "batch": "FA25-BEN",
+    "subject": "Introduction to English Poetry and Drama"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "B 14 (50)",
+    "batch": "SP26-BBA",
+    "subject": "Introduction to Management"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 1 (49)",
+    "batch": "FA23-BCS-A",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 2 (24)",
+    "batch": "FA23-BCS-A",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 3 (24)",
+    "batch": "FA23-BCS-B",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 4 (49)",
+    "batch": "FA23-BCS-B",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.1 (49)",
+    "batch": "FA23-BCS-C",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.2 (24)",
+    "batch": "FA23-BCS-C",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.3 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.4 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-BCS-E",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.2 (24)",
+    "batch": "FA23-BCS-E",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-BCS-F",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.3 (24)",
+    "batch": "FA23-BCS-F",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "D1 (42)",
+    "batch": "FA22-CVE",
+    "subject": "Fundamentals of Disaster Management"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "D6 (48)",
+    "batch": "FA24-FSN",
+    "subject": "Techniques in Food Processing & Preservation"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "D7 (48)",
+    "batch": "SP24-FSN",
+    "subject": "Milk and Meat Hygiene and Public Health"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0100-0230",
+    "room": "D9 (36)",
+    "batch": "FA24-BEE",
+    "subject": "Signals and Systems"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "A - 3 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "A - 3 (42)",
+    "batch": "FA25-BCE",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.1 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.2 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.3 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "A -  2.1 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "A - 2.2 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "SP25-BSE-A",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 2 (54)",
+    "batch": "SP25-BSE-A",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 3 (44)",
+    "batch": "SP25-BSE-B",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 4 (54)",
+    "batch": "SP25-BSE-B",
+    "subject": "Calculus and Analytic Geometry"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 3 (50)",
+    "batch": "FA23-BEN",
+    "subject": "Discourse Analysis"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "SP26-RMS",
+    "subject": "Seminar in Management"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "FA25-RMS",
+    "subject": "Seminar in Management"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 10 (20)",
+    "batch": "FA25-REE",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 12 (42)",
+    "batch": "FA24-BBA",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 13 (42)",
+    "batch": "FA22-BBA",
+    "subject": "Project Management"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "FA25-BMD",
+    "subject": "Fundamentals of Philosophy"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "SP25-FSN",
+    "subject": "Fundamentals of Philosophy"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 1 (49)",
+    "batch": "FA22-BSE-A",
+    "subject": "Design Patterns"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 2 (24)",
+    "batch": "FA22-BSE-A",
+    "subject": "Design Patterns"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 4 (49)",
+    "batch": "FA22-BSE-B",
+    "subject": "Design Patterns"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "FA25-CVE",
+    "subject": "Engineering Geology"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "SP26-RCS",
+    "subject": "Advanced Programing Languages-CSC511-CSC634-PCS896"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "FA25-RCS",
+    "subject": "Advanced Programing Languages-CSC511-CSC634-PCS896"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "SP25-RCS",
+    "subject": "Advanced Programing Languages-CSC511-CSC634-PCS896"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "FA24-RCS",
+    "subject": "Advanced Programing Languages-CSC511-CSC634-PCS896"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "SP26-PCS",
+    "subject": "Advanced Programing Languages-CSC511-CSC634-PCS896"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Project Management-Drug Development"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-BBC",
+    "subject": "Project Management-Drug Development"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Project Management"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "SP26-RMT",
+    "subject": "Integral Inequalities-Symmetry Methods in Differential Equations"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "FA25-RMT",
+    "subject": "Integral Inequalities-Symmetry Methods in Differential Equations"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D3 (42)",
+    "batch": "SP26-RHD",
+    "subject": "Researh Methods in Human Nutrition"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D4 (36)",
+    "batch": "SP26-BTY",
+    "subject": "Introductory Molecular Biology"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D4 (36)",
+    "batch": "FA25-BTY",
+    "subject": "Introductory Molecular Biology"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D5 (48)",
+    "batch": "FA25-FSN",
+    "subject": "Fundamentals of Philosophy"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "SP26-RBS",
+    "subject": "Advances in Molecular Genetics-Biosafety and Biosecurity"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "FA25-RBS",
+    "subject": "Advances in Molecular Genetics-Biosafety and Biosecurity"
+  },
+  {
+    "date": "Monday 06-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "SP26-PMI",
+    "subject": "Advances in Molecular Genetics-Biosafety and Biosecurity"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "A - 3 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.1 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.2 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.3 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "A -  2.1 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "A - 2.2 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 1 (44)",
+    "batch": "FA23-BSE-A",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 2 (54)",
+    "batch": "FA23-BSE-A",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 3 (44)",
+    "batch": "FA23-BSE-B",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 4 (54)",
+    "batch": "FA23-BSE-B",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "SP26-BTY",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "FA25-BTY",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 5 (20)",
+    "batch": "FA25-BEE",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 6 (20)",
+    "batch": "SP26-BEN",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 6 (20)",
+    "batch": "SP25-BEN",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 7 (42)",
+    "batch": "FA23-BSM",
+    "subject": "Abstract Algebra"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 7 (42)",
+    "batch": "FA24-BMD",
+    "subject": "Abstract Algebra"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 8 (20)",
+    "batch": "FA24-CVE",
+    "subject": "Advanced Calculus"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 12 (42)",
+    "batch": "FA23-CVE",
+    "subject": "Engineering Hydrology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 12 (42)",
+    "batch": "FA22-CVE",
+    "subject": "Engineering Hydrology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 13 (42)",
+    "batch": "FA22-BME",
+    "subject": "Power Plants"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "B 14 (50)",
+    "batch": "SP26-BBA",
+    "subject": "Islamic Studies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 1 (49)",
+    "batch": "FA23-BCS-A",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 2 (24)",
+    "batch": "FA23-BCS-A",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 3 (24)",
+    "batch": "FA23-BCS-B",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 4 (49)",
+    "batch": "FA23-BCS-B",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.1 (49)",
+    "batch": "FA23-BCS-C",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.2 (24)",
+    "batch": "FA23-BCS-C",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.3 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.4 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-BCS-E",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.2 (24)",
+    "batch": "FA23-BCS-E",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-BCS-F",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.3 (24)",
+    "batch": "FA23-BCS-F",
+    "subject": "Advanced Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D1 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D2 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D3 (42)",
+    "batch": "SP24-BCS-B",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D4 (36)",
+    "batch": "SP24-BCS-B",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D5 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D6 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D7 (48)",
+    "batch": "SP24-BSE-A",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D8 (48)",
+    "batch": "SP24-BSE-B",
+    "subject": "Web Technologies"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA22-BEE",
+    "subject": "Digital Signal Processing"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA23-BEE",
+    "subject": "Digital Signal Processing"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "A - 3 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.1 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.2 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.3 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "A -  2.1 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "A - 2.2 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-BSE-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 2 (54)",
+    "batch": "FA25-BSE-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 3 (44)",
+    "batch": "FA25-BSE-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 4 (54)",
+    "batch": "FA25-BSE-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 3 (50)",
+    "batch": "SP24-BEN",
+    "subject": "Modern Poetry"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 3 (50)",
+    "batch": "FA23-BEN",
+    "subject": "Modern Poetry"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 5 (20)",
+    "batch": "FA25-BMD",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 5 (20)",
+    "batch": "FA21-CVE",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 7 (42)",
+    "batch": "SP23-BBA",
+    "subject": "Entrepreneurship-Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 7 (42)",
+    "batch": "FA24-BEN",
+    "subject": "Entrepreneurship-Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 12 (42)",
+    "batch": "SP23-BEN",
+    "subject": "Modern Drama"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 12 (42)",
+    "batch": "FA22-BEN",
+    "subject": "Modern Drama"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 13 (42)",
+    "batch": "FA25-BBA",
+    "subject": "Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 13 (42)",
+    "batch": "SP25-BBA",
+    "subject": "Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "B 14 (50)",
+    "batch": "FA25-BBA",
+    "subject": "Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 1 (49)",
+    "batch": "FA25-BCS-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 2 (24)",
+    "batch": "FA25-BCS-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 3 (24)",
+    "batch": "FA25-BCS-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 4 (49)",
+    "batch": "FA25-BCS-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 5 (49)",
+    "batch": "FA25-BCS-C",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.1 (49)",
+    "batch": "FA25-BCS-D",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.2 (24)",
+    "batch": "FA25-BCS-D",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.3 (49)",
+    "batch": "FA25-BCS-E",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.4 (49)",
+    "batch": "FA25-CVE",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Nutritional Counseling"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Nutritional Counseling"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D1 (42)",
+    "batch": "SP25-BSE-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D2 (42)",
+    "batch": "SP25-BSE-A",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D3 (42)",
+    "batch": "SP25-BSE-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D4 (36)",
+    "batch": "SP25-BSE-B",
+    "subject": "Software Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D5 (48)",
+    "batch": "SP26-BHD",
+    "subject": "Exploring Quantitative Skills"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D5 (48)",
+    "batch": "FA25-BTY",
+    "subject": "Exploring Quantitative Skills"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D6 (48)",
+    "batch": "FA25-FSN",
+    "subject": "Introduction to Food Chemistry"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D7 (48)",
+    "batch": "FA24-BEE",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D7 (48)",
+    "batch": "FA23-BEE",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D8 (48)",
+    "batch": "FA25-BCE",
+    "subject": "21st Century Communication Skills"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "FA23-BBC",
+    "subject": "Proteomics"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "SP23-BBC",
+    "subject": "Proteomics"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 1 (44)",
+    "batch": "SP25-BTY",
+    "subject": "Introduction to Plant Physiology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 1 (44)",
+    "batch": "FA24-BTY",
+    "subject": "Introduction to Plant Physiology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 3 (44)",
+    "batch": "FA25-BME",
+    "subject": "Programming Fundamentals-Statistics and Probability Theory\n\t\nStatistics and Probability Theory"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 3 (44)",
+    "batch": "FA24-BME",
+    "subject": "Programming Fundamentals-Statistics and Probability Theory\n\t\nStatistics and Probability Theory"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 3 (44)",
+    "batch": "FA22-BME",
+    "subject": "Programming Fundamentals-Statistics and Probability Theory\n\t\nStatistics and Probability Theory"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 4 (54)",
+    "batch": "SP23-FSN",
+    "subject": "New Product Development"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "B 3 (50)",
+    "batch": "SP23-BSE",
+    "subject": "Business Process Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "B 4 (20)",
+    "batch": "SP23-BSE",
+    "subject": "Business Process Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "B 7 (42)",
+    "batch": "FA23-BBA",
+    "subject": "E-Business"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "B 12 (42)",
+    "batch": "FA25-BEN",
+    "subject": "Language Teaching Approaches"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "B 12 (42)",
+    "batch": "SP25-BEN",
+    "subject": "Language Teaching Approaches"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "B 14 (50)",
+    "batch": "FA24-BBA",
+    "subject": "Research Tools and Techniques"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "B 14 (50)",
+    "batch": "SP24-BBA",
+    "subject": "Research Tools and Techniques"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 1 (49)",
+    "batch": "FA24-BCS-A",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 2 (24)",
+    "batch": "FA24-BCS-A",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 3 (24)",
+    "batch": "FA24-BCS-B",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 4 (49)",
+    "batch": "FA24-BCS-B",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 5 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.1 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.2 (24)",
+    "batch": "FA24-BCS-D",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.3 (49)",
+    "batch": "FA24-BCS-D",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.4 (49)",
+    "batch": "FA22-CVE",
+    "subject": "Irrigation Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.4 (49)",
+    "batch": "FA24-BCS-E",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.2 (24)",
+    "batch": "FA24-BCS-E",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.5 (49)",
+    "batch": "FA24-BCS-F",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.3 (24)",
+    "batch": "FA24-BCS-F",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D1 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D2 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D3 (42)",
+    "batch": "FA24-BSE-B",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D4 (36)",
+    "batch": "FA24-BSE-B",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D5 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D6 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Computer Networks"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D7 (48)",
+    "batch": "FA24-FSN",
+    "subject": "Confectionery and Snack Foods"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D8 (48)",
+    "batch": "SP25-FSN",
+    "subject": "Food Process Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D8 (48)",
+    "batch": "SP24-FSN",
+    "subject": "Food Process Engineering"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D9 (36)",
+    "batch": "SP24-BTY",
+    "subject": "Research Methods and Scientific Writing"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0100-0230",
+    "room": "D9 (36)",
+    "batch": "FA23-BTY",
+    "subject": "Research Methods and Scientific Writing"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "A - 3 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Human Computer Interaction"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.1 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Human Computer Interaction"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.2 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Human Computer Interaction"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.3 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Human Computer Interaction"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "A -  2.1 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Human Computer Interaction"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "A - 2.2 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Human Computer Interaction"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-BSE-A",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 2 (54)",
+    "batch": "FA25-BSE-A",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 3 (44)",
+    "batch": "FA25-BSE-B",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 4 (54)",
+    "batch": "FA25-BSE-B",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 3 (50)",
+    "batch": "FA22-BBA",
+    "subject": "Chinese"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 3 (50)",
+    "batch": "SP23-BBA",
+    "subject": "Chinese"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 4 (20)",
+    "batch": "FA23-CVE",
+    "subject": "Environmental Engineering I"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "SP26-RMS",
+    "subject": "Emerging Issues in Leadership and Motivation"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "FA25-RMS",
+    "subject": "Emerging Issues in Leadership and Motivation"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "SP26-BTY",
+    "subject": "Fundamentals of Biochemistry"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "FA25-BTY",
+    "subject": "Fundamentals of Biochemistry"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 10 (20)",
+    "batch": "FA25-REE",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 12 (42)",
+    "batch": "SP25-BBA",
+    "subject": "Cost and Management Accounting"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 13 (42)",
+    "batch": "FA23-BME",
+    "subject": "Instrumentation and Measurement"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "SP26-BBA",
+    "subject": "Introduction to Business"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 1 (49)",
+    "batch": "FA25-BCS-A",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 2 (24)",
+    "batch": "FA25-BCS-A",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 3 (24)",
+    "batch": "FA25-BCS-B",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 4 (49)",
+    "batch": "FA25-BCS-B",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "FA25-BCS-C",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "FA25-BCS-D",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.2 (24)",
+    "batch": "FA25-BCS-D",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.3 (49)",
+    "batch": "FA25-BCS-E",
+    "subject": "Pre-Calculus II"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.4 (49)",
+    "batch": "SP26-RCS",
+    "subject": "Advanced Data Mining"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.4 (49)",
+    "batch": "FA25-RCS-",
+    "subject": "Advanced Data Mining"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Nutritional Requirements at Different Ages"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Nutritional Requirements at Different Ages"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "SP26-RMT",
+    "subject": "Topology-Set Topology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "FA25-RMT",
+    "subject": "Topology-Set Topology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "FA23-BSM",
+    "subject": "Topology-Set Topology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D2 (42)",
+    "batch": "SP26-RHD",
+    "subject": "Recent Advances in Nutrition and Dietetics"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D5 (48)",
+    "batch": "SP26-BHD",
+    "subject": "Fundamentals of Biology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "SP26-RBS",
+    "subject": "Advances in Biochemistry-Advanced Topics in Virology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "FA25-RBS",
+    "subject": "Advances in Biochemistry-Advanced Topics in Virology"
+  },
+  {
+    "date": "Tuesday 07-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "SP26-PMI",
+    "subject": "Advances in Biochemistry-Advanced Topics in Virology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "A - 3 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.1 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.2 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.3 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "A -  2.1 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "A - 2.2 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 1 (44)",
+    "batch": "SP25-BSE-A",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 2 (54)",
+    "batch": "SP25-BSE-A",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 3 (44)",
+    "batch": "SP25-BSE-B",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 4 (54)",
+    "batch": "SP25-BSE-B",
+    "subject": "Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "FA25-BBA",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 4 (20)",
+    "batch": "FA23-BSM",
+    "subject": "Tensor Analysis"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 6 (20)",
+    "batch": "SP26-BEN",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 7 (42)",
+    "batch": "FA25-BMD",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 7 (42)",
+    "batch": "FA24-BMD",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 8 (20)",
+    "batch": "SP25-BBA",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 9 (20)",
+    "batch": "FA24-CVE",
+    "subject": "Advanced Fluid Mechanics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 9 (20)",
+    "batch": "FA22-CVE",
+    "subject": "Advanced Fluid Mechanics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 11 (20)",
+    "batch": "SP23-BBC",
+    "subject": "Pakistan Studies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 11 (20)",
+    "batch": "SP22-BCS",
+    "subject": "Pakistan Studies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 12 (42)",
+    "batch": "FA25-BME",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 13 (42)",
+    "batch": "SP23-BEN",
+    "subject": "Language and Identity-Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 13 (42)",
+    "batch": "FA25-BEN",
+    "subject": "Language and Identity-Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 14 (50)",
+    "batch": "FA23-BME",
+    "subject": "Pakistan Studies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "B 14 (50)",
+    "batch": "FA22-BEE",
+    "subject": "Pakistan Studies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 1 (49)",
+    "batch": "FA23-BCS-A",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 2 (24)",
+    "batch": "FA23-BCS-A",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 3 (24)",
+    "batch": "FA23-BCS-B",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 4 (49)",
+    "batch": "FA23-BCS-B",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 5 (49)",
+    "batch": "FA25-CVE",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.1 (49)",
+    "batch": "FA23-BCS-C",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.2 (24)",
+    "batch": "FA23-BCS-C",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.3 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.4 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-BCS-E",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.2 (24)",
+    "batch": "FA23-BCS-E",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-BCS-F",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.3 (24)",
+    "batch": "FA23-BCS-F",
+    "subject": "Advance Database Systems"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D1 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Software Requirement Engineering"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D2 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Software Requirement Engineering"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D3 (42)",
+    "batch": "FA24-BSE-B",
+    "subject": "Software Requirement Engineering"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D4 (36)",
+    "batch": "FA24-BSE-B",
+    "subject": "Software Requirement Engineering"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D5 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Software Requirement Engineering"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D6 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Software Requirement Engineering"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D7 (48)",
+    "batch": "SP25-FSN",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D7 (48)",
+    "batch": "SP25-BTY",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D8 (48)",
+    "batch": "FA25-BCE",
+    "subject": "Ideology and Constitution of Pakistan"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA24-BEE",
+    "subject": "Electronics II"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "A - 3 (42)",
+    "batch": "FA22-BME",
+    "subject": "IC Engines"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-BSE-A",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 2 (54)",
+    "batch": "FA25-BSE-A",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 3 (44)",
+    "batch": "FA25-BSE-B",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 4 (54)",
+    "batch": "FA25-BSE-B",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "B 3 (50)",
+    "batch": "FA24-BBA",
+    "subject": "Marketing Management in Digital Era"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "B 4 (20)",
+    "batch": "FA23-CVE",
+    "subject": "Reinforced Concrete Design I"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "B 8 (20)",
+    "batch": "SP23-BBA",
+    "subject": "International Relations-Fundamentals of International Relations"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "B 8 (20)",
+    "batch": "FA24-BEN",
+    "subject": "International Relations-Fundamentals of International Relations"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "B 12 (42)",
+    "batch": "SP24-BBA",
+    "subject": "Production and Operations Management"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "B 13 (42)",
+    "batch": "FA22-BBA",
+    "subject": "International Relations"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "B 14 (50)",
+    "batch": "SP26-BBA",
+    "subject": "Principles of Accounting"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 1 (49)",
+    "batch": "FA25-BCS-A",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 2 (24)",
+    "batch": "FA25-BCS-A",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 3 (24)",
+    "batch": "FA25-BCS-B",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 4 (49)",
+    "batch": "FA25-BCS-B",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 5 (49)",
+    "batch": "FA25-BCS-C",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.1 (49)",
+    "batch": "FA25-BCS-D",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.2 (24)",
+    "batch": "FA25-BCS-D",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.3 (49)",
+    "batch": "FA25-BCS-E",
+    "subject": "Applied Physics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.4 (49)",
+    "batch": "FA22-CVE",
+    "subject": "Construction Project Scheduling"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Sea Food Resources and Processing"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Sea Food Resources and Processing"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D1 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D2 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D3 (42)",
+    "batch": "SP24-BCS-B",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D4 (36)",
+    "batch": "SP24-BCS-B",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D5 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D6 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Statistics and Probability Theory"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D7 (48)",
+    "batch": "SP23-FSN",
+    "subject": "Processing of Fruits and Vegetables"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D8 (48)",
+    "batch": "SP25-FSN",
+    "subject": "Food Safety and Security"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D8 (48)",
+    "batch": "SP24-FSN",
+    "subject": "Food Safety and Security"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "FA24-BTY",
+    "subject": "Introduction to Immunology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "SP24-BTY",
+    "subject": "Introduction to Immunology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "A - 3 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "A - 1.1 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "A - 1.2 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "A - 1.3 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "A -  2.1 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "A - 2.2 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 1 (44)",
+    "batch": "FA23-BSE-A",
+    "subject": "Automated Software Testing"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 2 (54)",
+    "batch": "FA23-BSE-A",
+    "subject": "Automated Software Testing"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 3 (44)",
+    "batch": "FA23-BSE-B",
+    "subject": "Automated Software Testing"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "WCR 4 (54)",
+    "batch": "FA23-BSE-B",
+    "subject": "Automated Software Testing"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 3 (50)",
+    "batch": "SP24-BEN",
+    "subject": "Peace Studies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 3 (50)",
+    "batch": "FA23-BEN",
+    "subject": "Peace Studies"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 6 (20)",
+    "batch": "FA24-BMD",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 7 (42)",
+    "batch": "FA23-BBA",
+    "subject": "Global Business Management"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 8 (20)",
+    "batch": "FA25-BMD",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 12 (42)",
+    "batch": "FA25-BME",
+    "subject": "Engineering Drawing and Graphics-Thermodynamics \u2013 II"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 12 (42)",
+    "batch": "FA24-BME",
+    "subject": "Engineering Drawing and Graphics-Thermodynamics \u2013 II"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 14 (50)",
+    "batch": "FA23-BME",
+    "subject": "Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "B 14 (50)",
+    "batch": "FA23-CVE",
+    "subject": "Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 1 (49)",
+    "batch": "FA24-BCS-A",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 2 (24)",
+    "batch": "FA24-BCS-A",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 3 (24)",
+    "batch": "FA24-BCS-B",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 4 (49)",
+    "batch": "FA24-BCS-B",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 5 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.1 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.2 (24)",
+    "batch": "FA24-BCS-D",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 1.3 (49)",
+    "batch": "FA24-BCS-D",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.4 (49)",
+    "batch": "FA24-BCS-E",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.2 (24)",
+    "batch": "FA24-BCS-E",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.5 (49)",
+    "batch": "FA24-BCS-F",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "C 2.3 (24)",
+    "batch": "FA24-BCS-F",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D3 (42)",
+    "batch": "SP24-BSE-A",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D4 (36)",
+    "batch": "SP24-BSE-B",
+    "subject": "Multivariable Calculus"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D5 (48)",
+    "batch": "SP26-BHD",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D5 (48)",
+    "batch": "SP26-BTY",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D6 (48)",
+    "batch": "FA25-BTY",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D6 (48)",
+    "batch": "FA23-FSN",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D7 (48)",
+    "batch": "FA25-FSN",
+    "subject": "Principles of Human Nutrition"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D7 (48)",
+    "batch": "FA23-BBC",
+    "subject": "Principles of Human Nutrition"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D8 (48)",
+    "batch": "FA24-FSN",
+    "subject": "Functional and Nutraceutical Foods"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D9 (36)",
+    "batch": "FA23-BEE",
+    "subject": "Microprocessor Systems and Interfacing-Electric Circuits Analysis II"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0100-0230",
+    "room": "D9 (36)",
+    "batch": "FA22-BEE",
+    "subject": "Microprocessor Systems and Interfacing-Electric Circuits Analysis II"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "A - 3 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Compiler Construction"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.1 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Compiler Construction"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.2 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Compiler Construction"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.3 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Compiler Construction"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "A -  2.1 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Compiler Construction"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "A - 2.2 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Compiler Construction"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "FA23-BSE-A",
+    "subject": "Software Construction and Development"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 2 (54)",
+    "batch": "FA23-BSE-A",
+    "subject": "Software Construction and Development"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 3 (44)",
+    "batch": "FA23-BSE-B",
+    "subject": "Software Construction and Development"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 4 (54)",
+    "batch": "FA23-BSE-B",
+    "subject": "Software Construction and Development"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 3 (50)",
+    "batch": "FA22-BCS-B",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 4 (20)",
+    "batch": "FA23-BSM",
+    "subject": "Differential Geometry"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 5 (20)",
+    "batch": "SP25-BEN",
+    "subject": "Applied Grammar"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 5 (20)",
+    "batch": "FA24-BEN",
+    "subject": "Applied Grammar"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "SP26-RMS",
+    "subject": "Issues in Strategic Managemen"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "FA25-RMS",
+    "subject": "Issues in Strategic Managemen"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "FA22-BCS-A",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 8 (20)",
+    "batch": "FA22-BCS-A",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 10 (20)",
+    "batch": "FA25-REE",
+    "subject": "Power Transmission and Distribution"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 11 (20)",
+    "batch": "FA22-BCS-C",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 12 (42)",
+    "batch": "FA22-BCS-C",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 13 (42)",
+    "batch": "FA22-BME",
+    "subject": "Business Communication"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "FA22-BCS-D",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 1 (49)",
+    "batch": "SP26-BCS-A",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 2 (24)",
+    "batch": "SP26-BCS-A",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 3 (24)",
+    "batch": "SP26-BCS-B",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 4 (49)",
+    "batch": "SP26-BCS-B",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "FA25-CVE",
+    "subject": "Engineering Mechanics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "SP26-RCS",
+    "subject": "Advanced Formal Methods-CSC543-PCS821"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "FA25-RCS",
+    "subject": "Advanced Formal Methods-CSC543-PCS821"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "SP24-RCS",
+    "subject": "Advanced Formal Methods-CSC543-PCS821"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.3 (49)",
+    "batch": "SP26-BSE",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.4 (49)",
+    "batch": "SP26-BSE",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.5 (49)",
+    "batch": "SP23-BSE",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.3 (24)",
+    "batch": "SP23-BSE",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "SP26-PMT",
+    "subject": "Advanced Partial Differential Equations-Direct and Inverse Problems in Wave Propagation"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "SP26-RMT",
+    "subject": "Advanced Partial Differential Equations-Direct and Inverse Problems in Wave Propagation"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "FA25-RMT",
+    "subject": "Advanced Partial Differential Equations-Direct and Inverse Problems in Wave Propagation"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "SP25-RMT",
+    "subject": "Advanced Partial Differential Equations-Direct and Inverse Problems in Wave Propagation"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D2 (42)",
+    "batch": "FA22-BSE-A",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D3 (42)",
+    "batch": "FA22-BSE-A",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D4 (36)",
+    "batch": "FA22-BSE-B",
+    "subject": "Introduction to Psychology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D5 (48)",
+    "batch": "SP26-RHD",
+    "subject": "Applied Dietetics"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D7 (48)",
+    "batch": "SP26-RBS",
+    "subject": "Advances in Cell Biology-Cell Biology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D7 (48)",
+    "batch": "FA25-RBS",
+    "subject": "Advances in Cell Biology-Cell Biology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D7 (48)",
+    "batch": "FA23-BBC",
+    "subject": "Advances in Cell Biology-Cell Biology"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D8 (48)",
+    "batch": "FA25-BCE",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "SP24-BTY",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Wednesday 08-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "FA23-BTY",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "A - 3 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.1 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.2 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.3 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "A -  2.1 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "A - 2.2 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-CVE",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "FA22-BBA",
+    "subject": "Strategic Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "B 6 (20)",
+    "batch": "SP26-BEN",
+    "subject": "Introduction to Linguistics"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "B 8 (20)",
+    "batch": "SP25-BBA",
+    "subject": "Organizational Behavior"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "B 13 (42)",
+    "batch": "FA23-CVE",
+    "subject": "Introduction to Architecture and Town Planning"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "B 13 (42)",
+    "batch": "FA22-CVE",
+    "subject": "Introduction to Architecture and Town Planning"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "B 14 (50)",
+    "batch": "SP26-BBA",
+    "subject": "Fundamentals of Sociology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 1 (49)",
+    "batch": "FA24-BCS-A",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 2 (24)",
+    "batch": "FA24-BCS-A",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 3 (24)",
+    "batch": "FA24-BCS-B",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 4 (49)",
+    "batch": "FA24-BCS-B",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 5 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.1 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.2 (24)",
+    "batch": "FA24-BCS-D",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.3 (49)",
+    "batch": "FA24-BCS-D",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.4 (49)",
+    "batch": "FA24-BCS-E",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.2 (24)",
+    "batch": "FA24-BCS-E",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.5 (49)",
+    "batch": "FA24-BCS-F",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.3 (24)",
+    "batch": "FA24-BCS-F",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D1 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D2 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D3 (42)",
+    "batch": "FA24-BSE-B",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D4 (36)",
+    "batch": "FA24-BSE-B",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D5 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D6 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Fundamentals of Psychology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D8 (48)",
+    "batch": "SP26-BHD",
+    "subject": "Fundamentals of Sociology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D8 (48)",
+    "batch": "SP26-BTY",
+    "subject": "Fundamentals of Sociology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA25-BTY",
+    "subject": "Fundamentals of Sociology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "A - 3 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Fundamentals of Digital Logic Design-Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "A - 3 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Fundamentals of Digital Logic Design-Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.1 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.2 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.3 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "A -  2.1 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "A - 2.2 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 1 (44)",
+    "batch": "SP25-BSE-A",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 2 (54)",
+    "batch": "SP25-BSE-A",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 3 (44)",
+    "batch": "SP25-BSE-B",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 4 (54)",
+    "batch": "SP25-BSE-B",
+    "subject": "Fundamentals of Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 3 (50)",
+    "batch": "FA25-BBA",
+    "subject": "Financial Accounting"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 4 (20)",
+    "batch": "FA23-BSM",
+    "subject": "Numerical Solutions of Differential Equations"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 5 (20)",
+    "batch": "FA25-BEE",
+    "subject": "Digital Logic Design"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 6 (20)",
+    "batch": "FA25-BEN",
+    "subject": "Current Affairs"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 6 (20)",
+    "batch": "SP25-BEN",
+    "subject": "Current Affairs"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 8 (20)",
+    "batch": "FA25-BMD",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 9 (20)",
+    "batch": "FA24-CVE",
+    "subject": "Structural Analysis-II"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 12 (42)",
+    "batch": "FA24-BME",
+    "subject": "Mechanics of Materials II"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "B 14 (50)",
+    "batch": "FA24-BBA",
+    "subject": "Financial Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 1 (49)",
+    "batch": "FA25-BCS-A",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 2 (24)",
+    "batch": "FA25-BCS-A",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 3 (24)",
+    "batch": "FA25-BCS-B",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 4 (49)",
+    "batch": "FA25-BCS-B",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 5 (49)",
+    "batch": "FA25-BCS-C",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.1 (49)",
+    "batch": "FA25-BCS-D",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.2 (24)",
+    "batch": "FA25-BCS-D",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.3 (49)",
+    "batch": "FA25-BCS-E",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.4 (49)",
+    "batch": "FA22-CVE",
+    "subject": "Entrepreneurship"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.4 (49)",
+    "batch": "FA25-BSE-A",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.2 (24)",
+    "batch": "FA25-BSE-A",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.5 (49)",
+    "batch": "FA25-BSE-B",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.3 (24)",
+    "batch": "FA25-BSE-B",
+    "subject": "Object Oriented Programming"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D4 (36)",
+    "batch": "SP23-BBC",
+    "subject": "Methods in Molecular Biology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D5 (48)",
+    "batch": "FA23-BBC",
+    "subject": "Biotechnology-Industrial Biotechnology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D5 (48)",
+    "batch": "FA23-BTY",
+    "subject": "Biotechnology-Industrial Biotechnology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D6 (48)",
+    "batch": "SP23-FSN",
+    "subject": "Food Fermentation and Biotechnology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D7 (48)",
+    "batch": "FA24-FSN",
+    "subject": "Food Fermentation and Biotechnology"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D8 (48)",
+    "batch": "FA25-BCE",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "FA24-BEE",
+    "subject": "Electric Machines"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "FA23-BEE",
+    "subject": "Electric Machines"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "A - 3 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "A - 1.1 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "A - 1.2 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "A - 1.3 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "A -  2.1 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "A - 2.2 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "WCR 3 (44)",
+    "batch": "FA23-FSN",
+    "subject": "Nutrition in Emergency"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "WCR 4 (54)",
+    "batch": "FA23-FSN",
+    "subject": "Nutrition in Emergency"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "B 3 (50)",
+    "batch": "SP23-BSE",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "B 4 (20)",
+    "batch": "SP23-BSE",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "B 5 (20)",
+    "batch": "FA24-BEN",
+    "subject": "18th and 19th Century Novels"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "B 5 (20)",
+    "batch": "SP24-BEN",
+    "subject": "18th and 19th Century Novels"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "B 7 (42)",
+    "batch": "FA24-BMD",
+    "subject": "Machine Learning Fundamentals"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 1 (49)",
+    "batch": "FA24-BCS-A",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 2 (24)",
+    "batch": "FA24-BCS-A",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 3 (24)",
+    "batch": "FA24-BCS-B",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 4 (49)",
+    "batch": "FA24-BCS-B",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 5 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 1.1 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 1.2 (24)",
+    "batch": "FA24-BCS-D",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 1.3 (49)",
+    "batch": "FA24-BCS-D",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 2.4 (49)",
+    "batch": "FA24-BCS-E",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 2.2 (24)",
+    "batch": "FA24-BCS-E",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 2.5 (49)",
+    "batch": "FA24-BCS-F",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "C 2.3 (24)",
+    "batch": "FA24-BCS-F",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D1 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D2 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D3 (42)",
+    "batch": "FA24-BSE-B",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D4 (36)",
+    "batch": "FA24-BSE-B",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D5 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D6 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Information Security"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D7 (48)",
+    "batch": "SP24-FSN",
+    "subject": "Introduction to Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D8 (48)",
+    "batch": "FA25-FSN",
+    "subject": "Introduction to Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D9 (36)",
+    "batch": "SP25-BTY",
+    "subject": "Introduction to Bioinformatics"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0115-0245",
+    "room": "D9 (36)",
+    "batch": "FA24-BTY",
+    "subject": "Introduction to Bioinformatics"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "A - 3 (42)",
+    "batch": "FA25-BME",
+    "subject": "Linear Algebra and Differential Equations-"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.1 (42)",
+    "batch": "FA23-BME",
+    "subject": "Machine Learning"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.3 (42)",
+    "batch": "SP26-RHD",
+    "subject": "Therapeutic and Complementary Nutrition"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "A -  2.1 (42)",
+    "batch": "FA25-REE",
+    "subject": "Wireless Networks"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "A - 2.2 (42)",
+    "batch": "FA23-CVE",
+    "subject": "Civil Engineering Construction and Graphics"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "A - 2.2 (42)",
+    "batch": "FA22-CVE",
+    "subject": "Civil Engineering Construction and Graphics"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "FA23-BSE-A",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 2 (54)",
+    "batch": "FA23-BSE-A",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 3 (44)",
+    "batch": "FA23-BSE-B",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 4 (54)",
+    "batch": "FA23-BSE-B",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 3 (50)",
+    "batch": "FA23-BEN",
+    "subject": "Computer Assisted Language Learning"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 3 (50)",
+    "batch": "SP23-BEN",
+    "subject": "Computer Assisted Language Learning"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "FA23-BBA",
+    "subject": "Seminar in Marketing-Logistics Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 6 (20)",
+    "batch": "FA22-BBA",
+    "subject": "Seminar in Marketing-Logistics Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "SP24-BBA",
+    "subject": "Investment and Portfolio Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "FA23-BBA",
+    "subject": "Investment and Portfolio Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "SP23-BBA",
+    "subject": "Investment and Portfolio Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "FA22-BBA",
+    "subject": "Investment and Portfolio Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 10 (20)",
+    "batch": "SP26-RMS",
+    "subject": "Finance Theory & Practice"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 10 (20)",
+    "batch": "FA25-RMS",
+    "subject": "Finance Theory & Practice"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 12 (42)",
+    "batch": "SP23-BBA",
+    "subject": "Customer Relation Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 12 (42)",
+    "batch": "FA22-BBA",
+    "subject": "Customer Relation Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 12 (42)",
+    "batch": "SP22-BBA",
+    "subject": "Customer Relation Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 13 (42)",
+    "batch": "SP26-RMT",
+    "subject": "Viscous Fluids I"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 13 (42)",
+    "batch": "FA25-RMT",
+    "subject": "Viscous Fluids I"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "FA23-BBA",
+    "subject": "Crisis and Conflict Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "SP23-BBA",
+    "subject": "Crisis and Conflict Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "FA22-BBA",
+    "subject": "Crisis and Conflict Management"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 1 (49)",
+    "batch": "FA23-BCS-A",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 2 (24)",
+    "batch": "FA23-BCS-A",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 3 (24)",
+    "batch": "FA23-BCS-B",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 4 (49)",
+    "batch": "FA23-BCS-B",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "SP26-RCS",
+    "subject": "Advanced Operating Systems"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "FA25-RCS",
+    "subject": "Advanced Operating Systems"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "SP25-RCS",
+    "subject": "Advanced Operating Systems"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "SP26-PCS",
+    "subject": "Advanced Operating Systems"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "FA25-PCS",
+    "subject": "Advanced Operating Systems"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "FA23-BCS-C",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.2 (24)",
+    "batch": "FA23-BCS-C",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.3 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.4 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-BCS-E",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.2 (24)",
+    "batch": "FA23-BCS-E",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-BCS-F",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.3 (24)",
+    "batch": "FA23-BCS-F",
+    "subject": "Linear Algebra"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Computer Organization and Assembly Language"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D2 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Computer Organization and Assembly Language"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D3 (42)",
+    "batch": "SP24-BCS-B",
+    "subject": "Computer Organization and Assembly Language"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D4 (36)",
+    "batch": "SP24-BCS-B",
+    "subject": "Computer Organization and Assembly Language"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D5 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Computer Organization and Assembly Language"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D6 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Computer Organization and Assembly Language"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D7 (48)",
+    "batch": "SP24-BSE-A",
+    "subject": "Software Design and Architecture"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D8 (48)",
+    "batch": "SP24-BSE-B",
+    "subject": "Software Design and Architecture"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "SP26-RBS",
+    "subject": "Report Writing and Seminar-Seminar"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "FA25-RBS",
+    "subject": "Report Writing and Seminar-Seminar"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "SP26-PMI",
+    "subject": "Report Writing and Seminar-Seminar"
+  },
+  {
+    "date": "Thursday 09-04-2026",
+    "time": "0300-0430",
+    "room": "D9 (36)",
+    "batch": "FA25-PMI",
+    "subject": "Report Writing and Seminar-Seminar"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "A - 3 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.1 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.2 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "A - 1.3 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "A -  2.1 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "A - 2.2 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 1 (44)",
+    "batch": "SP25-BTY",
+    "subject": "Essentials of Enzymology"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 1 (44)",
+    "batch": "FA24-BTY",
+    "subject": "Essentials of Enzymology"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 2 (54)",
+    "batch": "SP24-BTY",
+    "subject": "Essentials of Enzymology"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 2 (54)",
+    "batch": "FA23-BTY",
+    "subject": "Essentials of Enzymology"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 3 (44)",
+    "batch": "SP25-FSN",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 3 (44)",
+    "batch": "SP24-FSN",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 3 (44)",
+    "batch": "SP25-BTY",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "WCR 4 (54)",
+    "batch": "SP23-FSN",
+    "subject": "Sugar and Beverage Technology"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 3 (50)",
+    "batch": "SP23-BSE",
+    "subject": "Software Project Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 4 (20)",
+    "batch": "SP23-BSE",
+    "subject": "Software Project Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 5 (20)",
+    "batch": "FA25-BEE",
+    "subject": "Programming Fundamentals"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 6 (20)",
+    "batch": "SP26-BEN",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 7 (42)",
+    "batch": "FA23-BME",
+    "subject": "Machine Design \u2013 II-Engineering Fluid Mechanics \u2013 I"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 7 (42)",
+    "batch": "FA24-BME",
+    "subject": "Machine Design \u2013 II-Engineering Fluid Mechanics \u2013 I"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 9 (20)",
+    "batch": "FA24-CVE",
+    "subject": "Introduction to Computer Programming"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 12 (42)",
+    "batch": "FA25-BME",
+    "subject": "Engineering Materials"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 12 (42)",
+    "batch": "FA22-BME",
+    "subject": "Engineering Materials"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 13 (42)",
+    "batch": "FA24-BBA",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "B 14 (50)",
+    "batch": "SP26-BBA",
+    "subject": "Functional English"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 1 (49)",
+    "batch": "FA24-BCS-A",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 2 (24)",
+    "batch": "FA24-BCS-A",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 3 (24)",
+    "batch": "FA24-BCS-B",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 4 (49)",
+    "batch": "FA24-BCS-B",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 5 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.1 (49)",
+    "batch": "FA24-BCS-C",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.2 (24)",
+    "batch": "FA24-BCS-D",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.3 (49)",
+    "batch": "FA24-BCS-D",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 1.4 (49)",
+    "batch": "FA25-CVE",
+    "subject": "Civics and Community Engagement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.4 (49)",
+    "batch": "FA24-BCS-E",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.2 (24)",
+    "batch": "FA24-BCS-E",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.5 (49)",
+    "batch": "FA24-BCS-F",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "C 2.3 (24)",
+    "batch": "FA24-BCS-F",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D1 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D2 (42)",
+    "batch": "FA24-BSE-A",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D3 (42)",
+    "batch": "FA24-BSE-B",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D4 (36)",
+    "batch": "FA24-BSE-B",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D5 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D6 (48)",
+    "batch": "FA24-BSE-C",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D7 (48)",
+    "batch": "FA22-BSE",
+    "subject": "Artificial Intelligence"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA24-BEE",
+    "subject": "Electromagnetic Theory"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA23-BEE",
+    "subject": "Electromagnetic Theory"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0900-1030",
+    "room": "D9 (36)",
+    "batch": "FA22-BEE",
+    "subject": "Electromagnetic Theory"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "A - 3 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.1 (42)",
+    "batch": "SP23-BCS-A",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.2 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "A - 1.3 (42)",
+    "batch": "SP23-BCS-B",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "A -  2.1 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "A - 2.2 (42)",
+    "batch": "SP23-BCS-C",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-BSE-A",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 2 (54)",
+    "batch": "FA25-BSE-A",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 3 (44)",
+    "batch": "FA25-BSE-B",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "WCR 4 (54)",
+    "batch": "FA25-BSE-B",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 3 (50)",
+    "batch": "FA22-BCS-B",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 5 (20)",
+    "batch": "FA25-BMD",
+    "subject": "Discrete Mathematics"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 7 (42)",
+    "batch": "FA22-BCS-A",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 8 (20)",
+    "batch": "FA22-BCS-A",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 9 (20)",
+    "batch": "FA23-CVE",
+    "subject": "Introduction to Entrepreneurship"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 11 (20)",
+    "batch": "FA22-BCS-C",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 12 (42)",
+    "batch": "FA22-BCS-C",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 13 (42)",
+    "batch": "SP23-BEN",
+    "subject": "Testing and Evaluation"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 13 (42)",
+    "batch": "FA22-BEN",
+    "subject": "Testing and Evaluation"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "B 14 (50)",
+    "batch": "FA22-BCS-D",
+    "subject": "Human Resource Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 1 (49)",
+    "batch": "FA25-BCS-A",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 2 (24)",
+    "batch": "FA25-BCS-A",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 3 (24)",
+    "batch": "FA25-BCS-B",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 4 (49)",
+    "batch": "FA25-BCS-B",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 5 (49)",
+    "batch": "FA25-BCS-C",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.1 (49)",
+    "batch": "FA25-BCS-D",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.2 (24)",
+    "batch": "FA25-BCS-D",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 1.3 (49)",
+    "batch": "FA25-BCS-E",
+    "subject": "Discrete Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Statistics and Probability Theory-Enzymology"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-BBC",
+    "subject": "Statistics and Probability Theory-Enzymology"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-FSN",
+    "subject": "Statistics and Probability Theory-Biosafety and Bioethics"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "C 2.5 (49)",
+    "batch": "SP23-BBC",
+    "subject": "Statistics and Probability Theory-Biosafety and Bioethics"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "1100-1230",
+    "room": "D9 (36)",
+    "batch": "FA22-BEE",
+    "subject": "Project Planning and Management"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "A - 3 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "A - 1.1 (42)",
+    "batch": "SP25-BCS-A",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "A - 1.2 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "A - 1.3 (42)",
+    "batch": "SP25-BCS-B",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "A -  2.1 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "A - 2.2 (42)",
+    "batch": "SP25-BCS-C",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "WCR 1 (44)",
+    "batch": "SP25-BSE-A",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "WCR 2 (54)",
+    "batch": "SP25-BSE-A",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "WCR 3 (44)",
+    "batch": "SP25-BSE-B",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "WCR 4 (54)",
+    "batch": "SP25-BSE-B",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 3 (50)",
+    "batch": "SP24-BEN",
+    "subject": "Tools and Techniques of Graphic Design"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 3 (50)",
+    "batch": "FA23-BEN",
+    "subject": "Tools and Techniques of Graphic Design"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 7 (42)",
+    "batch": "SP24-BBA",
+    "subject": "Advanced Management Accounting"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 7 (42)",
+    "batch": "FA23-BBA",
+    "subject": "Advanced Management Accounting"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 7 (42)",
+    "batch": "SP23-BBA",
+    "subject": "Advanced Management Accounting"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 9 (20)",
+    "batch": "FA24-BMD",
+    "subject": "Data Structures"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 12 (42)",
+    "batch": "FA23-BBA",
+    "subject": "Strategic Marketing"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 12 (42)",
+    "batch": "SP23-BBA",
+    "subject": "Strategic Marketing"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 12 (42)",
+    "batch": "FA22-BBA",
+    "subject": "Strategic Marketing"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 13 (42)",
+    "batch": "FA23-BBA",
+    "subject": "Seminar in Human Resource Manctgement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 13 (42)",
+    "batch": "SP23-BBA",
+    "subject": "Seminar in Human Resource Manctgement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 13 (42)",
+    "batch": "FA22-BBA",
+    "subject": "Seminar in Human Resource Manctgement"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 14 (50)",
+    "batch": "FA25-BBA",
+    "subject": "Fundamentals of Marketing-Inter-organizational Behavior"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "B 14 (50)",
+    "batch": "FA22-BBA",
+    "subject": "Fundamentals of Marketing-Inter-organizational Behavior"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D1 (42)",
+    "batch": "FA23-BSE-A",
+    "subject": "Design and Analysis of Algorithms"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D2 (42)",
+    "batch": "FA23-BSE-A",
+    "subject": "Design and Analysis of Algorithms"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D3 (42)",
+    "batch": "FA23-BSE-B",
+    "subject": "Design and Analysis of Algorithms"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D4 (36)",
+    "batch": "FA23-BSE-B",
+    "subject": "Design and Analysis of Algorithms"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D6 (48)",
+    "batch": "FA24-FSN",
+    "subject": "Cereal Science"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D7 (48)",
+    "batch": "SP26-BHD",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D7 (48)",
+    "batch": "SP26-BTY",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D8 (48)",
+    "batch": "FA25-FSN",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0115-0245",
+    "room": "D9 (36)",
+    "batch": "FA23-BEE",
+    "subject": "Applications of Information and Communication Technologies"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "A - 3 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Pre-Calculus I"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.1 (42)",
+    "batch": "SP26-BCS-A",
+    "subject": "Pre-Calculus I"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.2 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Pre-Calculus I"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "A - 1.3 (42)",
+    "batch": "SP26-BCS-B",
+    "subject": "Pre-Calculus I"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "A -  2.1 (42)",
+    "batch": "SP26-BSE",
+    "subject": "Pre-Calculus I"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-BCE",
+    "subject": "Introduction to Chemistry"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-BME",
+    "subject": "Introduction to Chemistry"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "FA23-BME",
+    "subject": "Introduction to Chemistry"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 1 (44)",
+    "batch": "FA25-CVE",
+    "subject": "Introduction to Chemistry"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "WCR 4 (54)",
+    "batch": "SP23-FSN",
+    "subject": "Food Microbiology-"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 3 (50)",
+    "batch": "FA22-BSE-A",
+    "subject": "Fundamentals of Marketing"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 4 (20)",
+    "batch": "FA22-BSE-A",
+    "subject": "Fundamentals of Marketing"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 5 (20)",
+    "batch": "FA23-BSM",
+    "subject": "Fluid Mechanics"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "SP26-BEN",
+    "subject": "Exploring Quantitative Skills"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 7 (42)",
+    "batch": "FA25-BEN",
+    "subject": "Exploring Quantitative Skills"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 8 (20)",
+    "batch": "SP25-BBA",
+    "subject": "Programming Language for Business Analytics"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 12 (42)",
+    "batch": "SP25-FSN",
+    "subject": "Food Analysis"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 13 (42)",
+    "batch": "SP24-BTY",
+    "subject": "Food Analysis"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 13 (42)",
+    "batch": "FA23-BTY",
+    "subject": "Food Analysis"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "B 14 (50)",
+    "batch": "FA22-BSE-B",
+    "subject": "Fundamentals of Marketing"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 1 (49)",
+    "batch": "FA23-BCS-A",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 2 (24)",
+    "batch": "FA23-BCS-A",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 3 (24)",
+    "batch": "FA23-BCS-B",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 4 (49)",
+    "batch": "FA23-BCS-B",
+    "subject": "Theory of Automata-Theory of Automata \u2013 II"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 4 (49)",
+    "batch": "SP24-RCS",
+    "subject": "Theory of Automata-Theory of Automata \u2013 II"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "FA25-RCS",
+    "subject": "Quantum Machine Learning-Machine Learning-MAI727"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "SP25-RCS",
+    "subject": "Quantum Machine Learning-Machine Learning-MAI727"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "SP26-PCS",
+    "subject": "Quantum Machine Learning-Machine Learning-MAI727"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 5 (49)",
+    "batch": "FA25-PCS",
+    "subject": "Quantum Machine Learning-Machine Learning-MAI727"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.1 (49)",
+    "batch": "FA23-BCS-C",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.2 (24)",
+    "batch": "FA23-BCS-C",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.3 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 1.4 (49)",
+    "batch": "FA23-BCS-D",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.4 (49)",
+    "batch": "FA23-BCS-E",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.2 (24)",
+    "batch": "FA23-BCS-E",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.5 (49)",
+    "batch": "FA23-BCS-F",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "C 2.3 (24)",
+    "batch": "FA23-BCS-F",
+    "subject": "Theory of Automata"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D1 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Mobile Application Development"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D2 (42)",
+    "batch": "SP24-BCS-A",
+    "subject": "Mobile Application Development"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D3 (42)",
+    "batch": "SP24-BCS-B",
+    "subject": "Mobile Application Development"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D4 (36)",
+    "batch": "SP24-BCS-B",
+    "subject": "Mobile Application Development"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D5 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Mobile Application Development"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D6 (48)",
+    "batch": "SP24-BCS-C",
+    "subject": "Mobile Application Development"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D7 (48)",
+    "batch": "SP24-BSE-A",
+    "subject": "Mobile Application Development"
+  },
+  {
+    "date": "Friday 10-04-2026",
+    "time": "0300-0430",
+    "room": "D8 (48)",
+    "batch": "SP24-BSE-B",
+    "subject": "Mobile Application Development"
+  }
+]

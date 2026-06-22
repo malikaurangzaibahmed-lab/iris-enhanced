@@ -41,8 +41,11 @@ class RemoteConfigService {
     if (_isListening) return;
     _isListening = true;
 
-    // Load cached exams from local storage for offline resiliency
+    // Load cached exams and mode from local storage for offline resiliency
     SharedPreferences.getInstance().then((prefs) {
+      final cachedPeriod = prefs.getString('active_academic_period') ?? 'classes';
+      activeAcademicPeriod.value = cachedPeriod;
+
       final cachedMidterms = prefs.getString('cached_midterm_exams') ?? '';
       if (cachedMidterms.isNotEmpty) {
         try {
@@ -91,6 +94,9 @@ class RemoteConfigService {
 
       // 1. Process Academic Period Mode Swapping
       final remotePeriod = data['academic_period']?.toString() ?? 'classes';
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('active_academic_period', remotePeriod);
+
       if (remotePeriod != activeAcademicPeriod.value) {
         activeAcademicPeriod.value = remotePeriod;
         print('⚡ IRIS Remote Engine: Academic Period Swapped to: $remotePeriod');

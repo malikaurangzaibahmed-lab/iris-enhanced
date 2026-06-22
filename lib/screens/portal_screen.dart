@@ -3,9 +3,6 @@ import 'dart:ui';
 import 'dart:convert';
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:html/parser.dart' as hp;
-import 'package:html/dom.dart' as hdom;
-import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,11 +14,11 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'academics_hub_screen.dart';
 import '../services/ui_feedback.dart';
 import '../services/portal_sync_service.dart';
 import '../services/headless_portal_sync.dart';
 import '../services/session_refresher_service.dart';
-import '../widgets/iris_background.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../core/theme_signals.dart';
@@ -355,7 +352,7 @@ class PortalScreen extends StatefulWidget {
 }
 
 class _PortalScreenState extends State<PortalScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const String _portalUserAgent =
       'Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UD1A.230805.019) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.165 Mobile Safari/537.36';
   static const MethodChannel _androidDownloadChannel = MethodChannel(
@@ -365,6 +362,7 @@ class _PortalScreenState extends State<PortalScreen>
   late final WebViewController _controller;
   final WebViewCookieManager _cookieManager = WebViewCookieManager();
   late final AnimationController _animController;
+  late final AnimationController _pulseController;
   late final Animation<double> _scaleAnimation;
   bool _isLoading = true;
   bool _isSyncing = false;
@@ -701,7 +699,7 @@ class _PortalScreenState extends State<PortalScreen>
       }
 
       // Intelligent Scraper: Auto-trigger silent deep sync when logged in on the portal dashboard
-      if (_currentUrl.contains('comsats.edu.pk') && !_hasLoginForm && !_isSyncing && mounted) {
+      if (widget.sessionScope == 'student' && _currentUrl.contains('comsats.edu.pk') && !_hasLoginForm && !_isSyncing && mounted) {
         final lastAutoSync = prefs.getInt('portal_last_auto_sync') ?? 0;
         final nowMs = DateTime.now().millisecondsSinceEpoch;
         if (nowMs - lastAutoSync > 5 * 60 * 1000) { // 5 minutes cooldown
@@ -755,29 +753,68 @@ class _PortalScreenState extends State<PortalScreen>
   bool _looksDownloadableUrl(String url) {
     final cleanUrl = url.toLowerCase().split('?').first.split('#').first;
     
-    // Check path segments / query for common download triggers
-    final fullLower = url.toLowerCase();
-    if (fullLower.contains('download') ||
-        fullLower.contains('getfile') ||
-        fullLower.contains('export') ||
-        fullLower.contains('attachment') ||
-        fullLower.contains('viewfile') ||
-        fullLower.contains('stream') ||
-        fullLower.contains('generate') ||
-        fullLower.contains('getassignment') ||
-        fullLower.contains('assignmentfile') ||
-        fullLower.contains('resultcard') ||
-        fullLower.contains('challan') ||
-        fullLower.contains('fee_challan') ||
-        fullLower.contains('printchallan')) {
-      return true;
-    }
-
+    // Extensions that are ALWAYS downloads:
     final extensions = [
       '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', 
       '.zip', '.rar', '.7z', '.apk', '.png', '.jpg', '.jpeg', '.txt', '.csv'
     ];
-    return extensions.any((ext) => cleanUrl.endsWith(ext));
+    if (extensions.any((ext) => cleanUrl.endsWith(ext))) {
+      return true;
+    }
+
+    // Check query params or path triggers, but be careful not to match main pages
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    
+    final fullLower = url.toLowerCase();
+    final hasQuery = uri.hasQuery && uri.query.isNotEmpty;
+
+    // Check known download keywords:
+    final keywords = [
+      'getfile', 'getassignment', 'assignmentfile', 'resultcard', 
+      'challan', 'fee_challan', 'printchallan', 'attachment'
+    ];
+    if (keywords.any((kw) => fullLower.contains(kw))) {
+      // Exclude main page routes that contain these keywords but are actually pages.
+      // For instance, the main ResultCard page (/Student/ResultCard) or Challan list page (/Student/Challan).
+      final path = uri.path.toLowerCase();
+      if (!hasQuery) {
+        if (path == '/student/resultcard' || 
+            path == '/student/challan' || 
+            path == '/student/printchallan' || 
+            path == '/student/fee_challan' ||
+            path.endsWith('/resultcard') || 
+            path.endsWith('/challan') || 
+            path.endsWith('/printchallan') || 
+            path.endsWith('/fee_challan')) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // For 'download', 'export', 'stream', 'generate', 'viewfile':
+    // If it's a page (ends with .aspx, .php, .html) but has NO query params, it is likely a webpage, not a download.
+    final pageExtensions = ['.aspx', '.php', '.html', '.htm', '.jsp'];
+    final isPageExtension = pageExtensions.any((ext) => cleanUrl.endsWith(ext));
+
+    if (fullLower.contains('download') || 
+        fullLower.contains('export') || 
+        fullLower.contains('stream') || 
+        fullLower.contains('generate') ||
+        fullLower.contains('viewfile')) {
+      if (isPageExtension && !hasQuery) {
+        return false;
+      }
+      // If it ends with '/download' or '/downloads' or '/export' without query, it's probably a page
+      final path = uri.path.toLowerCase();
+      if (path == '/download' || path == '/downloads' || path == '/export' || path.endsWith('/download') || path.endsWith('/downloads')) {
+        return false;
+      }
+      return true;
+    }
+
+    return false;
   }
 
   Future<void> _handlePrintDocument(String url) async {
@@ -2056,11 +2093,11 @@ class _PortalScreenState extends State<PortalScreen>
     return 'download';
   }
 
-  bool _isSameHost(Uri a, Uri b) {
-    return a.host == b.host ||
-        a.host.endsWith('.${b.host}') ||
-        b.host.endsWith('.${a.host}');
-  }
+  // bool _isSameHost(Uri a, Uri b) {
+  //   return a.host == b.host ||
+  //       a.host.endsWith('.${b.host}') ||
+  //       b.host.endsWith('.${a.host}');
+  // }
 
 
 
@@ -2218,7 +2255,7 @@ class _PortalScreenState extends State<PortalScreen>
 
     // Debounce to prevent multiple triggers
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (_lastDownloadUrl == url && (now - _lastDownloadAtMs) < 1500) return;
+    if (_lastDownloadUrl == url && (now - _lastDownloadAtMs) < 5000) return;
     _lastDownloadUrl = url;
     _lastDownloadAtMs = now;
 
@@ -2749,12 +2786,46 @@ class _PortalScreenState extends State<PortalScreen>
     const lower = url.toLowerCase();
     if (anchor && anchor.hasAttribute('download')) return true;
     
-    // Common download patterns in portals
-    const patterns = [
-      /\.(pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar|7z|apk|png|jpg|jpeg|txt|csv)(\?|$)/i,
-      /download/i, /getfile/i, /export/i, /attachment/i, /viewfile/i, /stream/i, /generate/i
-    ];
-    return patterns.some(p => p.test(lower));
+    // Check extension
+    const cleanUrl = lower.split('?')[0].split('#')[0];
+    const extensions = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.zip', '.rar', '.7z', '.apk', '.png', '.jpg', '.jpeg', '.txt', '.csv'];
+    if (extensions.some(ext => cleanUrl.endsWith(ext))) return true;
+
+    // Check page extensions that shouldn't be downloads unless they have query params
+    const pageExtensions = ['.aspx', '.php', '.html', '.htm', '.jsp'];
+    const isPageExt = pageExtensions.some(ext => cleanUrl.endsWith(ext));
+    const hasQuery = lower.includes('?');
+
+    // Keywords that are always downloads
+    const keywords = ['getfile', 'getassignment', 'assignmentfile', 'resultcard', 'challan', 'fee_challan', 'printchallan', 'attachment'];
+    if (keywords.some(kw => lower.includes(kw))) {
+      // Exclude main page routes that contain these keywords but are actually pages
+      const path = cleanUrl.replace(/^https?:\/\/[^\/]+/, '');
+      if (!hasQuery) {
+        if (path === '/student/resultcard' || 
+            path === '/student/challan' || 
+            path === '/student/printchallan' || 
+            path === '/student/fee_challan' ||
+            path.endsWith('/resultcard') || 
+            path.endsWith('/challan') || 
+            path.endsWith('/printchallan') || 
+            path.endsWith('/fee_challan')) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (lower.includes('download') || lower.includes('export') || lower.includes('stream') || lower.includes('generate') || lower.includes('viewfile')) {
+      if (isPageExt && !hasQuery) return false;
+      // Exclude main download hub pages
+      const path = cleanUrl.replace(/^https?:\/\/[^\/]+/, '');
+      if (path === '/download' || path === '/downloads' || path === '/export' || path.endsWith('/download') || path.endsWith('/downloads')) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   };
 
   document.addEventListener('click', function(e) {
@@ -3168,6 +3239,11 @@ class _PortalScreenState extends State<PortalScreen>
       vsync: this,
     );
 
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
     _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
     );
@@ -3325,10 +3401,213 @@ class _PortalScreenState extends State<PortalScreen>
     _clearTopPillOverlay();
     _addressController.dispose();
     _animController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
-  Widget _buildHeaderQuickActionChip({
+  // Widget _buildHeaderQuickActionChip({
+  //   required bool isDark,
+  //   required IconData icon,
+  //   required String label,
+  //   required VoidCallback onTap,
+  //   bool primary = false,
+  // }) {
+  //   final accent = IrisTokens.brand;
+  //   final textColor = isDark ? Colors.white : IrisTokens.surfaceDarkElevated;
+  //   
+  //   // Use IrisVibrancy for a more glassmorphic feel
+  //   final opacity = primary ? 0.18 : 0.08;
+  //   final chipColor = (isDark ? Colors.white : Colors.black).withValues(alpha: opacity);
+  //   final borderColor = primary
+  //       ? accent.withValues(alpha: 0.36)
+  //       : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12);
+  //   
+  //   final radius = BorderRadius.circular(IrisTokens.radiusFull);
+  // 
+  //   return InkWell(
+  //     borderRadius: radius,
+  //     onTap: onTap,
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+  //       decoration: BoxDecoration(
+  //         color: chipColor,
+  //         borderRadius: radius,
+  //         border: Border.all(color: borderColor, width: 0.8),
+  //         boxShadow: [
+  //           if (primary)
+  //             BoxShadow(
+  //               color: accent.withValues(alpha: 0.08),
+  //               blurRadius: 8,
+  //               offset: const Offset(0, 2),
+  //             ),
+  //         ],
+  //       ),
+  //       child: Row(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Icon(icon, size: 14, color: textColor.withValues(alpha: 0.88)),
+  //           const SizedBox(width: 6),
+  //           Text(
+  //             label,
+  //             style: TextStyle(
+  //               color: textColor,
+  //               fontSize: 11,
+  //               fontWeight: FontWeight.w700,
+  //               letterSpacing: 0.2,
+  //               decoration: TextDecoration.none,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget _buildDynamicIslandLeftStatus(bool isDark, Color accent) {
+    if (_pillActive) {
+      return Container(
+        margin: const EdgeInsets.only(right: 8),
+        width: 22,
+        height: 22,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _pillTone.withValues(alpha: 0.14),
+          border: Border.all(
+            color: _pillTone.withValues(alpha: 0.32),
+            width: 0.9,
+          ),
+        ),
+        child: Icon(
+          _pillIcon ?? Icons.notifications_none_rounded,
+          size: 14,
+          color: _pillTone,
+        ),
+      );
+    }
+
+    // Default left status when header is collapsed
+    Widget child;
+    Color containerBg = Colors.transparent;
+    Border? border;
+
+    if (_isSyncing) {
+      // Spinning synapse node
+      child = RotationTransition(
+        turns: _pulseController,
+        child: Icon(
+          Icons.auto_awesome_rounded,
+          size: 13,
+          color: IrisTokens.brand,
+        ),
+      );
+      containerBg = IrisTokens.brand.withValues(alpha: 0.12);
+      border = Border.all(color: IrisTokens.brand.withValues(alpha: 0.36), width: 0.85);
+    } else if (_isOffline) {
+      child = const Icon(
+        Icons.wifi_off_rounded,
+        size: 12,
+        color: Color(0xFFEF4444),
+      );
+      containerBg = const Color(0xFFEF4444).withValues(alpha: 0.12);
+      border = Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.32), width: 0.85);
+    } else if (_hasSavedLogin) {
+      child = Icon(
+        Icons.vpn_key_rounded,
+        size: 12,
+        color: IrisTokens.success,
+      );
+      containerBg = IrisTokens.success.withValues(alpha: 0.12);
+      border = Border.all(color: IrisTokens.success.withValues(alpha: 0.32), width: 0.85);
+    } else {
+      // Gentle pulsing idle dot
+      return AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, _) {
+          final scale = 0.85 + 0.25 * _pulseController.value;
+          final opacity = 0.82 - 0.4 * _pulseController.value;
+          return Container(
+            margin: const EdgeInsets.only(right: 8),
+            width: 14,
+            height: 14,
+            alignment: Alignment.center,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Opacity(
+                  opacity: opacity,
+                  child: Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: IrisTokens.success.withValues(alpha: 0.44),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: IrisTokens.success,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: containerBg,
+        border: border,
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildBentoCard({
+    required bool isDark,
+    required Widget child,
+    Color? borderTint,
+    double? width,
+    double? height,
+  }) {
+    final borderColor = borderTint != null 
+        ? borderTint.withValues(alpha: isDark ? 0.24 : 0.32)
+        : (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.08);
+        
+    return Container(
+      width: width,
+      height: height,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor, width: 0.95),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildBentoActionBtn({
     required bool isDark,
     required IconData icon,
     required String label,
@@ -3336,255 +3615,96 @@ class _PortalScreenState extends State<PortalScreen>
     bool primary = false,
   }) {
     final accent = IrisTokens.brand;
-    final textColor = isDark ? Colors.white : IrisTokens.surfaceDarkElevated;
+    final radius = BorderRadius.circular(10);
+    final textColor = isDark ? Colors.white : (primary ? Colors.white : IrisTokens.surfaceDarkElevated);
+    final btnColor = primary 
+        ? accent 
+        : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08);
     
-    // Use IrisVibrancy for a more glassmorphic feel
-    final opacity = primary ? 0.18 : 0.08;
-    final chipColor = (isDark ? Colors.white : Colors.black).withValues(alpha: opacity);
-    final borderColor = primary
-        ? accent.withValues(alpha: 0.36)
-        : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12);
-    
-    final radius = BorderRadius.circular(IrisTokens.radiusFull);
-
-    return InkWell(
-      borderRadius: radius,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: chipColor,
-          borderRadius: radius,
-          border: Border.all(color: borderColor, width: 0.8),
-          boxShadow: [
-            if (primary)
-              BoxShadow(
-                color: accent.withValues(alpha: 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: textColor.withValues(alpha: 0.88)),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-                decoration: TextDecoration.none,
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: btnColor,
+            borderRadius: radius,
+            border: Border.all(
+              color: primary ? accent : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
+              width: 0.8,
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 13, color: textColor.withValues(alpha: 0.9)),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildContextAwareHeaderActions({
+  Widget _buildBentoNavCircle({
     required bool isDark,
-    required String addressLabel,
+    required IconData icon,
+    required String tooltip,
+    required bool enabled,
+    required VoidCallback onTap,
   }) {
-    final chips = <Widget>[];
+    final baseColor = isDark ? Colors.white : Colors.black;
+    final iconColor = enabled
+        ? (isDark ? Colors.white : IrisTokens.surfaceDarkElevated)
+        : baseColor.withValues(alpha: 0.28);
+    final circleBg = enabled
+        ? baseColor.withValues(alpha: 0.08)
+        : Colors.transparent;
 
-    if (_isEditingAddress) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.arrow_forward_rounded,
-          label: 'Go',
-          primary: true,
-          onTap: () async => _submitAddressBar(_addressController.text),
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: circleBg,
+          border: Border.all(
+            color: baseColor.withValues(alpha: enabled ? 0.12 : 0.05),
+            width: 0.9,
+          ),
         ),
-      );
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.close_rounded,
-          label: 'Cancel',
-          onTap: _cancelAddressEdit,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: enabled ? onTap : null,
+            child: Center(
+              child: Icon(
+                icon,
+                size: 17,
+                color: iconColor,
+              ),
+            ),
+          ),
         ),
-      );
-
-      return Wrap(spacing: 8, runSpacing: 8, children: chips);
-    }
-
-    if (_showAutofillPrompt && _hasSavedLogin) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.vpn_key_rounded,
-          label: 'Autofill',
-          primary: true,
-          onTap: () async {
-            await _autofillSavedLogin();
-          },
-        ),
-      );
-    }
-
-
-
-    // Warm Session chip
-    if (_currentUrl.contains('comsats.edu.pk') && _hasSavedLogin) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.flash_on_rounded,
-          label: 'Warm Session',
-          onTap: () async {
-            IrisSfx.pillTap();
-            await _showMessage('Warming session in background...');
-            final success = await SessionRefresherService.warmSession(
-              _hostKey,
-              _scopeSanitized,
-            );
-            if (success) {
-              await _showMessage('✓ Session warmed! Reloading Webview...');
-              await _controller.reload();
-            } else {
-              await _showMessage('❌ Session warming failed. Try logging in manually.');
-            }
-          },
-        ),
-      );
-    }
-
-    // Smart Sync chip detection
-    if (_currentUrl.contains('comsats.edu.pk')) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: _isSyncing ? Icons.sync_rounded : Icons.auto_awesome_rounded,
-          label: _isSyncing ? 'Syncing...' : 'Deep Sync',
-          primary: true,
-          onTap: () => _syncPortalTasks(),
-        ),
-      );
-    }
-
-    if (_hasFileUpload) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.cloud_upload_rounded,
-          label: 'Upload',
-          primary: true,
-          onTap: () async {
-            await _triggerUploadPicker();
-            if (!mounted) return;
-            setState(() => _hasFileUpload = false);
-          },
-        ),
-      );
-    }
-
-    if (_isOffline) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.wifi_find_rounded,
-          label: 'Retry',
-          primary: true,
-          onTap: () async {
-            await _checkConnectivity();
-            if (!_isOffline) {
-              await _controller.reload();
-            }
-          },
-        ),
-      );
-    }
-
-    if (_canGoBack) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.arrow_back_rounded,
-          label: 'Back',
-          onTap: () async {
-            await _controller.goBack();
-            await _updateNavState();
-          },
-        ),
-      );
-    }
-
-    if (_canGoForward) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.arrow_forward_rounded,
-          label: 'Forward',
-          onTap: () async {
-            await _controller.goForward();
-            await _updateNavState();
-          },
-        ),
-      );
-    }
-
-    chips.add(
-      _buildHeaderQuickActionChip(
-        isDark: isDark,
-        icon: Icons.refresh_rounded,
-        label: 'Refresh',
-        onTap: () async {
-          await _refreshPage();
-          await _updateNavState();
-        },
       ),
     );
-
-    if (_currentSession.recentDownloads.isNotEmpty) {
-      chips.add(
-        _buildHeaderQuickActionChip(
-          isDark: isDark,
-          icon: Icons.download_for_offline_rounded,
-          label: 'Downloads',
-          onTap: () async => _showDownloadManager(),
-        ),
-      );
-    }
-
-    chips.add(
-      _buildHeaderQuickActionChip(
-        isDark: isDark,
-        icon: Icons.open_in_new_rounded,
-        label: 'Browser',
-        onTap: () async {
-          final uri = Uri.tryParse(addressLabel);
-          if (uri != null) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-          }
-        },
-      ),
-    );
-
-    chips.add(
-      _buildHeaderQuickActionChip(
-        isDark: isDark,
-        icon: Icons.edit_rounded,
-        label: 'Edit URL',
-        onTap: _openAddressBar,
-      ),
-    );
-
-    chips.add(
-      _buildHeaderQuickActionChip(
-        isDark: isDark,
-        icon: Icons.tune_rounded,
-        label: 'More',
-        onTap: () => _showHeaderActionSheet(addressLabel: addressLabel),
-      ),
-    );
-
-    return Wrap(spacing: 8, runSpacing: 8, children: chips);
   }
 
   @override
@@ -3594,7 +3714,6 @@ class _PortalScreenState extends State<PortalScreen>
     final safeBottom = media.padding.bottom;
     final isTablet = screenSize.shortestSide >= 600;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final addressLabel = addressLabelSafe;
     final compact = screenSize.width < 380;
     final accent = IrisTokens.brand;
     final edgeInset = isTablet ? 18.0 : 10.0;
@@ -3604,7 +3723,6 @@ class _PortalScreenState extends State<PortalScreen>
       isTablet ? 720.0 : 620.0,
     );
     const idleTitle = 'COMSATS PORTAL';
-    const fullTitle = 'COMSATS STUDENT PORTAL';
     final idleWidth = ((compact ? 112.0 : 126.0) + (idleTitle.length * 5.0))
         .clamp(compact ? 208.0 : 236.0, maxHeaderWidth);
     final popupText = (_pillMessage ?? widget.title)
@@ -3619,9 +3737,6 @@ class _PortalScreenState extends State<PortalScreen>
       maxHeaderWidth,
       _pillActive ? popupWidth : idleWidth,
     );
-    final targetHeaderWidth = _isHeaderCollapsed
-        ? collapsedHeaderWidth
-        : maxHeaderWidth;
     final bottomRailBottom = 6.0 + (safeBottom * 0.18);
     final enclosureBottomInset = (isTablet ? 18.0 : 14.0) + (safeBottom * 0.12);
     final headerToggleIcon = _isHeaderCollapsed
@@ -3697,43 +3812,44 @@ class _PortalScreenState extends State<PortalScreen>
                                     ),
                                   ),
                                 ),
-                                Positioned(
-                                  right: 12,
-                                  top: 12,
-                                  child: Opacity(
-                                    opacity: 0.92,
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        try {
-                                          debugPrint('Manual: triggering headless script from PortalScreen');
-                                          await _controller.runJavaScript(HeadlessPortalSync.syncPortalScript);
-                                          await _showMessage('Manual scraper triggered');
-                                        } catch (e) {
-                                          debugPrint('Manual scraper error: $e');
-                                          await _showMessage('Scraper run failed');
-                                        }
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: accent,
-                                          borderRadius: BorderRadius.circular(8),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.18),
-                                              blurRadius: 6,
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.bug_report,
-                                          size: 18,
-                                          color: Colors.white,
+                                if (widget.sessionScope == 'student')
+                                  Positioned(
+                                    right: 12,
+                                    top: 12,
+                                    child: Opacity(
+                                      opacity: 0.92,
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          try {
+                                            debugPrint('Manual: triggering headless script from PortalScreen');
+                                            await _controller.runJavaScript(HeadlessPortalSync.syncPortalScript);
+                                            await _showMessage('Manual scraper triggered');
+                                          } catch (e) {
+                                            debugPrint('Manual scraper error: $e');
+                                            await _showMessage('Scraper run failed');
+                                          }
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: accent,
+                                            borderRadius: BorderRadius.circular(8),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.18),
+                                                blurRadius: 6,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.bug_report,
+                                            size: 18,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
                                 Positioned.fill(
                                   child: IgnorePointer(
                                     child: Container(
@@ -3790,6 +3906,64 @@ class _PortalScreenState extends State<PortalScreen>
                         ),
                       ),
                     ),
+                    if (widget.sessionScope == 'student')
+                      Positioned(
+                        right: 16,
+                        top: 10,
+                        child: Hero(
+                          tag: 'academics-hub-hero',
+                          child: AnimatedScale(
+                            scale: _isHeaderCollapsed ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 240),
+                            curve: Curves.easeInOutCubic,
+                            child: GestureDetector(
+                              onTap: () {
+                              IrisHaptics.actionMedium();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const AcademicsHubScreen(),
+                                ),
+                              );
+                            },
+                            child: GlassSurface(
+                              settings: LiquidGlassSettings(
+                                blur: 16,
+                                ambientStrength: 0.65,
+                                lightAngle: 0.15 * math.pi,
+                                glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
+                                    .withValues(alpha: isDark ? 0.42 : 0.45),
+                                thickness: 16,
+                              ),
+                              radius: 999,
+                              child: Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: (isDark ? Colors.white : accent)
+                                        .withValues(alpha: isDark ? 0.14 : 0.18),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (isDark ? Colors.black : accent).withValues(alpha: isDark ? 0.35 : 0.12),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.school_rounded,
+                                  size: 18,
+                                  color: isDark ? Colors.white : accent,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     Positioned(
                       left: 0,
                       right: 0,
@@ -3837,589 +4011,716 @@ class _PortalScreenState extends State<PortalScreen>
                                     radius: currentRadius,
                                     child: Material(
                                       color: Colors.transparent,
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: currentVPadding,
-                                          horizontal: currentHPadding,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(currentRadius),
-                                          border: Border.all(
-                                            color: (isDark ? Colors.white : accent)
-                                                .withValues(alpha: isDark ? 0.14 : 0.18),
-                                            width: 1.5,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: (isDark ? Colors.black : accent).withValues(alpha: isDark ? 0.35 : 0.12),
-                                              blurRadius: 20,
-                                              offset: const Offset(0, 10),
-                                              spreadRadius: -6,
+                                      child: AnimatedBuilder(
+                                        animation: _pulseController,
+                                        builder: (context, child) {
+                                          final pulseVal = _pulseController.value;
+                                          final pulseTone = _pillActive
+                                              ? _pillTone
+                                              : (_isOffline
+                                                  ? const Color(0xFFEF4444)
+                                                  : (_isSyncing
+                                                      ? IrisTokens.brand
+                                                      : accent));
+                                          final neonAlpha = _isHeaderCollapsed
+                                              ? (0.10 + 0.15 * pulseVal)
+                                              : 0.12;
+                                          final spread = _isHeaderCollapsed
+                                              ? (-3.0 + 3.0 * pulseVal)
+                                              : -6.0;
+                                          final blur = _isHeaderCollapsed
+                                              ? (10.0 + 10.0 * pulseVal)
+                                              : 20.0;
+
+                                          return Container(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: currentVPadding,
+                                              horizontal: currentHPadding,
                                             ),
-                                            if (_pillActive)
-                                              BoxShadow(
-                                                color: _pillTone.withValues(alpha: 0.25),
-                                                blurRadius: 12,
-                                                spreadRadius: 2,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(currentRadius),
+                                              border: Border.all(
+                                                color: pulseTone.withValues(
+                                                  alpha: _isHeaderCollapsed
+                                                      ? (0.16 + 0.20 * pulseVal)
+                                                      : 0.18,
+                                                ),
+                                                width: 1.5,
                                               ),
-                                          ],
-                                        ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: (isDark ? Colors.black : pulseTone).withValues(
+                                                    alpha: isDark ? 0.35 : neonAlpha,
+                                                  ),
+                                                  blurRadius: blur,
+                                                  offset: Offset(0, _isHeaderCollapsed ? 4 : 10),
+                                                  spreadRadius: spread,
+                                                ),
+                                              ],
+                                            ),
+                                            child: child,
+                                          );
+                                        },
                                         child: child,
                                       ),
                                     ),
                                   ),
                                 );
                               },
-                                    child: AnimatedSize(
-                                      duration: const Duration(
-                                        milliseconds: 320,
-                                      ),
-                                      curve: Curves.easeOutCubic,
-                                      alignment: Alignment.topCenter,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Row(
+                              child: AnimatedSize(
+                                duration: const Duration(
+                                  milliseconds: 320,
+                                ),
+                                curve: Curves.easeOutCubic,
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        _buildDynamicIslandLeftStatus(isDark, accent),
+                                        Expanded(
+                                          child: AnimatedSwitcher(
+                                            duration: const Duration(
+                                              milliseconds: 180,
+                                            ),
+                                            switchInCurve: Curves.easeOutCubic,
+                                            switchOutCurve: Curves.easeInCubic,
+                                            child: Text(
+                                              _pillActive
+                                                  ? (_pillMessage ?? widget.title)
+                                                  : (_isHeaderCollapsed ? idleTitle : 'Portal Control Deck'),
+                                              key: ValueKey<String>(
+                                                _pillActive
+                                                    ? (_pillMessage ?? 'portal-message')
+                                                    : (_isHeaderCollapsed ? 'portal-title-idle' : 'portal-title-full'),
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.22,
+                                                color: panelText,
+                                                decoration: TextDecoration.none,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: Stack(
+                                            alignment: Alignment.center,
                                             children: [
-                                              if (_pillActive)
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                    right: 8,
-                                                  ),
-                                                  width: 22,
-                                                  height: 22,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: _pillTone.withValues(
-                                                      alpha: 0.14,
-                                                    ),
-                                                    border: Border.all(
-                                                      color: _pillTone
-                                                          .withValues(
-                                                            alpha: 0.32,
-                                                          ),
-                                                      width: 0.9,
-                                                    ),
-                                                  ),
-                                                  child: Icon(
-                                                    _pillIcon ??
-                                                        Icons
-                                                            .notifications_none_rounded,
-                                                    size: 14,
-                                                    color: _pillTone,
-                                                  ),
+                                              AnimatedOpacity(
+                                                duration: const Duration(
+                                                  milliseconds: 220,
                                                 ),
-                                              Expanded(
-                                                child: AnimatedSwitcher(
+                                                curve: Curves.easeOutCubic,
+                                                opacity: (_isLoading || _isDownloading || _isPullRefreshing) ? 1 : 0,
+                                                child: AnimatedScale(
                                                   duration: const Duration(
-                                                    milliseconds: 180,
+                                                    milliseconds: 220,
                                                   ),
-                                                  switchInCurve:
-                                                      Curves.easeOutCubic,
-                                                  switchOutCurve:
-                                                      Curves.easeInCubic,
-                                                  child: Text(
-                                                    _pillActive
-                                                        ? (_pillMessage ??
-                                                              widget.title)
-                                                        : (_isHeaderCollapsed
-                                                              ? idleTitle
-                                                              : fullTitle),
-                                                    key: ValueKey<String>(
-                                                      _pillActive
-                                                          ? (_pillMessage ??
-                                                                'portal-message')
-                                                          : (_isHeaderCollapsed
-                                                                ? 'portal-title-idle'
-                                                                : 'portal-title-full'),
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      letterSpacing: 0.22,
-                                                      color: panelText,
-                                                      decoration:
-                                                          TextDecoration.none,
+                                                  curve: Curves.easeOutCubic,
+                                                  scale: (_isLoading || _isDownloading || _isPullRefreshing) ? 1 : 0.7,
+                                                  child: SizedBox(
+                                                    width: 18,
+                                                    height: 18,
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2.2,
+                                                      color: _isDownloading ? const Color(0xFF22D3EE) : accent,
+                                                      value: _isDownloading
+                                                          ? (_downloadProgress >= 0 ? _downloadProgress.clamp(0.0, 1.0) : null)
+                                                          : (_isPullRefreshing
+                                                              ? null
+                                                              : (_isLoading ? (_progress / 100).clamp(0.05, 0.98) : null)),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                              if (_pillActive &&
-                                                  _pillActionLabel != null)
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                    left: 8,
-                                                  ),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        (isDark
-                                                                ? Colors.white
-                                                                : accent)
-                                                            .withValues(
-                                                              alpha: isDark
-                                                                  ? 0.12
-                                                                  : 0.16,
-                                                            ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          999,
-                                                        ),
-                                                    border: Border.all(
-                                                      color:
-                                                          (isDark
-                                                                  ? Colors.white
-                                                                  : accent)
-                                                              .withValues(
-                                                                alpha: isDark
-                                                                    ? 0.18
-                                                                    : 0.28,
-                                                              ),
-                                                      width: 0.8,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    _pillActionLabel!,
-                                                    style: TextStyle(
-                                                      color: panelText,
-                                                      fontSize: 10.5,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      letterSpacing: 0.14,
-                                                      decoration:
-                                                          TextDecoration.none,
-                                                    ),
-                                                  ),
+                                              AnimatedOpacity(
+                                                duration: const Duration(
+                                                  milliseconds: 220,
                                                 ),
-                                              if (!_pillActive &&
-                                                  _showAutofillPrompt &&
-                                                  _hasSavedLogin)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        left: 8,
-                                                      ),
-                                                  child: _buildHeaderQuickActionChip(
-                                                    isDark: isDark,
-                                                    icon: Icons.vpn_key_rounded,
-                                                    label: 'Autofill',
-                                                    primary: true,
-                                                    onTap: () async {
-                                                      await _autofillSavedLogin();
-                                                    },
+                                                curve: Curves.easeOutCubic,
+                                                opacity: (_isLoading || _isDownloading || _isPullRefreshing) ? 0 : 1,
+                                                child: AnimatedScale(
+                                                  duration: const Duration(
+                                                    milliseconds: 220,
                                                   ),
-                                                ),
-                                              const SizedBox(width: 8),
-                                              SizedBox(
-                                                width: 22,
-                                                height: 22,
-                                                child: Stack(
-                                                  alignment: Alignment.center,
-                                                  children: [
-                                                    AnimatedOpacity(
-                                                      duration: const Duration(
-                                                        milliseconds: 220,
-                                                      ),
-                                                      curve:
-                                                          Curves.easeOutCubic,
-                                                      opacity:
-                                                          (_isLoading ||
-                                                              _isDownloading ||
-                                                              _isPullRefreshing)
-                                                          ? 1
-                                                          : 0,
-                                                      child: AnimatedScale(
-                                                        duration:
-                                                            const Duration(
-                                                              milliseconds: 220,
-                                                            ),
-                                                        curve:
-                                                            Curves.easeOutCubic,
-                                                        scale:
-                                                            (_isLoading ||
-                                                                _isDownloading ||
-                                                                _isPullRefreshing)
-                                                            ? 1
-                                                            : 0.7,
-                                                        child: SizedBox(
-                                                          width: 18,
-                                                          height: 18,
-                                                          child: CircularProgressIndicator(
-                                                            strokeWidth: 2.2,
-                                                            color:
-                                                                _isDownloading
-                                                                ? const Color(
-                                                                    0xFF22D3EE,
-                                                                  )
-                                                                : accent,
-                                                            value:
-                                                                _isDownloading
-                                                                ? (_downloadProgress >=
-                                                                          0
-                                                                      ? _downloadProgress.clamp(
-                                                                          0.0,
-                                                                          1.0,
-                                                                        )
-                                                                      : null)
-                                                                : (_isPullRefreshing
-                                                                      ? null
-                                                                      : (_isLoading
-                                                                            ? (_progress /
-                                                                                      100)
-                                                                                  .clamp(
-                                                                                    0.05,
-                                                                                    0.98,
-                                                                                  )
-                                                                            : null)),
-                                                          ),
-                                                        ),
-                                                      ),
+                                                  curve: Curves.easeOutCubic,
+                                                  scale: (_isLoading || _isDownloading || _isPullRefreshing) ? 0.7 : 1,
+                                                  child: Icon(
+                                                    headerToggleIcon,
+                                                    size: 20,
+                                                    color: panelText.withValues(
+                                                      alpha: 0.92,
                                                     ),
-                                                    AnimatedOpacity(
-                                                      duration: const Duration(
-                                                        milliseconds: 220,
-                                                      ),
-                                                      curve:
-                                                          Curves.easeOutCubic,
-                                                      opacity:
-                                                          (_isLoading ||
-                                                              _isDownloading ||
-                                                              _isPullRefreshing)
-                                                          ? 0
-                                                          : 1,
-                                                      child: AnimatedScale(
-                                                        duration:
-                                                            const Duration(
-                                                              milliseconds: 220,
-                                                            ),
-                                                        curve:
-                                                            Curves.easeOutCubic,
-                                                        scale:
-                                                            (_isLoading ||
-                                                                _isDownloading ||
-                                                                _isPullRefreshing)
-                                                            ? 0.7
-                                                            : 1,
-                                                        child: Icon(
-                                                          headerToggleIcon,
-                                                          size: 20,
-                                                          color: panelText
-                                                              .withValues(
-                                                                alpha: 0.92,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
+                                                  ),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          AnimatedSwitcher(
-                                            duration: const Duration(
-                                              milliseconds: 260,
-                                            ),
-                                            switchInCurve: Curves.easeOutQuart,
-                                            switchOutCurve: Curves.easeOutQuart,
-                                            transitionBuilder:
-                                                (child, animation) {
-                                                  final size = CurvedAnimation(
-                                                    parent: animation,
-                                                    curve: Curves.easeOutQuart,
-                                                  );
-                                                  return FadeTransition(
-                                                    opacity: animation,
-                                                    child: SizeTransition(
-                                                      sizeFactor: size,
-                                                      axisAlignment: -1,
-                                                      child: child,
-                                                    ),
-                                                  );
-                                                },
-                                            child:
-                                                _isHeaderCollapsed ||
-                                                    _pillActive
-                                                ? const SizedBox.shrink(
-                                                    key: ValueKey(
-                                                      'header-collapsed',
-                                                    ),
-                                                  )
-                                                : Column(
-                                                    key: const ValueKey(
-                                                      'header-expanded',
-                                                    ),
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
+                                        ),
+                                      ],
+                                    ),
+                                    AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 260,
+                                      ),
+                                      switchInCurve: Curves.easeOutQuart,
+                                      switchOutCurve: Curves.easeOutQuart,
+                                      transitionBuilder: (child, animation) {
+                                        final size = CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeOutQuart,
+                                        );
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: SizeTransition(
+                                            sizeFactor: size,
+                                            axisAlignment: -1,
+                                            child: child,
+                                          ),
+                                        );
+                                      },
+                                      child: _isHeaderCollapsed || _pillActive
+                                          ? const SizedBox.shrink(
+                                              key: ValueKey(
+                                                'header-collapsed',
+                                              ),
+                                            )
+                                          : Column(
+                                              key: const ValueKey(
+                                                'header-expanded',
+                                              ),
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const SizedBox(height: 8),
+                                                Container(
+                                                  height: 1.0,
+                                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
+                                                ),
+                                                const SizedBox(height: 10),
+                                                
+                                                // Address Bar Bento Card
+                                                _buildBentoCard(
+                                                  isDark: isDark,
+                                                  child: Row(
                                                     children: [
-                                                      const SizedBox(height: 8),
-                                                      Container(
-                                                        height: 1,
-                                                        color:
-                                                            (isDark
-                                                                    ? Colors
-                                                                          .white
-                                                                    : Colors
-                                                                          .black)
-                                                                .withValues(
-                                                                  alpha: 0.10,
-                                                                ),
+                                                      Icon(
+                                                        addressLabelSafe.startsWith('https://')
+                                                            ? Icons.lock_outline_rounded
+                                                            : Icons.public_rounded,
+                                                        size: 15,
+                                                        color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
                                                       ),
-                                                      const SizedBox(height: 8),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          if (widget
-                                                              .showBackButton)
-                                                            Container(
-                                                              decoration: BoxDecoration(
-                                                                color: accent
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          isDark
-                                                                          ? 0.22
-                                                                          : 0.14,
-                                                                    ),
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      12,
-                                                                    ),
-                                                              ),
-                                                              child: IconButton(
-                                                                tooltip:
-                                                                    'Back to app',
-                                                                icon: const Icon(
-                                                                  Icons
-                                                                      .arrow_back_rounded,
+                                                      const SizedBox(width: 8),
+                                                      Expanded(
+                                                        child: _isEditingAddress
+                                                            ? TextField(
+                                                                controller: _addressController,
+                                                                autofocus: true,
+                                                                keyboardType: TextInputType.url,
+                                                                style: TextStyle(
+                                                                  fontSize: 12.5,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  color: panelText,
                                                                 ),
-                                                                onPressed: () =>
-                                                                    Navigator.pop(
-                                                                      context,
+                                                                decoration: InputDecoration(
+                                                                  isDense: true,
+                                                                  border: InputBorder.none,
+                                                                  hintText: 'https://example.com',
+                                                                  hintStyle: TextStyle(
+                                                                    color: panelMuted.withValues(alpha: 0.5),
+                                                                  ),
+                                                                ),
+                                                                textInputAction: TextInputAction.go,
+                                                                onSubmitted: _submitAddressBar,
+                                                              )
+                                                            : InkWell(
+                                                                onTap: _openAddressBar,
+                                                                borderRadius: BorderRadius.circular(4),
+                                                                child: Padding(
+                                                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                                                  child: Text(
+                                                                    addressLabelSafe,
+                                                                    maxLines: 1,
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                    style: TextStyle(
+                                                                      fontSize: 12,
+                                                                      fontWeight: FontWeight.w700,
+                                                                      color: panelText.withValues(alpha: 0.9),
+                                                                      decoration: TextDecoration.none,
                                                                     ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                                        decoration: BoxDecoration(
+                                                          color: (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success)
+                                                              .withValues(alpha: 0.10),
+                                                          borderRadius: BorderRadius.circular(999),
+                                                          border: Border.all(
+                                                            color: (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success)
+                                                                .withValues(alpha: 0.24),
+                                                            width: 0.8,
+                                                          ),
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            Container(
+                                                              width: 5,
+                                                              height: 5,
+                                                              decoration: BoxDecoration(
+                                                                shape: BoxShape.circle,
+                                                                color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
                                                               ),
                                                             ),
-                                                          Expanded(
-                                                            child: Text(
-                                                              'Quick Controls',
+                                                            const SizedBox(width: 4),
+                                                            Text(
+                                                              _isOffline ? 'OFFLINE' : 'SECURE',
                                                               style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w800,
-                                                                fontSize: 14,
-                                                                color:
-                                                                    panelText,
-                                                                decoration:
-                                                                    TextDecoration
-                                                                        .none,
+                                                                fontSize: 8.5,
+                                                                fontWeight: FontWeight.w800,
+                                                                color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
+                                                                letterSpacing: 0.5,
+                                                                decoration: TextDecoration.none,
                                                               ),
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      if (!_isEditingAddress) ...[
+                                                        const SizedBox(width: 8),
+                                                        GestureDetector(
+                                                          onTap: _openAddressBar,
+                                                          child: Icon(
+                                                            Icons.edit_rounded,
+                                                            size: 15,
+                                                            color: panelMuted,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                
+                                                // Bento Grid Layout
+                                                LayoutBuilder(
+                                                  builder: (context, constraints) {
+                                                    final double leftTelemetryWidth = constraints.maxWidth >= 420
+                                                        ? (constraints.maxWidth - 8) / 2
+                                                        : constraints.maxWidth;
+                                                    
+                                                    final telemetryCard = _buildBentoCard(
+                                                      isDark: isDark,
+                                                      borderTint: _isSyncing ? IrisTokens.brand : null,
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Icon(Icons.analytics_rounded, size: 14, color: panelMuted),
+                                                              const SizedBox(width: 6),
+                                                              Text(
+                                                                'SCRAPER TELEMETRY',
+                                                                style: TextStyle(
+                                                                  fontSize: 9,
+                                                                  fontWeight: FontWeight.w800,
+                                                                  color: panelMuted,
+                                                                  letterSpacing: 0.8,
+                                                                  decoration: TextDecoration.none,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          const SizedBox(height: 8),
+                                                          Text(
+                                                            _isSyncing
+                                                                ? '⚡ Syncing credentials...'
+                                                                : (_isOffline ? '❌ Engine Offline' : '✓ Scraper Engine Idle'),
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.w800,
+                                                              color: _isSyncing
+                                                                  ? IrisTokens.brand
+                                                                  : (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success),
+                                                              decoration: TextDecoration.none,
                                                             ),
                                                           ),
-                                                          if (_hasSavedLogin)
-                                                            Container(
-                                                              margin:
-                                                                  const EdgeInsets.only(
-                                                                    right: 8,
-                                                                  ),
-                                                              width: 9,
-                                                              height: 9,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                    color: IrisTokens.success,
-                                                                    shape: BoxShape.circle,
-                                                                    boxShadow: [
-                                                                      BoxShadow(
-                                                                        color: IrisTokens.success.withValues(alpha: 0.4),
-                                                                        blurRadius: 4,
-                                                                      ),
-                                                                    ],
-                                                                  ),
+                                                          const SizedBox(height: 3),
+                                                          Text(
+                                                            addressLabelSafe.contains('comsats.edu.pk')
+                                                                ? 'Campus Node: Active'
+                                                                : 'External Web Node',
+                                                            style: TextStyle(
+                                                              fontSize: 9.5,
+                                                              fontWeight: FontWeight.w600,
+                                                              color: panelMuted.withValues(alpha: 0.8),
+                                                              decoration: TextDecoration.none,
                                                             ),
-                                                          if (_isOffline)
-                                                            Container(
-                                                              margin:
-                                                                  const EdgeInsets.only(
-                                                                    right: 8,
+                                                          ),
+                                                          const SizedBox(height: 12),
+                                                          Row(
+                                                            children: [
+                                                              if (addressLabelSafe.contains('comsats.edu.pk')) ...[
+                                                                Expanded(
+                                                                  child: _buildBentoActionBtn(
+                                                                    isDark: isDark,
+                                                                    icon: _isSyncing ? Icons.sync_rounded : Icons.auto_awesome_rounded,
+                                                                    label: _isSyncing ? 'Syncing' : 'Deep Sync',
+                                                                    primary: true,
+                                                                    onTap: () => _syncPortalTasks(),
                                                                   ),
-                                                              width: 9,
-                                                              height: 9,
-                                                              decoration:
-                                                                  const BoxDecoration(
-                                                                    color: Color(
-                                                                      0xFFEF4444,
+                                                                ),
+                                                                const SizedBox(width: 6),
+                                                                if (_hasSavedLogin)
+                                                                  Expanded(
+                                                                    child: _buildBentoActionBtn(
+                                                                      isDark: isDark,
+                                                                      icon: Icons.flash_on_rounded,
+                                                                      label: 'Warm',
+                                                                      primary: false,
+                                                                      onTap: () async {
+                                                                        IrisSfx.pillTap();
+                                                                        await _showMessage('Warming session...');
+                                                                        final success = await SessionRefresherService.warmSession(
+                                                                          _hostKey,
+                                                                          _scopeSanitized,
+                                                                        );
+                                                                        if (success) {
+                                                                          await _showMessage('✓ Session warmed! Reloading...');
+                                                                          await _controller.reload();
+                                                                        } else {
+                                                                          await _showMessage('❌ Warming failed. Log in.');
+                                                                        }
+                                                                      },
                                                                     ),
-                                                                    shape: BoxShape
-                                                                        .circle,
                                                                   ),
-                                                            ),
+                                                              ] else ...[
+                                                                Expanded(
+                                                                  child: Center(
+                                                                    child: Padding(
+                                                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                                                      child: Text(
+                                                                        'No automation for public site',
+                                                                        style: TextStyle(
+                                                                          fontSize: 10,
+                                                                          fontWeight: FontWeight.w700,
+                                                                          color: panelMuted,
+                                                                          decoration: TextDecoration.none,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ],
+                                                          ),
                                                         ],
                                                       ),
-                                                      const SizedBox(height: 8),
-                                                      _buildContextAwareHeaderActions(
-                                                        isDark: isDark,
-                                                        addressLabel:
-                                                            addressLabel,
-                                                      ),
-                                                      const SizedBox(height: 6),
-                                                      Row(
+                                                    );
+
+                                                    final navigationCard = _buildBentoCard(
+                                                      isDark: isDark,
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        mainAxisSize: MainAxisSize.min,
                                                         children: [
-                                                          Expanded(
-                                                            child: Container(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    horizontal:
-                                                                        10,
-                                                                    vertical: 8,
-                                                                  ),
-                                                              decoration: BoxDecoration(
-                                                                color: (isDark ? Colors.white : Colors.black).withValues(
-                                                                  alpha: 0.08,
-                                                                ),
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      IrisTokens.radius16,
-                                                                    ),
-                                                                border: Border.all(
-                                                                  color: (isDark ? Colors.white : accent).withValues(
-                                                                        alpha: 0.12,
-                                                                      ),
+                                                          Row(
+                                                            children: [
+                                                              Icon(Icons.explore_rounded, size: 14, color: panelMuted),
+                                                              const SizedBox(width: 6),
+                                                              Text(
+                                                                'NAVIGATION DECK',
+                                                                style: TextStyle(
+                                                                  fontSize: 9,
+                                                                  fontWeight: FontWeight.w800,
+                                                                  color: panelMuted,
+                                                                  letterSpacing: 0.8,
+                                                                  decoration: TextDecoration.none,
                                                                 ),
                                                               ),
-                                                              child:
-                                                                  _isEditingAddress
-                                                                  ? Row(
-                                                                      children: [
-                                                                        Icon(
-                                                                          Icons
-                                                                              .link_rounded,
-                                                                          size:
-                                                                              15,
-                                                                          color:
-                                                                              panelMuted,
+                                                            ],
+                                                          ),
+                                                          const SizedBox(height: 10),
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                            children: [
+                                                              _buildBentoNavCircle(
+                                                                isDark: isDark,
+                                                                icon: Icons.arrow_back_rounded,
+                                                                tooltip: 'Back',
+                                                                enabled: _canGoBack,
+                                                                onTap: () async {
+                                                                  await _controller.goBack();
+                                                                  await _updateNavState();
+                                                                },
+                                                              ),
+                                                              _buildBentoNavCircle(
+                                                                isDark: isDark,
+                                                                icon: Icons.arrow_forward_rounded,
+                                                                tooltip: 'Forward',
+                                                                enabled: _canGoForward,
+                                                                onTap: () async {
+                                                                  await _controller.goForward();
+                                                                  await _updateNavState();
+                                                                },
+                                                              ),
+                                                              _buildBentoNavCircle(
+                                                                isDark: isDark,
+                                                                icon: Icons.refresh_rounded,
+                                                                tooltip: 'Refresh',
+                                                                enabled: true,
+                                                                onTap: () async {
+                                                                  await _refreshPage();
+                                                                  await _updateNavState();
+                                                                },
+                                                              ),
+                                                              _buildBentoNavCircle(
+                                                                isDark: isDark,
+                                                                icon: Icons.open_in_new_rounded,
+                                                                tooltip: 'Open Browser',
+                                                                enabled: true,
+                                                                onTap: () async {
+                                                                  final uri = Uri.tryParse(addressLabelSafe);
+                                                                  if (uri != null) {
+                                                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                                                  }
+                                                                },
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          const SizedBox(height: 10),
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              if (widget.showBackButton) ...[
+                                                                Expanded(
+                                                                  child: _buildBentoActionBtn(
+                                                                    isDark: isDark,
+                                                                    icon: Icons.exit_to_app_rounded,
+                                                                    label: 'Exit Portal',
+                                                                    primary: true,
+                                                                    onTap: () => Navigator.pop(context),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(width: 6),
+                                                              ],
+                                                              Expanded(
+                                                                child: _buildBentoActionBtn(
+                                                                  isDark: isDark,
+                                                                  icon: Icons.tune_rounded,
+                                                                  label: 'Page Actions',
+                                                                  onTap: () => _showHeaderActionSheet(addressLabel: addressLabelSafe),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+
+                                                    final downloadsCount = _currentSession.recentDownloads.length;
+                                                    final hasDownloads = downloadsCount > 0;
+                                                    final storageCard = _buildBentoCard(
+                                                      isDark: isDark,
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            children: [
+                                                              Row(
+                                                                children: [
+                                                                  Icon(Icons.folder_shared_rounded, size: 14, color: panelMuted),
+                                                                  const SizedBox(width: 6),
+                                                                  Text(
+                                                                    'STORAGE & UTILITIES',
+                                                                    style: TextStyle(
+                                                                      fontSize: 9,
+                                                                      fontWeight: FontWeight.w800,
+                                                                      color: panelMuted,
+                                                                      letterSpacing: 0.8,
+                                                                      decoration: TextDecoration.none,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              if (hasDownloads)
+                                                                Container(
+                                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                                  decoration: BoxDecoration(
+                                                                    color: IrisTokens.brand.withValues(alpha: 0.14),
+                                                                    borderRadius: BorderRadius.circular(999),
+                                                                  ),
+                                                                  child: Text(
+                                                                    '$downloadsCount Files',
+                                                                    style: TextStyle(
+                                                                      fontSize: 8.5,
+                                                                      fontWeight: FontWeight.w800,
+                                                                      color: IrisTokens.brand,
+                                                                      decoration: TextDecoration.none,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                            ],
+                                                          ),
+                                                          const SizedBox(height: 8),
+                                                          Row(
+                                                            children: [
+                                                              if (_hasFileUpload) ...[
+                                                                Expanded(
+                                                                  child: Material(
+                                                                    color: Colors.transparent,
+                                                                    child: InkWell(
+                                                                      borderRadius: BorderRadius.circular(12),
+                                                                      onTap: () async {
+                                                                        await _triggerUploadPicker();
+                                                                        if (mounted) setState(() => _hasFileUpload = false);
+                                                                      },
+                                                                      child: Container(
+                                                                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                                                        decoration: BoxDecoration(
+                                                                          color: IrisTokens.brand.withValues(alpha: 0.08),
+                                                                          borderRadius: BorderRadius.circular(12),
+                                                                          border: Border.all(
+                                                                            color: IrisTokens.brand.withValues(alpha: 0.28),
+                                                                            width: 0.85,
+                                                                          ),
                                                                         ),
-                                                                        const SizedBox(
-                                                                          width:
-                                                                              8,
-                                                                        ),
-                                                                        Expanded(
-                                                                          child: TextField(
-                                                                            controller:
-                                                                                _addressController,
-                                                                            autofocus:
-                                                                                true,
-                                                                            keyboardType:
-                                                                                TextInputType.url,
-                                                                            style: TextStyle(
-                                                                              fontSize: 12,
-                                                                              color: panelText.withValues(
-                                                                                alpha: 0.96,
-                                                                              ),
-                                                                            ),
-                                                                            decoration: InputDecoration(
-                                                                              isDense: true,
-                                                                              border: InputBorder.none,
-                                                                              hintText: 'https://example.com',
-                                                                              hintStyle: TextStyle(
-                                                                                color: panelMuted.withValues(
-                                                                                  alpha: 0.74,
+                                                                        child: Row(
+                                                                          children: [
+                                                                            Icon(Icons.cloud_upload_rounded, size: 14, color: IrisTokens.brand),
+                                                                            const SizedBox(width: 6),
+                                                                            const Expanded(
+                                                                              child: Text(
+                                                                                'Upload File',
+                                                                                style: TextStyle(
+                                                                                  fontSize: 11,
+                                                                                  fontWeight: FontWeight.w700,
+                                                                                  decoration: TextDecoration.none,
                                                                                 ),
                                                                               ),
                                                                             ),
-                                                                            textInputAction:
-                                                                                TextInputAction.go,
-                                                                            onSubmitted:
-                                                                                _submitAddressBar,
-                                                                          ),
+                                                                            Icon(Icons.chevron_right_rounded, size: 14, color: IrisTokens.brand),
+                                                                          ],
                                                                         ),
-                                                                        GestureDetector(
-                                                                          onTap: () => _submitAddressBar(
-                                                                            _addressController.text,
-                                                                          ),
-                                                                          child: Icon(
-                                                                            Icons.arrow_forward_rounded,
-                                                                            size:
-                                                                                16,
-                                                                            color: accent.withValues(
-                                                                              alpha: 0.92,
-                                                                            ),
-                                                                          ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(width: 8),
+                                                              ],
+                                                              Expanded(
+                                                                child: Material(
+                                                                  color: Colors.transparent,
+                                                                  child: InkWell(
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                    onTap: _showDownloadManager,
+                                                                    child: Container(
+                                                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                                                      decoration: BoxDecoration(
+                                                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                                                                        borderRadius: BorderRadius.circular(12),
+                                                                        border: Border.all(
+                                                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
+                                                                          width: 0.85,
                                                                         ),
-                                                                      ],
-                                                                    )
-                                                                  : InkWell(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                            16,
-                                                                          ),
-                                                                      onTap:
-                                                                          _openAddressBar,
+                                                                      ),
                                                                       child: Row(
                                                                         children: [
-                                                                          Icon(
-                                                                            addressLabel.startsWith(
-                                                                                  'https://',
-                                                                                )
-                                                                                ? Icons.lock_outline_rounded
-                                                                                : Icons.public_rounded,
-                                                                            size:
-                                                                                15,
-                                                                            color:
-                                                                                panelMuted,
-                                                                          ),
-                                                                          const SizedBox(
-                                                                            width:
-                                                                                8,
-                                                                          ),
+                                                                          Icon(Icons.download_for_offline_rounded, size: 14, color: panelMuted),
+                                                                          const SizedBox(width: 6),
                                                                           Expanded(
                                                                             child: Text(
-                                                                              addressLabel,
-                                                                              maxLines: 1,
-                                                                              overflow: TextOverflow.ellipsis,
+                                                                              hasDownloads ? 'Open Downloads' : 'No Downloads',
                                                                               style: TextStyle(
-                                                                                fontSize: 12,
-                                                                                color: panelText.withValues(
-                                                                                  alpha: 0.95,
-                                                                                ),
+                                                                                fontSize: 11,
+                                                                                fontWeight: FontWeight.w700,
+                                                                                color: panelText.withValues(alpha: 0.96),
+                                                                                decoration: TextDecoration.none,
                                                                               ),
                                                                             ),
                                                                           ),
-                                                                          Icon(
-                                                                            Icons.edit_rounded,
-                                                                            size:
-                                                                                15,
-                                                                            color: panelMuted.withValues(
-                                                                              alpha: 0.70,
-                                                                            ),
-                                                                          ),
+                                                                          Icon(Icons.chevron_right_rounded, size: 14, color: panelMuted),
                                                                         ],
                                                                       ),
                                                                     ),
-                                                            ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ],
                                                       ),
-                                                    ],
-                                                  ),
-                                          ), // AnimatedSwitcher
-                                        ], // Column children
-                                      ), // Column
-                                    ), // AnimatedSize
-                                  ), // TweenAnimationBuilder
-                                ), // AnimatedScale
-                              ), // GestureDetector
-                            ), // Center
-                          ), // Positioned
+                                                    );
+
+                                                    final isFacultyScope = widget.sessionScope == 'faculty';
+                                                    if (constraints.maxWidth >= 420) {
+                                                      if (isFacultyScope) {
+                                                        return Column(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            navigationCard,
+                                                            const SizedBox(height: 8),
+                                                            storageCard,
+                                                          ],
+                                                        );
+                                                      }
+                                                      return Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          Row(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              SizedBox(width: leftTelemetryWidth, child: telemetryCard),
+                                                              const SizedBox(width: 8),
+                                                              Expanded(child: navigationCard),
+                                                            ],
+                                                          ),
+                                                          const SizedBox(height: 8),
+                                                          storageCard,
+                                                        ],
+                                                      );
+                                                    } else {
+                                                      return Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          if (!isFacultyScope) ...[
+                                                            telemetryCard,
+                                                            const SizedBox(height: 8),
+                                                          ],
+                                                          navigationCard,
+                                                          const SizedBox(height: 8),
+                                                          storageCard,
+                                                        ],
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ), // TweenAnimationBuilder
+                          ), // AnimatedScale
+                        ), // GestureDetector
+                      ), // Center
+                    ), // Positioned
                     Positioned.fill(
                       child: IgnorePointer(
                         child: Align(

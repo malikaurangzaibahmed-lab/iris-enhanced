@@ -1,5 +1,5 @@
 name: iris
-description: "IRIS - Intelligent Resource Information System"
+description: "Nexsync - Intelligent Academic Companion"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -37,6 +37,7 @@ dependencies:
   shared_preferences: ^2.3.3
   url_launcher: ^6.3.1
   liquid_glass_renderer: ^0.1.1-dev.17
+  liquid_glass_widgets: ^0.15.1
   home_widget: ^0.6.0
   webview_flutter: ^4.8.0
   webview_flutter_android: ^4.0.0
@@ -80,6 +81,7 @@ flutter:
 
   assets:
     - assets/timetable_seed.json
+    - assets/nexsync_logo.png
     - assets/iris_logo.png
     - assets/Alex_Jones.gif
     - assets/widget_bg_light.gif
@@ -97,6 +99,7 @@ flutter:
     - assets/ui_sfx/nasa_on_a_mission.mp3
     - assets/ui_sfx_pack/
     - assets/helpdesk_backup/
+    - assets/faculty_images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -132,7 +135,7 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/iris_logo.png"
+  image_path: "assets/nexsync_logo.png"
 
   shaders:
     - shaders/liquidglass.frag

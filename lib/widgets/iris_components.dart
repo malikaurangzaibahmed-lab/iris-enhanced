@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import '../services/ui_feedback.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../core/models.dart';
 import 'glass_card.dart';
 import 'smart_widgets.dart';
-import 'spring_button.dart';
 import '../core/minimal_theme.dart';
 import '../core/theme_signals.dart';
 import 'vital_card.dart';
@@ -170,15 +171,21 @@ class IrisComponents {
       ),
       child: ClipOval(
         child: imageUrl != null && imageUrl.isNotEmpty
-            ? Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(fallbackIcon, accentColor, isDark),
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return _buildAvatarPlaceholder(fallbackIcon, accentColor, isDark);
-                },
-              )
+            ? (imageUrl.startsWith('assets/')
+                ? Image.asset(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(fallbackIcon, accentColor, isDark),
+                  )
+                : Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(fallbackIcon, accentColor, isDark),
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return _buildAvatarPlaceholder(fallbackIcon, accentColor, isDark);
+                    },
+                  ))
             : _buildAvatarPlaceholder(fallbackIcon, accentColor, isDark),
       ),
     );
@@ -310,14 +317,14 @@ class IrisComponents {
           ),
           title: Text(title, style: IrisTextStyles.settingTitle(context)),
           subtitle: Text(subtitle, style: IrisTextStyles.settingSubtitle(context)),
-          trailing: Switch.adaptive(
+          trailing: GlassSwitch(
             value: value,
             onChanged: (v) {
               IrisHaptics.chipSelect();
               onChanged(v);
             },
             activeColor: IrisTokens.brand,
-            activeTrackColor: IrisTokens.brand.withValues(alpha: 0.3),
+            useOwnLayer: true,
           ),
         );
       },
@@ -354,7 +361,7 @@ class RippleEffect extends StatelessWidget {
   }
 }
 
-class AnimatedButton extends StatefulWidget {
+class AnimatedButton extends StatelessWidget {
   final Widget child;
   final VoidCallback? onPressed;
   final Duration duration;
@@ -367,43 +374,16 @@ class AnimatedButton extends StatefulWidget {
   });
 
   @override
-  State<AnimatedButton> createState() => _AnimatedButtonState();
-}
-
-class _AnimatedButtonState extends State<AnimatedButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration);
-    _scale = Tween<double>(begin: 1.0, end: 0.94).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        _controller.forward();
-        IrisHaptics.actionSoft();
-      },
-      onTapUp: (_) => _controller.reverse(),
-      onTapCancel: () => _controller.reverse(),
+    return GlassButton.custom(
       onTap: () {
         IrisSfx.click();
-        widget.onPressed?.call();
+        onPressed?.call();
       },
-      child: ScaleTransition(scale: _scale, child: widget.child),
+      useOwnLayer: true,
+      style: GlassButtonStyle.transparent,
+      stretch: 0.25, // subtle stretch feel
+      child: child,
     );
   }
 }
@@ -1182,6 +1162,9 @@ class _ClassCardState extends State<ClassCard>
         widget.session.dayIndex == now.weekday &&
         widget.session.safeStartVal > currentTime &&
         widget.session.safeStartVal - currentTime <= 0.75;
+    final isCompleted =
+        widget.session.dayIndex < now.weekday ||
+        (widget.session.dayIndex == now.weekday && currentTime > LectureDuration.getActualEndTime(widget.session));
 
     _syncPulse(live || isUpcoming);
 
@@ -1203,69 +1186,151 @@ class _ClassCardState extends State<ClassCard>
         if (useVital) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-            child: VitalCard(
-              animate: false, // Handled by StaggeredListItem
-              backgroundColor: live ? VitalTokens.green.withValues(alpha: isDark ? 0.15 : 0.08) : null,
-              border: live ? Border.all(color: VitalTokens.green.withValues(alpha: 0.3), width: 1.5) : null,
-              padding: const EdgeInsets.all(22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.session.subject,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: live ? VitalTokens.green : textPrimary,
+            child: Opacity(
+              opacity: isCompleted ? 0.55 : 1.0,
+              child: VitalCard(
+                animate: false, // Handled by StaggeredListItem
+                backgroundColor: live
+                    ? VitalTokens.green.withValues(alpha: isDark ? 0.15 : 0.08)
+                    : isUpcoming
+                        ? IrisTokens.brand.withValues(alpha: isDark ? 0.15 : 0.08)
+                        : null,
+                border: live
+                    ? Border.all(color: VitalTokens.green.withValues(alpha: 0.3), width: 1.5)
+                    : isUpcoming
+                        ? Border.all(color: IrisTokens.brand.withValues(alpha: 0.3), width: 1.2)
+                        : null,
+                padding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (isCompleted) ...[
+                          Icon(
+                            Icons.check_circle_rounded,
+                            size: 18,
+                            color: VitalTokens.green,
                           ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: live ? VitalTokens.green : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
-                          borderRadius: BorderRadius.circular(VitalTokens.radiusFull),
-                        ),
-                        child: Text(
-                          timeLabel,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: live ? Colors.white : textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.location_on_rounded, size: 16, color: accentColor.withValues(alpha: 0.6)),
-                          const SizedBox(width: 6),
-                          Text(
-                            widget.session.room,
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: textPrimary),
-                          ),
+                          const SizedBox(width: 8),
                         ],
-                      ),
-                      Text(
-                        widget.isFacultyView ? widget.session.batchKey.batch : widget.session.teacher,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textSecondary),
-                      ),
+                        Expanded(
+                          child: Text(
+                            widget.session.subject,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: live
+                                  ? VitalTokens.green
+                                  : isUpcoming
+                                      ? IrisTokens.brand
+                                      : textPrimary,
+                              decoration: isCompleted ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                        if (live) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: VitalTokens.green.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(99),
+                              border: Border.all(color: VitalTokens.green.withValues(alpha: 0.3), width: 1),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: VitalTokens.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                const Text(
+                                  'LIVE',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    color: VitalTokens.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ] else if (isUpcoming) ...[
+                          Builder(
+                            builder: (context) {
+                              final mins = ((widget.session.safeStartVal - currentTime) * 60).toInt();
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: IrisTokens.brand.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(color: IrisTokens.brand.withValues(alpha: 0.3), width: 1),
+                                ),
+                                child: Text(
+                                  'IN ${mins}M',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    color: IrisTokens.brand,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: live
+                                ? VitalTokens.green
+                                : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+                            borderRadius: BorderRadius.circular(VitalTokens.radiusFull),
+                          ),
+                          child: Text(
+                            timeLabel,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: live ? Colors.white : textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_rounded, size: 16, color: accentColor.withValues(alpha: 0.6)),
+                            const SizedBox(width: 6),
+                            Text(
+                              widget.session.room,
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: textPrimary),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          widget.isFacultyView ? widget.session.batchKey.batch : widget.session.teacher,
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textSecondary),
+                        ),
+                      ],
+                    ),
+                    if (live) ...[
+                      const SizedBox(height: 20),
+                      _buildVitalProgress(isDark),
                     ],
-                  ),
-                  if (live) ...[
-                    const SizedBox(height: 20),
-                    _buildVitalProgress(isDark),
                   ],
-                ],
+                ),
               ),
             ),
           );
@@ -1274,199 +1339,288 @@ class _ClassCardState extends State<ClassCard>
         // Legacy GlassCard
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.0, end: 1.0),
-            duration: IrisMotion.medium,
-            curve: IrisMotion.entrance,
-            builder: (context, bounceval, child) => Transform.scale(
-              scale: 0.96 + (bounceval * 0.04),
-              child: GlassCard(
-                glow: live,
-                shimmer: false,
-                enableBlur: true,
-                enableShadow: true,
-                enableOverlay: true,
-                padding: const EdgeInsets.all(22),
-                borderRadius: 32.0,
-                elevation: live ? 3 : 2,
-                accentColor: accentColor,
-                tilt: live,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.session.subject,
-                            style: IrisTextStyles.classSubject(context).copyWith(
-                              color: live ? IrisTokens.success : textPrimary,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 7,
-                          ),
-                          decoration: BoxDecoration(
-                            color: live 
-                                ? IrisTokens.brand.withValues(alpha: 0.85)
-                                : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
-                            borderRadius: BorderRadius.circular(99),
-                          ),
-                          child: Text(
-                            timeLabel,
-                            style: IrisTextStyles.badgeText(context).copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: live ? Colors.white : textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              final scaleVal = (live || isUpcoming) ? _pulseAnimation.value : 1.0;
+              return Transform.scale(
+                scale: scaleVal,
+                child: Opacity(
+                  opacity: isCompleted ? 0.55 : 1.0,
+                  child: GlassCard(
+                    glow: live,
+                    shimmer: false,
+                    enableBlur: true,
+                    enableShadow: true,
+                    enableOverlay: true,
+                    padding: const EdgeInsets.all(22),
+                    borderRadius: 32.0,
+                    elevation: live ? 4 : (isUpcoming ? 3 : 2),
+                    accentColor: accentColor,
+                    tilt: live,
+                    border: live
+                        ? Border.all(
+                            color: IrisTokens.success.withValues(alpha: 0.4 + (math.sin(_pulseController.value * math.pi) * 0.2)),
+                            width: 1.5,
+                          )
+                        : isUpcoming
+                            ? Border.all(
+                                color: IrisTokens.brand.withValues(alpha: 0.3),
+                                width: 1.2,
+                              )
+                            : null,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.location_on_rounded,
-                              size: 16,
-                              color: textSecondary.withValues(alpha: 0.6),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              widget.session.room,
-                              style: IrisTextStyles.classSessionMeta(context).copyWith(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: textPrimary.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          widget.isFacultyView
-                              ? widget.session.batchKey.batch
-                              : widget.session.teacher,
-                          style: IrisTextStyles.metaInfo(context).copyWith(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: textSecondary.withValues(alpha: 0.7),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                    
-                    if (live &&
-                        widget.nextSession != null &&
-                        widget.nextSession!.dayIndex ==
-                            widget.session.dayIndex) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 9,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.keyboard_arrow_right_rounded,
-                              size: 16,
-                              color: textSecondary.withValues(alpha: 0.5),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Next: ${widget.nextSession!.room}',
-                              style: IrisTextStyles.badgeText(context).copyWith(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.2,
-                                color: textSecondary.withValues(alpha: 0.8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    if (live) ...[
-                      const SizedBox(height: 22),
-                      Builder(
-                        builder: (context) {
-                          final currentTime = now.hour + (now.minute / 60.0);
-                          final duration = LectureDuration.getActualDuration(widget.session);
-                          final actualEndTime = LectureDuration.getActualEndTime(widget.session);
-                          final progress = ((currentTime - widget.session.safeStartVal) / duration).clamp(0.0, 1.0);
-                          final minutesLeft = ((actualEndTime - currentTime) * 60).toInt().clamp(0, (duration * 60).toInt());
-
-                          return Column(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(99),
-                                child: Container(
-                                  height: 8,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: progress,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [IrisTokens.success, IrisTokens.successDark],
-                                        ),
-                                        borderRadius: BorderRadius.circular(99),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Expanded(
+                              child: Row(
                                 children: [
-                                  Text(
-                                    '${(progress * 100).toInt()}% Done',
-                                    style: IrisTextStyles.classProgress(context).copyWith(
-                                      color: textSecondary.withValues(alpha: 0.6),
+                                  if (isCompleted) ...[
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 18,
+                                      color: IrisTokens.success.withValues(alpha: 0.8),
                                     ),
-                                  ),
-                                  Text(
-                                    '${minutesLeft}m left',
-                                    style: IrisTextStyles.classProgress(context).copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      color: IrisTokens.success,
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Expanded(
+                                    child: Text(
+                                      widget.session.subject,
+                                      style: IrisTextStyles.classSubject(context).copyWith(
+                                        color: live ? IrisTokens.success : textPrimary,
+                                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (live) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: IrisTokens.success.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(color: IrisTokens.success.withValues(alpha: 0.3), width: 1),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: IrisTokens.success,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'LIVE',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: IrisTokens.success,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ] else if (isUpcoming) ...[
+                              Builder(
+                                builder: (context) {
+                                  final mins = ((widget.session.safeStartVal - currentTime) * 60).toInt();
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: IrisTokens.brand.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(99),
+                                      border: Border.all(color: IrisTokens.brand.withValues(alpha: 0.3), width: 1),
+                                    ),
+                                    child: Text(
+                                      'IN ${mins}M',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: IrisTokens.brand,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 6),
                             ],
-                          );
-                        },
-                      ),
-                    ],
-                  ],
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: live
+                                    ? IrisTokens.brand.withValues(alpha: 0.85)
+                                    : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: Text(
+                                timeLabel,
+                                style: IrisTextStyles.badgeText(context).copyWith(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: live ? Colors.white : textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_rounded,
+                                  size: 16,
+                                  color: live ? IrisTokens.success : textSecondary.withValues(alpha: 0.6),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  widget.session.room,
+                                  style: IrisTextStyles.classSessionMeta(context).copyWith(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: textPrimary.withValues(alpha: 0.85),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              widget.isFacultyView
+                                  ? widget.session.batchKey.batch
+                                  : widget.session.teacher,
+                              style: IrisTextStyles.metaInfo(context).copyWith(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: textSecondary.withValues(alpha: 0.7),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+
+                        if (live &&
+                            widget.nextSession != null &&
+                            widget.nextSession!.dayIndex ==
+                                widget.session.dayIndex) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 9,
+                            ),
+                            decoration: BoxDecoration(
+                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.keyboard_arrow_right_rounded,
+                                  size: 16,
+                                  color: textSecondary.withValues(alpha: 0.5),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Next: ${widget.nextSession!.room}',
+                                  style: IrisTextStyles.badgeText(context).copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.2,
+                                    color: textSecondary.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        if (live) ...[
+                          const SizedBox(height: 22),
+                          Builder(
+                            builder: (context) {
+                              final currentTime = now.hour + (now.minute / 60.0);
+                              final duration = LectureDuration.getActualDuration(widget.session);
+                              final actualEndTime = LectureDuration.getActualEndTime(widget.session);
+                              final progress = ((currentTime - widget.session.safeStartVal) / duration).clamp(0.0, 1.0);
+                              final minutesLeft = ((actualEndTime - currentTime) * 60).toInt().clamp(0, (duration * 60).toInt());
+
+                              return Column(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(99),
+                                    child: Container(
+                                      height: 8,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                                      ),
+                                      child: FractionallySizedBox(
+                                        alignment: Alignment.centerLeft,
+                                        widthFactor: progress,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [IrisTokens.success, IrisTokens.successDark],
+                                            ),
+                                            borderRadius: BorderRadius.circular(99),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '${(progress * 100).toInt()}% Done',
+                                        style: IrisTextStyles.classProgress(context).copyWith(
+                                          color: textSecondary.withValues(alpha: 0.6),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${minutesLeft}m left',
+                                        style: IrisTextStyles.classProgress(context).copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          color: IrisTokens.success,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         );
       },

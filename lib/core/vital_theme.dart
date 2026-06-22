@@ -144,7 +144,7 @@ class _ObsidianPulseState extends State<ObsidianPulse>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 20),
+      duration: const Duration(seconds: 24),
     )..repeat();
   }
 
@@ -157,80 +157,123 @@ class _ObsidianPulseState extends State<ObsidianPulse>
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
-    
+    final dotColor = isDark 
+        ? Colors.white.withValues(alpha: 0.05) 
+        : Colors.black.withValues(alpha: 0.04);
+        
     return RepaintBoundary(
       child: Stack(
         children: [
-          // Base Ambient Layer
-          Container(color: isDark ? VitalTokens.obsidian : VitalTokens.offWhite),
+          // Base Background
+          Container(
+            color: isDark ? VitalTokens.obsidian : VitalTokens.offWhite,
+          ),
           
-          // Unified Animated Layer
+          // Soft Animated Ambient Blobs (Drifting slowly)
           AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
               final t = _controller.value;
+              final angle = t * 2 * math.pi;
+              
+              // Blob 1: Top-Right / Center-Right area
+              final blob1X = 0.25 * math.sin(angle);
+              final blob1Y = 0.18 * math.cos(angle);
+              
+              // Blob 2: Bottom-Left / Center-Left area
+              final blob2X = 0.25 * math.cos(angle + math.pi);
+              final blob2Y = 0.18 * math.sin(angle + math.pi);
+              
               return Stack(
                 children: [
-                  // Moving Glow Core
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment(
-                          0.6 * math.sin(t * 2 * math.pi),
-                          0.4 * math.cos(t * 2 * math.pi),
+                  // Blue Blob (Top Right)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(0.4 + blob1X, -0.3 + blob1Y),
+                          radius: 1.5,
+                          colors: [
+                            VitalTokens.blue.withValues(alpha: isDark ? 0.06 : 0.04),
+                            Colors.transparent,
+                          ],
                         ),
-                        colors: [
-                          VitalTokens.blue.withValues(
-                            alpha: isDark ? 0.12 : 0.08,
-                          ),
-                          Colors.transparent,
-                        ],
-                        radius: 1.5,
                       ),
                     ),
                   ),
                   
-                  // Concentric Vital Rings
-                  ...List.generate(3, (index) {
-                    final ringT = (t + (index * 0.3)) % 1.0;
-                    final scale = 0.5 + (ringT * 1.5);
-                    final opacity = (1.0 - ringT).clamp(0.0, 1.0) * (isDark ? 0.15 : 0.10);
-                    
-                    return Center(
-                      child: Opacity(
-                        opacity: opacity,
-                        child: Transform.scale(
-                          scale: scale,
-                          child: Container(
-                            width: 300,
-                            height: 300,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: index == 0 
-                                    ? VitalTokens.blue 
-                                    : (index == 1 ? VitalTokens.purple : VitalTokens.cyan),
-                                width: 2.0 / scale,
-                              ),
-                            ),
-                          ),
+                  // Purple/Indigo Blob (Bottom Left)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(-0.4 + blob2X, 0.3 + blob2Y),
+                          radius: 1.5,
+                          colors: [
+                            VitalTokens.purple.withValues(alpha: isDark ? 0.05 : 0.03),
+                            Colors.transparent,
+                          ],
                         ),
                       ),
-                    );
-                  }),
+                    ),
+                  ),
                 ],
               );
             },
           ),
-
-          // Noise/Overlay for Texture (Optimized: No separate Opacity widget)
-          IgnorePointer(
-            child: Container(
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.02 : 0.015),
+          
+          // Clean Professional Dot Grid Overlay
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _DotGridPainter(color: dotColor),
+              ),
+            ),
+          ),
+          
+          // Very subtle gradient overlay to fade grid at the edges
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 1.4,
+                    colors: [
+                      Colors.transparent,
+                      (isDark ? VitalTokens.obsidian : VitalTokens.offWhite).withValues(alpha: 0.18),
+                      isDark ? VitalTokens.obsidian : VitalTokens.offWhite,
+                    ],
+                    stops: const [0.0, 0.6, 1.0],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _DotGridPainter extends CustomPainter {
+  final Color color;
+  const _DotGridPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+      
+    const spacing = 32.0;
+    for (double x = spacing / 2; x < size.width; x += spacing) {
+      for (double y = spacing / 2; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), 0.8, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DotGridPainter oldDelegate) => color != oldDelegate.color;
 }

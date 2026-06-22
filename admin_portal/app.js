@@ -1,5 +1,5 @@
 /* ==========================================================================
-   IRIS ENTERPRISE CONTROL SPACE - 21ST.DEV OBSIDIAN CONTROLLER
+   NEXSYNC ENTERPRISE CONTROL SPACE - 21ST.DEV OBSIDIAN CONTROLLER
    Orchestrating high-fidelity micro-interactions and bulletproof sync telemetry.
    ========================================================================== */
 
@@ -149,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setup3DTiltEffects();
   startLatencySimulator();
   startTelemetryECG();
+  setupGlassShaderEffects();
   
   if (apkUrlInput) {
     apkUrlInput.addEventListener('input', () => {
@@ -356,7 +357,7 @@ function setupTerminalControls() {
         return;
       }
       
-      let md = `# IRIS Biosphere Command Console - System Diagnostics Report\r\n\r\n`;
+      let md = `# Nexsync Biosphere Command Console - System Diagnostics Report\r\n\r\n`;
       md += `## Administrative Session Details\r\n`;
       md += `* **Exported Timestamp:** ${new Date().toLocaleString()}\r\n`;
       md += `* **Connection Status:** ${isConnected ? "STREAM ACTIVE" : "OFFLINE"}\r\n`;
@@ -378,7 +379,7 @@ function setupTerminalControls() {
       
       const link = document.createElement('a');
       link.href = url;
-      link.download = `iris-diagnostics-report-${Date.now()}.md`;
+      link.download = `nexsync-diagnostics-report-${Date.now()}.md`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -495,8 +496,6 @@ function setupAuthListeners() {
       authOverlay.style.display = 'none';
       dashboardContainer.style.display = 'flex';
       
-      applyRolePermissions(user);
-      
       syncActivePeriodState();
       loadTimetableHistory();
       startNodesSimulator();
@@ -612,29 +611,7 @@ saveConfigBtn.addEventListener('click', () => {
   }
 });
 
-// ==========================================================================
-// ACADEMIC SYSTEM MATRIX SWITCHER & SVG ORBITS
-// ==========================================================================
 
-function rotateOrbitBodies(activePeriod) {
-  // Balanced concentric scattered rotation values
-  const angles = {
-    classes: { classes: 0, midterms: 75, finals: 155, sports_week: 250 },
-    midterms: { classes: 285, midterms: 0, finals: 80, sports_week: 175 },
-    finals: { classes: 205, midterms: 280, finals: 0, sports_week: 105 },
-    sports_week: { classes: 110, midterms: 185, finals: 250, sports_week: 0 }
-  };
-  
-  const stateAngles = angles[activePeriod] || angles.classes;
-  
-  for (const [period, angle] of Object.entries(stateAngles)) {
-    const element = document.getElementById(`orbit-body-${period}`);
-    if (element) {
-      element.style.transform = `rotate(${angle}deg)`;
-      element.setAttribute('transform', `rotate(${angle}, 60, 60)`);
-    }
-  }
-}
 
 function syncActivePeriodState() {
   if (!isConnected) return;
@@ -667,9 +644,7 @@ function syncActivePeriodState() {
       if (activePeriodDesc) {
         activePeriodDesc.innerText = descs[currentPeriod] || 'Lecture tracks active.';
       }
-      
-      // Rotate Visual SVG Orbits
-      rotateOrbitBodies(currentPeriod);
+
 
       // Render active timetable statistics dynamically from database
       if (data.active_timetable_json) {
@@ -799,7 +774,6 @@ ribbonSegments.forEach(seg => {
     seg.classList.add('active');
     
     const targetPeriod = seg.dataset.period;
-    rotateOrbitBodies(targetPeriod);
     
     // Update local text descriptions instantly
     const descs = {
@@ -1815,7 +1789,7 @@ deployApkBtn.addEventListener('click', async () => {
     }
     
     uploadProgressContainer.style.display = 'flex';
-    const filename = `iris-v${vName}-release.apk`;
+    const filename = `nexsync-v${vName}-release.apk`;
     const storageRef = storage.ref().child(`updates/${filename}`);
     
     const uploadTask = storageRef.put(selectedApkFile);
@@ -2678,4 +2652,350 @@ async function wipeLiveExams() {
     logTerminal(`Wipe failed: ${err.message}`, 'error');
     showMossToast(err.message, "error");
   }
+}
+
+function setupGlassShaderEffects() {
+  // 1. Animate background SVG turbulence seed (if turbulence filter is defined)
+  const turbulence = document.querySelector('#liquid-refraction feTurbulence');
+  if (turbulence) {
+    let seed = 1;
+    setInterval(() => {
+      seed = (seed + 1) % 1000;
+      turbulence.setAttribute('seed', seed);
+    }, 120);
+  }
+
+  // 2. Initialize offscreen displacement maps for all cards
+  const cards = document.querySelectorAll('.tech-card, .modal-card');
+  const filtersContainer = document.getElementById('svg-filters-container');
+  if (!filtersContainer) return;
+
+  let glassCounter = 0;
+
+  cards.forEach(card => {
+    const glassId = ++glassCounter;
+    card.dataset.glassId = glassId;
+
+    // Create offscreen canvas for SDF displacement calculation (hidden from DOM)
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = 64;
+    offscreenCanvas.height = 64;
+    card.glassCanvas = offscreenCanvas;
+    card.glassCtx = offscreenCanvas.getContext('2d');
+
+    // Generate unique SVG filter ID for chromatic dispersion
+    const filterId = `liquid-glass-filter-${glassId}`;
+    const mapId = `liquid-glass-map-${glassId}`;
+    
+    const svgNS = "http://www.w3.org/2000/svg";
+    const filter = document.createElementNS(svgNS, "filter");
+    filter.setAttribute("id", filterId);
+    filter.setAttribute("filterUnits", "userSpaceOnUse");
+    filter.setAttribute("color-interpolation-filters", "sRGB");
+    filter.setAttribute("x", "0");
+    filter.setAttribute("y", "0");
+    
+    const feImage = document.createElementNS(svgNS, "feImage");
+    feImage.setAttribute("id", mapId);
+    feImage.setAttribute("result", "map");
+    feImage.setAttribute("x", "0");
+    feImage.setAttribute("y", "0");
+    
+    // Chromatic dispersion channel maps (Red/Green/Blue split)
+    const feDispR = document.createElementNS(svgNS, "feDisplacementMap");
+    feDispR.setAttribute("in", "SourceGraphic");
+    feDispR.setAttribute("in2", "map");
+    feDispR.setAttribute("scale", "35"); // Red bends more
+    feDispR.setAttribute("xChannelSelector", "R");
+    feDispR.setAttribute("yChannelSelector", "G");
+    feDispR.setAttribute("result", "redDisp");
+
+    const feDispG = document.createElementNS(svgNS, "feDisplacementMap");
+    feDispG.setAttribute("in", "SourceGraphic");
+    feDispG.setAttribute("in2", "map");
+    feDispG.setAttribute("scale", "25"); // Green normal
+    feDispG.setAttribute("xChannelSelector", "R");
+    feDispG.setAttribute("yChannelSelector", "G");
+    feDispG.setAttribute("result", "greenDisp");
+
+    const feDispB = document.createElementNS(svgNS, "feDisplacementMap");
+    feDispB.setAttribute("in", "SourceGraphic");
+    feDispB.setAttribute("in2", "map");
+    feDispB.setAttribute("scale", "15"); // Blue bends less
+    feDispB.setAttribute("xChannelSelector", "R");
+    feDispB.setAttribute("yChannelSelector", "G");
+    feDispB.setAttribute("result", "blueDisp");
+
+    // Isolate color channels
+    const feMatR = document.createElementNS(svgNS, "feColorMatrix");
+    feMatR.setAttribute("in", "redDisp");
+    feMatR.setAttribute("type", "matrix");
+    feMatR.setAttribute("values", "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0");
+    feMatR.setAttribute("result", "redOnly");
+
+    const feMatG = document.createElementNS(svgNS, "feColorMatrix");
+    feMatG.setAttribute("in", "greenDisp");
+    feMatG.setAttribute("type", "matrix");
+    feMatG.setAttribute("values", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0");
+    feMatG.setAttribute("result", "greenOnly");
+
+    const feMatB = document.createElementNS(svgNS, "feColorMatrix");
+    feMatB.setAttribute("in", "blueDisp");
+    feMatB.setAttribute("type", "matrix");
+    feMatB.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0");
+    feMatB.setAttribute("result", "blueOnly");
+
+    // Recombine channels back to full color screen space
+    const feBlend1 = document.createElementNS(svgNS, "feBlend");
+    feBlend1.setAttribute("in", "redOnly");
+    feBlend1.setAttribute("in2", "greenOnly");
+    feBlend1.setAttribute("mode", "screen");
+    feBlend1.setAttribute("result", "rg");
+
+    const feBlend2 = document.createElementNS(svgNS, "feBlend");
+    feBlend2.setAttribute("in", "rg");
+    feBlend2.setAttribute("in2", "blueOnly");
+    feBlend2.setAttribute("mode", "screen");
+    feBlend2.setAttribute("result", "rgb");
+
+    filter.appendChild(feImage);
+    filter.appendChild(feDispR);
+    filter.appendChild(feDispG);
+    filter.appendChild(feDispB);
+    filter.appendChild(feMatR);
+    filter.appendChild(feMatG);
+    filter.appendChild(feMatB);
+    filter.appendChild(feBlend1);
+    filter.appendChild(feBlend2);
+
+    filtersContainer.appendChild(filter);
+
+    card.feImage = feImage;
+    card.filterElement = filter;
+
+    // Apply inline backdrop filter linking to card-specific SVG
+    card.style.backdropFilter = `url(#${filterId}) blur(16px) saturate(1.1) brightness(1.05)`;
+    card.style.webkitBackdropFilter = `url(#${filterId}) blur(16px) saturate(1.1) brightness(1.05)`;
+
+    // Physics parameters
+    card.mouseActive = false;
+    card.mouseX = 0;
+    card.mouseY = 0;
+    card.targetX = 0;
+    card.targetY = 0;
+    card.warpX = 0;
+    card.warpY = 0;
+    card.vx = 0;
+    card.vy = 0;
+
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let lastTime = Date.now();
+
+    card.addEventListener('mouseenter', () => {
+      card.mouseActive = true;
+    });
+
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      card.mouseX = x;
+      card.mouseY = y;
+      
+      const now = Date.now();
+      const dt = Math.max(1, now - lastTime);
+      
+      // Calculate cursor velocity to drive physical fluid sloshing
+      const vxMouse = (x - lastMouseX) / dt;
+      const vyMouse = (y - lastMouseY) / dt;
+      
+      card.targetX = Math.max(-25, Math.min(25, vxMouse * 12));
+      card.targetY = Math.max(-25, Math.min(25, vyMouse * 12));
+      
+      lastMouseX = x;
+      lastMouseY = y;
+      lastTime = now;
+      
+      // Apply subtle dynamic perspective 3D tilt
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const tiltX = ((y - centerY) / centerY) * -4; 
+      const tiltY = ((x - centerX) / centerX) * 4; 
+      card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+
+      // Write CSS variables to feed the GPU touch glow
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.mouseActive = false;
+      card.targetX = 0;
+      card.targetY = 0;
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+    });
+  });
+
+  // Math models for refraction simulation
+  function circleMap(x) {
+    return 1.0 - Math.sqrt(Math.max(0.0, 1.0 - x * x));
+  }
+
+  function roundedRectSDF(x, y, w, h, r) {
+    const qx = Math.abs(x) - w + r;
+    const qy = Math.abs(y) - h + r;
+    return Math.min(Math.max(qx, qy), 0) + Math.sqrt(Math.max(qx, 0)**2 + Math.max(qy, 0)**2) - r;
+  }
+
+  function gradSdRoundedRect(x, y, w, h, r) {
+    const qx = Math.abs(x) - w + r;
+    const qy = Math.abs(y) - h + r;
+    if (qx >= 0 || qy >= 0) {
+      const mx = Math.max(qx, 0);
+      const my = Math.max(qy, 0);
+      const len = Math.sqrt(mx * mx + my * my);
+      return {
+        x: Math.sign(x) * (len > 0 ? mx / len : 0),
+        y: Math.sign(y) * (len > 0 ? my / len : 0)
+      };
+    } else {
+      const gradX = qy < qx ? 1 : 0;
+      return {
+        x: Math.sign(x) * gradX,
+        y: Math.sign(y) * (1 - gradX)
+      };
+    }
+  }
+
+  // Render & Physics Loop
+  function updatePhysicsAndRender() {
+    const spring = 0.08;
+    const damping = 0.82;
+    const resolution = 64;
+
+    cards.forEach(card => {
+      const width = card.offsetWidth;
+      const height = card.offsetHeight;
+
+      // Prevent DOMExceptions from hidden cards or zero-bounding elements
+      if (width <= 0 || height <= 0) return;
+
+      // Update SVG filter mapping on layout changes
+      if (card.lastWidth !== width || card.lastHeight !== height) {
+        card.lastWidth = width;
+        card.lastHeight = height;
+
+        card.filterElement.setAttribute('x', '0');
+        card.filterElement.setAttribute('y', '0');
+        card.filterElement.setAttribute('width', width.toString());
+        card.filterElement.setAttribute('height', height.toString());
+
+        card.feImage.setAttribute('width', width.toString());
+        card.feImage.setAttribute('height', height.toString());
+      }
+
+      // Spring sloshing logic
+      const ax = (card.targetX - card.warpX) * spring;
+      const ay = (card.targetY - card.warpY) * spring;
+      card.vx = (card.vx + ax) * damping;
+      card.vy = (card.vy + ay) * damping;
+      card.warpX += card.vx;
+      card.warpY += card.vy;
+
+      // Decay velocity
+      card.targetX *= 0.92;
+      card.targetY *= 0.92;
+
+      // CPU Guard: if elements settle, skip redraw frame to save energy (0% CPU idle)
+      const isMoving = Math.abs(card.vx) > 0.005 || Math.abs(card.vy) > 0.005;
+      if (!isMoving && !card.mouseActive && card.hasStaticRendered) {
+        return;
+      }
+
+      const ctx = card.glassCtx;
+      const w = resolution;
+      const h = resolution;
+      const imgData = ctx.createImageData(w, h);
+      const data = imgData.data;
+
+      const halfW = width / 2;
+      const halfH = height / 2;
+      const refractWidth = 24; // Lens boundary border width
+      const refractAmount = 15; // Max displacement shift in pixels
+
+      const wx = card.warpX * 0.15;
+      const wy = card.warpY * 0.15;
+
+      for (let y = 0; y < h; y++) {
+        const cardY = (y / (h - 1)) * height;
+        const cy = cardY - halfH;
+
+        for (let x = 0; x < w; x++) {
+          const cardX = (x / (w - 1)) * width;
+          const cx = cardX - halfW;
+
+          // Compute Signed Distance Field to find distance to card border
+          const sd = roundedRectSDF(cx, cy, halfW, halfH, 12);
+          
+          let dx = 0;
+          let dy = 0;
+
+          if (sd < 0) {
+            // Inside the card boundaries
+            if (sd > -refractWidth) {
+              // Map curved edge light bending refraction
+              const ratio = 1.0 - (-sd / refractWidth);
+              const d = circleMap(ratio) * refractAmount;
+
+              const grad = gradSdRoundedRect(cx, cy, halfW, halfH, 12);
+              const len = Math.sqrt(grad.x**2 + grad.y**2);
+              const nx = len > 0 ? grad.x / len : 0;
+              const ny = len > 0 ? grad.y / len : 0;
+
+              // Convex lens: bends background light inward
+              dx = -d * nx;
+              dy = -d * ny;
+            }
+
+            // Apply global sloshing shift behind card
+            dx += wx;
+            dy += wy;
+          }
+
+          // Encode coordinates to 8-bit color space relative to reference scale 25
+          const r = Math.max(0, Math.min(255, Math.round((dx / 25) * 128 + 128)));
+          const g = Math.max(0, Math.min(255, Math.round((dy / 25) * 128 + 128)));
+
+          const idx = (y * w + x) * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = 0;
+          data[idx + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Apply displacement texture data-URL to SVG feImage filter target using both standard and xlink:href
+      const dataUrl = card.glassCanvas.toDataURL();
+      card.feImage.setAttribute('href', dataUrl);
+      card.feImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
+
+      // Force Chrome/Safari repaint of the backdrop-filter by alternating tiny subpixel blur sizes
+      card.repaintToggle = !card.repaintToggle;
+      const blurVal = card.repaintToggle ? "16px" : "16.01px";
+      const filterStyle = `url(#liquid-glass-filter-${card.dataset.glassId}) blur(${blurVal}) saturate(1.1) brightness(1.05)`;
+      card.style.backdropFilter = filterStyle;
+      card.style.webkitBackdropFilter = filterStyle;
+
+      card.hasStaticRendered = true;
+    });
+
+    requestAnimationFrame(updatePhysicsAndRender);
+  }
+
+  // Launch loop
+  requestAnimationFrame(updatePhysicsAndRender);
 }

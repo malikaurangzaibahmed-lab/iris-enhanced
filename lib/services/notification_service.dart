@@ -22,6 +22,53 @@ class ClassNotificationTaskHandler extends TaskHandler {
     // Calculate current class info from stored timetable data
     SharedPreferences.getInstance().then((prefs) async {
       try {
+        final academicPeriod = prefs.getString('active_academic_period') ?? 'classes';
+        if (academicPeriod != 'classes') {
+          String notifTitle = '';
+          String notifBody = '';
+          String headline = '';
+          String subline = '';
+          
+          if (academicPeriod == 'sports_week') {
+            notifTitle = '🏆 Sports Week active';
+            notifBody = '🏅 Sports Week Mode · Enjoy matches & events!';
+            headline = 'Sports Week';
+            subline = 'Enjoy matches & events!';
+          } else if (academicPeriod == 'midterms') {
+            notifTitle = '✍️ Midterms active';
+            notifBody = '📝 Midterm Exams Mode · Good luck!';
+            headline = 'Midterm Exams';
+            subline = 'Good luck!';
+          } else if (academicPeriod == 'finals') {
+            notifTitle = '🎓 Finals active';
+            notifBody = '📝 Final Exams Mode · Finish strong!';
+            headline = 'Final Exams';
+            subline = 'Finish strong!';
+          }
+          
+          await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', headline);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_subline', subline);
+          await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', '');
+          await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
+          await HomeWidget.saveWidgetData<String>('flutter.time_info', 'Active');
+          await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
+          
+          await HomeWidget.updateWidget(
+            name: 'ClassTrackerWidget',
+            androidName: 'ClassTrackerWidget',
+          );
+          
+          await FlutterForegroundTask.updateService(
+            notificationTitle: notifTitle,
+            notificationText: notifBody,
+            notificationButtons: [
+              NotificationButton(id: 'open', text: 'Open IRIS'),
+            ],
+          );
+          return;
+        }
+
         final role = prefs.getString('user_role') ?? 'student';
         final batch = prefs.getString('student_batch');
         final teacherName = prefs.getString('faculty_teacher');

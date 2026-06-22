@@ -97,8 +97,42 @@ class DashboardDock extends StatefulWidget {
                       onPointerCancel: (_) => state.cancelTracking(),
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                        child: Row(
-                          children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            AnimatedPositioned(
+                              duration: state.isDragging
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 250),
+                              curve: Curves.easeOutCubic,
+                              top: 4,
+                              bottom: 4,
+                              left: state.interactionPosition(itemCount, selectedIndex) *
+                                      (constraints.maxWidth / itemCount) +
+                                  4,
+                              width: (constraints.maxWidth / itemCount) - 8,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: activeColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                                  borderRadius: BorderRadius.circular(radius - 4),
+                                  border: Border.all(
+                                    color: activeColor.withValues(alpha: isDark ? 0.35 : 0.20),
+                                    width: 1.0,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Row(
+                              children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -157,9 +191,36 @@ class DashboardDock extends StatefulWidget {
                                 veryCompact ? 3 : (compact ? 5 : 6),
                                 veryCompact ? 2 : (compact ? 3 : 4),
                               ),
-                              child: Row(
-                                children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
-                              ),
+                              child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    AnimatedPositioned(
+                                      duration: state.isDragging
+                                          ? Duration.zero
+                                          : const Duration(milliseconds: 250),
+                                      curve: Curves.easeOutCubic,
+                                      top: 3,
+                                      bottom: 3,
+                                      left: state.interactionPosition(itemCount, selectedIndex) *
+                                              (constraints.maxWidth / itemCount) +
+                                          3,
+                                      width: (constraints.maxWidth / itemCount) - 6,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: activeColor.withValues(alpha: isDark ? 0.12 : 0.06),
+                                          borderRadius: BorderRadius.circular(radius - 4),
+                                          border: Border.all(
+                                            color: activeColor.withValues(alpha: isDark ? 0.25 : 0.14),
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                                    ),
+                                  ],
+                                ),
                             ),
                           );
                         },
@@ -229,8 +290,42 @@ class DashboardDock extends StatefulWidget {
                                     veryCompact ? 3 : (compact ? 5 : 6),
                                     veryCompact ? 2 : (compact ? 3 : 4),
                                   ),
-                                  child: Row(
-                                    children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      AnimatedPositioned(
+                                        duration: state.isDragging
+                                            ? Duration.zero
+                                            : const Duration(milliseconds: 250),
+                                        curve: Curves.easeOutCubic,
+                                        top: 4,
+                                        bottom: 4,
+                                        left: state.interactionPosition(itemCount, selectedIndex) *
+                                                (constraints.maxWidth / itemCount) +
+                                            4,
+                                        width: (constraints.maxWidth / itemCount) - 8,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: activeColor.withValues(alpha: isDark ? 0.16 : 0.08),
+                                            borderRadius: BorderRadius.circular(radius - 4),
+                                            border: Border.all(
+                                              color: activeColor.withValues(alpha: isDark ? 0.35 : 0.18),
+                                              width: 1.0,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
+                                                blurRadius: 12,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );

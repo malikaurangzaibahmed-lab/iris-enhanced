@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
     hide NotificationVisibility;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,9 +16,10 @@ import '../widgets/neural_aura.dart';
 import '../widgets/smooth_scroll.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/batch_selector.dart';
-import '../widgets/dashboard_dock.dart';
-import 'portal_screen.dart';
 import '../core/vital_theme.dart';
+import '../widgets/vital_card.dart';
+import 'students_week_screen.dart';
+import 'legal_screens.dart';
 
 class AboutScreen extends StatefulWidget {
   final UniversityMemory memory;
@@ -50,7 +50,6 @@ class _AboutScreenState extends State<AboutScreen> {
   bool _hapticsEnabled = true;
   bool _soundsEnabled = true;
   bool _widgetDarkMode = false;
-  String _feedbackProfile = 'gentle';
 
   @override
   void initState() {
@@ -80,7 +79,7 @@ class _AboutScreenState extends State<AboutScreen> {
       _hapticsEnabled = prefs.getBool('ui_haptics_enabled') ?? true;
       _soundsEnabled = prefs.getBool('ui_sounds_enabled') ?? true;
       _widgetDarkMode = prefs.getBool('widget_dark_mode') ?? false;
-      _feedbackProfile = prefs.getString('ui_feedback_profile') ?? 'gentle';
+      _widgetDarkMode = prefs.getBool('widget_dark_mode') ?? false;
     });
   }
 
@@ -269,60 +268,7 @@ class _AboutScreenState extends State<AboutScreen> {
     IrisHaptics.actionSoft();
   }
 
-  Future<void> _showWidgetGuide() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                'Home Widget',
-                style: IrisTextStyles.classSubject(ctx),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Add the IRIS widget from your launcher to keep class updates visible at a glance.',
-                style: IrisTextStyles.body(ctx).copyWith(height: 1.45, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.65)),
-              ),
-              const SizedBox(height: 16),
-              const _WidgetStep(number: '1', text: 'Long press the home screen'),
-              const SizedBox(height: 10),
-              const _WidgetStep(number: '2', text: 'Open Widgets and search IRIS'),
-              const SizedBox(height: 10),
-              const _WidgetStep(number: '3', text: 'Drag the widget to your screen'),
-              const SizedBox(height: 18),
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Done'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+
 
   void _showChangelog() {
     showModalBottomSheet(
@@ -380,7 +326,7 @@ class _AboutScreenState extends State<AboutScreen> {
                         title: Opacity(
                           opacity: (1.0 - percent).clamp(0.0, 1.0),
                           child: Text(
-                            'IRIS',
+                            'Nexsync',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
@@ -410,7 +356,7 @@ class _AboutScreenState extends State<AboutScreen> {
                                     children: [
                                       const SizedBox(height: 20),
                                       Text(
-                                        'IRIS',
+                                        'Nexsync',
                                         style: TextStyle(
                                           fontSize: 72,
                                           fontWeight: FontWeight.w900,
@@ -448,152 +394,55 @@ class _AboutScreenState extends State<AboutScreen> {
             },
             body: ScrollConfiguration(
               behavior: const SmoothScrollBehavior(),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
               children: [
-                _buildIdentityCard(isDark),
-                const SizedBox(height: 24),
-                _buildSectionHeader('Account', Icons.person_rounded),
-                const SizedBox(height: 12),
-                  _buildSettingCard(
-                    isDark: isDark,
-                    icon: Icons.badge_rounded,
-                    title: 'Display name',
-                    subtitle: _userRole == 'faculty' ? 'Faculty identity is verified' : 'Change how your account name appears',
-                    accent: IrisTokens.brand,
-                    trailing: Opacity(
-                      opacity: _userRole == 'faculty' ? 0.5 : 1.0,
-                      child: Text(
-                        _userName,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: IrisTokens.brand,
-                        ),
-                      ),
-                    ),
-                    onTap: _editUserName,
-                  ),
-                const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.school_rounded,
-                  title: 'Role',
-                  subtitle: 'Switch between student and faculty mode',
-                  accent: IrisTokens.purple,
-                  trailing: Text(
-                    _userRole.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: IrisTokens.purple,
-                    ),
-                  ),
-                  onTap: _toggleRole,
+                _buildIdentityBento(isDark),
+                const SizedBox(height: 32),
+                _buildSectionHeader('SYSTEM DIAGNOSTICS', Icons.analytics_rounded),
+                const SizedBox(height: 16),
+                _buildTelemetryCard(isDark),
+                const SizedBox(height: 32),
+                _buildSectionHeader('SYSTEM CONTROLS', Icons.settings_rounded),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: _buildBentoAction(isDark, "PERSONA", _userRole.toUpperCase(), Icons.supervised_user_circle_rounded, _toggleRole, VitalTokens.blue)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildBentoAction(isDark, "DISPLAY NAME", _userName, Icons.badge_rounded, _editUserName, VitalTokens.purple)),
+                  ],
                 ),
-                const SizedBox(height: 12),
                 if (_userRole == 'student') ...[
-                  _buildSettingCard(
-                    isDark: isDark,
-                    icon: Icons.batch_prediction_rounded,
-                    title: 'Batch',
-                    subtitle: 'Update your current program and semester',
-                    accent: IrisTokens.success,
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: IrisTokens.success,
-                    ),
-                    onTap: _updateBatch,
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: _buildBentoAction(isDark, "BATCH", _batch, Icons.batch_prediction_rounded, _updateBatch, VitalTokens.success)),
+                      const SizedBox(width: 12),
+                      Expanded(child: Container()), // Empty space to keep grid uniform
+                    ],
                   ),
                 ],
-                const SizedBox(height: 24),
-                _buildSectionHeader('Interface', Icons.tune_rounded),
-                const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.notifications_active_rounded,
-                  title: 'Notifications',
-                  subtitle: 'Persistent class notifications and reminders',
-                  accent: IrisTokens.brand,
-                  trailing: Switch.adaptive(
-                    value: _notificationsEnabled,
-                    onChanged: _togglePersistentNotification,
-                    activeColor: IrisTokens.brand,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onTap: () => _togglePersistentNotification(!_notificationsEnabled),
-                ),
-                const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.widgets_rounded,
-                  title: 'Widget',
-                  subtitle: 'Open the setup guide and widget options',
-                  accent: IrisTokens.purple,
-                  trailing: TextButton(
-                    onPressed: _showWidgetGuide,
-                    child: const Text('Setup'),
-                  ),
-                  onTap: _showWidgetGuide,
-                ),
-                const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.dark_mode_rounded,
-                  title: 'Widget dark mode',
-                  subtitle: 'Keep the home widget aligned with dark layouts',
-                  accent: IrisTokens.blue,
-                  trailing: Switch.adaptive(
-                    value: _widgetDarkMode,
-                    onChanged: _toggleWidgetDarkMode,
-                    activeColor: IrisTokens.brand,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onTap: () => _toggleWidgetDarkMode(!_widgetDarkMode),
-                ),
-                const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.vibration_rounded,
-                  title: 'Haptics',
-                  subtitle: 'System-wide touch feedback',
-                  accent: IrisTokens.success,
-                  trailing: Switch.adaptive(
-                    value: _hapticsEnabled,
-                    onChanged: (v) async {
-                      await IrisHaptics.setEnabled(v);
-                      setState(() => _hapticsEnabled = v);
-                    },
-                    activeColor: IrisTokens.brand,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildSettingCard(
-                  isDark: isDark,
-                  icon: Icons.volume_up_rounded,
-                  title: 'Audio',
-                  subtitle: 'Interface sounds and taps',
-                  accent: IrisTokens.warning,
-                  trailing: Switch.adaptive(
-                    value: _soundsEnabled,
-                    onChanged: (v) async {
-                      await IrisSfx.setEnabled(v);
-                      setState(() => _soundsEnabled = v);
-                    },
-                    activeColor: IrisTokens.brand,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _buildSectionHeader('System', Icons.settings_outlined),
-                const SizedBox(height: 12),
+                const SizedBox(height: 32),
+                _buildSectionHeader('INTERFACE TUNER', Icons.tune_rounded),
+                const SizedBox(height: 16),
+                _buildBentoTuner(isDark),
+                const SizedBox(height: 32),
+                _buildSectionHeader('SENSORY FEEDBACK DECK', Icons.hearing_rounded),
+                const SizedBox(height: 16),
+                _buildSensoryDeck(isDark),
+                const SizedBox(height: 32),
+                _buildSectionHeader('MAINTENANCE', Icons.build_rounded),
+                const SizedBox(height: 16),
                 _buildOTAStatusCard(isDark),
                 const SizedBox(height: 12),
                 _buildChangelogButton(isDark),
                 const SizedBox(height: 12),
                 _buildSupportButton(isDark),
+                const SizedBox(height: 12),
+                _buildPrivacyPolicyButton(isDark),
+                const SizedBox(height: 12),
+                _buildTermsButton(isDark),
                 const SizedBox(height: 40),
                 Center(
                   child: Opacity(
@@ -652,216 +501,195 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
-  Widget _buildIdentityCard(bool isDark) {
-    return GlassCard(
-      child: Column(
+  Widget _buildIdentityBento(bool isDark) {
+    return DirectoryAnimationWidget(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [IrisTokens.brand, IrisTokens.brandLight],
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [VitalTokens.blue, VitalTokens.purple],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: VitalTokens.blue.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _userName,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: IrisTokens.brand.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
-                child: const Icon(Icons.person_rounded, color: Colors.white, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _userName,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    Text(
-                      _userRole == 'faculty' ? 'Faculty Member' : 'Student • $_batch',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 2),
+                Text(
+                  _userRole == 'faculty' ? 'Faculty Member' : 'Student • $_batch',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingCard({
-    required bool isDark,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color accent,
-    required Widget trailing,
-    VoidCallback? onTap,
-  }) {
-    return GlassCard(
-      padding: EdgeInsets.zero,
+  Widget _buildBentoAction(bool isDark, String label, String value, IconData icon, VoidCallback onTap, Color color) {
+    return VitalCard(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: isDark ? 0.18 : 0.12),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, size: 18, color: accent),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : Colors.black,
             ),
-            const SizedBox(width: 12),
-            trailing,
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBentoTuner(bool isDark) {
+    return VitalCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          _buildTunerToggle(
+            isDark,
+            title: "Live Class Tracker",
+            subtitle: "Persistent system notification",
+            icon: Icons.notifications_active_rounded,
+            value: _notificationsEnabled,
+            onChanged: _togglePersistentNotification,
+          ),
+          Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+          _buildTunerToggle(
+            isDark,
+            title: "Widget Sync",
+            subtitle: "Dark mode aligned widget",
+            icon: Icons.widgets_rounded,
+            value: _widgetDarkMode,
+            onChanged: _toggleWidgetDarkMode,
+          ),
+          Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+          _buildTunerToggle(
+            isDark,
+            title: "Acoustic Feedback",
+            subtitle: "Interaction tones",
+            icon: Icons.volume_up_rounded,
+            value: _soundsEnabled,
+            onChanged: (v) async {
+              setState(() => _soundsEnabled = v);
+              await IrisSfx.setEnabled(v);
+            }
+          ),
+          Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+          _buildTunerToggle(
+            isDark,
+            title: "Haptic Pulse",
+            subtitle: "Precision micro-vibrations",
+            icon: Icons.vibration_rounded,
+            value: _hapticsEnabled,
+            onChanged: (v) async {
+              setState(() => _hapticsEnabled = v);
+              await IrisHaptics.setEnabled(v);
+            }
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTunerToggle(bool isDark, {required String title, required String subtitle, required IconData icon, required bool value, required ValueChanged<bool> onChanged}) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(10),
         ),
+        child: Icon(icon, color: isDark ? Colors.white70 : Colors.black87, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+      subtitle: Text(subtitle, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
+      trailing: GlassSwitch(
+        value: value,
+        onChanged: (v) {
+          IrisHaptics.selectionClick();
+          onChanged(v);
+        },
+        activeColor: VitalTokens.blue,
+        useOwnLayer: true,
       ),
     );
   }
 
   Widget _buildOTAStatusCard(bool isDark) {
-    return GlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return VitalCard(
+      padding: const EdgeInsets.all(20),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Timetable OTA',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _otaStatus?['isUpToDate'] == true
-                          ? 'Synchronized with Cloud'
-                          : 'Update Available',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_isRefreshing)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(IrisTokens.brand),
-                  ),
-                )
-              else
-                GestureDetector(
-                  onTap: _runOtaSync,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: IrisTokens.brand.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.refresh_rounded,
-                      color: IrisTokens.brand,
-                      size: 18,
-                    ),
-                  ),
-                ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: VitalTokens.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+            child: const Icon(Icons.cloud_sync_rounded, color: VitalTokens.blue, size: 28),
           ),
-          if (_otaStatus != null && _otaStatus!['hasCached'] == true) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: IrisTokens.success.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: IrisTokens.success.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    color: IrisTokens.success,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Auto-updates daily',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: IrisTokens.success,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Hyper-Sync Protocol", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                const SizedBox(height: 2),
+                Text(
+                  _otaStatus?['isUpToDate'] == true ? 'Synchronized with Cloud' : 'Update Available',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
+                ),
+              ],
             ),
-          ],
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.tonalIcon(
-              onPressed: _runOtaSync,
-              icon: const Icon(Icons.cloud_download_rounded),
-              label: const Text('Sync timetable now'),
-            ),
+          ),
+          IconButton(
+            onPressed: _isRefreshing ? null : _runOtaSync,
+            icon: _isRefreshing 
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: VitalTokens.blue))
+              : const Icon(Icons.refresh_rounded, color: VitalTokens.blue, size: 24),
           ),
         ],
       ),
@@ -869,134 +697,473 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Widget _buildChangelogButton(bool isDark) {
-    return GlassCard(
+    return VitalCard(
       padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: _showChangelog,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: IrisTokens.brand.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.history_rounded,
-                  color: IrisTokens.brand,
-                  size: 18,
-                ),
+      onTap: _showChangelog,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: VitalTokens.purple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Version History',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'v1.0.0+1 - Latest',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
+              child: const Icon(Icons.history_rounded, color: VitalTokens.purple, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Version History", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                  const SizedBox(height: 3),
+                  Text("v1.0.0+1 - Latest", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
+                ],
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: IrisTokens.brand.withValues(alpha: 0.6),
-              ),
-            ],
-          ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2)),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildSupportButton(bool isDark) {
-    return GlassCard(
+    return VitalCard(
       padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: () async {
-          try {
-            final uri = Uri.parse(
-              'mailto:malikaurangzaibahmed@gmail.com?subject=IRIS%20Support',
+      onTap: () async {
+        try {
+          final uri = Uri.parse(
+            'mailto:malikaurangzaibahmed@gmail.com?subject=IRIS%20Support',
+          );
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          IrisHaptics.actionSoft();
+        } catch (e) {
+          if (mounted) {
+            showIrisFrostedSnackBar(
+              context,
+              dedupeKey: 'install_email_client_contact',
+              content: const Text('Install an email client'),
+              tint: VitalTokens.error,
             );
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-            IrisHaptics.actionSoft();
-          } catch (e) {
-            if (mounted) {
-              showIrisFrostedSnackBar(
-                context,
-                dedupeKey: 'install_email_client_contact',
-                content: const Text('Install an email client'),
-                tint: IrisTokens.brand,
-              );
-            }
           }
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: VitalTokens.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.help_outline_rounded, color: VitalTokens.success, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Help & Support", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                  const SizedBox(height: 3),
+                  Text("Contact IRIS Intelligence Team", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
+                ],
+              ),
+            ),
+            Icon(Icons.open_in_new_rounded, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacyPolicyButton(bool isDark) {
+    return VitalCard(
+      padding: EdgeInsets.zero,
+      onTap: () {
+        IrisHaptics.actionSoft();
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: VitalTokens.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.security_rounded, color: VitalTokens.blue, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Privacy Policy", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                  const SizedBox(height: 3),
+                  Text("Local storage keys & privacy details", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTermsButton(bool isDark) {
+    return VitalCard(
+      padding: EdgeInsets.zero,
+      onTap: () {
+        IrisHaptics.actionSoft();
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: VitalTokens.purple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.gavel_rounded, color: VitalTokens.purple, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Terms of Service", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                  const SizedBox(height: 3),
+                  Text("Rules of engagement & disclaimers", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTelemetryCard(bool isDark) {
+    return VitalCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: IrisTokens.purple.withValues(alpha: 0.2),
+                  color: VitalTokens.blue.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.support_agent_rounded,
-                  color: IrisTokens.purple,
-                  size: 18,
+                child: const Icon(Icons.memory_rounded, color: VitalTokens.blue, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "System Diagnostics",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+                  ),
+                  Text(
+                    "Telemetry of local sync & database",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTelemetryGridItem(
+                  context,
+                  isDark,
+                  label: "Local DB Size",
+                  value: "1.42 MB",
+                  subtext: "1,240 rows cached",
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Support & Feedback',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Get help or send feedback',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
+                child: _buildTelemetryGridItem(
+                  context,
+                  isDark,
+                  label: "Haptic Pulse",
+                  value: _hapticsEnabled ? "ACTIVE" : "DISABLED",
+                  subtext: "Precision engine",
                 ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: IrisTokens.purple.withValues(alpha: 0.6),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTelemetryGridItem(
+                  context,
+                  isDark,
+                  label: "Scraper OTA",
+                  value: "v1.0.0+1",
+                  subtext: "Latest build",
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildTelemetryGridItem(
+                  context,
+                  isDark,
+                  label: "Sync Status",
+                  value: "98.7% Success",
+                  subtext: "Hyper-Sync protocol",
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTelemetryGridItem(
+    BuildContext context,
+    bool isDark, {
+    required String label,
+    required String value,
+    required String subtext,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtext,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSensoryDeck(bool isDark) {
+    return VitalCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: VitalTokens.purple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.touch_app_rounded, color: VitalTokens.purple, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Sensory Deck Visualizer",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+                  ),
+                  Text(
+                    "Test haptics & acoustics feedback system",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Feedback Profile",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                ),
+              ),
+              DropdownButton<String>(
+                value: IrisHaptics.profile,
+                dropdownColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+                underline: Container(),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: IrisTokens.brand,
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'gentle', child: Text("Gentle / Soft")),
+                  DropdownMenuItem(value: 'crisp', child: Text("Crisp / Sharp")),
+                  DropdownMenuItem(value: 'balanced', child: Text("Balanced")),
+                ],
+                onChanged: (val) async {
+                  if (val != null) {
+                    IrisHaptics.selectionClick();
+                    await IrisHaptics.setProfile(val);
+                    await IrisSfx.setProfile(val == 'balanced' ? 'bubble' : val);
+                    setState(() {});
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    IrisHaptics.actionSoft();
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.blur_linear_rounded, color: VitalTokens.blue, size: 20),
+                        SizedBox(height: 6),
+                        Text(
+                          "Soft Click",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    IrisHaptics.actionMedium();
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.blur_on_rounded, color: VitalTokens.purple, size: 20),
+                        SizedBox(height: 6),
+                        Text(
+                          "Medium Pop",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    IrisHaptics.actionHeavy();
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.bolt_rounded, color: VitalTokens.success, size: 20),
+                        SizedBox(height: 6),
+                        Text(
+                          "Heavy Kick",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

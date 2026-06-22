@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
@@ -12,6 +13,13 @@ class PDFTimetableParser {
     required String currentBatch,
   }) async {
     final bytes = await pdfFile.readAsBytes();
+    return compute(_parsePdfAndExtractIsolate, {'bytes': bytes, 'batch': currentBatch});
+  }
+
+  static List<ClassSession> _parsePdfAndExtractIsolate(Map<String, dynamic> args) {
+    final bytes = args['bytes'] as List<int>;
+    final currentBatch = args['batch'] as String;
+    
     final document = PdfDocument(inputBytes: bytes);
     final extractor = PdfTextExtractor(document);
     final text = extractor.extractText();

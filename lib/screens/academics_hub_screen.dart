@@ -10,6 +10,7 @@ import '../services/portal_sync_service.dart';
 import '../services/ui_feedback.dart';
 import '../services/remote_config_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'students_week_screen.dart';
 
 class AcademicsHubScreen extends StatefulWidget {
   const AcademicsHubScreen({super.key});
@@ -648,9 +649,48 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                     return ValueListenableBuilder<Map<String, dynamic>?>(
                       valueListenable: RemoteConfigService.latestApkUpdate,
                       builder: (context, updateInfo, _) {
+                        final canPop = Navigator.of(context).canPop();
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (canPop) ...[
+                              GestureDetector(
+                                onTap: () {
+                                  IrisHaptics.actionSoft();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(99),
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                    border: Border.all(
+                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.arrow_back_rounded,
+                                        size: 16,
+                                        color: isDark ? Colors.white70 : Colors.black87,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Back',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? Colors.white70 : Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                             if (updateInfo != null) _buildSystemUpdateBanner(context, updateInfo),
                             // TOP BAR
                             Row(
@@ -659,12 +699,18 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Academics Hub',
-                                      style: IrisTextStyles.title(context).copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 30,
-                                        letterSpacing: -0.8,
+                                    Hero(
+                                      tag: 'academics-hub-hero',
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: Text(
+                                          'Academics Hub',
+                                          style: IrisTextStyles.title(context).copyWith(
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 30,
+                                            letterSpacing: -0.8,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -737,23 +783,10 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                     const SizedBox(height: 24),
 
                     // SUMMARY/GPA HEADER CARD
-                    ClipRRect(
-                      borderRadius: IrisTokens.cardRadius,
-                      child: GlassSurface(
-                        settings: glassSettings,
-                        radius: 20,
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.12),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                    CgpaCalculatorAnimationWidget(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                               // Student profile header
                               Row(
                                 children: [
@@ -1057,8 +1090,6 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                             ],
                           ),
                         ),
-                      ),
-                    ),
                     const SizedBox(height: 24),
 
                     // LIST OF COURSES SECTION HEADER

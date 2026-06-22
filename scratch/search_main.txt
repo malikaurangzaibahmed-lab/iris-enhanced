@@ -1,0 +1,647 @@
+Line 56: import 'widgets/neural_aura.dart';
+Line 59: import 'widgets/spring_button.dart';
+Line 136: decoration: BoxDecoration(
+Line 137: gradient: LinearGradient(
+Line 154: decoration: BoxDecoration(
+Line 155: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 212: final savedMode = prefs.getString('theme_mode') ?? 'system';
+Line 217: _themeMode = _themeModeFromString(savedMode);
+Line 224: ThemeMode _themeModeFromString(String mode) {
+Line 235: String _themeModeToString(ThemeMode mode) {
+Line 246: Future<void> _setThemeMode(String mode) async {
+Line 247: final nextMode = _themeModeFromString(mode);
+Line 249: await prefs.setString('theme_mode', _themeModeToString(nextMode));
+Line 290: currentThemeMode: _themeModeToString(_themeMode),
+Line 305: final Future<void> Function(String mode) onSetThemeMode;
+Line 306: final String currentThemeMode;
+Line 321: String? _selectedBatch;
+Line 322: String? _userRole;
+Line 323: String? _userName;
+Line 365: _userRole = prefs.getString('user_role');
+Line 391: decoration: BoxDecoration(
+Line 392: gradient: LinearGradient(colors: IrisTokens.successGradient),
+Line 451: _selectedBatch = prefs.getString('user_batch');
+Line 458: _userName = prefs.getString('student_user_name');
+Line 473: Future<void> _saveUserName(String name) async {
+Line 475: await prefs.setString('student_user_name', name);
+Line 481: Future<void> _saveBatch(String batch) async {
+Line 484: await prefs.setString('user_batch', trimmed);
+Line 506: backgroundColor: Colors.transparent,
+Line 509: decoration: BoxDecoration(
+Line 539: decoration: BoxDecoration(
+Line 540: gradient: LinearGradient(
+Line 601: decoration: BoxDecoration(
+Line 664: backgroundColor: IrisTokens.brand,
+Line 695: Widget _buildStep(bool isDark, String number, String text) {
+Line 701: decoration: BoxDecoration(
+Line 702: gradient: LinearGradient(
+Line 711: shape: BoxShape.circle,
+Line 748: Future<void> _saveUserRole(String role) async {
+Line 750: await prefs.setString('user_role', role);
+Line 753: // This way notifications continue properly during role switching
+Line 811: final ValueChanged<String> onComplete;
+Line 847: decoration: BoxDecoration(
+Line 924: decoration: BoxDecoration(
+Line 926: ? const LinearGradient(
+Line 971: final ValueChanged<String> onComplete;
+Line 980: final ValueChanged<String> onComplete;
+Line 1052: final String title;
+Line 1053: final String subtitle;
+Line 1116: decoration: BoxDecoration(
+Line 1117: gradient: LinearGradient(
+Line 1150: decoration: BoxDecoration(
+Line 1189: decoration: BoxDecoration(
+Line 1191: shape: BoxShape.circle,
+Line 1269: String? _program;
+Line 1271: String? _section;
+Line 1291: backgroundColor: Colors.transparent,
+Line 1294: decoration: BoxDecoration(
+Line 1324: decoration: BoxDecoration(
+Line 1325: gradient: LinearGradient(
+Line 1389: decoration: BoxDecoration(
+Line 1456: backgroundColor: IrisTokens.purple,
+Line 1482: static Widget _buildStepStatic(bool isDark, String number, String text) {
+Line 1488: decoration: const BoxDecoration(
+Line 1489: gradient: LinearGradient(
+Line 1494: shape: BoxShape.circle,
+Line 1533: final role = prefs.getString('user_role') ?? 'student';
+Line 1534: final teacher = prefs.getString('faculty_teacher');
+Line 1570: await prefs.setString('notification_title', 'IRIS Class Tracker');
+Line 1571: await prefs.setString(
+Line 1604: : <String>[];
+Line 1624: decoration: BoxDecoration(
+Line 1625: gradient: LinearGradient(
+Line 1652: decoration: BoxDecoration(
+Line 1653: gradient: LinearGradient(
+Line 1729: options: semesters.map((e) => e.toString()).toList(),
+Line 1730: selected: _semester?.toString(),
+Line 1751: decoration: BoxDecoration(
+Line 1752: gradient: LinearGradient(
+Line 1845: decoration: BoxDecoration(
+Line 1846: gradient: LinearGradient(
+Line 1921: decoration: BoxDecoration(
+Line 1923: ? LinearGradient(
+Line 1972: backgroundColor: Colors.transparent,
+Line 1981: disabledBackgroundColor: Colors.transparent,
+Line 2018: final String label;
+Line 2019: final List<String> options;
+Line 2020: final String? selected;
+Line 2021: final ValueChanged<String?> onSelected;
+Line 2043: decoration: BoxDecoration(
+Line 2045: gradient: const LinearGradient(
+Line 2071: decoration: BoxDecoration(
+Line 2103: backgroundColor: isDark
+Line 2135: final String batch;
+Line 2137: final Future<void> Function(String mode) onSetThemeMode;
+Line 2138: final String currentThemeMode;
+Line 2140: final String? userName;
+Line 2141: final ValueChanged<String>? onUserNameChanged;
+Line 2142: final ValueChanged<String>? onRoleChanged;
+Line 2143: final ValueChanged<String>? onBatchChanged;
+Line 2167: final Future<void> Function(String mode) onSetThemeMode;
+Line 2168: final String currentThemeMode;
+Line 2169: final ValueChanged<String>? onRoleChanged;
+Line 2170: final ValueChanged<String>? onBatchChanged;
+Line 2188: static const String _helpdeskBackendBase =
+Line 2192: String? _selectedTeacher;
+Line 2282: Icon(Icons.check_circle, color: Colors.white, size: 20),
+Line 2296: String _timelineTitle(
+Line 2321: String _timelineSubtitle(
+Line 2360: Color _getTimelineStatusColor(OmniBrain brain, String teacher, DateTime now) {
+Line 2373: await prefs.setString('user_role', 'faculty');
+Line 2376: final teacher = prefs.getString('faculty_teacher');
+Line 2405: String _facultySourceLabel(HelpdeskFacultySource source) {
+Line 2418: String _resolveFacultyImageUrl(String image) {
+Line 2426: Future<void> _launchFacultyEmail(String email) async {
+Line 2450: Future<void> _saveSelectedTeacher(String teacherName) async {
+Line 2452: await prefs.setString('faculty_teacher', teacherName);
+Line 2453: await prefs.setString('faculty_user_name', teacherName);
+Line 2454: await prefs.setString('user_role', 'faculty');
+Line 2467: Future<void> _scheduleFacultyClassReminders(String teacherName) async {
+Line 2495: await prefs.setString('timetable_data', jsonEncode(timetableData));
+Line 2498: Future<void> _ensureFacultyNotificationService(String? teacherParam) async {
+Line 2510: // Persist all data needed for background service
+Line 2511: await prefs.setString('user_role', 'faculty');
+Line 2512: await prefs.setString('faculty_teacher', teacher);
+Line 2529: String _bar(double p) {
+Line 2544: String notifTitle = 'IRIS Faculty Tracker';
+Line 2545: String notifBody = 'Your schedule is ready';
+Line 2562: String timeLeft = hoursRemaining > 0
+Line 2593: String timeUntil = '';
+Line 2594: String emoji = '📌';
+Line 2603: '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
+Line 2623: String classInfo;
+Line 2683: String displayInfo = teacher;
+Line 2855: key: const PageStorageKey<String>('faculty_tab_teacher'),
+Line 2873: key: PageStorageKey<String>('faculty_tab_portal'),
+Line 2882: key: const PageStorageKey<String>('faculty_tab_about'),
+Line 2903: decoration: BoxDecoration(
+Line 2905: gradient: LinearGradient(
+Line 3005: List<ClassSession> _scheduleForDay(String teacher, int dayIndex) {
+Line 3014: String teacher,
+Line 3054: String _formatDateLabel(DateTime now) {
+Line 3089: backgroundColor: Colors.transparent,
+Line 3186: String batchName = teacher;
+Line 3213: backgroundColor: Colors.transparent,
+Line 3253: decoration: BoxDecoration(
+Line 3254: gradient: LinearGradient(
+Line 3297: decoration: BoxDecoration(
+Line 3298: gradient: LinearGradient(
+Line 3335: shaderCallback: (bounds) => LinearGradient(
+Line 3368: decoration: BoxDecoration(
+Line 3420: decoration: BoxDecoration(
+Line 3421: gradient: LinearGradient(
+Line 3456: decoration: BoxDecoration(
+Line 3481: decoration: BoxDecoration(
+Line 3482: gradient: LinearGradient(
+Line 3518: decoration: BoxDecoration(
+Line 3563: decoration: BoxDecoration(
+Line 3564: gradient: LinearGradient(
+Line 3589: Widget _buildFacultyHeaderTitle(String teacher, bool isDark, bool compact) {
+Line 3631: decoration: BoxDecoration(
+Line 3665: decoration: BoxDecoration(
+Line 3697: String teacher,
+Line 3700: String dateLabel,
+Line 3712: backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+Line 3730: decoration: BoxDecoration(
+Line 3731: gradient: LinearGradient(
+Line 3821: decoration: BoxDecoration(
+Line 3912: decoration: BoxDecoration(
+Line 3988: decoration: BoxDecoration(
+Line 4028: decoration: BoxDecoration(
+Line 4066: decoration: BoxDecoration(
+Line 4167: decoration: BoxDecoration(
+Line 4168: gradient: LinearGradient(
+Line 4181: shape: BoxShape.circle,
+Line 4229: decoration: BoxDecoration(
+Line 4230: gradient: LinearGradient(
+Line 4303: decoration: BoxDecoration(
+Line 4304: gradient: LinearGradient(
+Line 4374: decoration: BoxDecoration(
+Line 4375: gradient: LinearGradient(
+Line 4433: decoration: BoxDecoration(
+Line 4434: gradient: LinearGradient(
+Line 4468: decoration: BoxDecoration(
+Line 4470: shape: BoxShape.circle,
+Line 4523: decoration: BoxDecoration(
+Line 4564: String progressLabel = '';
+Line 4585: decoration: BoxDecoration(
+Line 4593: decoration: BoxDecoration(
+Line 4594: gradient: LinearGradient(
+Line 4652: decoration: BoxDecoration(
+Line 4668: decoration: BoxDecoration(
+Line 4695: decoration: BoxDecoration(
+Line 4698: shape: BoxShape.circle,
+Line 4705: decoration: BoxDecoration(
+Line 4764: decoration: BoxDecoration(
+Line 4800: backgroundColor: isDark
+Line 4842: decoration: BoxDecoration(
+Line 4851: decoration: const BoxDecoration(
+Line 4853: shape: BoxShape.circle,
+Line 4875: backgroundColor: isDark
+Line 4912: final String teacherName;
+Line 4914: final ValueChanged<String>? onRoleChanged;
+Line 4956: List<ClassSession> _scheduleForDay(String teacher, int dayIndex) {
+Line 4965: String teacher,
+Line 5003: String _formatDateLabel(DateTime now) {
+Line 5043: backgroundColor: Colors.transparent,
+Line 5054: decoration: BoxDecoration(
+Line 5107: decoration: BoxDecoration(
+Line 5108: gradient: LinearGradient(
+Line 5165: decoration: BoxDecoration(
+Line 5250: decoration: BoxDecoration(
+Line 5251: gradient: LinearGradient(
+Line 5282: decoration: BoxDecoration(
+Line 5283: gradient: LinearGradient(
+Line 5291: shape: BoxShape.circle,
+Line 5426: decoration: BoxDecoration(
+Line 5462: backgroundColor: isDark
+Line 5504: decoration: BoxDecoration(
+Line 5513: decoration: const BoxDecoration(
+Line 5515: shape: BoxShape.circle,
+Line 5537: backgroundColor: isDark
+Line 5577: String title;
+Line 5578: String subtitle;
+Line 5659: static const String _customMakeupSessionsPrefsKey = 'custom_makeup_sessions';
+Line 5661: String? _dismissedAnnouncementText;
+Line 5664: String? _previousNotificationHash;
+Line 5665: String? _previousWidgetHash;
+Line 5678: List<String> _pendingTimetableChanges = [];
+Line 5679: final Map<String, List<ClassSession>> _makeupReplacementHistory = {};
+Line 5696: final raw = prefs.getString(_customMakeupSessionsPrefsKey);
+Line 5706: if (entry is! Map<String, dynamic>) continue;
+Line 5725: final raw = prefs.getString('ota_timetable_changes');
+Line 5731: _pendingTimetableChanges = List<String>.from(decoded);
+Line 5755: await prefs.setString(_customMakeupSessionsPrefsKey, jsonEncode(custom));
+Line 5836: final unique = <String, ClassSession>{};
+Line 5936: backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
+Line 5962: style: ElevatedButton.styleFrom(backgroundColor: IrisTokens.error),
+Line 5988: // Background session warming on startup
+Line 6027: await prefs.setString('student_batch', widget.batch);
+Line 6052: await prefs.setString('student_batch', widget.batch);
+Line 6058: await prefs.setString('timetable_data', jsonEncode(timetableData));
+Line 6085: String _bar(double p) {
+Line 6097: String notifTitle = 'IRIS Class Tracker';
+Line 6098: String notifBody = 'Keeping your class schedule handy';
+Line 6115: String timeLeft = hoursRemaining > 0
+Line 6146: String timeUntil = '';
+Line 6147: String emoji = '📌';
+Line 6156: '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
+Line 6176: String classInfo;
+Line 6224: String _formatDateLabel(DateTime now) {
+Line 6293: // Background session warming on pull-to-refresh
+Line 6319: Icon(Icons.check_circle, color: Colors.white, size: 20),
+Line 6355: String _generateStateHash() {
+Line 6378: String _bar(double p) {
+Line 6391: String notifTitle = '';
+Line 6392: String notifBody = '';
+Line 6407: String timeLeft = hoursRemaining > 0
+Line 6438: String timeUntil = '';
+Line 6439: String emoji = '📌';
+Line 6457: '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
+Line 6478: String breakInfo = '';
+Line 6494: String classInfo;
+Line 6517: await prefs.setString('notification_title', notifTitle);
+Line 6518: await prefs.setString('notification_body', notifBody);
+Line 6555: String _generateWidgetHash() {
+Line 6794: key: PageStorageKey<String>('student_tab_portal'),
+Line 6802: key: PageStorageKey<String>('student_tab_academics'),
+Line 6806: key: const PageStorageKey<String>('student_tab_tools'),
+Line 6815: key: const PageStorageKey<String>('student_tab_about'),
+Line 6829: _dismissedAnnouncementText = prefs.getString('iris_dismissed_announcement');
+Line 6834: Future<void> _dismissAnnouncement(String text) async {
+Line 6836: await prefs.setString('iris_dismissed_announcement', text);
+Line 6845: Widget _buildAnnouncementBanner(BuildContext context, Map<String, dynamic> announcement) {
+Line 6847: final message = announcement['message']?.toString() ?? '';
+Line 6859: } else if (rawTime is String) {
+Line 6873: decoration: BoxDecoration(
+Line 6901: decoration: BoxDecoration(
+Line 6913: decoration: BoxDecoration(
+Line 6914: shape: BoxShape.circle,
+Line 6972: decoration: BoxDecoration(
+Line 6973: shape: BoxShape.circle,
+Line 6998: child: ValueListenableBuilder<Map<String, dynamic>?>(
+Line 7005: final message = announcement['message']?.toString() ?? '';
+Line 7034: decoration: BoxDecoration(
+Line 7045: decoration: BoxDecoration(
+Line 7046: shape: BoxShape.circle,
+Line 7092: String message,
+Line 7093: Map<String, dynamic> announcement,
+Line 7104: } else if (rawTime is String) {
+Line 7110: decoration: BoxDecoration(
+Line 7137: decoration: BoxDecoration(
+Line 7174: decoration: BoxDecoration(
+Line 7222: Icons.wifi_tethering_rounded,
+Line 7272: decoration: BoxDecoration(
+Line 7301: icon: Icons.wifi_tethering_rounded,
+Line 7369: Widget _buildSystemUpdateBanner(BuildContext context, Map<String, dynamic> update) {
+Line 7371: final vName = update['version_name']?.toString() ?? '1.1.0';
+Line 7372: final notes = update['release_notes']?.toString() ?? '';
+Line 7373: final apkUrl = update['apk_url']?.toString() ?? '';
+Line 7382: decoration: BoxDecoration(
+Line 7410: decoration: BoxDecoration(
+Line 7424: decoration: BoxDecoration(
+Line 7425: shape: BoxShape.circle,
+Line 7476: backgroundColor: IrisTokens.brand,
+Line 7540: decoration: BoxDecoration(
+Line 7590: decoration: BoxDecoration(
+Line 7592: shape: BoxShape.circle,
+Line 7630: backgroundColor: IrisTokens.warning,
+Line 7650: String dateLabel,
+Line 7659: backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+Line 7671: ValueListenableBuilder<Map<String, dynamic>?>(
+Line 7696: decoration: BoxDecoration(
+Line 7697: shape: BoxShape.circle,
+Line 7698: gradient: LinearGradient(
+Line 7751: decoration: BoxDecoration(
+Line 7773: decoration: BoxDecoration(
+Line 7775: shape: BoxShape.circle,
+Line 7824: decoration: BoxDecoration(
+Line 7825: gradient: LinearGradient(
+Line 7860: ? Icons.play_circle_filled_rounded
+Line 7910: decoration: BoxDecoration(
+Line 7945: String progressLabel = '';
+Line 7964: decoration: BoxDecoration(
+Line 7972: decoration: BoxDecoration(
+Line 7973: gradient: LinearGradient(
+Line 8025: decoration: BoxDecoration(
+Line 8041: decoration: BoxDecoration(
+Line 8111: decoration: BoxDecoration(
+Line 8113: shape: BoxShape.circle,
+Line 8153: decoration: BoxDecoration(
+Line 8154: gradient: LinearGradient(
+Line 8162: shape: BoxShape.circle,
+Line 8252: backgroundColor: Colors.transparent,
+Line 8260: ValueListenableBuilder<String>(
+Line 8274: key: PageStorageKey<String>('student_tab_portal'),
+Line 8281: key: PageStorageKey<String>('student_tab_academics'),
+Line 8284: key: const PageStorageKey<String>('student_tab_tools'),
+Line 8292: key: const PageStorageKey<String>('student_tab_about'),
+Line 8305: child: ValueListenableBuilder<Map<String, dynamic>?>(
+Line 8387: String _timelineTitle(
+Line 8412: String _timelineSubtitle(
+Line 8475: String _getDayName(int day) {
+Line 8488: String _getSmartGreeting(int hour) {
+Line 8495: Color _getTimelineStatusColor(OmniBrain brain, String batch, DateTime now) {
+Line 8544: static const List<Map<String, String>> _elements = [
+Line 8581: String _bmiCategory(double bmi) {
+Line 8588: String _bpCategory(int s, int d) {
+Line 8620: backgroundColor: Colors.transparent,
+Line 8623: backgroundColor: Colors.transparent,
+Line 8653: decoration: BoxDecoration(
+Line 8654: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 8705: Text('BMI: ${bmi.toStringAsFixed(2)} • ${_bmiCategory(bmi.toDouble())}', style: const TextStyle(fontWeight: FontWeight.w700, color: IrisTokens.brand)),
+Line 8726: Text('Daily water target: ${hydration.toStringAsFixed(2)} L', style: const TextStyle(fontWeight: FontWeight.w700, color: IrisTokens.success)),
+Line 8779: decoration: BoxDecoration(
+Line 8780: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 8828: leading: CircleAvatar(
+Line 8829: backgroundColor: IrisTokens.brand.withValues(alpha: 0.2),
+Line 8857: String _band1 = 'Brown';
+Line 8858: String _band2 = 'Black';
+Line 8859: String _multiplier = 'Red';
+Line 8860: String _tolerance = 'Gold';
+Line 8862: static const Map<String, int> _digitMap = {
+Line 8875: static const Map<String, int> _multiplierExp = {
+Line 8890: static const Map<String, double> _toleranceMap = {
+Line 8901: static const Map<String, Color> _colorMap = {
+Line 8924: String _formatOhms(double value) {
+Line 8926: return '${(value / 1000000).toStringAsFixed(2)} MΩ';
+Line 8929: return '${(value / 1000).toStringAsFixed(2)} kΩ';
+Line 8931: return '${value.toStringAsFixed(2)} Ω';
+Line 8944: String title,
+Line 8945: String current,
+Line 8946: List<String> options,
+Line 8947: ValueChanged<String> onChanged,
+Line 8954: DropdownButtonFormField<String>(
+Line 8966: decoration: BoxDecoration(
+Line 8991: backgroundColor: Colors.transparent,
+Line 8994: backgroundColor: Colors.transparent,
+Line 9076: 'Tolerance: ±${tol.toStringAsFixed(2)}%'
+Line 9102: final String department;
+Line 9104: final String batch;
+Line 9145: double _parseNum(String value) => double.tryParse(value.trim()) ?? 0;
+Line 9147: ({double score, String band}) _workloadScore() {
+Line 9175: List<String> _departmentTips(String department) {
+Line 9218: backgroundColor: Colors.transparent,
+Line 9221: backgroundColor: Colors.transparent,
+Line 9241: decoration: BoxDecoration(
+Line 9242: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 9327: 'Load score: ${workload.score.toStringAsFixed(1)} • ${workload.band}',
+Line 9365: ? 'Required in remaining assessments: ${targetPlan.required.toStringAsFixed(1)}% (above 100%, adjust target or strategy).'
+Line 9366: : 'Required in remaining assessments: ${targetPlan.required.clamp(0, 100).toStringAsFixed(1)}%',
+Line 9411: Widget _numField(String label, TextEditingController controller) {
+Line 9427: final String batch;
+Line 9478: graphics.drawString(
+Line 9486: graphics.drawString(
+Line 9506: backgroundBrush: PdfSolidBrush(PdfColor(0, 122, 255)),
+Line 9520: backgroundBrush: PdfSolidBrush(PdfColor(230, 230, 230)),
+Line 9585: backgroundColor: Colors.transparent,
+Line 9588: decoration: BoxDecoration(
+Line 9604: decoration: BoxDecoration(
+Line 9605: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 9654: backgroundColor: IrisTokens.brand,
+Line 9675: backgroundColor: Colors.transparent,
+Line 9678: backgroundColor: Colors.transparent,
+Line 9697: decoration: BoxDecoration(
+Line 9746: decoration: BoxDecoration(
+Line 9747: gradient: LinearGradient(
+Line 9753: Icons.check_circle_rounded,
+Line 9784: backgroundColor: IrisTokens.brand,
+Line 9821: String _category = 'All';
+Line 9823: static const List<String> _categories = [
+Line 9914: backgroundColor: Colors.transparent,
+Line 9917: backgroundColor: Colors.transparent,
+Line 10047: String _language = 'Dart';
+Line 10048: String _status = 'Ready';
+Line 10049: String _summary = 'Pick a language and run Smart Check.';
+Line 10050: List<String> _warnings = const [];
+Line 10052: String _accessoryMode = 'Snippet Vault';
+Line 10053: String _accessoryOutput = 'Pick an accessory mode and generate output.';
+Line 10055: static const Map<String, String> _templates = {
+Line 10059: 'Java': 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello IRIS");\n  }\n}\n',
+Line 10062: static const Map<String, String> _algorithmTemplates = {
+Line 10084: bool _bracketsBalanced(String input) {
+Line 10085: final stack = <String>[];
+Line 10100: int _complexityHeuristic(String input) {
+Line 10131: final warnings = <String>[];
+Line 10207: 'Dry-run Snapshot\nInput: $raw\nSorted: $sorted\nMin: $minV, Max: $maxV, Avg: ${avg.toStringAsFixed(2)}\n\nUse this as a quick sanity-check before coding.';
+Line 10218: backgroundColor: Colors.transparent,
+Line 10221: backgroundColor: Colors.transparent,
+Line 10243: child: DropdownButtonFormField<String>(
+Line 10406: final String category;
+Line 10407: final String title;
+Line 10408: final String formula;
+Line 10409: final String description;
+Line 10427: final String title;
+Line 10428: final String formula;
+Line 10429: final String description;
+Line 10485: backgroundColor: Colors.transparent,
+Line 10488: backgroundColor: Colors.transparent,
+Line 10508: decoration: BoxDecoration(
+Line 10509: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 10567: final String label;
+Line 10568: final String value;
+Line 10577: decoration: BoxDecoration(
+Line 10613: final String batch;
+Line 10623: final roomMap = <String, int>{};
+Line 10639: backgroundColor: Colors.transparent,
+Line 10642: backgroundColor: Colors.transparent,
+Line 10662: decoration: BoxDecoration(
+Line 10663: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 10812: backgroundColor: Colors.transparent,
+Line 10815: backgroundColor: Colors.transparent,
+Line 10824: // Neural aura background
+Line 10841: decoration: BoxDecoration(
+Line 10842: gradient: LinearGradient(colors: IrisTokens.brandGradient),
+Line 10870: decoration: BoxDecoration(
+Line 10895: _semesterGpa.toStringAsFixed(2),
+Line 10967: String grade = 'A';
+Line 10969: static const Map<String, double> _gradePoints = {
+Line 10985: List<String> get gradeOptions => _gradePoints.keys.toList();
+Line 11056: FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+Line 11067: child: DropdownButtonFormField<String>(
+Line 11075: (g) => DropdownMenuItem<String>(
+Line 11098: final String id;
+Line 11099: final String title;
+Line 11100: final String subtitle;
+Line 11103: final String description;
+Line 11133: decoration: BoxDecoration(
+Line 11134: gradient: LinearGradient(
+Line 11170: decoration: BoxDecoration(
+Line 11233: final String? initialName;
+Line 11263: backgroundColor: Colors.transparent,
+Line 11291: decoration: BoxDecoration(
+Line 11353: decoration: BoxDecoration(
+Line 11355: ? const LinearGradient(
+Line 11387: final String currentBatch;
+Line 11389: final ValueChanged<String>? onRoleChanged;
+Line 11390: final ValueChanged<String>? onBatchChanged;
+Line 11413: final ValueChanged<String>? onRoleChanged;
+Line 11414: final ValueChanged<String>? onBatchChanged;
+Line 11416: final String? currentBatch;
+Line 11432: static const String _backendBase = 'https://cui-helpdesk-backend.onrender.com';
+Line 11440: final Map<String, TeacherLocatorResult> _teacherInsightCache = {};
+Line 11442: String _error = '';
+Line 11443: String _query = '';
+Line 11444: String _selectedDepartment = 'All';
+Line 11445: String _selectedBlock = 'All';
+Line 11492: String _sourceLabel(HelpdeskFacultySource source) {
+Line 11505: String _resolveImageUrl(String raw) {
+Line 11515: String _blockFromLocation(String location) {
+Line 11526: List<String> get _departments {
+Line 11536: List<String> get _blocks {
+Line 11570: TeacherLocatorResult? _teacherInsight(String teacherName) {
+Line 11605: Future<void> _launchPhone(String phone) async {
+Line 11629: Future<void> _launchEmail(String email) async {
+Line 11654: required String title,
+Line 11655: required List<String> options,
+Line 11656: required String selected,
+Line 11657: required ValueChanged<String> onChanged,
+Line 11694: decoration: BoxDecoration(
+Line 11830: decoration: BoxDecoration(
+Line 11920: backgroundColor: Colors.transparent,
+Line 11944: decoration: BoxDecoration(
+Line 11945: gradient: const LinearGradient(
+Line 11984: decoration: BoxDecoration(
+Line 12142: String? selectedProgram;
+Line 12144: String? selectedSection;
+Line 12211: final List<String> dayNames = [
+Line 12252: backgroundColor: Colors.transparent,
+Line 12284: decoration: BoxDecoration(
+Line 12285: gradient: const LinearGradient(
+Line 12316: const LinearGradient(
+Line 12599: decoration: BoxDecoration(
+Line 12659: const BoxDecoration(
+Line 12662: shape: BoxShape.circle,
+Line 12697: decoration: BoxDecoration(
+Line 12748: decoration: BoxDecoration(
+Line 12895: Color _accentForProgram(String program) {
+Line 12910: required String label,
+Line 12924: decoration: BoxDecoration(
+Line 12969: required String text,
+Line 12977: decoration: BoxDecoration(
+Line 13011: final String batch;
+Line 13014: final ValueChanged<String>? onRoleChanged;
+Line 13015: final ValueChanged<String>? onBatchChanged;
+Line 13038: String? _selectedTeacher;
+Line 13039: String? _selectedSuggestionKey;
+Line 13043: List<String> _filteredTeachers = [];
+Line 13045: final List<String> _allTeachers = [];
+Line 13051: String _sortBy = 'earliest'; // 'earliest', 'duration', 'rooms'
+Line 13059: final teachers = <String>{};
+Line 13080: void _updateTeacherSuggestions(String query) {
+Line 13092: void _selectTeacher(String teacher) {
+Line 13104: String? _pickSmartTeacherForBatch() {
+Line 13128: final frequency = <String, int>{};
+Line 13155: String _timeFromDecimal(double value) {
+Line 13158: return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+Line 13161: String _slotKey(MakeupSlotSuggestion suggestion) {
+Line 13163: return '${suggestion.dayIndex}_${suggestion.startTime.toStringAsFixed(3)}_${suggestion.endTime.toStringAsFixed(3)}_$teacherKey';
+Line 13223: String _inferMakeupSubject(String teacher) {
+Line 13225: final frequency = <String, int>{};
+Line 13238: String _pickBestRoom(MakeupSlotSuggestion suggestion, String teacher) {
+Line 13245: final roomFrequency = <String, int>{};
+Line 13517: backgroundColor: Colors.transparent,
+Line 13527: // Neural aura background
+Line 13540: decoration: BoxDecoration(
+Line 13541: gradient: LinearGradient(
+Line 13558: decoration: BoxDecoration(
+Line 13559: gradient: LinearGradient(
+Line 13586: const LinearGradient(
+Line 13648: decoration: BoxDecoration(
+Line 13649: gradient: LinearGradient(
+Line 13761: decoration: BoxDecoration(
+Line 13792: decoration: BoxDecoration(
+Line 13806: ? Icons.check_circle_rounded
+Line 13849: decoration: BoxDecoration(
+Line 13883: decoration: BoxDecoration(
+Line 13938: backgroundColor: purple,
+Line 13940: disabledBackgroundColor: purple.withValues(alpha: 0.5),
+Line 13987: _filteredSuggestions.length.toString(),
+Line 13998: '${_filteredSuggestions.fold<double>(0, (sum, s) => sum + s.durationHours).toStringAsFixed(1)}h',
+Line 14016: .toString(),
+Line 14060: decoration: BoxDecoration(
+Line 14129: decoration: BoxDecoration(
+Line 14130: gradient: const LinearGradient(
+Line 14232: decoration: BoxDecoration(
+Line 14233: gradient: LinearGradient(
+Line 14281: decoration: BoxDecoration(
+Line 14282: gradient: const LinearGradient(
+Line 14300: suggestion.timeRangeString(),
+Line 14317: decoration: BoxDecoration(
+Line 14325: '${suggestion.durationHours.toStringAsFixed(1)}h',
+Line 14342: decoration: BoxDecoration(
+Line 14352: Icons.check_circle_rounded,
+Line 14378: decoration: BoxDecoration(
+Line 14413: decoration: BoxDecoration(
+Line 14461: decoration: BoxDecoration(
+Line 14504: decoration: BoxDecoration(
+Line 14548: decoration: BoxDecoration(
+Line 14567: 'No rooms available during this slot',
+Line 14590: ? Icons.remove_circle_outline_rounded
+Line 14591: : Icons.add_circle_outline_rounded),
+Line 14601: backgroundColor: isBlocked
+Line 14636: String value,
+Line 14637: String label,
+Line 14667: required String label,
+Line 14675: decoration: BoxDecoration(
+Line 14719: backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
+Line 14796: backgroundColor: (isDark ? const Color(0xFF111827) : Colors.white)
+Line 14813: leading: Radio<String>(
+Line 14827: leading: Radio<String>(
+Line 14841: leading: Radio<String>(
+Line 14909: decoration: BoxDecoration(
+Line 14910: shape: BoxShape.circle,
+Line 14921: decoration: BoxDecoration(
+Line 14922: shape: BoxShape.circle,
+Line 14944: final String label;
+Line 14981: decoration: BoxDecoration(
+Line 15013: decoration: BoxDecoration(
+Line 15038: final String period;
+Line 15039: final String batch;
+Line 15055: String _searchQuery = '';
+Line 15063: DateTime? _parseExamDate(String dateStr) {
+Line 15089: String _getExamStatus(DateTime? examDate) {
+Line 15104: String _formatExamDate(String rawDate) {
+Line 15144: final examBatch = (exam['batch'] ?? '').toString();
+Line 15165: final Map<String, Map<String, dynamic>> grouped = {};
+Line 15167: final date = (exam['date'] ?? '').toString();
+Line 15168: final time = (exam['time'] ?? '').toString();
+Line 15169: final subject = (exam['subject'] ?? '').toString();
+Line 15170: final room = (exam['room'] ?? '').toString();
+Line 15174: final existingRooms = grouped[key]!['rooms'] as List<String>;
+Line 15196: final timeA = (a['time'] ?? '').toString();
+Line 15197: final timeB = (b['time'] ?? '').toString();
+Line 15203: final sub = (ex['subject'] ?? '').toString().toLowerCase();
+Line 15212: Map<String, dynamic>? nextExam;
+Line 15235: final List<Map<String, dynamic>> dateGroups = [];
+Line 15237: final date = (exam['date'] ?? '').toString();
+Line 15266: decoration: BoxDecoration(
+Line 15267: shape: BoxShape.circle,
+Line 15268: gradient: LinearGradient(
+Line 15312: decoration: BoxDecoration(
+Line 15314: shape: BoxShape.circle,
+Line 15345: backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+Line 15377: decoration: BoxDecoration(
+Line 15412: decoration: BoxDecoration(
+Line 15443: nextExam['subject']?.toString() ?? 'Exam',
+Line 15524: decoration: BoxDecoration(
+Line 15525: gradient: LinearGradient(
+Line 15533: shape: BoxShape.circle,
+Line 15574: final dateStr = group['date'] as String;
+Line 15590: decoration: BoxDecoration(
+Line 15611: decoration: BoxDecoration(
+Line 15638: final subject = exam['subject']?.toString() ?? 'Unknown Exam';
+Line 15639: final timeStr = exam['time']?.toString() ?? 'TBD';
+Line 15640: final roomsList = List<String>.from(exam['rooms'] ?? []);
+Line 15674: final String subject;
+Line 15675: final String rawDate;
+Line 15677: final String rawTime;
+Line 15678: final List<String> rooms;
+Line 15679: final String status;
+Line 15691: String _formatExamDate(String rawDate) {
+Line 15718: String _formatExamTime(String rawTime) {
+Line 15722: String formatPart(String hr, String min) {
+Line 15739: String badgeText = status;
+Line 15775: decoration: BoxDecoration(
+Line 15795: decoration: BoxDecoration(

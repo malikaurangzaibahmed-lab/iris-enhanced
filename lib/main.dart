@@ -7,6 +7,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart'
   hide NotificationVisibility;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -35,10 +36,12 @@ import 'core/vital_motion.dart';
 import 'screens/portal_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/academics_hub_screen.dart';
-import 'screens/faculty_dashboard_screen.dart' hide FacultyDashboard, LectureDuration, startClassNotificationTask;
+import 'screens/faculty_dashboard_screen.dart';
 import 'screens/room_finder_screen.dart';
 import 'screens/setup_screens.dart';
+import 'screens/tutorial_screen.dart';
 import 'screens/teacher_locator_screen.dart';
+import 'screens/students_week_screen.dart';
 import 'services/remote_config_service.dart';
 import 'services/helpdesk_campus_feed_service.dart';
 import 'services/helpdesk_faculty_service.dart';
@@ -70,7 +73,7 @@ Future<void> main() async {
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
       channelId: 'persistent_class_foreground',
-      channelName: 'IRIS Class Tracker',
+      channelName: 'Nexsync Class Tracker',
       channelDescription: 'Shows your current and upcoming classes',
     ),
     iosNotificationOptions: const IOSNotificationOptions(
@@ -83,9 +86,13 @@ Future<void> main() async {
       allowWakeLock: true,
     ),
   );
+  await LiquidGlassWidgets.initialize();
   await IrisSfx.init();
   await IrisHaptics.init();
-  runApp(const _BootIrisApp());
+  runApp(LiquidGlassWidgets.wrap(
+    child: const _BootIrisApp(),
+    adaptiveQuality: true,
+  ));
 }
 
 class _BootIrisApp extends StatefulWidget {
@@ -321,6 +328,7 @@ class _AppRootState extends State<_AppRoot> {
   String? _selectedBatch;
   String? _userRole;
   String? _userName;
+  bool? _tutorialCompleted;
   late VoidCallback _roleListener;
 
   @override
@@ -338,6 +346,7 @@ class _AppRootState extends State<_AppRoot> {
       }
     };
     AppSignals.roleNotifier.addListener(_roleListener);
+    _loadTutorialCompleted();
     _loadUserRole();
     _loadBatch();
     _loadUserName();
@@ -363,6 +372,21 @@ class _AppRootState extends State<_AppRoot> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _userRole = prefs.getString('user_role');
+    });
+  }
+
+  Future<void> _loadTutorialCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _tutorialCompleted = prefs.getBool('tutorial_completed') ?? false;
+    });
+  }
+
+  Future<void> _completeTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('tutorial_completed', true);
+    setState(() {
+      _tutorialCompleted = true;
     });
   }
 
@@ -763,6 +787,14 @@ class _AppRootState extends State<_AppRoot> {
 
   @override
   Widget build(BuildContext context) {
+    if (_tutorialCompleted == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_tutorialCompleted == false) {
+      return TutorialScreen(onComplete: _completeTutorial);
+    }
+
     if (_userRole == null) {
       return RoleSelectorScreen(onComplete: _saveUserRole);
     }
@@ -1813,13 +1845,11 @@ class _SetupBotState extends State<SetupBot> {
                               ],
                             ),
                           ),
-                          Switch(
+                          GlassSwitch(
                             value: _persistentNotificationEnabled,
                             onChanged: _togglePersistentNotification,
                             activeColor: IrisTokens.brand,
-                            activeTrackColor: IrisTokens.brand.withValues(alpha: 
-                              0.35,
-                            ),
+                            useOwnLayer: true,
                           ),
                         ],
                       ),
@@ -2159,2751 +2189,6 @@ class Dashboard extends StatefulWidget {
 
   @override
   State<Dashboard> createState() => _DashboardState();
-}
-
-class FacultyDashboard extends StatefulWidget {
-  final OmniBrain brain;
-  final VoidCallback onToggleTheme;
-  final Future<void> Function(String mode) onSetThemeMode;
-  final String currentThemeMode;
-  final ValueChanged<String>? onRoleChanged;
-  final ValueChanged<String>? onBatchChanged;
-
-  const FacultyDashboard({
-    required this.brain,
-    required this.onToggleTheme,
-    required this.onSetThemeMode,
-    required this.currentThemeMode,
-    required this.onRoleChanged,
-    this.onBatchChanged,
-    super.key,
-  });
-
-  @override
-  State<FacultyDashboard> createState() => _FacultyDashboardState();
-}
-
-class _FacultyDashboardState extends State<FacultyDashboard>
-    with SingleTickerProviderStateMixin {
-  static const String _helpdeskBackendBase =
-      'https://cui-helpdesk-backend.onrender.com';
-
-  final HelpdeskFacultyService _facultyService = HelpdeskFacultyService();
-  String? _selectedTeacher;
-  Timer? _ticker;
-  int? _overrideDayIndex;
-  int _bottomNavIndex = 0;
-  int _facultyTabSlideDirection = 1;
-  bool _isStudentNavBusy = false;
-  bool _navBarReady = false;
-  double? _facultyNavDragPosition;
-  bool _isFacultyNavTracking = false;
-  bool _facultyNavHasMoved = false;
-  List<ClassSession> _cachedSchedule = [];
-  DateTime? _lastScheduleUpdate;
-  int? _lastMinute;
-  bool _isRefreshing = false;
-  bool _facultyProfilesLoading = false;
-  HelpdeskFacultySource _facultyProfilesSource = HelpdeskFacultySource.none;
-  List<FacultyProfile> _facultyProfiles = const [];
-  final GlobalKey _facultyTeacherNavKey = GlobalKey(
-    debugLabel: 'faculty_teacher_nav',
-  );
-  final GlobalKey _facultySelectTeacherCtaKey = GlobalKey(
-    debugLabel: 'faculty_select_teacher_cta',
-  );
-  final GlobalKey _facultyChangeTeacherKey = GlobalKey(
-    debugLabel: 'faculty_change_teacher',
-  );
-  final GlobalKey _facultyPortalNavKey = GlobalKey(
-    debugLabel: 'faculty_portal_nav',
-  );
-  final GlobalKey _facultyAboutNavKey = GlobalKey(
-    debugLabel: 'faculty_about_nav',
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSelectedTeacher();
-    unawaited(_loadFacultyProfiles());
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() => _navBarReady = true);
-      }
-    });
-    _lastMinute = DateTime.now().minute;
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) {
-        final now = DateTime.now();
-        final minuteChanged = _lastMinute != now.minute;
-        if (minuteChanged) {
-          setState(() {
-            _lastMinute = now.minute;
-          });
-        }
-        _updateWidgetForTeacher();
-      }
-    });
-    _updateWidgetForTeacher();
-  }
-
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _handleRefresh() async {
-    if (_isRefreshing) return;
-    IrisHaptics.refreshStart();
-
-    setState(() => _isRefreshing = true);
-
-    // Simulate data refresh delay
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // Refresh schedule cache
-    _updateScheduleCache();
-
-    // Update widget and notifications
-    _updateWidgetForTeacher();
-
-    setState(() => _isRefreshing = false);
-    IrisHaptics.refreshSuccess();
-
-    // Show success feedback
-    if (mounted) {
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'dashboard_refresh_success',
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 12),
-            Text(
-              'Schedule refreshed',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        tint: IrisTokens.success,
-        duration: const Duration(seconds: 2),
-      );
-    }
-  }
-
-  String _timelineTitle(
-    List<ClassSession> schedule,
-    DateTime now,
-    int? overrideDay,
-  ) {
-    if (schedule.isEmpty && overrideDay != null) {
-      return '${FormatGuard.normalizeDay(overrideDay)} Timeline';
-    }
-    if (schedule.isEmpty) return 'No Classes';
-    final dayIndex = overrideDay ?? schedule.first.dayIndex;
-
-    if (dayIndex == now.weekday) {
-      return 'Today\'s Timeline';
-    }
-
-    // Check if it's tomorrow
-    final tomorrowIndex = (now.weekday % 7) + 1;
-    if (dayIndex == tomorrowIndex && overrideDay == null) {
-      return 'Tomorrow Morning';
-    }
-
-    final dayName = FormatGuard.normalizeDay(dayIndex);
-    return '$dayName Timeline';
-  }
-
-  String _timelineSubtitle(
-    List<ClassSession> schedule,
-    DateTime now,
-    int? overrideDay,
-  ) {
-    if (schedule.isEmpty && overrideDay != null) {
-      return 'No classes scheduled • Free day! 🎉';
-    }
-    if (schedule.isEmpty) return 'No sessions in the registry';
-
-    final dayIndex = overrideDay ?? schedule.first.dayIndex;
-    final currentTime = now.hour + (now.minute / 60.0);
-
-    if (dayIndex == now.weekday) {
-      // Show smart live status
-      if (_selectedTeacher != null) {
-        final current = widget.brain.getCurrentClassForTeacher(
-          _selectedTeacher!,
-          now,
-        );
-
-        if (current != null && current.isLive(now)) {
-          // Currently in a class
-          final remaining = schedule
-              .where((s) => s.safeStartVal > currentTime)
-              .length;
-          final classesLeft = remaining > 0
-              ? '$remaining ${remaining == 1 ? 'class' : 'classes'} left'
-              : 'Last class today';
-          return '${current.subject} • $classesLeft';
-        }
-      }
-
-      return '${schedule.length} classes scheduled';
-    }
-
-    return '${schedule.length} classes scheduled';
-  }
-
-  Color _getTimelineStatusColor(OmniBrain brain, String teacher, DateTime now) {
-    if (_selectedTeacher != null) {
-      final current = brain.getCurrentClassForTeacher(_selectedTeacher!, now);
-      if (current != null && current.isLive(now)) {
-        return IrisTokens.success;
-      }
-    }
-    return IrisTokens.purple;
-  }
-
-  Future<void> _loadSelectedTeacher() async {
-    final prefs = await SharedPreferences.getInstance();
-    // ALWAYS set role to faculty to prevent cross-contamination
-    await prefs.setString('user_role', 'faculty');
-
-    // Get teacher and update state
-    final teacher = prefs.getString('faculty_teacher');
-    setState(() {
-      _selectedTeacher = teacher;
-    });
-
-    // Now start notification service with the teacher loaded above (pass as parameter)
-    if (teacher != null && teacher.isNotEmpty) {
-      await _ensureFacultyNotificationService(teacher);
-      await _scheduleFacultyClassReminders(teacher);
-    }
-  }
-
-  Future<void> _loadFacultyProfiles() async {
-    _facultyProfilesLoading = true;
-    final payload = await _facultyService.fetchLiveFirstWithFallbackPayload();
-    if (!mounted) return;
-    setState(() {
-      _facultyProfiles = payload.items;
-      _facultyProfilesSource = payload.source;
-      _facultyProfilesLoading = false;
-    });
-  }
-
-  FacultyProfile? _matchSelectedTeacherProfile() {
-    final teacher = _selectedTeacher;
-    if (teacher == null || teacher.isEmpty) return null;
-    return HelpdeskFacultyService.matchFacultyProfile(teacher, _facultyProfiles);
-  }
-
-  String _facultySourceLabel(HelpdeskFacultySource source) {
-    switch (source) {
-      case HelpdeskFacultySource.live:
-        return 'LIVE';
-      case HelpdeskFacultySource.cache:
-        return 'CACHE';
-      case HelpdeskFacultySource.backup:
-        return 'BACKUP';
-      case HelpdeskFacultySource.none:
-        return 'OFFLINE';
-    }
-  }
-
-  String _resolveFacultyImageUrl(String image) {
-    final raw = image.trim();
-    if (raw.isEmpty) return '';
-    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-    if (raw.startsWith('/')) return '$_helpdeskBackendBase$raw';
-    return '$_helpdeskBackendBase/$raw';
-  }
-
-  Future<void> _launchFacultyEmail(String email) async {
-    final normalized = email.trim();
-    if (normalized.isEmpty || normalized.toLowerCase() == 'not available') {
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'faculty_dashboard_email_unavailable',
-        content: const Text('Email unavailable for this faculty profile.'),
-      );
-      return;
-    }
-    final uri = Uri.parse('mailto:$normalized');
-    if (await canLaunchUrl(uri)) {
-      IrisSfx.pillTap();
-      await launchUrl(uri);
-      return;
-    }
-    if (!mounted) return;
-    showIrisFrostedSnackBar(
-      context,
-      dedupeKey: 'faculty_dashboard_email_launch_failed',
-      content: const Text('Unable to open email client on this device.'),
-    );
-  }
-
-  Future<void> _saveSelectedTeacher(String teacherName) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('faculty_teacher', teacherName);
-    await prefs.setString('faculty_user_name', teacherName);
-    await prefs.setString('user_role', 'faculty');
-    await _persistTimetableData();
-    setState(() {
-      _selectedTeacher = teacherName;
-      _overrideDayIndex = null; // Reset day filter when teacher changes
-    });
-    // Refresh cache and UI immediately
-    _updateScheduleCache();
-    _updateWidgetForTeacher();
-    await _ensureFacultyNotificationService(teacherName);
-    await _scheduleFacultyClassReminders(teacherName);
-  }
-
-  Future<void> _scheduleFacultyClassReminders(String teacherName) async {
-    final prefs = await SharedPreferences.getInstance();
-    final remindersEnabled =
-        prefs.getBool('lecture_reminders_enabled') ?? false;
-    if (!remindersEnabled) {
-      await NotificationService().cancelScheduledClassReminders();
-      return;
-    }
-
-    final todayClasses = widget.brain.memory.sessions
-        .where(
-          (s) =>
-              s.dayIndex == DateTime.now().weekday &&
-              s.teacher.trim().toLowerCase() ==
-                  teacherName.trim().toLowerCase(),
-        )
-        .toList();
-
-    if (todayClasses.isNotEmpty) {
-      await NotificationService().scheduleClassReminders(todayClasses);
-    }
-  }
-
-  Future<void> _persistTimetableData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final timetableData = {
-      'sessions': widget.brain.memory.sessions.map((s) => s.toJson()).toList(),
-    };
-    await prefs.setString('timetable_data', jsonEncode(timetableData));
-  }
-
-  Future<void> _ensureFacultyNotificationService(String? teacherParam) async {
-    final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool('persistent_notification_enabled') ?? false;
-    // Use parameter if provided, otherwise fall back to state
-    final teacher = teacherParam ?? _selectedTeacher;
-    if (!enabled || teacher == null || teacher.isEmpty) {
-      if (await FlutterForegroundTask.isRunningService) {
-        await FlutterForegroundTask.stopService();
-      }
-      return;
-    }
-
-    // Persist all data needed for background service
-    await prefs.setString('user_role', 'faculty');
-    await prefs.setString('faculty_teacher', teacher);
-    await _persistTimetableData();
-
-    // Stop service if running to ensure clean restart
-    if (await FlutterForegroundTask.isRunningService) {
-      await FlutterForegroundTask.stopService();
-      // Minimal delay to ensure service fully stops before restart
-      await Future.delayed(const Duration(milliseconds: 50));
-    }
-
-    // Calculate initial notification to show immediately (like student mode)
-    final now = DateTime.now();
-    final current = widget.brain.getCurrentClassForTeacher(teacher, now);
-    final next = widget.brain.getNextClassForTeacher(teacher, now);
-    final currentTime = now.hour + (now.minute / 60.0);
-    final dayIndex = now.weekday;
-
-    String _bar(double p) {
-      const total = 8;
-      final filled = (p * total).round().clamp(0, total);
-      return '🟦' * filled + '⬜' * (total - filled);
-    }
-
-    final teacherSessions = widget.brain.memory.sessions
-        .where(
-          (s) => s.teacher.trim().toLowerCase() == teacher.trim().toLowerCase(),
-        )
-        .toList();
-    final todayAll = teacherSessions
-        .where((s) => s.dayIndex == dayIndex)
-        .toList();
-
-    String notifTitle = 'IRIS Faculty Tracker';
-    String notifBody = 'Your schedule is ready';
-
-    if (current != null && current.isLive(now)) {
-      final duration = LectureDuration.getActualDuration(current);
-      final actualEndTime = LectureDuration.getActualEndTime(current);
-      final progress = ((currentTime - current.safeStartVal) / duration).clamp(
-        0.0,
-        1.0,
-      );
-      final progressPercent = (progress * 100).toInt();
-
-      final minutesRemaining = ((actualEndTime - currentTime) * 60)
-          .round()
-          .clamp(0, (duration * 60).round());
-      final hoursRemaining = minutesRemaining ~/ 60;
-      final minsRemaining = minutesRemaining % 60;
-
-      String timeLeft = hoursRemaining > 0
-          ? '${hoursRemaining}h ${minsRemaining}m left'
-          : minsRemaining > 0
-          ? '${minsRemaining}m left'
-          : 'Ending now';
-
-      final remaining = todayAll
-          .where((s) => s.safeStartVal > currentTime)
-          .length;
-      final classCount = remaining > 0
-          ? ' · $remaining more today'
-          : ' · Last one';
-
-      notifTitle = '🎓 ${current.subject} · $timeLeft';
-      notifBody =
-          '${_bar(progress)} $progressPercent%$classCount\n📍 ${current.room} · 📚 ${current.batchKey.batch}';
-    } else if (next != null) {
-      int daysAhead = 0;
-      if (next.dayIndex != dayIndex) {
-        daysAhead = (next.dayIndex - dayIndex + 7) % 7;
-        if (daysAhead == 0) daysAhead = 7;
-      }
-      final totalMinutesUntil = daysAhead > 0
-          ? ((24.0 - currentTime) * 60 +
-                    (daysAhead - 1) * 24 * 60 +
-                    next.safeStartVal * 60)
-                .round()
-          : ((next.safeStartVal - currentTime) * 60).round();
-      final hoursUntil = totalMinutesUntil ~/ 60;
-      final minsUntil = totalMinutesUntil % 60;
-
-      String timeUntil = '';
-      String emoji = '📌';
-      if (daysAhead > 0) {
-        const dayNames = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        final nextDayName = dayNames[next.dayIndex];
-        final startHour = next.safeStartVal.floor();
-        final startMin = ((next.safeStartVal - startHour) * 60).round();
-        final displayHour = startHour > 12 ? startHour - 12 : startHour;
-        final amPm = startHour >= 12 ? 'PM' : 'AM';
-        timeUntil =
-            '$nextDayName ${displayHour}:${startMin.toString().padLeft(2, '0')} $amPm';
-        emoji = '📅';
-      } else if (hoursUntil > 0) {
-        timeUntil = '${hoursUntil}h ${minsUntil}m';
-        emoji = '⏳';
-      } else if (minsUntil > 10) {
-        timeUntil = '${minsUntil} min';
-        emoji = '⏳';
-      } else if (minsUntil > 0) {
-        timeUntil = '${minsUntil} min';
-        emoji = '⚡';
-      } else {
-        timeUntil = 'now';
-        emoji = '🔔';
-      }
-
-      final remainingToday = todayAll
-          .where((s) => s.safeStartVal > currentTime)
-          .length;
-
-      String classInfo;
-      if (daysAhead > 0) {
-        classInfo = 'Done for today ✓';
-      } else if (remainingToday > 1) {
-        classInfo = '$remainingToday classes left';
-      } else {
-        classInfo = 'Last class today';
-      }
-
-      notifTitle = '$emoji ${next.subject} in $timeUntil';
-      notifBody = '$classInfo\n📍 ${next.room} · 📚 ${next.batchKey.batch}';
-    } else {
-      final weekday = now.weekday;
-      if (weekday == 6 || weekday == 7) {
-        notifTitle = '🎉 Weekend Mode';
-        notifBody = 'No classes — enjoy your break!';
-      } else {
-        notifTitle = '✓ All done for today';
-        notifBody = 'No more classes scheduled';
-      }
-    }
-
-    await FlutterForegroundTask.startService(
-      serviceId: 256,
-      notificationTitle: notifTitle,
-      notificationText: notifBody,
-      notificationIcon: null,
-      notificationButtons: [NotificationButton(id: 'open', text: 'Open IRIS')],
-      callback: startClassNotificationTask,
-    );
-  }
-
-  Future<void> _updateWidgetForTeacher() async {
-    final teacher = _selectedTeacher;
-    if (teacher == null || teacher.isEmpty) {
-      await WidgetService.updateWidgetIdle(
-        headline: 'Faculty Mode',
-        subline: 'Select your name to view schedule',
-        teacherInfo: '',
-        timeInfo: 'Open IRIS to select',
-        isUrgent: false,
-      );
-      return;
-    }
-
-    final now = DateTime.now();
-    final insight = widget.brain.buildTeacherTemporalInsight(teacher, now);
-    int progressPercent = 0;
-    final current = widget.brain.getCurrentClassForTeacher(teacher, now);
-    if (current != null && current.isLive(now)) {
-      final currentTime = now.hour + (now.minute / 60.0);
-      final duration = LectureDuration.getActualDuration(current);
-      final progress = ((currentTime - current.safeStartVal) / duration).clamp(
-        0.0,
-        1.0,
-      );
-      progressPercent = (progress * 100).toInt();
-    }
-
-    // For faculty, show batch instead of teacher name
-    String displayInfo = teacher;
-    if (current != null) {
-      displayInfo = current.batchKey.batch;
-    } else {
-      // If no current class, try to get batch from next class
-      final allSessions = widget.brain.memory.sessions
-          .where(
-            (s) =>
-                s.teacher.trim().toLowerCase() == teacher.trim().toLowerCase(),
-          )
-          .toList();
-      if (allSessions.isNotEmpty) {
-        displayInfo = allSessions.first.batchKey.batch;
-      }
-    }
-
-    await WidgetService.updateWidgetWithInsight(
-      headline: insight.headline,
-      subline: insight.subline,
-      timeInfo: insight.timeInfo ?? '--',
-      teacherInfo: displayInfo,
-      isLive: insight.isLive,
-      isUrgent: insight.isUrgent,
-      progressPercentage: progressPercent,
-    );
-  }
-
-  Future<void> _openTeacherPortal({GlobalKey? originKey}) async {
-    await _onBottomNavTap(2);
-  }
-
-  Future<void> _openTeacherPicker({GlobalKey? originKey}) async {
-    await _onBottomNavTap(1);
-  }
-
-  Future<void> _openAbout({GlobalKey? originKey}) async {
-    await _onBottomNavTap(3);
-  }
-
-  Future<void> _onBottomNavTap(int index) async {
-    if (!mounted) return;
-    index = index.clamp(0, 5);
-    if (_isStudentNavBusy) return;
-    final previousIndex = _bottomNavIndex;
-    if (index == previousIndex) {
-      await IrisHaptics.navTransition(from: previousIndex, to: index);
-      return;
-    }
-
-    setState(() => _isStudentNavBusy = true);
-    await IrisHaptics.navTransition(from: previousIndex, to: index);
-    await IrisHaptics.destinationOpen(destination: index);
-
-    if (!mounted) return;
-    const lockDuration = Duration(milliseconds: 420);
-    setState(() {
-      _facultyTabSlideDirection = index > previousIndex ? 1 : -1;
-      _bottomNavIndex = index;
-    });
-
-    await Future<void>.delayed(lockDuration);
-    if (!mounted) return;
-    setState(() => _isStudentNavBusy = false);
-
-    if (index == 0) {
-      _updateScheduleCache();
-    }
-  }
-
-  void _onFacultyNavTap(int index) {
-    _onBottomNavTap(index);
-  }
-
-  void _setFacultyTabFromDrag(int index) {
-    if (!mounted) return;
-    if (_isStudentNavBusy) return;
-    if (index == _bottomNavIndex) return;
-    index = index.clamp(0, 3);
-    setState(() {
-      _facultyTabSlideDirection = index > _bottomNavIndex ? 1 : -1;
-      _bottomNavIndex = index;
-    });
-    IrisHaptics.chipSelect();
-    if (index == 0) {
-      _updateScheduleCache();
-    }
-  }
-
-  void _handleFacultyNavDrag(DragUpdateDetails details, double width) {
-    if (width <= 0) return;
-    final safeDx = details.localPosition.dx.clamp(0.0, width - 1);
-    final itemWidth = width / 4;
-    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 3);
-    _setFacultyTabFromDrag(targetIndex);
-  }
-
-  double _facultyNavInteractionPosition(int itemCount) {
-    if (_isFacultyNavTracking && _facultyNavDragPosition != null) {
-      return _facultyNavDragPosition!.clamp(0.0, itemCount - 1.0);
-    }
-    return _bottomNavIndex.toDouble();
-  }
-
-  int _facultyNavDisplayIndex(int itemCount) {
-    return _facultyNavInteractionPosition(itemCount)
-        .round()
-        .clamp(0, itemCount - 1);
-  }
-
-  void _beginFacultyNavTracking(
-    Offset localPosition,
-    double width,
-    int itemCount,
-  ) {
-    if (width <= 0) return;
-    setState(() {
-      _isFacultyNavTracking = true;
-      _facultyNavHasMoved = false;
-      final slotWidth = width / itemCount;
-      _facultyNavDragPosition = (localPosition.dx / slotWidth).clamp(
-        0.0,
-        itemCount - 1.0,
-      );
-    });
-  }
-
-  void _updateFacultyNavTracking(
-    Offset localPosition,
-    double width,
-    int itemCount,
-  ) {
-    if (!_isFacultyNavTracking || width <= 0) return;
-    setState(() {
-      _facultyNavHasMoved = true;
-      final slotWidth = width / itemCount;
-      _facultyNavDragPosition = (localPosition.dx / slotWidth).clamp(
-        0.0,
-        itemCount - 1.0,
-      );
-    });
-  }
-
-  void _endFacultyNavTracking(int itemCount) {
-    if (!_isFacultyNavTracking) return;
-    if (!_facultyNavHasMoved) {
-      _cancelFacultyNavTracking();
-      return;
-    }
-    final targetIndex = _facultyNavInteractionPosition(itemCount)
-        .round()
-        .clamp(0, itemCount - 1);
-    setState(() {
-      _isFacultyNavTracking = false;
-      _facultyNavDragPosition = null;
-      _facultyNavHasMoved = false;
-    });
-    _setFacultyTabFromDrag(targetIndex);
-  }
-
-  void _cancelFacultyNavTracking() {
-    if (!_isFacultyNavTracking) return;
-    setState(() {
-      _isFacultyNavTracking = false;
-      _facultyNavDragPosition = null;
-      _facultyNavHasMoved = false;
-    });
-  }
-
-  Widget _buildFacultyTabContent() {
-    switch (_bottomNavIndex) {
-      case 1:
-        return TeacherLocatorScreen(
-          key: const PageStorageKey<String>('faculty_tab_teacher'),
-          brain: widget.brain,
-          onTeacherSelected: (teacherName) {
-            _saveSelectedTeacher(teacherName);
-            if (mounted) {
-              setState(() {
-                _facultyTabSlideDirection = -1;
-                _bottomNavIndex = 0;
-              });
-            }
-          },
-          onRoleChanged: widget.onRoleChanged,
-          showDock: false,
-          showBackButton: false,
-          closeOnTeacherSelect: false,
-        );
-      case 2:
-        return const PortalScreen(
-          key: PageStorageKey<String>('faculty_tab_portal'),
-          url:
-              'https://faculty.comsats.edu.pk/Home/login?returnUrl=https://faculty.comsats.edu.pk/',
-          title: 'COMSATS Faculty Portal',
-          sessionScope: 'faculty',
-          showBackButton: false,
-        );
-      case 3:
-        return AboutScreen(
-          key: const PageStorageKey<String>('faculty_tab_about'),
-          memory: widget.brain.memory,
-          onRoleChanged: widget.onRoleChanged,
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  Widget _buildBottomNavBar(bool isDark) {
-    // Compact, well-balanced bottom nav bar to avoid complex nested parsing issues.
-    final displayIndex = _facultyNavDisplayIndex(4);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-      child: Material(
-        color: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isDark
-                      ? [
-                          Colors.white.withValues(alpha: 0.08),
-                          Colors.white.withValues(alpha: 0.04),
-                        ]
-                      : [
-                          Colors.white.withValues(alpha: 0.85),
-                          Colors.white.withValues(alpha: 0.70),
-                        ],
-                ),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.06),
-                  width: 1.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: VitalTokens.blue.withValues(alpha: isDark ? 0.15 : 0.08),
-                    blurRadius: 24,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: displayIndex == 0 ? Icons.home_filled : Icons.home_rounded,
-                      label: 'Home',
-                      isDark: isDark,
-                      isSelected: displayIndex == 0,
-                      activeColor: VitalTokens.blue,
-                      onTap: () => _onFacultyNavTap(0),
-                    ),
-                  ),
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: displayIndex == 1 ? Icons.badge_rounded : Icons.badge_outlined,
-                      label: 'Teachers',
-                      isDark: isDark,
-                      isSelected: displayIndex == 1,
-                      activeColor: VitalTokens.purple,
-                      onTap: () => _onFacultyNavTap(1),
-                    ),
-                  ),
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: Icons.public_rounded,
-                      label: 'Portal',
-                      isDark: isDark,
-                      isSelected: displayIndex == 2,
-                      activeColor: VitalTokens.cyan,
-                      onTap: () => _onFacultyNavTap(2),
-                    ),
-                  ),
-                  Expanded(
-                    child: BouncyNavButton(
-                      icon: displayIndex == 3 ? Icons.info_rounded : Icons.info_outline_rounded,
-                      label: 'About',
-                      isDark: isDark,
-                      isSelected: displayIndex == 3,
-                      activeColor: VitalTokens.blue,
-                      onTap: () => _onFacultyNavTap(3),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _updateScheduleCache() {
-    final teacher = _selectedTeacher;
-    if (teacher == null || teacher.isEmpty) {
-      _cachedSchedule = [];
-      return;
-    }
-
-    final now = DateTime.now();
-    final schedule = _overrideDayIndex != null
-        ? _scheduleForDay(teacher, _overrideDayIndex!)
-        : _buildSuggestedScheduleForTeacher(teacher, now);
-
-    // Merge consecutive slots of the same lecture for cleaner display
-    final mergedSchedule = widget.brain.getMergedConsecutiveSessions(schedule);
-
-    // Ensure final schedule is always sorted in ascending order by start time
-    mergedSchedule.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-    _cachedSchedule = mergedSchedule;
-    _lastScheduleUpdate = now;
-  }
-
-  List<ClassSession> _scheduleForDay(String teacher, int dayIndex) {
-    final allSessions = widget.brain.scheduleForTeacher(teacher);
-    final daySchedule =
-        allSessions.where((s) => s.dayIndex == dayIndex).toList()
-          ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-    return daySchedule;
-  }
-
-  List<ClassSession> _buildSuggestedScheduleForTeacher(
-    String teacher,
-    DateTime now,
-  ) {
-    final all = widget.brain.scheduleForTeacher(teacher);
-    if (all.isEmpty) return [];
-
-    final currentTime = now.hour + (now.minute / 60.0);
-    final today = all.where((s) => s.dayIndex == now.weekday).toList()
-      ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-
-    if (today.isNotEmpty) {
-      // Check if all today's classes have ended
-      final allClassesEnded = today.every((s) => s.safeEndVal <= currentTime);
-
-      if (allClassesEnded) {
-        // All classes done for today, show next day automatically
-        return _nextDayScheduleForTeacher(all, now.weekday);
-      }
-
-      return today; // Show today's full schedule
-    }
-
-    return _nextDayScheduleForTeacher(all, now.weekday);
-  }
-
-  List<ClassSession> _nextDayScheduleForTeacher(
-    List<ClassSession> all,
-    int todayIndex,
-  ) {
-    for (int offset = 1; offset <= 6; offset++) {
-      final nextDay = ((todayIndex + offset - 1) % 7) + 1;
-      final daySchedule = all.where((s) => s.dayIndex == nextDay).toList()
-        ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-      if (daySchedule.isNotEmpty) {
-        return daySchedule;
-      }
-    }
-    return [];
-  }
-
-  String _formatDateLabel(DateTime now) {
-    const days = [
-      'Mon',
-      'Tue',
-      'Wed',
-      'Thu',
-      'Fri',
-      'Sat',
-      'Sun',
-    ];
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final dayName = days[(now.weekday - 1) % 7];
-    final monthName = months[(now.month - 1).clamp(0, 11)];
-    return '$dayName, $monthName ${now.day}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (_bottomNavIndex != 0) {
-      return Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            ObsidianPulse(isDark: isDark),
-            Positioned.fill(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 420),
-                switchInCurve: IrisMotion.entrance,
-                switchOutCurve: IrisMotion.standard,
-                transitionBuilder: (child, animation) {
-                  final isIncoming =
-                      child.key == ValueKey<int>(_bottomNavIndex);
-                  final direction = _facultyTabSlideDirection.toDouble();
-                  
-                  // Slide animation: more dramatic distance
-                  final slideBegin = isIncoming
-                      ? Offset(0.42 * direction, 0)
-                      : Offset.zero;
-                  final slideEnd = isIncoming
-                      ? Offset.zero
-                      : Offset(-0.42 * direction, 0);
-                  final slideAnimation = Tween<Offset>(begin: slideBegin, end: slideEnd).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
-                    ),
-                  );
-                  
-                  // Scale animation: adds depth
-                  final scaleBegin = isIncoming ? 0.92 : 1.0;
-                  final scaleEnd = isIncoming ? 1.0 : 0.96;
-                  final scaleAnimation = Tween<double>(begin: scaleBegin, end: scaleEnd).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
-                    ),
-                  );
-                  
-                  // Fade animation: smoother opacity change
-                  final opacityAnimation = Tween<double>(
-                    begin: isIncoming ? 0.0 : 1.0,
-                    end: isIncoming ? 1.0 : 0.0,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: IrisMotion.standard,
-                    ),
-                  );
-                  
-                  return FadeTransition(
-                    opacity: opacityAnimation,
-                    child: ScaleTransition(
-                      scale: scaleAnimation,
-                      child: SlideTransition(position: slideAnimation, child: child),
-                    ),
-                  );
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(_bottomNavIndex),
-                  child: _buildFacultyTabContent(),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(top: false, child: _buildBottomNavBar(isDark)),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final teacher = _selectedTeacher;
-    final now = DateTime.now();
-    final dateLabel = _formatDateLabel(now);
-
-    // Build schedule cache for selected teacher
-    if (teacher != null && teacher.isNotEmpty) {
-      if (_lastScheduleUpdate == null ||
-          _lastScheduleUpdate!.day != now.day ||
-          _cachedSchedule.isEmpty) {
-        _updateScheduleCache();
-      }
-    }
-
-    final schedule = (teacher != null && teacher.isNotEmpty)
-        ? _cachedSchedule
-        : <ClassSession>[];
-    var insight = teacher != null && teacher.isNotEmpty
-        ? widget.brain.buildTeacherTemporalInsight(teacher, now)
-        : null;
-
-    // For faculty, update insight to show batch instead of teacher name
-    if (insight != null && teacher != null) {
-      final current = widget.brain.getCurrentClassForTeacher(teacher, now);
-      String batchName = teacher;
-      if (current != null) {
-        batchName = current.batchKey.batch;
-      } else {
-        // Try to get batch from any session for this teacher
-        final allSessions = widget.brain.memory.sessions
-            .where(
-              (s) =>
-                  s.teacher.trim().toLowerCase() ==
-                  teacher.trim().toLowerCase(),
-            )
-            .toList();
-        if (allSessions.isNotEmpty) {
-          batchName = allSessions.first.batchKey.batch;
-        }
-      }
-      insight = TemporalInsight(
-        headline: insight.headline,
-        subline: insight.subline,
-        isLive: insight.isLive,
-        timeInfo: insight.timeInfo,
-        teacherInfo: batchName,
-        isUrgent: insight.isUrgent,
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          SafeArea(
-            child: teacher == null || teacher.isEmpty
-                ? _buildTeacherSelectionView(isDark)
-                : _buildFacultyScheduleView(
-                    isDark,
-                    teacher,
-                    schedule,
-                    now,
-                    dateLabel,
-                    insight!,
-                  ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SafeArea(top: false, child: _buildBottomNavBar(isDark)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTeacherSelectionView(bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Enhanced premium header card with staggered animation
-          MotionSlideFade(
-            beginOffset: const Offset(0, 20),
-            duration: IrisMotion.medium,
-            curve: IrisMotion.entrance,
-            child: Container(
-              padding: const EdgeInsets.all(IrisTokens.space24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    (isDark ? Colors.white : IrisTokens.purple).withValues(alpha: 
-                      isDark ? 0.14 : 0.20,
-                    ),
-                    (isDark ? Colors.white : IrisTokens.purpleLight)
-                        .withValues(alpha: isDark ? 0.10 : 0.16),
-                    (isDark
-                            ? Colors.white
-                            : IrisTokens.purpleLight.withValues(alpha: 0.7))
-                        .withValues(alpha: isDark ? 0.07 : 0.12),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(IrisTokens.radius24),
-                border: Border.all(
-                  color: (isDark ? Colors.white : IrisTokens.purple)
-                      .withValues(alpha: isDark ? 0.20 : 0.35),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: IrisTokens.purple.withValues(alpha: 0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                    spreadRadius: -4,
-                  ),
-                  BoxShadow(
-                    color: IrisTokens.purpleLight.withValues(alpha: 0.08),
-                    blurRadius: 32,
-                    offset: const Offset(0, 18),
-                    spreadRadius: -12,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              IrisTokens.purple.withValues(alpha: 0.85),
-                              IrisTokens.purpleLight.withValues(alpha: 0.75),
-                              IrisTokens.purpleLight
-                                  .withValues(alpha: 0.7)
-                                  .withValues(alpha: 0.65),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: IrisTokens.purple.withValues(alpha: 0.25),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                              spreadRadius: -2,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.school_rounded,
-                          color: Colors.white,
-                          size: 36,
-                        ),
-                      ),
-                      const SizedBox(width: 18),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) => LinearGradient(
-                                colors: [
-                                  IrisTokens.purple,
-                                  IrisTokens.purpleLight,
-                                  IrisTokens.purpleLight,
-                                ],
-                              ).createShader(bounds),
-                              child: const Text(
-                                'Faculty Dashboard',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 28,
-                                  letterSpacing: 0.4,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Manage your teaching schedule',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.2,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.86),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : IrisTokens.purple)
-                              .withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: (isDark ? Colors.white : IrisTokens.purple)
-                                .withValues(alpha: 0.20),
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: () {
-                            IrisHaptics.actionSoft();
-                            widget.onToggleTheme();
-                          },
-                          tooltip: isDark
-                              ? 'Switch to light mode'
-                              : 'Switch to dark mode',
-                          icon: Icon(
-                            isDark
-                                ? Icons.light_mode_rounded
-                                : Icons.dark_mode_rounded,
-                            size: 18,
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.94)
-                                : IrisTokens.purple,
-                          ),
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
-
-          // Enhanced instructions card with staggered animation
-          MotionSlideFade(
-            beginOffset: const Offset(0, 30),
-            duration: IrisMotion.medium,
-            curve: IrisMotion.entrance,
-            child: GlassCard(
-              enableOverlay: true,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(11),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              IrisTokens.purple.withValues(alpha: 0.18),
-                              IrisTokens.purpleLight.withValues(alpha: 0.12),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: IrisTokens.purple.withValues(alpha: 0.25),
-                            width: 1.2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.lightbulb_rounded,
-                          size: 20,
-                          color: IrisTokens.purple,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          'Get Started',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 17,
-                            letterSpacing: 0.3,
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 
-                        0.03,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.06),
-                      ),
-                    ),
-                    child: Text(
-                      'Select your name to view your complete teaching schedule, monitor live classes, and access faculty management tools.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        height: 1.6,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.70),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            IrisTokens.purple,
-                            IrisTokens.purpleLight,
-                            IrisTokens.purpleLight,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: IrisTokens.purple.withValues(alpha: 0.40),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                          BoxShadow(
-                            color: IrisTokens.purpleLight.withValues(alpha: 0.20),
-                            blurRadius: 24,
-                            offset: const Offset(0, 12),
-                            spreadRadius: -4,
-                          ),
-                        ],
-                      ),
-                      child: AnimatedButton(
-                        key: _facultySelectTeacherCtaKey,
-                        onPressed: () => _openTeacherPicker(
-                          originKey: _facultySelectTeacherCtaKey,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                  borderRadius: BorderRadius.circular(11),
-                                ),
-                                child: const Icon(
-                                  Icons.badge_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Select My Name',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                  letterSpacing: 0.5,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              const Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFacultyHeaderBadge({bool compact = false}) {
-    return Container(
-      padding: EdgeInsets.all(compact ? 10 : 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            IrisTokens.purple.withValues(alpha: 0.9),
-            IrisTokens.purpleLight.withValues(alpha: 0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(compact ? 12 : 14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.20), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: IrisTokens.purple.withValues(alpha: 0.22),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-            spreadRadius: -2,
-          ),
-        ],
-      ),
-      child: Icon(
-        Icons.badge_rounded,
-        color: Colors.white,
-        size: compact ? 20 : 24,
-      ),
-    );
-  }
-
-  Widget _buildFacultyHeaderTitle(String teacher, bool isDark, bool compact) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Teaching Today',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: compact ? 10 : 11,
-            letterSpacing: compact ? 0.6 : 0.8,
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.50),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          teacher,
-          maxLines: compact ? 2 : 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: compact ? 18 : 20,
-            letterSpacing: 0.2,
-            color: isDark ? Colors.white : Colors.black,
-            height: 1.1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFacultyChangeTeacherButton({
-    bool compact = false,
-    GlobalKey? originKey,
-  }) {
-    return AnimatedButton(
-      key: originKey,
-      onPressed: () => _openTeacherPicker(originKey: originKey),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 10 : 12,
-          vertical: compact ? 7 : 8,
-        ),
-        decoration: BoxDecoration(
-          color: IrisTokens.purple.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: IrisTokens.purple.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.swap_horiz_rounded,
-              size: compact ? 13 : 14,
-              color: IrisTokens.purple,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'Change',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: compact ? 10 : 11,
-                color: IrisTokens.purple,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFacultyThemeToggleButton(bool isDark, {bool compact = false}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: (isDark ? Colors.white : IrisTokens.purple).withValues(
-          alpha: 0.10,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: (isDark ? Colors.white : IrisTokens.purple).withValues(
-            alpha: 0.20,
-          ),
-        ),
-      ),
-      child: IconButton(
-        onPressed: () {
-          IrisHaptics.actionSoft();
-          widget.onToggleTheme();
-        },
-        tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
-        icon: Icon(
-          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-          size: compact ? 17 : 18,
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.82)
-              : IrisTokens.purple,
-        ),
-        padding: EdgeInsets.all(compact ? 7 : 8),
-        constraints: const BoxConstraints(),
-      ),
-    );
-  }
-
-  Widget _buildFacultyScheduleView(
-    bool isDark,
-    String teacher,
-    List<ClassSession> schedule,
-    DateTime now,
-    String dateLabel,
-    TemporalInsight insight,
-  ) {
-    final filteredSchedule = schedule;
-    final profile = _matchSelectedTeacherProfile();
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isCompactCard = screenWidth < 400;
-    final isVeryCompactCard = screenWidth < 360;
-
-    return RefreshIndicator(
-      onRefresh: _handleRefresh,
-      color: IrisTokens.brand,
-      backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-      strokeWidth: 2.5,
-      displacement: 60,
-      child: CustomScrollView(
-        physics: const ButterScrollPhysics(),
-        cacheExtent: 500,
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: Container(
-                padding: EdgeInsets.all(
-                  isVeryCompactCard
-                      ? IrisTokens.space16
-                      : (isCompactCard
-                            ? IrisTokens.space20
-                            : IrisTokens.space24),
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      (isDark ? Colors.white : IrisTokens.purple).withValues(alpha: 
-                        isDark ? 0.10 : 0.12,
-                      ),
-                      (isDark ? Colors.white : IrisTokens.purpleLight)
-                          .withValues(alpha: isDark ? 0.06 : 0.08),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(IrisTokens.radius24),
-                  border: Border.all(
-                    color: (isDark ? Colors.white : IrisTokens.purple)
-                        .withValues(alpha: isDark ? 0.20 : 0.30),
-                    width: 1.2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: IrisTokens.purple.withValues(alpha: 
-                        isDark ? 0.12 : 0.09,
-                      ),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
-                      spreadRadius: -10,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!isCompactCard)
-                      Row(
-                        children: [
-                          _buildFacultyHeaderBadge(),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: _buildFacultyHeaderTitle(
-                              teacher,
-                              isDark,
-                              false,
-                            ),
-                          ),
-                          _buildFacultyChangeTeacherButton(
-                            originKey: _facultyChangeTeacherKey,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFacultyThemeToggleButton(isDark),
-                        ],
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildFacultyHeaderBadge(compact: true),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildFacultyHeaderTitle(
-                                  teacher,
-                                  isDark,
-                                  true,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              _buildFacultyChangeTeacherButton(
-                                compact: true,
-                                originKey: _facultyChangeTeacherKey,
-                              ),
-                              const SizedBox(width: 8),
-                              _buildFacultyThemeToggleButton(
-                                isDark,
-                                compact: true,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
-                    if (profile != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.08),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: SizedBox(
-                                    width: 46,
-                                    height: 46,
-                                    child:
-                                        _resolveFacultyImageUrl(profile.image)
-                                                .isEmpty
-                                            ? Container(
-                                                color: IrisTokens.brand.withValues(
-                                                  alpha: 0.15,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.person_rounded,
-                                                  color: IrisTokens.brand,
-                                                  size: 22,
-                                                ),
-                                              )
-                                            : Image.network(
-                                                _resolveFacultyImageUrl(
-                                                  profile.image,
-                                                ),
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) =>
-                                                    Container(
-                                                  color: IrisTokens.brand
-                                                      .withValues(alpha: 0.15),
-                                                  child: const Icon(
-                                                    Icons.person_rounded,
-                                                    color: IrisTokens.brand,
-                                                    size: 22,
-                                                  ),
-                                                ),
-                                              ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        profile.department.isEmpty
-                                            ? 'Department unavailable'
-                                            : profile.department,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: (isDark
-                                                  ? Colors.white
-                                                  : Colors.black)
-                                              .withValues(alpha: 0.76),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        profile.location.isEmpty
-                                            ? 'Location unavailable'
-                                            : profile.location,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: (isDark
-                                                  ? Colors.white
-                                                  : Colors.black)
-                                              .withValues(alpha: 0.58),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: IrisTokens.brand.withValues(
-                                      alpha: 0.14,
-                                    ),
-                                    borderRadius: BorderRadius.circular(999),
-                                    border: Border.all(
-                                      color: IrisTokens.brand.withValues(
-                                        alpha: 0.24,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    _facultySourceLabel(_facultyProfilesSource),
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.7,
-                                      color: IrisTokens.brand.withValues(
-                                        alpha: 0.9,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () =>
-                                        _launchFacultyEmail(profile.email),
-                                    icon: const Icon(
-                                      Icons.mail_outline_rounded,
-                                      size: 16,
-                                    ),
-                                    label: const Text('Open Email'),
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        color: IrisTokens.brand.withValues(
-                                          alpha: 0.26,
-                                        ),
-                                      ),
-                                      foregroundColor: IrisTokens.brand,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 9,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Privacy-first: personal phone is hidden in faculty mode. Student locator keeps contact actions where needed.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.52),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ] else if (_facultyProfilesLoading) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.03),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.07),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Loading faculty profile...',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 8,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.08),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                size: 12,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.5),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                dateLabel,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: isVeryCompactCard ? 9 : 10,
-                                  color: (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.65),
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.08),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.schedule_rounded,
-                                size: 12,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.5),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                '${schedule.length} ${schedule.length == 1 ? 'class' : 'classes'}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: isVeryCompactCard ? 9 : 10,
-                                  color: (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.65),
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 14)),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: MotionScaleFade(
-                beginScale: 0.85,
-                duration: IrisMotion.medium,
-                curve: IrisMotion.emphasized,
-                child: _buildInsightCard(insight, isDark),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: _buildDaySelector(now, isDark),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: SectionHeader(
-                title: _timelineTitle(schedule, now, _overrideDayIndex),
-                subtitle: _timelineSubtitle(schedule, now, _overrideDayIndex),
-                statusIndicator: _getTimelineStatusColor(
-                  widget.brain,
-                  teacher,
-                  now,
-                ),
-              ),
-            ),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            sliver: filteredSchedule.isEmpty
-                ? SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 24,
-                      ),
-                      child: MotionScaleFade(
-                        beginScale: 0.9,
-                        duration: IrisMotion.medium,
-                        curve: IrisMotion.emphasized,
-                        child: GlassCard(
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 16),
-                              TweenAnimationBuilder<double>(
-                                duration: const Duration(seconds: 3),
-                                tween: Tween(begin: 0.0, end: 1.0),
-                                curve: IrisMotion.standard,
-                                builder: (context, value, child) =>
-                                    Transform.rotate(
-                                      angle: value * 0.1 * 3.14159,
-                                      child: child,
-                                    ),
-                                onEnd: () => setState(() {}),
-                                child: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        IrisTokens.purple.withValues(alpha: 0.25),
-                                        IrisTokens.purpleLight.withValues(alpha: 
-                                          0.18,
-                                        ),
-                                        IrisTokens.purpleLight
-                                            .withValues(alpha: 0.7)
-                                            .withValues(alpha: 0.12),
-                                      ],
-                                    ),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.25),
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: IrisTokens.purple.withValues(alpha: 
-                                          0.16,
-                                        ),
-                                        blurRadius: 14,
-                                        offset: const Offset(0, 6),
-                                        spreadRadius: -4,
-                                      ),
-                                      BoxShadow(
-                                        color: IrisTokens.purple.withValues(alpha: 
-                                          0.08,
-                                        ),
-                                        blurRadius: 24,
-                                        offset: const Offset(0, 12),
-                                        spreadRadius: -8,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    Icons.self_improvement_rounded,
-                                    size: 40,
-                                    color: IrisTokens.purple.withValues(alpha: 0.90),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 22),
-                              Text(
-                                'No Classes Scheduled',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 18,
-                                  letterSpacing: 0.3,
-                                  color: (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.85),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      IrisTokens.success.withValues(alpha: 0.20),
-                                      IrisTokens.success
-                                          .withValues(alpha: 0.8)
-                                          .withValues(alpha: 0.12),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: IrisTokens.success.withValues(alpha: 0.35),
-                                    width: 1.2,
-                                  ),
-                                ),
-                                child: Text(
-                                  'Time to relax and recharge 🎉',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.2,
-                                    color: IrisTokens.success.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                : SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, index) {
-                        final session = filteredSchedule[index];
-                        final fullIndex = schedule.indexOf(session);
-                        final nextSession =
-                            (fullIndex >= 0 && fullIndex + 1 < schedule.length)
-                            ? schedule[fullIndex + 1]
-                            : null;
-                        return RepaintBoundary(
-                          child: ClassCard(
-                            key: ValueKey(
-                              'faculty_class_${session.subject}_${session.startTime}_${session.batchKey.batch}',
-                            ),
-                            session: session,
-                            nextSession: nextSession,
-                            isFacultyView: true,
-                          ),
-                        );
-                      },
-                      childCount: filteredSchedule.length,
-                      addAutomaticKeepAlives: true,
-                      addRepaintBoundaries: true,
-                    ),
-                  ),
-          ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 126)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInsightCard(TemporalInsight insight, bool isDark) {
-    final now = DateTime.now();
-    final accentColor = insight.isLive
-        ? IrisTokens.success
-        : insight.isUrgent
-        ? IrisTokens.warning
-        : IrisTokens.brand;
-
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: insight.isLive
-              ? [
-                  (isDark ? Colors.white : IrisTokens.success).withValues(alpha: 
-                    isDark ? 0.08 : 0.12,
-                  ),
-                  (isDark ? Colors.white : IrisTokens.success.withValues(alpha: 0.8))
-                      .withValues(alpha: isDark ? 0.05 : 0.08),
-                  (isDark ? Colors.white : IrisTokens.successDark).withValues(alpha: 
-                    isDark ? 0.03 : 0.05,
-                  ),
-                ]
-              : insight.isUrgent
-              ? [
-                  (isDark ? Colors.white : IrisTokens.warning).withValues(alpha: 
-                    isDark ? 0.07 : 0.10,
-                  ),
-                  (isDark ? Colors.white : IrisTokens.warningDark).withValues(alpha: 
-                    isDark ? 0.05 : 0.07,
-                  ),
-                  (isDark ? Colors.white : IrisTokens.warning.withValues(alpha: 0.7))
-                      .withValues(alpha: isDark ? 0.03 : 0.04),
-                ]
-              : [
-                  (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 
-                    isDark ? 0.07 : 0.10,
-                  ),
-                  (isDark ? Colors.white : IrisTokens.brandLight).withValues(alpha: 
-                    isDark ? 0.05 : 0.07,
-                  ),
-                  (isDark
-                          ? Colors.white
-                          : IrisTokens.brandLight.withValues(alpha: 0.8))
-                      .withValues(alpha: isDark ? 0.03 : 0.04),
-                ],
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: (isDark ? Colors.white : accentColor).withValues(alpha: 
-            isDark ? 0.18 : 0.32,
-          ),
-          width: 1.6,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withValues(alpha: 0.14),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-            spreadRadius: -4,
-          ),
-          BoxShadow(
-            color: accentColor.withValues(alpha: 0.08),
-            blurRadius: 32,
-            offset: const Offset(0, 18),
-            spreadRadius: -14,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        accentColor.withValues(alpha: isDark ? 0.15 : 0.20),
-                        accentColor.withValues(alpha: isDark ? 0.10 : 0.15),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: (isDark ? Colors.white : accentColor).withValues(alpha: 
-                        isDark ? 0.20 : 0.35,
-                      ),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Icon(
-                    insight.isLive
-                        ? Icons.record_voice_over_rounded
-                        : insight.isUrgent
-                        ? Icons.notifications_active_rounded
-                        : Icons.schedule_rounded,
-                    color: accentColor,
-                    size: 22,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            insight.headline,
-                            style: TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.4,
-                              color: accentColor,
-                              height: 1.2,
-                            ),
-                          ),
-                        ),
-                        if (insight.isLive)
-                          TweenAnimationBuilder<double>(
-                            duration: const Duration(milliseconds: 1440),
-                            tween: Tween(begin: 0.0, end: 1.0),
-                            curve: IrisMotion.standard,
-                            builder: (context, value, child) {
-                              final pulse = 0.5 - (value - 0.5).abs();
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 11,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      IrisTokens.success.withValues(alpha: 
-                                        0.25 + (pulse * 0.15),
-                                      ),
-                                      IrisTokens.success
-                                          .withValues(alpha: 0.8)
-                                          .withValues(alpha: 0.18 + (pulse * 0.12)),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(9),
-                                  border: Border.all(
-                                    color: IrisTokens.success.withValues(alpha: 
-                                      0.50 + (pulse * 0.3),
-                                    ),
-                                    width: 1.3,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: IrisTokens.success.withValues(alpha: 
-                                        0.14 + (pulse * 0.12),
-                                      ),
-                                      blurRadius: 8 + (pulse * 4),
-                                      offset: const Offset(0, 2),
-                                      spreadRadius: -1,
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 6 + (pulse * 2),
-                                      height: 6 + (pulse * 2),
-                                      decoration: BoxDecoration(
-                                        color: IrisTokens.success,
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: IrisTokens.success
-                                                .withValues(alpha: 0.48),
-                                            blurRadius: 5 + (pulse * 3),
-                                            spreadRadius: -1,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    const Text(
-                                      'LIVE',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        color: IrisTokens.success,
-                                        letterSpacing: 1.0,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            onEnd: () => setState(() {}),
-                          ),
-                      ],
-                    ),
-                    if (insight.timeInfo != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        insight.timeInfo!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: insight.isLive
-                              ? IrisTokens.success
-                              : insight.isUrgent
-                              ? IrisTokens.error
-                              : IrisTokens.brand,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-              ),
-            ),
-            child: Text(
-              insight.subline,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                height: 1.5,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.72),
-              ),
-            ),
-          ),
-          // Live progress bar for faculty
-          if (insight.isLive && _selectedTeacher != null) ...[
-            const SizedBox(height: 14),
-            Builder(
-              builder: (context) {
-                final currentClass = widget.brain.getCurrentClassForTeacher(
-                  _selectedTeacher!,
-                  now,
-                );
-                if (currentClass != null) {
-                  final currentTime = now.hour + (now.minute / 60.0);
-                  final duration = LectureDuration.getActualDuration(
-                    currentClass,
-                  );
-                  final actualEndTime = LectureDuration.getActualEndTime(
-                    currentClass,
-                  );
-                  final progress =
-                      ((currentTime - currentClass.safeStartVal) / duration)
-                          .clamp(0.0, 1.0);
-                  final minutesLeft = ((actualEndTime - currentTime) * 60)
-                      .toInt()
-                      .clamp(0, (duration * 60).toInt());
-
-                  String progressLabel = '';
-                  if (minutesLeft >= 60) {
-                    final hours = minutesLeft ~/ 60;
-                    final mins = minutesLeft % 60;
-                    progressLabel = mins > 0
-                        ? '${hours}h ${mins}m left'
-                        : '${hours}h left';
-                  } else {
-                    progressLabel = '${minutesLeft}m left';
-                  }
-
-                  return Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: TweenAnimationBuilder<double>(
-                          duration: IrisMotion.medium,
-                          curve: IrisMotion.entrance,
-                          tween: Tween<double>(begin: 0.0, end: progress),
-                          builder: (context, value, child) => Container(
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: IrisTokens.success.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: FractionallySizedBox(
-                              alignment: Alignment.centerLeft,
-                              widthFactor: value.clamp(0.0, 1.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      IrisTokens.success,
-                                      IrisTokens.success,
-                                      IrisTokens.successDark,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: IrisTokens.success.withValues(alpha: 
-                                        0.28,
-                                      ),
-                                      blurRadius: 3,
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            progressLabel,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              letterSpacing: 0.3,
-                              fontWeight: FontWeight.w700,
-                              color: IrisTokens.success,
-                            ),
-                          ),
-                          Text(
-                            '${(progress * 100).toInt()}%',
-                            style: TextStyle(
-                              fontSize: 11,
-                              letterSpacing: 0.3,
-                              fontWeight: FontWeight.w800,
-                              color: IrisTokens.success.withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
-          if (insight.teacherInfo != null || insight.timeInfo != null) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.black.withValues(alpha: 0.03),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.10)
-                      : Colors.black.withValues(alpha: 0.06),
-                ),
-              ),
-              child: Row(
-                children: [
-                  if (insight.timeInfo != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: IrisTokens.purple.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(
-                        Icons.schedule_rounded,
-                        size: 12,
-                        color: IrisTokens.purple.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      insight.timeInfo!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
-                  if (insight.teacherInfo != null && insight.timeInfo != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Container(
-                        width: 3,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.25),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  if (insight.teacherInfo != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: IrisTokens.purple.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(
-                        Icons.groups_rounded,
-                        size: 12,
-                        color: IrisTokens.purple.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        insight.teacherInfo!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.6),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDaySelector(DateTime now, bool isDark) {
-    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    final currentDay = _overrideDayIndex;
-    final today = now.weekday; // 1=Mon
-    final autoSelected = currentDay == null;
-
-    return GlassCard(
-      child: SizedBox(
-        height: 50,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          physics: const ButterScrollPhysics(),
-          children: [
-            const SizedBox(width: 6),
-            AnimatedSlide(
-              duration: IrisMotion.fast,
-              curve: IrisMotion.standard,
-              offset: autoSelected ? const Offset(0, -0.02) : Offset.zero,
-              child: AnimatedScale(
-                duration: IrisMotion.fast,
-                curve: IrisMotion.standard,
-                scale: autoSelected ? 1.025 : 1.0,
-                child: AnimatedContainer(
-                  duration: IrisMotion.fast,
-                  curve: IrisMotion.standard,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    boxShadow: const [],
-                  ),
-                  child: ChoiceChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          size: 13,
-                          color: autoSelected
-                              ? IrisTokens.brand
-                              : isDark
-                              ? Colors.white.withValues(alpha: 0.5)
-                              : Colors.black.withValues(alpha: 0.4),
-                        ),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'Auto',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                    selected: autoSelected,
-                    onSelected: (_) {
-                      IrisHaptics.chipSelect();
-                      setState(() {
-                        _overrideDayIndex = null;
-                        _updateScheduleCache();
-                      });
-                    },
-                    selectedColor: IrisTokens.brand.withValues(alpha: 0.20),
-                    backgroundColor: isDark
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : Colors.black.withValues(alpha: 0.04),
-                    side: BorderSide(
-                      color: autoSelected
-                          ? IrisTokens.brand.withValues(alpha: 0.56)
-                          : isDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : Colors.black.withValues(alpha: 0.10),
-                      width: autoSelected ? 1.4 : 1.0,
-                    ),
-                    labelStyle: TextStyle(
-                      color: autoSelected
-                          ? IrisTokens.brand
-                          : isDark
-                          ? Colors.white.withValues(alpha: 0.8)
-                          : Colors.black.withValues(alpha: 0.65),
-                    ),
-                    elevation: autoSelected ? 0.6 : 0,
-                    pressElevation: 1,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ...List.generate(days.length, (index) {
-              final dayIndex = index + 1;
-              final isSelected = currentDay == dayIndex;
-              final isToday = dayIndex == today;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: AnimatedSlide(
-                  duration: IrisMotion.fast,
-                  curve: IrisMotion.standard,
-                  offset: isSelected ? const Offset(0, -0.02) : Offset.zero,
-                  child: AnimatedScale(
-                    duration: IrisMotion.fast,
-                    curve: IrisMotion.standard,
-                    scale: isSelected ? 1.03 : 1.0,
-                    child: AnimatedContainer(
-                      duration: IrisMotion.fast,
-                      curve: IrisMotion.standard,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [],
-                      ),
-                      child: ChoiceChip(
-                        avatar: isToday && !isSelected
-                            ? Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: IrisTokens.success,
-                                  shape: BoxShape.circle,
-                                ),
-                              )
-                            : null,
-                        label: Text(
-                          days[index],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                        selected: isSelected,
-                        onSelected: (_) {
-                          IrisHaptics.chipSelect();
-                          setState(() {
-                            _overrideDayIndex = dayIndex == today
-                                ? null
-                                : dayIndex;
-                            _updateScheduleCache();
-                          });
-                        },
-                        selectedColor: IrisTokens.brand.withValues(alpha: 0.20),
-                        backgroundColor: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : Colors.black.withValues(alpha: 0.04),
-                        side: BorderSide(
-                          color: isSelected
-                              ? IrisTokens.brand.withValues(alpha: 0.56)
-                              : isDark
-                              ? Colors.white.withValues(alpha: 0.12)
-                              : Colors.black.withValues(alpha: 0.10),
-                          width: isSelected ? 1.4 : 1.0,
-                        ),
-                        labelStyle: TextStyle(
-                          color: isSelected
-                              ? IrisTokens.brand
-                              : isDark
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : Colors.black.withValues(alpha: 0.65),
-                        ),
-                        elevation: isSelected ? 0.6 : 0,
-                        pressElevation: 1,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-            const SizedBox(width: 6),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // Faculty Full Schedule Screen
@@ -6338,6 +3623,41 @@ class _DashboardState extends State<Dashboard>
 
     if (!notificationEnabled) return;
 
+    // Check current academic period
+    final academicPeriod = RemoteConfigService.activeAcademicPeriod.value;
+    if (academicPeriod != 'classes') {
+      String notifTitle = '';
+      String notifBody = '';
+      if (academicPeriod == 'sports_week') {
+        notifTitle = '🏆 Sports Week active';
+        notifBody = '🏅 Sports Week Mode · Enjoy matches & events!';
+      } else if (academicPeriod == 'midterms') {
+        notifTitle = '✍️ Midterms active';
+        notifBody = '📝 Midterm Exams Mode · Good luck!';
+      } else if (academicPeriod == 'finals') {
+        notifTitle = '🎓 Finals active';
+        notifBody = '📝 Final Exams Mode · Finish strong!';
+      }
+
+      try {
+        await prefs.setString('notification_title', notifTitle);
+        await prefs.setString('notification_body', notifBody);
+
+        if (await FlutterForegroundTask.isRunningService) {
+          await FlutterForegroundTask.updateService(
+            notificationTitle: notifTitle,
+            notificationText: notifBody,
+            notificationButtons: [
+              NotificationButton(id: 'open', text: 'Open IRIS'),
+            ],
+          );
+        }
+      } catch (e) {
+        debugPrint('❌ Persistent notification update failed: $e');
+      }
+      return;
+    }
+
     // Health check: restart service if it should be running but isn't
     final isRunning = await FlutterForegroundTask.isRunningService;
     if (!isRunning) {
@@ -6536,6 +3856,43 @@ class _DashboardState extends State<Dashboard>
   Future<void> _updateWidgetIfNeeded() async {
     try {
       final now = DateTime.now();
+      
+      // Check current academic period
+      final academicPeriod = RemoteConfigService.activeAcademicPeriod.value;
+      if (academicPeriod != 'classes') {
+        String headline = '';
+        String subline = '';
+        if (academicPeriod == 'sports_week') {
+          headline = 'Sports Week';
+          subline = 'Enjoy matches & events!';
+        } else if (academicPeriod == 'midterms') {
+          headline = 'Midterm Exams';
+          subline = 'Good luck!';
+        } else if (academicPeriod == 'finals') {
+          headline = 'Final Exams';
+          subline = 'Finish strong!';
+        }
+
+        // Generate state hash to determine if widget update is needed
+        final currentHash = 'mode_${academicPeriod}';
+        if (_previousWidgetHash == currentHash) {
+          return; // No change
+        }
+        _previousWidgetHash = currentHash;
+        _previousProgressPercent = 0;
+
+        await WidgetService.updateWidgetWithInsight(
+          headline: headline,
+          subline: subline,
+          timeInfo: 'Active',
+          teacherInfo: '',
+          isLive: false,
+          isUrgent: false,
+          progressPercentage: 0,
+        );
+        return;
+      }
+
       final insight = widget.brain.buildTemporalInsight(widget.batch, now);
 
       // Calculate progress percentage if live
@@ -6696,7 +4053,7 @@ class _DashboardState extends State<Dashboard>
     if (!mounted) return;
     if (_isStudentNavBusy) return;
     if (index == _bottomNavIndex) return;
-    index = index.clamp(0, 4);
+    index = index.clamp(0, 3);
     setState(() {
       _studentTabSlideDirection = index > _bottomNavIndex ? 1 : -1;
       _bottomNavIndex = index;
@@ -6710,8 +4067,8 @@ class _DashboardState extends State<Dashboard>
   void _handleStudentNavDrag(DragUpdateDetails details, double width) {
     if (width <= 0) return;
     final safeDx = details.localPosition.dx.clamp(0.0, width - 1);
-    final itemWidth = width / 5;
-    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 4);
+    final itemWidth = width / 4;
+    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 3);
     _setStudentTabFromDrag(targetIndex);
   }
 
@@ -6809,6 +4166,8 @@ class _DashboardState extends State<Dashboard>
           brain: widget.brain,
           onRoleChanged: widget.onRoleChanged,
           onBatchChanged: widget.onBatchChanged,
+          onAddMakeupClass: _addMakeupSession,
+          onRemoveMakeupClass: _removeMakeupSession,
         );
       case 4:
         return AboutScreen(
@@ -7259,81 +4618,41 @@ class _DashboardState extends State<Dashboard>
 
 
   Widget _buildStudentBottomNavBar(bool isDark) {
-    final displayIndex = _studentNavDisplayIndex(5);
-    
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.8),
-              border: Border.all(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.08 : 0.05),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _StudentCapsuleNavButton(
-                  icon: displayIndex == 0 ? Icons.grid_view_rounded : Icons.grid_view_outlined,
-                  label: 'Portal',
-                  isSelected: displayIndex == 0,
-                  activeColor: IrisTokens.brand,
-                  isDark: isDark,
-                  onTap: () => _onBottomNavTap(0),
-                ),
-                _StudentCapsuleNavButton(
-                  icon: Icons.wifi_tethering_rounded,
-                  label: 'Feed',
-                  isSelected: displayIndex == 1,
-                  activeColor: IrisTokens.purple,
-                  isDark: isDark,
-                  onTap: () => _onBottomNavTap(1),
-                ),
-                _StudentCapsuleNavButton(
-                  icon: Icons.school_rounded,
-                  label: 'Academics',
-                  isSelected: displayIndex == 2,
-                  activeColor: const Color(0xFFF59E0B),
-                  isDark: isDark,
-                  onTap: () => _onBottomNavTap(2),
-                ),
-                _StudentCapsuleNavButton(
-                  icon: Icons.construction_rounded,
-                  label: 'Tools',
-                  isSelected: displayIndex == 3,
-                  activeColor: IrisTokens.success,
-                  isDark: isDark,
-                  onTap: () => _onBottomNavTap(3),
-                ),
-                _StudentCapsuleNavButton(
-                  icon: Icons.offline_bolt_rounded,
-                  label: 'About',
-                  isSelected: displayIndex == 4,
-                  activeColor: IrisTokens.error,
-                  isDark: isDark,
-                  onTap: () => _onBottomNavTap(4),
-                ),
-              ],
-            ),
-          ),
+    return GlassBottomBar(
+      tabs: [
+        GlassBottomBarTab(
+          icon: const Icon(Icons.home_outlined),
+          activeIcon: const Icon(Icons.home_rounded),
+          label: 'Home',
+          glowColor: IrisTokens.brand,
         ),
-      ),
+        GlassBottomBarTab(
+          icon: const Icon(Icons.public_outlined),
+          activeIcon: const Icon(Icons.public_rounded),
+          label: 'Portal',
+          glowColor: IrisTokens.purple,
+        ),
+        GlassBottomBarTab(
+          icon: const Icon(Icons.construction_outlined),
+          activeIcon: const Icon(Icons.construction_rounded),
+          label: 'Tools',
+          glowColor: IrisTokens.success,
+        ),
+        GlassBottomBarTab(
+          icon: const Icon(Icons.info_outline_rounded),
+          activeIcon: const Icon(Icons.info_rounded),
+          label: 'About',
+          glowColor: IrisTokens.error,
+        ),
+      ],
+      selectedIndex: _bottomNavIndex,
+      onTabSelected: _onBottomNavTap,
+      barHeight: 64,
+      horizontalPadding: 16,
+      verticalPadding: 12,
+      barBorderRadius: 30,
+      selectedIconColor: isDark ? Colors.white : IrisTokens.brand,
+      unselectedIconColor: isDark ? Colors.white38 : Colors.black38,
     );
   }
 
@@ -7643,6 +4962,29 @@ class _DashboardState extends State<Dashboard>
     );
   }
 
+  String _getInitials(String? name) {
+    if (name == null || name.trim().isEmpty) return 'AM';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length == 1) {
+      if (parts[0].length >= 2) {
+        return parts[0].substring(0, 2).toUpperCase();
+      }
+      return parts[0].toUpperCase();
+    }
+    final first = parts.first.isNotEmpty ? parts.first.substring(0, 1).toUpperCase() : '';
+    final last = parts.last.isNotEmpty ? parts.last.substring(0, 1).toUpperCase() : '';
+    return '$first$last';
+  }
+
+  String _getSemesterOrdinal(int sem) {
+    switch (sem) {
+      case 1: return '1st';
+      case 2: return '2nd';
+      case 3: return '3rd';
+      default: return '${sem}th';
+    }
+  }
+
   Widget _buildHomeDashboard(
     BuildContext context,
     bool isDark,
@@ -7652,10 +4994,11 @@ class _DashboardState extends State<Dashboard>
     List<ClassSession> filteredSchedule,
     List<ClassSession> schedule,
   ) {
+    final isStudentsWeek = RemoteConfigService.activeAcademicPeriod.value == 'sports_week';
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: _handleRefresh,
-        color: IrisTokens.brand,
+        color: isStudentsWeek ? const Color(0xFF10B981) : IrisTokens.brand,
         backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
         child: CustomScrollView(
           physics: const ButterScrollPhysics(),
@@ -7682,395 +5025,450 @@ class _DashboardState extends State<Dashboard>
                 );
               },
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                child: GlassCard(
-                  padding: const EdgeInsets.all(24),
-                  borderRadius: 36.0,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [IrisTokens.brand, IrisTokens.purple],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: IrisTokens.brand.withValues(alpha: 0.2),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'AM',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _getSmartGreeting(now.hour),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              widget.userName ?? 'Student',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(99),
-                                    border: Border.all(
-                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    widget.batch,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          onPressed: widget.onToggleTheme,
-                          icon: Icon(
-                            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                            size: 24,
-                            color: isDark ? Colors.white : IrisTokens.brand,
-                          ),
-                          padding: const EdgeInsets.all(12),
-                        ),
-                      ),
-                    ],
+            if (isStudentsWeek) ...[
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: StudentsWeekHeaderCard(
+                    userName: widget.userName ?? 'Student',
+                    batch: widget.batch,
+                    onToggleTheme: widget.onToggleTheme,
                   ),
                 ),
               ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 14)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: GlassCard(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 336),
-                    switchInCurve: IrisMotion.entrance,
-                    switchOutCurve: IrisMotion.standard,
-                    transitionBuilder: (child, animation) {
-                      final offset = Tween<Offset>(
-                        begin: const Offset(0, 0.08),
-                        end: Offset.zero,
-                      ).animate(animation);
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: offset,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Column(
-                      key: ValueKey(
-                        '${insight.headline}-${insight.subline}',
-                      ),
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              /*
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: LiveScoreboardWidget(),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: StudentsWeekMatchesWidget(),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: StudentsWeekStandingsWidget(),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              */
+            ] else ...[
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: ClassesAnimationWidget(
+                    child: Stack(
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: insight.isUrgent
-                                      ? [
-                                          IrisTokens.error,
-                                          const Color(0xFFFCA5A5),
-                                        ]
-                                      : insight.isLive
-                                      ? [
-                                          IrisTokens.success,
-                                          IrisTokens.success.withValues(alpha: 0.8),
-                                        ]
-                                      : [
-                                          IrisTokens.brand,
-                                          IrisTokens.brandLight,
-                                        ],
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (insight.isUrgent
-                                            ? IrisTokens.error
-                                            : insight.isLive
-                                            ? IrisTokens.success
-                                            : IrisTokens.brand)
-                                        .withValues(alpha: 0.22),
-                                    blurRadius: insight.isLive ? 10 : 7,
-                                    spreadRadius: -2,
-                                    offset: const Offset(0, 3),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 44),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [IrisTokens.brand, IrisTokens.purple],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                ],
-                              ),
-                              child: Icon(
-                                insight.isUrgent
-                                    ? Icons.notifications_active
-                                    : insight.isLive
-                                    ? Icons.play_circle_filled_rounded
-                                    : Icons.insights_rounded,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    insight.headline,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 17,
-                                      letterSpacing: 0.3,
-                                      height: 1.2,
-                                      color: insight.isLive ? IrisTokens.success : null,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: IrisTokens.brand.withValues(alpha: 0.2),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    _getInitials(widget.userName),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 20,
+                                      letterSpacing: 1,
                                     ),
                                   ),
-                                  if (insight.timeInfo != null) ...[
-                                    const SizedBox(height: 3),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
                                     Text(
-                                      insight.timeInfo!,
+                                      _getSmartGreeting(now.hour),
                                       style: TextStyle(
                                         fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: insight.isUrgent
-                                            ? IrisTokens.error
-                                            : insight.isLive
-                                            ? IrisTokens.success
-                                            : IrisTokens.brand,
+                                        fontWeight: FontWeight.w600,
+                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
                                         letterSpacing: 0.2,
                                       ),
                                     ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 3,
-                              height: 18,
-                              margin: const EdgeInsets.only(top: 2, right: 10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(2),
-                                color: insight.isLive
-                                    ? IrisTokens.success.withValues(alpha: 0.4)
-                                    : IrisTokens.brand.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                insight.subline,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  letterSpacing: 0.2,
-                                  height: 1.4,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.72)
-                                      : Colors.black.withValues(alpha: 0.55),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (insight.isLive) ...[
-                          const SizedBox(height: 14),
-                          Builder(
-                            builder: (context) {
-                              final currentClass = widget.brain.getCurrentClass(widget.batch, now);
-                              if (currentClass != null) {
-                                final currentTime = now.hour + (now.minute / 60.0);
-                                final duration = LectureDuration.getActualDuration(currentClass);
-                                final actualEndTime = LectureDuration.getActualEndTime(currentClass);
-                                final progress = ((currentTime - currentClass.safeStartVal) / duration).clamp(0.0, 1.0);
-                                final minutesLeft = ((actualEndTime - currentTime) * 60).toInt().clamp(0, (duration * 60).toInt());
-
-                                String progressLabel = '';
-                                if (minutesLeft >= 60) {
-                                  final hours = minutesLeft ~/ 60;
-                                  final mins = minutesLeft % 60;
-                                  progressLabel = mins > 0 ? '${hours}h ${mins}m left' : '${hours}h left';
-                                } else {
-                                  progressLabel = '${minutesLeft}m left';
-                                }
-
-                                return Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: TweenAnimationBuilder<double>(
-                                        duration: const Duration(milliseconds: 768),
-                                        curve: IrisMotion.entrance,
-                                        tween: Tween<double>(begin: 0.0, end: progress),
-                                        builder: (context, value, child) => Container(
-                                          height: 6,
-                                          decoration: BoxDecoration(
-                                            color: IrisTokens.success.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: FractionallySizedBox(
-                                            alignment: Alignment.centerLeft,
-                                            widthFactor: value.clamp(0.0, 1.0),
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  colors: [IrisTokens.success, IrisTokens.success, IrisTokens.successDark],
-                                                ),
-                                                borderRadius: BorderRadius.circular(6),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: IrisTokens.success.withValues(alpha: 0.28),
-                                                    blurRadius: 3,
-                                                    spreadRadius: -1,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      widget.userName ?? 'Student',
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: -0.5,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 8),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          progressLabel,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            letterSpacing: 0.3,
-                                            fontWeight: FontWeight.w700,
-                                            color: IrisTokens.success,
-                                          ),
-                                        ),
-                                        Text(
-                                          '${(progress * 100).toInt()}%',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            letterSpacing: 0.3,
-                                            fontWeight: FontWeight.w800,
-                                            color: IrisTokens.success.withValues(alpha: 0.7),
+                                        Flexible(
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                            decoration: BoxDecoration(
+                                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                                              borderRadius: BorderRadius.circular(99),
+                                              border: Border.all(
+                                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              '${widget.batch}  •  ${_getSemesterOrdinal(BatchKey.parse(widget.batch).dynamicSemester)} Sem',
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                fontWeight: FontWeight.w800,
+                                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ],
-                                );
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ],
-                        if (insight.teacherInfo != null && insight.teacherInfo!.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.06)
-                                  : Colors.black.withValues(alpha: 0.03),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.10)
-                                    : Colors.black.withValues(alpha: 0.06),
+                                ),
                               ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
+                              shape: BoxShape.circle,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: IrisTokens.brand.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Icon(
-                                    Icons.person_rounded,
-                                    size: 12,
-                                    color: IrisTokens.brand.withValues(alpha: 0.8),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    insight.teacherInfo!,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
+                            child: IconButton(
+                              onPressed: widget.onToggleTheme,
+                              icon: Icon(
+                                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                                size: 20,
+                                color: isDark ? Colors.white : IrisTokens.brand,
+                              ),
+                              padding: const EdgeInsets.all(10),
+                              constraints: const BoxConstraints(),
                             ),
                           ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-            ),
+              const SliverToBoxAdapter(child: SizedBox(height: 14)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GlassCard(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 336),
+                      switchInCurve: IrisMotion.entrance,
+                      switchOutCurve: IrisMotion.standard,
+                      transitionBuilder: (child, animation) {
+                        final offset = Tween<Offset>(
+                          begin: const Offset(0, 0.08),
+                          end: Offset.zero,
+                        ).animate(animation);
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: offset,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Column(
+                        key: ValueKey(
+                          '${insight.headline}-${insight.subline}',
+                        ),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: insight.isUrgent
+                                        ? [
+                                            IrisTokens.error,
+                                            const Color(0xFFFCA5A5),
+                                          ]
+                                        : insight.isLive
+                                        ? [
+                                            IrisTokens.success,
+                                            IrisTokens.success.withValues(alpha: 0.8),
+                                          ]
+                                        : [
+                                            IrisTokens.brand,
+                                            IrisTokens.brandLight,
+                                          ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (insight.isUrgent
+                                              ? IrisTokens.error
+                                              : insight.isLive
+                                              ? IrisTokens.success
+                                              : IrisTokens.brand)
+                                          .withValues(alpha: 0.22),
+                                      blurRadius: insight.isLive ? 10 : 7,
+                                      spreadRadius: -2,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  insight.isUrgent
+                                      ? Icons.notifications_active
+                                      : insight.isLive
+                                      ? Icons.play_circle_filled_rounded
+                                      : Icons.insights_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      insight.headline,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 17,
+                                        letterSpacing: 0.3,
+                                        height: 1.2,
+                                        color: insight.isLive ? IrisTokens.success : null,
+                                      ),
+                                    ),
+                                    if (insight.timeInfo != null) ...[
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        insight.timeInfo!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: insight.isUrgent
+                                              ? IrisTokens.error
+                                              : insight.isLive
+                                              ? IrisTokens.success
+                                              : IrisTokens.brand,
+                                          letterSpacing: 0.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 3,
+                                height: 18,
+                                margin: const EdgeInsets.only(top: 2, right: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(2),
+                                  color: insight.isLive
+                                      ? IrisTokens.success.withValues(alpha: 0.4)
+                                      : IrisTokens.brand.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  insight.subline,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    letterSpacing: 0.2,
+                                    height: 1.4,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.72)
+                                        : Colors.black.withValues(alpha: 0.55),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (insight.isLive) ...[
+                            const SizedBox(height: 14),
+                            Builder(
+                              builder: (context) {
+                                final currentClass = widget.brain.getCurrentClass(widget.batch, now);
+                                if (currentClass != null) {
+                                  final currentTime = now.hour + (now.minute / 60.0);
+                                  final duration = LectureDuration.getActualDuration(currentClass);
+                                  final actualEndTime = LectureDuration.getActualEndTime(currentClass);
+                                  final progress = ((currentTime - currentClass.safeStartVal) / duration).clamp(0.0, 1.0);
+                                  final minutesLeft = ((actualEndTime - currentTime) * 60).toInt().clamp(0, (duration * 60).toInt());
+
+                                  String progressLabel = '';
+                                  if (minutesLeft >= 60) {
+                                    final hours = minutesLeft ~/ 60;
+                                    final mins = minutesLeft % 60;
+                                    progressLabel = mins > 0 ? '${hours}h ${mins}m left' : '${hours}h left';
+                                  } else {
+                                    progressLabel = '${minutesLeft}m left';
+                                  }
+
+                                  return Column(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: TweenAnimationBuilder<double>(
+                                          duration: const Duration(milliseconds: 768),
+                                          curve: IrisMotion.entrance,
+                                          tween: Tween<double>(begin: 0.0, end: progress),
+                                          builder: (context, value, child) => Container(
+                                            height: 6,
+                                            decoration: BoxDecoration(
+                                              color: IrisTokens.success.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: FractionallySizedBox(
+                                              alignment: Alignment.centerLeft,
+                                              widthFactor: value.clamp(0.0, 1.0),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [IrisTokens.success, IrisTokens.success, IrisTokens.successDark],
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: IrisTokens.success.withValues(alpha: 0.28),
+                                                      blurRadius: 3,
+                                                      spreadRadius: -1,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            progressLabel,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              letterSpacing: 0.3,
+                                              fontWeight: FontWeight.w700,
+                                              color: IrisTokens.success,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${(progress * 100).toInt()}%',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              letterSpacing: 0.3,
+                                              fontWeight: FontWeight.w800,
+                                              color: IrisTokens.success.withValues(alpha: 0.7),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ],
+                          if (insight.teacherInfo != null && insight.teacherInfo!.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.black.withValues(alpha: 0.03),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.10)
+                                      : Colors.black.withValues(alpha: 0.06),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: IrisTokens.brand.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      size: 12,
+                                      color: IrisTokens.brand.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      insight.teacherInfo!,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
             _buildPersistentAnnouncementCard(context, isDark),
             SliverToBoxAdapter(
@@ -8277,9 +5675,6 @@ class _DashboardState extends State<Dashboard>
                   sessionScope: 'student',
                   showBackButton: false,
                 ),
-                const AcademicsHubScreen(
-                  key: PageStorageKey<String>('student_tab_academics'),
-                ),
                 ToolsScreen(
                   key: const PageStorageKey<String>('student_tab_tools'),
                   memory: widget.memory,
@@ -8287,6 +5682,8 @@ class _DashboardState extends State<Dashboard>
                   brain: widget.brain,
                   onRoleChanged: widget.onRoleChanged,
                   onBatchChanged: widget.onBatchChanged,
+                  onAddMakeupClass: _addMakeupSession,
+                  onRemoveMakeupClass: _removeMakeupSession,
                 ),
                 AboutScreen(
                   key: const PageStorageKey<String>('student_tab_about'),
@@ -8521,2231 +5918,6 @@ class _DashboardState extends State<Dashboard>
   }
 }
 
-// DaySwitcher, ClassCard, and GlassShimmer moved to widgets/iris_components.dart
-class _HealthToolsScreen extends StatefulWidget {
-  final int initialTab;
-
-  const _HealthToolsScreen({this.initialTab = 0});
-
-  @override
-  State<_HealthToolsScreen> createState() => _HealthToolsScreenState();
-}
-
-class _HealthToolsScreenState extends State<_HealthToolsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final TextEditingController _weightController = TextEditingController(text: '70');
-  final TextEditingController _heightController = TextEditingController(text: '170');
-  final TextEditingController _waterController = TextEditingController(text: '70');
-  final TextEditingController _sysController = TextEditingController(text: '120');
-  final TextEditingController _diaController = TextEditingController(text: '80');
-  final TextEditingController _elementSearchController = TextEditingController();
-
-  static const List<Map<String, String>> _elements = [
-    {'symbol': 'H', 'name': 'Hydrogen', 'number': '1'},
-    {'symbol': 'He', 'name': 'Helium', 'number': '2'},
-    {'symbol': 'C', 'name': 'Carbon', 'number': '6'},
-    {'symbol': 'N', 'name': 'Nitrogen', 'number': '7'},
-    {'symbol': 'O', 'name': 'Oxygen', 'number': '8'},
-    {'symbol': 'Na', 'name': 'Sodium', 'number': '11'},
-    {'symbol': 'Mg', 'name': 'Magnesium', 'number': '12'},
-    {'symbol': 'P', 'name': 'Phosphorus', 'number': '15'},
-    {'symbol': 'S', 'name': 'Sulfur', 'number': '16'},
-    {'symbol': 'Cl', 'name': 'Chlorine', 'number': '17'},
-    {'symbol': 'K', 'name': 'Potassium', 'number': '19'},
-    {'symbol': 'Ca', 'name': 'Calcium', 'number': '20'},
-    {'symbol': 'Fe', 'name': 'Iron', 'number': '26'},
-    {'symbol': 'Zn', 'name': 'Zinc', 'number': '30'},
-    {'symbol': 'Cu', 'name': 'Copper', 'number': '29'},
-    {'symbol': 'I', 'name': 'Iodine', 'number': '53'},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _weightController.dispose();
-    _heightController.dispose();
-    _waterController.dispose();
-    _sysController.dispose();
-    _diaController.dispose();
-    _elementSearchController.dispose();
-    super.dispose();
-  }
-
-  String _bmiCategory(double bmi) {
-    if (bmi < 18.5) return 'Underweight';
-    if (bmi < 25) return 'Healthy';
-    if (bmi < 30) return 'Overweight';
-    return 'Obese';
-  }
-
-  String _bpCategory(int s, int d) {
-    if (s < 120 && d < 80) return 'Normal';
-    if (s < 130 && d < 80) return 'Elevated';
-    if (s < 140 || d < 90) return 'Stage 1';
-    return 'Stage 2';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset =
-        MediaQuery.paddingOf(context).top +
-        kToolbarHeight +
-        kTextTabBarHeight +
-        12;
-    final w = double.tryParse(_weightController.text) ?? 0;
-    final hCm = double.tryParse(_heightController.text) ?? 0;
-    final hM = hCm > 0 ? hCm / 100 : 0;
-    final bmi = hM > 0 ? w / (hM * hM) : 0;
-    final hydration = (double.tryParse(_waterController.text) ?? 0) * 0.033;
-    final s = int.tryParse(_sysController.text) ?? 0;
-    final d = int.tryParse(_diaController.text) ?? 0;
-    final query = _elementSearchController.text.trim().toLowerCase();
-    final filtered = _elements.where((e) {
-      if (query.isEmpty) return true;
-      return e['symbol']!.toLowerCase().contains(query) ||
-          e['name']!.toLowerCase().contains(query) ||
-          e['number']!.contains(query);
-    }).toList();
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Health Smart Suite'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Calculators'),
-            Tab(text: 'Periodic Table'),
-          ],
-        ),
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          TabBarView(
-            controller: _tabController,
-            children: [
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-              GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.monitor_heart_rounded, color: Colors.white, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Health Smart Suite', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
-                            const SizedBox(height: 4),
-                            Text('Quick calculators and references in one place.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('BMI Assistant', style: TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _weightController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Weight (kg)', border: OutlineInputBorder()),
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _heightController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Height (cm)', border: OutlineInputBorder()),
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text('BMI: ${bmi.toStringAsFixed(2)} • ${_bmiCategory(bmi.toDouble())}', style: const TextStyle(fontWeight: FontWeight.w700, color: IrisTokens.brand)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Hydration Estimator', style: TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _waterController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Body Weight (kg)', border: OutlineInputBorder()),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: 8),
-                      Text('Daily water target: ${hydration.toStringAsFixed(2)} L', style: const TextStyle(fontWeight: FontWeight.w700, color: IrisTokens.success)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Vitals Check (BP)', style: TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _sysController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(labelText: 'Systolic', border: OutlineInputBorder()),
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _diaController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(labelText: 'Diastolic', border: OutlineInputBorder()),
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text('BP category: ${_bpCategory(s, d)}', style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-              GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.code_rounded, color: Colors.white, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('CS Compiler Suite', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
-                            const SizedBox(height: 4),
-                            Text('Smart checks, templates, and quick dry-run helpers.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextField(
-                        controller: _elementSearchController,
-                        decoration: const InputDecoration(
-                          labelText: 'Search element by name/symbol/number',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.search_rounded),
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: 10),
-                      Text('${filtered.length} elements found', style: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7))),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...filtered.map(
-                (e) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GlassCard(
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: IrisTokens.brand.withValues(alpha: 0.2),
-                        child: Text(e['symbol']!, style: const TextStyle(fontWeight: FontWeight.w800, color: IrisTokens.brand)),
-                      ),
-                      title: Text(e['name']!),
-                      subtitle: Text('Atomic Number: ${e['number']}'),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ResistorColorDecoderScreen extends StatefulWidget {
-  const _ResistorColorDecoderScreen();
-
-  @override
-  State<_ResistorColorDecoderScreen> createState() =>
-      _ResistorColorDecoderScreenState();
-}
-
-class _ResistorColorDecoderScreenState extends State<_ResistorColorDecoderScreen> {
-  String _band1 = 'Brown';
-  String _band2 = 'Black';
-  String _multiplier = 'Red';
-  String _tolerance = 'Gold';
-
-  static const Map<String, int> _digitMap = {
-    'Black': 0,
-    'Brown': 1,
-    'Red': 2,
-    'Orange': 3,
-    'Yellow': 4,
-    'Green': 5,
-    'Blue': 6,
-    'Violet': 7,
-    'Gray': 8,
-    'White': 9,
-  };
-
-  static const Map<String, int> _multiplierExp = {
-    'Black': 0,
-    'Brown': 1,
-    'Red': 2,
-    'Orange': 3,
-    'Yellow': 4,
-    'Green': 5,
-    'Blue': 6,
-    'Violet': 7,
-    'Gray': 8,
-    'White': 9,
-    'Gold': -1,
-    'Silver': -2,
-  };
-
-  static const Map<String, double> _toleranceMap = {
-    'Brown': 1.0,
-    'Red': 2.0,
-    'Green': 0.5,
-    'Blue': 0.25,
-    'Violet': 0.1,
-    'Gray': 0.05,
-    'Gold': 5.0,
-    'Silver': 10.0,
-  };
-
-  static const Map<String, Color> _colorMap = {
-    'Black': Colors.black,
-    'Brown': Color(0xFF8D6E63),
-    'Red': Color(0xFFE53935),
-    'Orange': Color(0xFFFB8C00),
-    'Yellow': Color(0xFFFDD835),
-    'Green': Color(0xFF43A047),
-    'Blue': Color(0xFF1E88E5),
-    'Violet': Color(0xFF8E24AA),
-    'Gray': Color(0xFF9E9E9E),
-    'White': Color(0xFFF5F5F5),
-    'Gold': Color(0xFFFFC107),
-    'Silver': Color(0xFFB0BEC5),
-  };
-
-  double _resistance() {
-    final first = _digitMap[_band1] ?? 0;
-    final second = _digitMap[_band2] ?? 0;
-    final base = (first * 10) + second;
-    final exp = _multiplierExp[_multiplier] ?? 0;
-    return (base * math.pow(10, exp)).toDouble();
-  }
-
-  String _formatOhms(double value) {
-    if (value >= 1000000) {
-      return '${(value / 1000000).toStringAsFixed(2)} MΩ';
-    }
-    if (value >= 1000) {
-      return '${(value / 1000).toStringAsFixed(2)} kΩ';
-    }
-    return '${value.toStringAsFixed(2)} Ω';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    final value = _resistance();
-    final tol = _toleranceMap[_tolerance] ?? 5.0;
-    final min = value * (1 - tol / 100);
-    final max = value * (1 + tol / 100);
-
-    Widget bandDropdown(
-      String title,
-      String current,
-      List<String> options,
-      ValueChanged<String> onChanged,
-    ) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          DropdownButtonFormField<String>(
-            initialValue: current,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-            items: options
-                .map(
-                  (c) => DropdownMenuItem(
-                    value: c,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: _colorMap[c],
-                            border: Border.all(
-                              color: Colors.black.withValues(alpha: 0.2),
-                            ),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(c),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) {
-              if (v != null) onChanged(v);
-            },
-          ),
-        ],
-      );
-    }
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Resistor Color Decoder'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: bandDropdown(
-                          'Band 1',
-                          _band1,
-                          _digitMap.keys.toList(),
-                          (v) => setState(() => _band1 = v),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: bandDropdown(
-                          'Band 2',
-                          _band2,
-                          _digitMap.keys.toList(),
-                          (v) => setState(() => _band2 = v),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: bandDropdown(
-                          'Multiplier',
-                          _multiplier,
-                          _multiplierExp.keys.toList(),
-                          (v) => setState(() => _multiplier = v),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: bandDropdown(
-                          'Tolerance',
-                          _tolerance,
-                          _toleranceMap.keys.toList(),
-                          (v) => setState(() => _tolerance = v),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _formatOhms(value),
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Tolerance: ±${tol.toStringAsFixed(2)}%'
-                    '  •  Range: ${_formatOhms(min)} to ${_formatOhms(max)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.75),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Smart tip: Read from the side with the tolerance band (usually gold/silver).',
-                    style: TextStyle(fontSize: 12, color: IrisTokens.brand),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ],
-  ),
-);
-  }
-}
-
-class _DepartmentSmartKitScreen extends StatefulWidget {
-  final String department;
-  final OmniBrain brain;
-  final String batch;
-
-  const _DepartmentSmartKitScreen({
-    required this.department,
-    required this.brain,
-    required this.batch,
-  });
-
-  @override
-  State<_DepartmentSmartKitScreen> createState() =>
-      _DepartmentSmartKitScreenState();
-}
-
-class _DepartmentSmartKitScreenState extends State<_DepartmentSmartKitScreen> {
-  final TextEditingController _assignmentsController =
-      TextEditingController(text: '2');
-  final TextEditingController _quizzesController =
-      TextEditingController(text: '1');
-  final TextEditingController _labsController = TextEditingController(text: '1');
-  final TextEditingController _prepHoursController =
-      TextEditingController(text: '8');
-
-  final TextEditingController _currentScoreController =
-      TextEditingController(text: '72');
-  final TextEditingController _targetScoreController =
-      TextEditingController(text: '85');
-  final TextEditingController _remainingWeightController =
-      TextEditingController(text: '40');
-
-  @override
-  void dispose() {
-    _assignmentsController.dispose();
-    _quizzesController.dispose();
-    _labsController.dispose();
-    _prepHoursController.dispose();
-    _currentScoreController.dispose();
-    _targetScoreController.dispose();
-    _remainingWeightController.dispose();
-    super.dispose();
-  }
-
-  double _parseNum(String value) => double.tryParse(value.trim()) ?? 0;
-
-  ({double score, String band}) _workloadScore() {
-    final assignments = _parseNum(_assignmentsController.text);
-    final quizzes = _parseNum(_quizzesController.text);
-    final labs = _parseNum(_labsController.text);
-    final prepHours = _parseNum(_prepHoursController.text);
-    final score = (assignments * 2.0) +
-        (quizzes * 3.0) +
-        (labs * 4.0) +
-        (prepHours * 0.5);
-    if (score >= 26) {
-      return (score: score, band: 'High intensity week');
-    }
-    if (score >= 16) {
-      return (score: score, band: 'Balanced workload');
-    }
-    return (score: score, band: 'Light workload window');
-  }
-
-  ({double required, bool impossible}) _targetPlanner() {
-    final current = _parseNum(_currentScoreController.text).clamp(0, 100);
-    final target = _parseNum(_targetScoreController.text).clamp(0, 100);
-    final remainingWeight =
-        (_parseNum(_remainingWeightController.text).clamp(1, 100)) / 100.0;
-    final completedWeight = 1.0 - remainingWeight;
-    final required = (target - (current * completedWeight)) / remainingWeight;
-    return (required: required, impossible: required > 100);
-  }
-
-  List<String> _departmentTips(String department) {
-    final d = department.toLowerCase();
-    if (d.contains('civil')) {
-      return const [
-        'Prioritize surveying and design studio deliverables early.',
-        'Batch numericals by topic to reduce context switching.',
-        'Reserve one long block for CAD/BIM practice each week.',
-      ];
-    }
-    if (d.contains('chem')) {
-      return const [
-        'Group reaction-mechanism practice with formula review.',
-        'Use short spaced sessions for nomenclature retention.',
-        'Keep one weekly block for lab prep and report templates.',
-      ];
-    }
-    if (d.contains('eco') || d.contains('account') || d.contains('finance')) {
-      return const [
-        'Split theory revision and numerical practice into separate blocks.',
-        'Use one-day lag review after every major lecture.',
-        'Track trend questions for faster exam pattern recognition.',
-      ];
-    }
-    return const [
-      'Use 45-10 focused cycles for heavy concept days.',
-      'Front-load assignments before quiz windows to reduce overlap stress.',
-      'Keep one recap block to compress week-long notes into 1-page summaries.',
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    final now = DateTime.now();
-    final current = widget.brain.getCurrentClass(widget.batch, now);
-    final next = widget.brain.getNextClass(widget.batch, now);
-    final workload = _workloadScore();
-    final targetPlan = _targetPlanner();
-    final tips = _departmentTips(widget.department);
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Department Smart Kit'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-              GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.auto_graph_rounded, color: Colors.white, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Department Smart Kit', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
-                            const SizedBox(height: 4),
-                            Text('Weekly workload and grade planning for this department.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${widget.department.toUpperCase()} adaptive assistant',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    current != null
-                        ? 'Live now: ${current.subject}'
-                        : next != null
-                        ? 'Next class: ${next.subject}'
-                        : 'No class right now. Good time to plan your week.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.75),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Weekly Workload Estimator',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _numField('Assignments', _assignmentsController),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(child: _numField('Quizzes', _quizzesController)),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(child: _numField('Labs', _labsController)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _numField('Prep Hours', _prepHoursController),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Load score: ${workload.score.toStringAsFixed(1)} • ${workload.band}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: IrisTokens.brand,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Target Grade Planner',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _numField('Current %', _currentScoreController),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _numField('Target %', _targetScoreController),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  _numField('Remaining Weight %', _remainingWeightController),
-                  const SizedBox(height: 12),
-                  Text(
-                    targetPlan.impossible
-                        ? 'Required in remaining assessments: ${targetPlan.required.toStringAsFixed(1)}% (above 100%, adjust target or strategy).'
-                        : 'Required in remaining assessments: ${targetPlan.required.clamp(0, 100).toStringAsFixed(1)}%',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: IrisTokens.success,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Department Smart Tips',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 8),
-                  for (final tip in tips)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '• $tip',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.78),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _numField(String label, TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      onChanged: (_) => setState(() {}),
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        isDense: true,
-      ),
-    );
-  }
-}
-
-class _PrintTimetableScreen extends StatefulWidget {
-  final OmniBrain brain;
-  final String batch;
-
-  const _PrintTimetableScreen({
-    required this.brain,
-    required this.batch,
-  });
-
-  @override
-  State<_PrintTimetableScreen> createState() => _PrintTimetableScreenState();
-}
-
-class _PrintTimetableScreenState extends State<_PrintTimetableScreen> {
-  bool _isGeneratingPdf = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Automatically generate and print the PDF
-    _generateAndPrintPdf();
-  }
-
-  Future<void> _generateAndPrintPdf() async {
-    setState(() => _isGeneratingPdf = true);
-
-    try {
-      final schedule = widget.brain.scheduleFor(widget.batch);
-      final dayNames = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-      ];
-
-      // Group sessions by day
-      final grouped = <int, List<ClassSession>>{};
-      for (final session in schedule) {
-        grouped.putIfAbsent(session.dayIndex, () => []).add(session);
-      }
-      for (final day in grouped.values) {
-        day.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-      }
-
-      // Create PDF document
-      final PdfDocument document = PdfDocument();
-      final PdfPage page = document.pages.add();
-      final PdfGraphics graphics = page.graphics;
-
-      // Add title
-      graphics.drawString(
-        'IRIS Timetable',
-        PdfStandardFont(PdfFontFamily.helvetica, 24, style: PdfFontStyle.bold),
-        bounds: const Rect.fromLTWH(20, 20, 500, 40),
-        brush: PdfSolidBrush(PdfColor(0, 122, 255)),
-      );
-
-      // Add batch info
-      graphics.drawString(
-        'Batch: ${widget.batch}',
-        PdfStandardFont(PdfFontFamily.helvetica, 12),
-        bounds: const Rect.fromLTWH(20, 70, 500, 20),
-      );
-
-      // Create table
-      final PdfGrid grid = PdfGrid();
-      grid.columns.add(count: 4);
-
-      // Add headers
-      final PdfGridRow headerRow = grid.rows.add();
-      headerRow.cells[0].value = 'Time';
-      headerRow.cells[1].value = 'Subject';
-      headerRow.cells[2].value = 'Teacher';
-      headerRow.cells[3].value = 'Room';
-
-      // Style header
-      for (int i = 0; i < 4; i++) {
-        headerRow.cells[i].style = PdfGridCellStyle(
-          backgroundBrush: PdfSolidBrush(PdfColor(0, 122, 255)),
-          textBrush: PdfSolidBrush(PdfColor(255, 255, 255)),
-          font: PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold),
-        );
-      }
-
-      // Add data rows
-      for (int dayIndex = 1; dayIndex <= 7; dayIndex++) {
-        if (grouped.containsKey(dayIndex)) {
-          // Add day header row
-          final dayRow = grid.rows.add();
-          dayRow.cells[0].value = '${dayNames[dayIndex - 1]} Schedule';
-          dayRow.cells[0].columnSpan = 4;
-          dayRow.cells[0].style = PdfGridCellStyle(
-            backgroundBrush: PdfSolidBrush(PdfColor(230, 230, 230)),
-            font: PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold),
-          );
-
-          // Add sessions
-          for (final session in grouped[dayIndex]!) {
-            final row = grid.rows.add();
-            row.cells[0].value = '${session.startTime} – ${session.endTime}';
-            row.cells[1].value = session.subject;
-            row.cells[2].value = session.teacher;
-            row.cells[3].value = session.room;
-          }
-        }
-      }
-
-      // Draw table on page
-      grid.draw(page: page, bounds: Rect.fromLTWH(20, 110, 550, 500));
-
-      // Save to temporary file
-      final bytes = await document.save();
-      final dir = Directory.systemTemp;
-      final file = File('${dir.path}/iris_timetable_${widget.batch}.pdf');
-      await file.writeAsBytes(bytes);
-      document.dispose();
-
-      // Open print dialog
-      if (!mounted) return;
-
-      // Use native Android printing via method channel
-      const platform = MethodChannel('iris/print');
-      try {
-        await platform.invokeMethod('printPdf', {
-          'filePath': file.path,
-          'jobName': 'IRIS Timetable - ${widget.batch}',
-        });
-      } catch (e) {
-        debugPrint('Print failed: $e');
-        // Fallback: share the PDF
-        if (mounted) {
-          _showPrintFallback(file);
-        }
-      }
-
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      debugPrint('PDF generation error: $e');
-      setState(() => _isGeneratingPdf = false);
-      if (mounted) {
-        showIrisFrostedSnackBar(
-          context,
-          dedupeKey: 'pdf_generation_error',
-          content: Text('Error generating PDF: $e'),
-          tint: IrisTokens.error,
-        );
-      }
-    }
-  }
-
-  void _showPrintFallback(File file) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 340),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0x1AFFFFFF) : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.08),
-              width: 0.5,
-            ),
-          ),
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(
-                  Icons.print_rounded,
-                  color: Colors.white,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'PDF Ready',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Your timetable PDF is ready. Open it to print using your device printer.',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: (isDark ? Colors.white : Colors.black).withValues(
-                    alpha: 0.7,
-                  ),
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Dismiss'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await OpenFilex.open(file.path);
-                        if (mounted) Navigator.pop(ctx);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: IrisTokens.brand,
-                      ),
-                      child: const Text('Open PDF'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Print Timetable'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          Padding(
-            padding: EdgeInsets.only(top: topInset),
-            child: Center(
-              child: _isGeneratingPdf
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0x1AFFFFFF)
-                                : Colors.black.withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                width: 80,
-                                height: 80,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    IrisTokens.brand,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              Text(
-                                'Generating PDF...',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Your timetable is being prepared for printing',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : GlassCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(28),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: IrisTokens.brandGradient,
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Icon(
-                                Icons.check_circle_rounded,
-                                color: Colors.white,
-                                size: 60,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                              'PDF Ready',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Your timetable PDF has been generated and opened in your printer.',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.7),
-                                height: 1.5,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 28),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: IrisTokens.brand,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Done',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OfflineFormulaLibraryScreen extends StatefulWidget {
-  const _OfflineFormulaLibraryScreen();
-
-  @override
-  State<_OfflineFormulaLibraryScreen> createState() =>
-      _OfflineFormulaLibraryScreenState();
-}
-
-class _OfflineFormulaLibraryScreenState
-    extends State<_OfflineFormulaLibraryScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _category = 'All';
-
-  static const List<String> _categories = [
-    'All',
-    'Thermodynamics',
-    'Circuits',
-    'Mechanics',
-    'Constants',
-  ];
-
-  static final List<_FormulaEntry> _entries = [
-    _FormulaEntry(
-      category: 'Thermodynamics',
-      title: 'First Law',
-      formula: 'ΔU = Q - W',
-      description: 'Change in internal energy equals heat added minus work done.',
-    ),
-    _FormulaEntry(
-      category: 'Thermodynamics',
-      title: 'Ideal Gas Law',
-      formula: 'PV = nRT',
-      description: 'Pressure-volume relationship for ideal gases.',
-    ),
-    _FormulaEntry(
-      category: 'Circuits',
-      title: 'Ohm\'s Law',
-      formula: 'V = I R',
-      description: 'Voltage equals current multiplied by resistance.',
-    ),
-    _FormulaEntry(
-      category: 'Circuits',
-      title: 'Electric Power',
-      formula: 'P = V I = I²R = V²/R',
-      description: 'Equivalent forms of electrical power.',
-    ),
-    _FormulaEntry(
-      category: 'Mechanics',
-      title: 'Newton Second Law',
-      formula: 'F = m a',
-      description: 'Force equals mass times acceleration.',
-    ),
-    _FormulaEntry(
-      category: 'Mechanics',
-      title: 'Kinetic Energy',
-      formula: 'KE = 1/2 m v²',
-      description: 'Energy due to motion.',
-    ),
-    _FormulaEntry(
-      category: 'Constants',
-      title: 'Gas Constant',
-      formula: 'R = 8.314 J/(mol·K)',
-      description: 'Universal gas constant.',
-    ),
-    _FormulaEntry(
-      category: 'Constants',
-      title: 'Gravitational Acceleration',
-      formula: 'g = 9.81 m/s²',
-      description: 'Standard gravity near Earth surface.',
-    ),
-    _FormulaEntry(
-      category: 'Constants',
-      title: 'Speed of Light',
-      formula: 'c = 2.998 × 10^8 m/s',
-      description: 'Light speed in vacuum.',
-    ),
-  ];
-
-  List<_FormulaEntry> _filtered() {
-    final q = _searchController.text.trim().toLowerCase();
-    return _entries.where((e) {
-      final catMatch = _category == 'All' || e.category == _category;
-      if (!catMatch) return false;
-      if (q.isEmpty) return true;
-      return e.title.toLowerCase().contains(q) ||
-          e.formula.toLowerCase().contains(q) ||
-          e.description.toLowerCase().contains(q);
-    }).toList();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    final entries = _filtered();
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Formula Library & Constants'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Search formula, symbol, topic',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.search_rounded),
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _categories
-                        .map(
-                          (c) => ChoiceChip(
-                            label: Text(c),
-                            selected: _category == c,
-                            onSelected: (_) => setState(() => _category = c),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    '${entries.length} references available offline',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: (isDark ? Colors.white : Colors.black).withValues(
-                        alpha: 0.7,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...entries.map(
-            (e) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GlassCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        e.title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      SelectableText(
-                        e.formula,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: IrisTokens.brand,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        e.description,
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.35,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.75),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        e.category,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.55),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProgrammingToolsScreen extends StatefulWidget {
-  const _ProgrammingToolsScreen();
-
-  @override
-  State<_ProgrammingToolsScreen> createState() => _ProgrammingToolsScreenState();
-}
-
-class _ProgrammingToolsScreenState extends State<_ProgrammingToolsScreen> {
-  final TextEditingController _codeController = TextEditingController();
-  final TextEditingController _dryRunInputController = TextEditingController(
-    text: '5, 1, 4, 2, 8',
-  );
-
-  String _language = 'Dart';
-  String _status = 'Ready';
-  String _summary = 'Pick a language and run Smart Check.';
-  List<String> _warnings = const [];
-  int _complexityScore = 0;
-  String _accessoryMode = 'Snippet Vault';
-  String _accessoryOutput = 'Pick an accessory mode and generate output.';
-
-  static const Map<String, String> _templates = {
-    'Dart': 'void main() {\n  print("Hello IRIS");\n}\n',
-    'Python': 'def main():\n    print("Hello IRIS")\n\nif __name__ == "__main__":\n    main()\n',
-    'C++': '#include <iostream>\nusing namespace std;\n\nint main() {\n  cout << "Hello IRIS" << endl;\n  return 0;\n}\n',
-    'Java': 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello IRIS");\n  }\n}\n',
-  };
-
-  static const Map<String, String> _algorithmTemplates = {
-    'Binary Search':
-        'while (low <= high) {\n  int mid = low + (high - low) / 2;\n  if (arr[mid] == target) return mid;\n  if (arr[mid] < target) low = mid + 1;\n  else high = mid - 1;\n}\nreturn -1;',
-    'DFS (Recursive)':
-        'void dfs(int node) {\n  visited[node] = true;\n  for (final nxt in graph[node]) {\n    if (!visited[nxt]) dfs(nxt);\n  }\n}',
-    'BFS':
-        'final q = Queue<int>();\nq.add(start);\nvisited[start] = true;\nwhile (q.isNotEmpty) {\n  final u = q.removeFirst();\n  for (final v in graph[u]) {\n    if (!visited[v]) {\n      visited[v] = true;\n      q.add(v);\n    }\n  }\n}',
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    _codeController.text = _templates[_language]!;
-  }
-
-  @override
-  void dispose() {
-    _codeController.dispose();
-    _dryRunInputController.dispose();
-    super.dispose();
-  }
-
-  bool _bracketsBalanced(String input) {
-    final stack = <String>[];
-    final opens = {'(': ')', '{': '}', '[': ']'};
-    final closes = {')', '}', ']'};
-    for (final ch in input.split('')) {
-      if (opens.containsKey(ch)) {
-        stack.add(ch);
-      } else if (closes.contains(ch)) {
-        if (stack.isEmpty) return false;
-        final last = stack.removeLast();
-        if (opens[last] != ch) return false;
-      }
-    }
-    return stack.isEmpty;
-  }
-
-  int _complexityHeuristic(String input) {
-    final lower = input.toLowerCase();
-    final patterns = [
-      RegExp(r'\bif\b'),
-      RegExp(r'\bfor\b'),
-      RegExp(r'\bwhile\b'),
-      RegExp(r'\bswitch\b'),
-      RegExp(r'\bcase\b'),
-      RegExp(r'\bcatch\b'),
-      RegExp(r'&&|\|\|'),
-      RegExp(r'\?'),
-    ];
-    var score = 1;
-    for (final p in patterns) {
-      score += p.allMatches(lower).length;
-    }
-    return score;
-  }
-
-  void _loadTemplate() {
-    setState(() {
-      _codeController.text = _templates[_language]!;
-      _status = 'Template loaded';
-      _summary = 'Press Smart Check to analyze this $_language snippet.';
-      _warnings = const [];
-      _complexityScore = 0;
-    });
-  }
-
-  void _smartCheck() {
-    final code = _codeController.text;
-    final warnings = <String>[];
-    final lineCount = '\n'.allMatches(code).length + 1;
-    final hasBalanced = _bracketsBalanced(code);
-
-    if (!hasBalanced) {
-      warnings.add('Unbalanced brackets detected.');
-    }
-
-    if (_language == 'Python' && code.contains('{') && code.contains('}')) {
-      warnings.add('Python style warning: avoid braces for blocks.');
-    }
-
-    if ((_language == 'Java' || _language == 'C++' || _language == 'Dart') &&
-        code.contains('print(') &&
-        !code.contains(';')) {
-      warnings.add('Possible missing semicolon in print statement.');
-    }
-
-    if (code.trim().isEmpty) {
-      warnings.add('Code is empty.');
-    }
-
-    final complexity = _complexityHeuristic(code);
-    final status = warnings.isEmpty ? 'Smart Check Passed' : 'Needs Attention';
-    final summary =
-        'Language: $_language • Lines: $lineCount • Complexity: $complexity';
-
-    setState(() {
-      _status = status;
-      _summary = summary;
-      _warnings = warnings;
-      _complexityScore = complexity;
-    });
-  }
-
-  void _runAccessory() {
-    if (_accessoryMode == 'Snippet Vault') {
-      final items = _algorithmTemplates.entries
-          .map((e) => '${e.key}:\n${e.value}')
-          .join('\n\n');
-      setState(() {
-        _accessoryOutput = 'Top Snippets:\n\n$items';
-      });
-      return;
-    }
-
-    if (_accessoryMode == 'Algorithm Templates') {
-      final bestFit = _complexityScore > 6
-          ? 'BFS / DFS with visited set'
-          : 'Binary Search / Two Pointers';
-      setState(() {
-        _accessoryOutput =
-            'Suggested template family: $bestFit\n\nTip: choose based on data shape and constraints.';
-      });
-      return;
-    }
-
-    final raw = _dryRunInputController.text
-        .split(',')
-        .map((s) => int.tryParse(s.trim()))
-        .whereType<int>()
-        .toList();
-    if (raw.isEmpty) {
-      setState(() {
-        _accessoryOutput = 'Dry-run helper needs comma-separated integers.';
-      });
-      return;
-    }
-
-    final sorted = List<int>.from(raw)..sort();
-    final minV = sorted.first;
-    final maxV = sorted.last;
-    final avg = sorted.reduce((a, b) => a + b) / sorted.length;
-
-    setState(() {
-      _accessoryOutput =
-          'Dry-run Snapshot\nInput: $raw\nSorted: $sorted\nMin: $minV, Max: $maxV, Avg: ${avg.toStringAsFixed(2)}\n\nUse this as a quick sanity-check before coding.';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('CS Compiler Suite'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _language,
-                          decoration: const InputDecoration(
-                            labelText: 'Language',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: _templates.keys
-                              .map((l) => DropdownMenuItem(value: l, child: Text(l)))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value == null) return;
-                            setState(() => _language = value);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: _loadTemplate,
-                        child: const Text('Load'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _codeController,
-                    minLines: 10,
-                    maxLines: 16,
-                    decoration: const InputDecoration(
-                      labelText: 'Code Editor',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _smartCheck,
-                      icon: const Icon(Icons.auto_awesome_rounded),
-                      label: const Text('Smart Check'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _status,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: _warnings.isEmpty
-                          ? IrisTokens.success
-                          : (isDark ? Colors.white : Colors.black),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _summary,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.75),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Complexity Score: $_complexityScore',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: IrisTokens.brand,
-                    ),
-                  ),
-                  if (_warnings.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    ..._warnings.map(
-                      (w) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          '• $w',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: IrisTokens.warning,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Compiler Suite Accessories',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: ['Snippet Vault', 'Algorithm Templates', 'Dry-run Helper']
-                        .map(
-                          (m) => ChoiceChip(
-                            label: Text(m),
-                            selected: _accessoryMode == m,
-                            onSelected: (_) => setState(() => _accessoryMode = m),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 10),
-                  if (_accessoryMode == 'Dry-run Helper')
-                    TextField(
-                      controller: _dryRunInputController,
-                      decoration: const InputDecoration(
-                        labelText: 'Sample numbers (comma-separated)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _runAccessory,
-                      icon: const Icon(Icons.build_rounded),
-                      label: const Text('Generate Smart Output'),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SelectableText(
-                    _accessoryOutput,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.35,
-                      color: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.82),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FormulaEntry {
-  final String category;
-  final String title;
-  final String formula;
-  final String description;
-
-  const _FormulaEntry({
-    required this.category,
-    required this.title,
-    required this.formula,
-    required this.description,
-  });
-}
-
-
-class _WordCounterScreen extends StatefulWidget {
-  const _WordCounterScreen({
-    required this.title,
-    required this.formula,
-    required this.description,
-  });
-
-  final String title;
-  final String formula;
-  final String description;
-
-  @override
-  State<_WordCounterScreen> createState() => _WordCounterScreenState();
-}
-
-
-class _WordCounterScreenState extends State<_WordCounterScreen> {
-  final TextEditingController _controller = TextEditingController();
-
-  int get _characters => _controller.text.length;
-  int get _charactersNoSpaces => _controller.text.replaceAll(' ', '').length;
-
-  int get _words {
-    final trimmed = _controller.text.trim();
-    if (trimmed.isEmpty) return 0;
-    return trimmed.split(RegExp(r'\s+')).length;
-  }
-
-  int get _sentences {
-    final matches = RegExp(r'[.!?]+').allMatches(_controller.text);
-    return matches.length;
-  }
-
-  int get _paragraphs {
-    final trimmed = _controller.text.trim();
-    if (trimmed.isEmpty) return 0;
-    return trimmed
-        .split(RegExp(r'\n\s*\n'))
-        .where((p) => p.trim().isNotEmpty)
-        .length;
-  }
-
-  int get _readMinutes {
-    if (_words == 0) return 0;
-    return (_words / 220).ceil();
-  }
-
-  int get _speakMinutes {
-    if (_words == 0) return 0;
-    return (_words / 140).ceil();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Word Counter'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.text_fields_rounded, color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Word Counter', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
-                        const SizedBox(height: 4),
-                        Text('Measure writing, reading time, and speaking time instantly.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: TextField(
-                controller: _controller,
-                maxLines: 10,
-                decoration: const InputDecoration(
-                  hintText: 'Paste or write your text here...',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _MetricChip(label: 'Words', value: '$_words'),
-              _MetricChip(label: 'Characters', value: '$_characters'),
-              _MetricChip(label: 'No Spaces', value: '$_charactersNoSpaces'),
-              _MetricChip(label: 'Sentences', value: '$_sentences'),
-              _MetricChip(label: 'Paragraphs', value: '$_paragraphs'),
-              _MetricChip(label: 'Read Time', value: '${_readMinutes}m'),
-              _MetricChip(label: 'Speak Time', value: '${_speakMinutes}m'),
-            ],
-          ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetricChip extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _MetricChip({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: (isDark ? Colors.white : Colors.black).withValues(
-                alpha: 0.68,
-              ),
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ClassAnalyticsScreen extends StatelessWidget {
-  final OmniBrain brain;
-  final String batch;
-
-  const ClassAnalyticsScreen({required this.brain, required this.batch});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight + 12;
-    final sessions = brain.scheduleFor(batch);
-    final dayMap = <int, int>{};
-    final roomMap = <String, int>{};
-
-    for (final s in sessions) {
-      dayMap[s.dayIndex] = (dayMap[s.dayIndex] ?? 0) + 1;
-      roomMap[s.room] = (roomMap[s.room] ?? 0) + 1;
-    }
-
-    final busiestDay = dayMap.entries.isEmpty
-        ? null
-        : dayMap.entries.reduce((a, b) => a.value >= b.value ? a : b);
-    final topRoom = roomMap.entries.isEmpty
-        ? null
-        : roomMap.entries.reduce((a, b) => a.value >= b.value ? a : b);
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Class Analytics'),
-        backgroundColor: Colors.transparent,
-        forceMaterialTransparency: true,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shadowColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          ObsidianPulse(isDark: isDark),
-          ListView(
-            padding: EdgeInsets.fromLTRB(16, topInset, 16, 28),
-            children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Class Analytics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
-                        const SizedBox(height: 4),
-                        Text('See the shape of your week at a glance.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _MetricChip(label: 'Total Sessions', value: '${sessions.length}'),
-                  _MetricChip(label: 'Unique Rooms', value: '${roomMap.keys.length}'),
-                  _MetricChip(label: 'Busiest Day', value: busiestDay == null ? '-' : FormatGuard.normalizeDay(busiestDay.key)),
-                  _MetricChip(label: 'Top Room', value: topRoom?.key ?? '-'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (dayMap.isNotEmpty)
-            GlassCard(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sessions by Day',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ...(() {
-                      final sorted = dayMap.entries.toList()
-                        ..sort((a, b) => a.key.compareTo(b.key));
-                      return sorted
-                          .map(
-                            (entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      FormatGuard.normalizeDay(entry.key),
-                                    ),
-                                  ),
-                                  Text('${entry.value}'),
-                                ],
-                              ),
-                            ),
-                          )
-                          .toList();
-                    })(),
-                  ],
-                ),
-              ),
-            ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _CgpaCalculatorScreen extends StatefulWidget {
   const _CgpaCalculatorScreen();
 
@@ -10831,32 +6003,29 @@ class _CgpaCalculatorScreenState extends State<_CgpaCalculatorScreen> {
           36,
         ),
         children: [
-          GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: IrisTokens.brandGradient),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.school_rounded, color: Colors.white, size: 24),
+          CgpaCalculatorAnimationWidget(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: IrisTokens.brandGradient),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('CGPA Calculator', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
-                        const SizedBox(height: 4),
-                        Text('Estimate GPA and keep your semester plan visible.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
-                      ],
-                    ),
+                  child: const Icon(Icons.school_rounded, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('CGPA Calculator', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black)),
+                      const SizedBox(height: 4),
+                      Text('Estimate GPA and keep your semester plan visible.', style: TextStyle(fontSize: 13, height: 1.35, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.64))),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -11390,6 +6559,8 @@ class _DepartmentClassesScreen extends StatefulWidget {
   final ValueChanged<String>? onBatchChanged;
   final bool showDock;
   final bool showBackButton;
+  final Future<void> Function(ClassSession session)? onAddMakeupClass;
+  final Future<void> Function(ClassSession session)? onRemoveMakeupClass;
 
   const _DepartmentClassesScreen({
     required this.memory,
@@ -11399,6 +6570,8 @@ class _DepartmentClassesScreen extends StatefulWidget {
     this.onBatchChanged,
     this.showDock = true,
     this.showBackButton = true,
+    this.onAddMakeupClass,
+    this.onRemoveMakeupClass,
     super.key,
   });
 
@@ -11937,71 +7110,73 @@ class _FacultyDirectoryScreenState extends State<_FacultyDirectoryScreen> {
                       controller: _scrollController,
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [IrisTokens.brand, IrisTokens.purple],
+                        DirectoryAnimationWidget(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [IrisTokens.brand, IrisTokens.purple],
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
-                                borderRadius: BorderRadius.circular(14),
+                                child: const Icon(
+                                  Icons.badge_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.badge_rounded,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Faculty Directory',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Live source with backup fallback',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: (isDark ? Colors.white : Colors.black)
-                                          .withValues(alpha: 0.55),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: IrisTokens.brand.withValues(alpha: 0.14),
-                                      borderRadius: BorderRadius.circular(999),
-                                      border: Border.all(
-                                        color: IrisTokens.brand.withValues(alpha: 0.24),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      _sourceLabel(_source),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Faculty Directory',
                                       style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.7,
-                                        color: IrisTokens.brand.withValues(alpha: 0.9),
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.2,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                      'Live source with backup fallback',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: (isDark ? Colors.white : Colors.black)
+                                            .withValues(alpha: 0.55),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: IrisTokens.brand.withValues(alpha: 0.14),
+                                        borderRadius: BorderRadius.circular(999),
+                                        border: Border.all(
+                                          color: IrisTokens.brand.withValues(alpha: 0.24),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _sourceLabel(_source),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.7,
+                                          color: IrisTokens.brand.withValues(alpha: 0.9),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 16),
                         GlassCard(
@@ -12864,7 +8039,9 @@ class _DepartmentClassesScreenState extends State<_DepartmentClassesScreen> {
                             batch: widget.currentBatch,
                             brain: widget.brain!,
                             onRoleChanged: widget.onRoleChanged,
-        onBatchChanged: widget.onBatchChanged,
+                            onBatchChanged: widget.onBatchChanged,
+                            onAddMakeupClass: widget.onAddMakeupClass,
+                            onRemoveMakeupClass: widget.onRemoveMakeupClass,
                           ),
                         )
                       : () {
@@ -13411,6 +8588,8 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
         brain: widget.brain,
         onRoleChanged: widget.onRoleChanged,
         onBatchChanged: widget.onBatchChanged,
+        onAddMakeupClass: widget.onAddMakeupClass,
+        onRemoveMakeupClass: widget.onRemoveMakeupClass,
       ),
     );
   }
@@ -13428,6 +8607,8 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
         brain: widget.brain,
         onRoleChanged: widget.onRoleChanged,
         onBatchChanged: widget.onBatchChanged,
+        onAddMakeupClass: widget.onAddMakeupClass,
+        onRemoveMakeupClass: widget.onRemoveMakeupClass,
       ),
     );
   }
@@ -13535,81 +8716,69 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                 children: [
                   const SizedBox(height: 12),
                   // Header
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          purple.withValues(alpha: 0.18),
-                          indigo.withValues(alpha: 0.10),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: purple.withValues(alpha: isDark ? 0.35 : 0.18),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [purple, purpleLight, purpleLight],
-                            ),
-                            borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(
-                                color: purple.withValues(alpha: 0.35),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
+                  DirectoryAnimationWidget(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [purple, purpleLight, purpleLight],
                               ),
-                            ],
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: purple.withValues(alpha: 0.35),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.schedule_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.schedule_rounded,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ShaderMask(
-                                shaderCallback: (bounds) =>
-                                    const LinearGradient(
-                                      colors: [purple, purpleLight],
-                                    ).createShader(bounds),
-                                child: const Text(
-                                  'Schedule Makeup',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 26,
-                                    letterSpacing: 0.3,
-                                    color: Colors.white,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ShaderMask(
+                                  shaderCallback: (bounds) =>
+                                      const LinearGradient(
+                                        colors: [purple, purpleLight],
+                                      ).createShader(bounds),
+                                  child: const Text(
+                                    'Schedule Makeup',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 26,
+                                      letterSpacing: 0.3,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Find free slots with your teacher',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  letterSpacing: 0.1,
-                                  color: (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.55),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Find free slots with your teacher',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    letterSpacing: 0.1,
+                                    color: (isDark ? Colors.white : Colors.black)
+                                        .withValues(alpha: 0.55),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 22),
@@ -15128,6 +10297,274 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
     return rawDate;
   }
 
+  List<Widget> _buildHeaderCardContent(
+    BuildContext context,
+    String titleText,
+    Color accentColor,
+    bool isDark,
+    int totalExams,
+    int completedExams,
+    int upcomingExams,
+    Map<String, dynamic>? nextExam,
+    int daysToNextExam,
+  ) {
+    return [
+      Row(
+        children: [
+          Icon(
+            widget.period == 'midterms' ? Icons.menu_book_rounded : Icons.school_rounded,
+            color: accentColor,
+            size: 26,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titleText,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: accentColor,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Exam Schedule',
+                  style: IrisTextStyles.headline(context).copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 80),
+          Container(
+            decoration: BoxDecoration(
+              color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              onPressed: widget.onToggleTheme,
+              icon: Icon(
+                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                size: 20,
+                color: isDark ? Colors.white70 : IrisTokens.brand,
+              ),
+              padding: const EdgeInsets.all(10),
+            ),
+          ),
+        ],
+      ),
+      
+      const SizedBox(height: 20),
+      Divider(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08), height: 1),
+      const SizedBox(height: 20),
+      
+      // Circular Progress & Stats Group
+      Row(
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 58,
+                height: 58,
+                child: CircularProgressIndicator(
+                  value: totalExams > 0 ? completedExams / totalExams : 0.0,
+                  strokeWidth: 5.5,
+                  backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                  valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                ),
+              ),
+              Text(
+                totalExams > 0 ? '${((completedExams / totalExams) * 100).round()}%' : '0%',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$completedExams / $totalExams Completed',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        widget.batch,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.65),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '$upcomingExams exams remaining',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+
+      // Next Exam Countdown Indicator / Completed Celebration State
+      if (nextExam != null) ...[
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.18),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.event_note_rounded, color: accentColor, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      daysToNextExam == 0
+                          ? 'NEXT EXAM IS TODAY 🔥'
+                          : daysToNextExam == 1
+                              ? 'NEXT EXAM IS TOMORROW 📚'
+                              : 'NEXT EXAM IN $daysToNextExam DAYS',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: accentColor,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      nextExam['subject']?.toString() ?? 'Exam',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ] else if (totalExams > 0 && completedExams == totalExams) ...[
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF10B981).withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFF10B981).withValues(alpha: 0.18),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.celebration_rounded, color: Color(0xFF10B981), size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'ALL EXAMS COMPLETED! 🎉',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF10B981),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      "Enjoy your break! You've done an amazing job.",
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -15246,219 +10683,33 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
             }
           }
 
+          final headerWidget = widget.period == 'midterms'
+              ? MidtermsAnimationWidget(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _buildHeaderCardContent(
+                      context, titleText, accentColor, isDark,
+                      totalExams, completedExams, upcomingExams, nextExam, daysToNextExam
+                    ),
+                  ),
+                )
+              : FinalsAnimationWidget(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _buildHeaderCardContent(
+                      context, titleText, accentColor, isDark,
+                      totalExams, completedExams, upcomingExams, nextExam, daysToNextExam
+                    ),
+                  ),
+                );
+
           return CustomScrollView(
             physics: const ButterScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                  child: GlassCard(
-                    padding: const EdgeInsets.all(22),
-                    borderRadius: 32.0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: widget.period == 'midterms'
-                                      ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
-                                      : [const Color(0xFFF43F5E), const Color(0xFFE11D48)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: accentColor.withValues(alpha: 0.25),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                  child: Icon(Icons.assignment_rounded, color: Colors.white, size: 24)),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    titleText,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w900,
-                                      color: accentColor,
-                                      letterSpacing: 0.6,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Exam Schedule',
-                                    style: IrisTextStyles.headline(context).copyWith(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.08),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                onPressed: widget.onToggleTheme,
-                                icon: Icon(
-                                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                                  size: 20,
-                                  color: isDark ? Colors.white70 : IrisTokens.brand,
-                                ),
-                                padding: const EdgeInsets.all(10),
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 20),
-                        Divider(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08), height: 1),
-                        const SizedBox(height: 20),
-                        
-                        // Circular Progress & Stats Group
-                        Row(
-                          children: [
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 52,
-                                  height: 52,
-                                  child: CircularProgressIndicator(
-                                    value: totalExams > 0 ? completedExams / totalExams : 0.0,
-                                    strokeWidth: 5,
-                                    backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-                                  ),
-                                ),
-                                Text(
-                                  totalExams > 0 ? '${((completedExams / totalExams) * 100).round()}%' : '0%',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '$completedExams / $totalExams Completed',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w900,
-                                      color: isDark ? Colors.white : Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          widget.batch,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
-                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '$upcomingExams exams remaining',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // Next Exam Countdown Indicator
-                        if (nextExam != null) ...[
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: accentColor.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: accentColor.withValues(alpha: 0.15),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.event_rounded, color: accentColor, size: 18),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        daysToNextExam == 0
-                                            ? 'NEXT EXAM: TODAY 🔥'
-                                            : daysToNextExam == 1
-                                                ? 'NEXT EXAM: TOMORROW 📚'
-                                                : 'NEXT EXAM: IN $daysToNextExam DAYS',
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w900,
-                                          color: accentColor,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      Text(
-                                        nextExam['subject']?.toString() ?? 'Exam',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark ? Colors.white : Colors.black87,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                  child: headerWidget,
                 ),
               ),
               
@@ -15574,48 +10825,72 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
                           final dateStr = group['date'] as String;
                           final groupExams = group['exams'] as List;
                           final parsedDate = _parseExamDate(dateStr);
-                          final isTodayDate = _getExamStatus(parsedDate) == 'TODAY';
+                          final examStatus = _getExamStatus(parsedDate);
+                          final isTodayDate = examStatus == 'TODAY';
+                          final isCompletedDate = examStatus == 'COMPLETED';
+                          
+                          final timelineColor = isCompletedDate
+                              ? (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06)
+                              : (isTodayDate ? const Color(0xFF4F46E5) : accentColor).withValues(alpha: 0.35);
                           
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Beautiful Left-Bordered Sticky Date Header
+                                // Beautiful sticky-style date header with timeline bullet
                                 Row(
                                   children: [
                                     Container(
-                                      width: 4,
-                                      height: 20,
+                                      width: 16,
+                                      height: 16,
                                       decoration: BoxDecoration(
-                                        color: isTodayDate ? const Color(0xFF4F46E5) : accentColor.withValues(alpha: 0.7),
-                                        borderRadius: BorderRadius.circular(2),
+                                        shape: BoxShape.circle,
+                                        color: (isTodayDate ? const Color(0xFF4F46E5) : accentColor).withValues(alpha: 0.15),
+                                        border: Border.all(
+                                          color: (isTodayDate ? const Color(0xFF4F46E5) : accentColor).withValues(alpha: 0.4),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: isTodayDate ? const Color(0xFF4F46E5) : accentColor,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(width: 10),
+                                    const SizedBox(width: 12),
                                     Text(
                                       _formatExamDate(dateStr),
                                       style: IrisTextStyles.headline(context).copyWith(
-                                        fontSize: 15,
+                                        fontSize: 14.5,
                                         fontWeight: FontWeight.w900,
                                         color: isTodayDate 
                                             ? const Color(0xFF4F46E5) 
-                                            : (isDark ? Colors.white70 : Colors.black87),
-                                        letterSpacing: 0.2,
+                                            : (isDark ? Colors.white : Colors.black87),
+                                        letterSpacing: 0.1,
                                       ),
                                     ),
                                     if (isTodayDate) ...[
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 10),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF4F46E5).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: const Color(0xFF4F46E5).withValues(alpha: 0.25),
+                                            width: 1,
+                                          ),
                                         ),
                                         child: const Text(
-                                          'TODAY',
+                                          'TODAY 🔥',
                                           style: TextStyle(
-                                            fontSize: 9,
+                                            fontSize: 8.5,
                                             fontWeight: FontWeight.w900,
                                             color: Color(0xFF4F46E5),
                                             letterSpacing: 0.5,
@@ -15625,33 +10900,47 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
                                     ],
                                   ],
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 8),
                                 
                                 // Grouped cards with timeline vertical connector
-                                ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: groupExams.length,
-                                  separatorBuilder: (context, _) => const SizedBox(height: 10),
-                                  itemBuilder: (context, examIdx) {
-                                    final exam = groupExams[examIdx];
-                                    final subject = exam['subject']?.toString() ?? 'Unknown Exam';
-                                    final timeStr = exam['time']?.toString() ?? 'TBD';
-                                    final roomsList = List<String>.from(exam['rooms'] ?? []);
-                                    final status = _getExamStatus(parsedDate);
-                                    
-                                    return StaggeredListItem(
-                                      index: groupIdx * 10 + examIdx,
-                                      child: ExamCard(
-                                        subject: subject,
-                                        rawDate: dateStr,
-                                        parsedDate: parsedDate,
-                                        rawTime: timeStr,
-                                        rooms: roomsList,
-                                        status: status,
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 7.5),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: timelineColor,
+                                          width: 1.8,
+                                        ),
                                       ),
-                                    );
-                                  },
+                                    ),
+                                    padding: const EdgeInsets.only(left: 20, top: 4, bottom: 4),
+                                    child: ListView.separated(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      itemCount: groupExams.length,
+                                      separatorBuilder: (context, _) => const SizedBox(height: 12),
+                                      itemBuilder: (context, examIdx) {
+                                        final exam = groupExams[examIdx];
+                                        final subject = exam['subject']?.toString() ?? 'Unknown Exam';
+                                        final timeStr = exam['time']?.toString() ?? 'TBD';
+                                        final roomsList = List<String>.from(exam['rooms'] ?? []);
+                                        final status = _getExamStatus(parsedDate);
+                                        
+                                        return StaggeredListItem(
+                                          index: groupIdx * 10 + examIdx,
+                                          child: ExamCard(
+                                            subject: subject,
+                                            rawDate: dateStr,
+                                            parsedDate: parsedDate,
+                                            rawTime: timeStr,
+                                            rooms: roomsList,
+                                            status: status,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(height: 12),
                               ],
@@ -15670,7 +10959,7 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
   }
 }
 
-class ExamCard extends StatelessWidget {
+class ExamCard extends StatefulWidget {
   final String subject;
   final String rawDate;
   final DateTime? parsedDate;
@@ -15687,6 +10976,45 @@ class ExamCard extends StatelessWidget {
     required this.status,
     super.key,
   });
+
+  @override
+  State<ExamCard> createState() => _ExamCardState();
+}
+
+class _ExamCardState extends State<ExamCard> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+    _glowAnimation = Tween<double>(begin: 0.12, end: 0.40).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    if (widget.status == 'TODAY') {
+      _pulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(ExamCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.status == 'TODAY' && !_pulseController.isAnimating) {
+      _pulseController.repeat(reverse: true);
+    } else if (widget.status != 'TODAY' && _pulseController.isAnimating) {
+      _pulseController.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   String _formatExamDate(String rawDate) {
     final parts = rawDate.split(' ');
@@ -15716,11 +11044,14 @@ class ExamCard extends StatelessWidget {
   }
 
   String _formatExamTime(String rawTime) {
-    final timeRegex = RegExp(r'(\d{2})(\d{2})-(\d{2})(\d{2})');
+    final timeRegex = RegExp(r'(\d{1,2}):?(\d{2})\s*-\s*(\d{1,2}):?(\d{2})');
     final match = timeRegex.firstMatch(rawTime);
     if (match != null) {
       String formatPart(String hr, String min) {
         int h = int.parse(hr);
+        if (h >= 1 && h <= 8) {
+          h += 12;
+        }
         final ampm = h >= 12 ? 'PM' : 'AM';
         if (h > 12) h -= 12;
         if (h == 0) h = 12;
@@ -15736,139 +11067,243 @@ class ExamCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     Color statusColor;
-    String badgeText = status;
-    if (status == 'COMPLETED') {
-      statusColor = isDark ? Colors.white30 : Colors.black.withValues(alpha: 0.3);
+    String badgeText = widget.status;
+    if (widget.status == 'COMPLETED') {
+      statusColor = isDark ? Colors.white30 : Colors.black.withValues(alpha: 0.35);
       badgeText = 'COMPLETED';
-    } else if (status == 'TODAY') {
-      statusColor = const Color(0xFF4F46E5);
+    } else if (widget.status == 'TODAY') {
+      statusColor = const Color(0xFF4F46E5); // Deep Indigo
       badgeText = 'TODAY 🔥';
     } else {
-      statusColor = const Color(0xFF10B981);
-      if (parsedDate != null) {
-        final diff = DateTime(parsedDate!.year, parsedDate!.month, parsedDate!.day)
+      statusColor = const Color(0xFF10B981); // Emerald Green
+      if (widget.parsedDate != null) {
+        final diff = DateTime(widget.parsedDate!.year, widget.parsedDate!.month, widget.parsedDate!.day)
             .difference(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))
             .inDays;
         badgeText = diff == 1 ? 'TOMORROW' : 'IN $diff DAYS';
       }
     }
 
-    final displayDate = _formatExamDate(rawDate);
-    final displayTime = _formatExamTime(rawTime);
-    final displayRooms = rooms.isEmpty ? 'TBD' : rooms.join(' // ');
+    final displayDate = _formatExamDate(widget.rawDate);
+    final displayTime = _formatExamTime(widget.rawTime);
+    final displayRooms = widget.rooms.isEmpty ? 'TBD' : widget.rooms.join(' // ');
+    final isToday = widget.status == 'TODAY';
 
-    return Opacity(
-      opacity: status == 'COMPLETED' ? 0.55 : 1.0,
-      child: GlassCard(
-        padding: const EdgeInsets.all(16),
-        borderRadius: 20,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+    final cardContent = InkWell(
+      onTap: () {
+        IrisHaptics.actionSoft();
+        Clipboard.setData(ClipboardData(text: '${widget.subject} - Rooms: $displayRooms, Date: $displayDate, Time: $displayTime'));
+        showIrisFrostedSnackBar(
+          context,
+          content: Text('Copied venue details: $displayRooms'),
+          tint: statusColor,
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(6),
+            // Left Indicator Accent Bar
+            Container(
+              width: 6,
+              decoration: BoxDecoration(
+                color: statusColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
+                ),
+                boxShadow: isToday ? [
+                  BoxShadow(
+                    color: statusColor.withValues(alpha: 0.6),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ] : null,
+              ),
+            ),
+            
+            // Card Details Pane
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'VENUE ALLOCATION',
+                            style: TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                              color: (isDark ? Colors.white.withValues(alpha: 0.55) : Colors.black.withValues(alpha: 0.55)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: statusColor.withValues(alpha: 0.20), width: 1),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: statusColor,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      'VENUE ALLOCATION',
+                    
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.subject,
                       style: TextStyle(
-                        fontSize: 8.5,
+                        fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                        color: (isDark ? Colors.white.withValues(alpha: 0.55) : Colors.black.withValues(alpha: 0.55)),
+                        color: isDark ? Colors.white : Colors.black87,
+                        height: 1.25,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: statusColor.withValues(alpha: 0.20), width: 1),
-                  ),
-                  child: Text(
-                    badgeText,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: statusColor,
-                      letterSpacing: 0.5,
+                    
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Icon(
+                            Icons.meeting_room_rounded,
+                            size: 14,
+                            color: statusColor.withValues(alpha: 0.8),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: widget.rooms.isEmpty
+                                ? [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'TBD',
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark ? Colors.white70 : Colors.black87,
+                                        ),
+                                      ),
+                                    )
+                                  ]
+                                : widget.rooms.map((room) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: statusColor.withValues(alpha: 0.06),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: statusColor.withValues(alpha: 0.15),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        room,
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark
+                                              ? Colors.white.withValues(alpha: 0.87)
+                                              : Colors.black.withValues(alpha: 0.87),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_rounded,
+                          size: 14,
+                          color: isDark ? Colors.white38 : Colors.black38,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '$displayDate  |  $displayTime',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white60 : Colors.black54,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              subject,
-              style: IrisTextStyles.headline(context).copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                height: 1.25,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Icon(
-                  Icons.meeting_room_rounded,
-                  size: 13,
-                  color: isDark ? Colors.white54 : Colors.black54,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    displayRooms,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white70 : Colors.black87,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Icon(
-                  Icons.schedule_rounded,
-                  size: 13,
-                  color: isDark ? Colors.white54 : Colors.black54,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    '$displayDate // $displayTime',
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white60 : Colors.black54,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
             ),
           ],
         ),
       ),
+    );
+
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        final borderGlow = isToday ? _glowAnimation.value : 0.08;
+        return Opacity(
+          opacity: widget.status == 'COMPLETED' ? 0.55 : 1.0,
+          child: GlassCard(
+            padding: EdgeInsets.zero,
+            borderRadius: 20,
+            glow: isToday,
+            accentColor: statusColor,
+            border: isToday
+                ? Border.all(
+                    color: statusColor.withValues(alpha: borderGlow),
+                    width: 1.5,
+                  )
+                : null,
+            child: child!,
+          ),
+        );
+      },
+      child: cardContent,
     );
   }
 }

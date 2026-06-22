@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "iris-138ef",
     "public": "admin_portal",
     "ignore": [
       "firebase.json",

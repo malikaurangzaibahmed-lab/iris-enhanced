@@ -3,15 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IRIS // Control Center Console</title>
+  <title>Nexsync // Control Center Console</title>
   
+  <!-- Google Fonts for High-Fidelity UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Sleek Tech Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=1.0.9">
+  <link rel="stylesheet" href="styles.css?v=1.2.0">
 </head>
 <body>
+
+  <!-- DYNAMIC LIQUID GLASS BACKGROUND -->
+  <div class="liquid-background-container">
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="liquid-blob blob-3"></div>
+    <div class="liquid-blob blob-4"></div>
+  </div>
+
+  <div id="svg-filters-container" style="position: absolute; width: 0; height: 0; pointer-events: none; overflow: hidden;"></div>
 
   <!-- TECH LOADER -->
   <div id="initial-loader" class="loader-overlay">
@@ -22,7 +37,7 @@
           <circle cx="25" cy="25" r="20"></circle>
         </svg>
       </div>
-      <div class="loader-title">IRIS // CONTROL CENTER</div>
+      <div class="loader-title">NEXSYNC // CONTROL CENTER</div>
       <div class="loader-subtitle">initializing administrative console...</div>
       <div class="loader-bar"><div class="bar-fill"></div></div>
     </div>
@@ -36,7 +51,7 @@
       <div class="tech-logo-badge">
         <i class="fa-solid fa-circle-nodes logo-icon"></i>
       </div>
-      <h2>IRIS Control Console</h2>
+      <h2>Nexsync Control Console</h2>
       <p class="subtitle">secure administrator authentication required</p>
       
       <div class="connection-beacon" id="auth-connection-beacon">
@@ -71,7 +86,7 @@
     <header class="system-header-nav">
       <div class="brand">
         <i class="fa-solid fa-circle-nodes brand-icon"></i>
-        <span class="brand-name">iris // control center</span>
+        <span class="brand-name">nexsync // control center</span>
         <span class="badge">
           <span class="status-dot pulsing-active"></span>
           <span>SYSTEM CONNECTED</span>
@@ -102,39 +117,11 @@
         
         <!-- CARD 1: TERM SCHEDULER HUB -->
         <div class="tech-card">
-          <div style="display: flex; align-items: flex-start; justify-content: space-between;">
-            <div>
-              <div class="card-header">
-                <i class="fa-solid fa-calendar-days icon-accent"></i>
-                <h3>Term Scheduler</h3>
-              </div>
-              <p class="card-desc">Select active semester configurations. Changes propagate live to mobile client noticeboards.</p>
-            </div>
-            
-            <!-- Compact Interactive SVG Orbits indicator -->
-            <div class="orbit-map-wrapper">
-              <svg class="orbit-map-canvas" id="orbit-map-svg" viewBox="0 0 120 120" style="width: 72px; height: 72px;">
-                <circle class="track" cx="60" cy="60" r="16"></circle>
-                <circle class="track" cx="60" cy="60" r="28"></circle>
-                <circle class="track" cx="60" cy="60" r="40"></circle>
-                <circle class="track" cx="60" cy="60" r="52"></circle>
-                <circle cx="60" cy="60" r="4" fill="#4f46e5"></circle>
-                
-                <g class="orbiting-body" id="orbit-body-classes">
-                  <circle class="planet" cx="60" cy="44" r="3" fill="#3b82f6"></circle>
-                </g>
-                <g class="orbiting-body" id="orbit-body-midterms">
-                  <circle class="planet" cx="60" cy="32" r="2.5" fill="#f59e0b"></circle>
-                </g>
-                <g class="orbiting-body" id="orbit-body-finals">
-                  <circle class="planet" cx="60" cy="20" r="3" fill="#f43f5e"></circle>
-                </g>
-                <g class="orbiting-body" id="orbit-body-sports_week">
-                  <circle class="planet" cx="60" cy="8" r="2.5" fill="#10b981"></circle>
-                </g>
-              </svg>
-            </div>
+          <div class="card-header">
+            <i class="fa-solid fa-calendar-days icon-accent"></i>
+            <h3>Term Scheduler</h3>
           </div>
+          <p class="card-desc">Select active semester configurations. Changes propagate live to mobile client noticeboards.</p>
           
           <!-- Segmented Switcher -->
           <div class="ribbon-switcher" id="academic-ribbon">
@@ -489,19 +476,14 @@
           </div>
           <p class="card-desc">Monitor real-time network latency, database traffic loads, and service health metrics.</p>
           
-          <!-- Telemetry Sync Beacon -->
+          <!-- Telemetry Sync Status Row -->
           <div class="telemetry-sparkline-container">
-            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Network Telemetry Beacon Sync Pulse</span>
-            <div class="telemetry-radar-chassis">
-              <div class="radar-pings">
-                <span class="radar-pulse-ring r1"></span>
-                <span class="radar-pulse-ring r2"></span>
-                <span class="radar-pulse-ring r3"></span>
-                <span class="radar-beacon-center"></span>
-              </div>
-              <div class="radar-signal-status">
-                <span class="radar-signal-title">ACTIVE BROADCAST SIGNAL HEARTBEAT</span>
-                <span class="radar-signal-frequency">2.44 GHz // DUPLEX SYNCHRONOUS FLOW</span>
+            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Network Telemetry System Status</span>
+            <div class="telemetry-status-row">
+              <span class="status-indicator-dot green"></span>
+              <div class="status-info">
+                <span class="status-title">DATABASE SYNCHRONIZATION OPERATIONAL</span>
+                <span class="status-subtitle">REAL-TIME DATA STREAM INTEGRITY SECURED</span>
               </div>
             </div>
           </div>
@@ -698,6 +680,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- Console Script -->
-  <script src="app.js?v=1.0.9"></script>
+  <script src="app.js?v=1.1.0"></script>
 </body>
 </html>

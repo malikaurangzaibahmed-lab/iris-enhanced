@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../core/theme_signals.dart';
+import '../core/tokens.dart';
 import 'dart:math' as math;
 
 const MethodChannel _uiSoundChannel = MethodChannel('iris/ui_sound_channel');
@@ -221,13 +221,13 @@ class IrisSfx {
 /// UI Haptic Feedback
 class IrisHaptics {
   static bool _enabled = true;
-  static String _profile = 'balanced';
+  static String _profile = 'gentle';
   static int _lastPulseMs = 0;
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _enabled = prefs.getBool('ui_haptics_enabled') ?? true;
-    _profile = prefs.getString('ui_feedback_profile') ?? 'balanced';
+    _profile = prefs.getString('ui_feedback_profile') ?? 'gentle';
   }
 
   static Future<void> setEnabled(bool value) async {
@@ -557,8 +557,8 @@ void _showIrisTopPill(
                         ambientStrength: 0.70,
                         lightAngle: 0.15 * math.pi,
                         glassColor: isDark
-                            ? const Color(0xFF020617).withValues(alpha: 0.15)
-                            : Colors.white.withValues(alpha: 0.28),
+                            ? const Color(0xFF030712).withValues(alpha: 0.6)
+                            : const Color(0xFFF9FAFB).withValues(alpha: 0.82),
                         thickness: 12,
                       ),
                       radius: cornerRadius,
@@ -570,24 +570,18 @@ void _showIrisTopPill(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(cornerRadius),
                             border: Border.all(
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.08),
-                              width: 1.8,
+                              color: tone.withValues(alpha: dotMode ? 0.0 : 0.28),
+                              width: 1.2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.06),
-                                blurRadius: 16,
-                                spreadRadius: -4,
-                                offset: const Offset(0, 6),
-                              ),
-                              BoxShadow(
-                                color:
-                                    tone.withValues(alpha: dotMode ? 0.0 : 0.08),
-                                blurRadius: 12,
-                                spreadRadius: -6,
-                                offset: const Offset(0, 3),
-                              ),
+                                  color: (isDark ? Colors.black : tone).withValues(
+                                    alpha: isDark ? 0.44 : 0.12,
+                                  ),
+                                  blurRadius: 16,
+                                  spreadRadius: -4,
+                                  offset: const Offset(0, 6),
+                                ),
                             ],
                           ),
                           child: AnimatedSwitcher(
@@ -626,8 +620,8 @@ void _showIrisTopPill(
                                             text,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              color: Colors.white,
+                                            style: TextStyle(
+                                              color: isDark ? Colors.white : Colors.black87,
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                               letterSpacing: 0.18,
@@ -642,20 +636,22 @@ void _showIrisTopPill(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.12),
+                                              color: isDark
+                                                  ? Colors.white.withValues(alpha: 0.12)
+                                                  : IrisTokens.brand.withValues(alpha: 0.08),
                                               borderRadius:
                                                   BorderRadius.circular(999),
                                               border: Border.all(
-                                                color: Colors.white
-                                                    .withValues(alpha: 0.18),
+                                                color: isDark
+                                                    ? Colors.white.withValues(alpha: 0.18)
+                                                    : IrisTokens.brand.withValues(alpha: 0.24),
                                                 width: 0.8,
                                               ),
                                             ),
                                             child: Text(
                                               action.label,
-                                              style: const TextStyle(
-                                                color: Colors.white,
+                                              style: TextStyle(
+                                                color: isDark ? Colors.white : IrisTokens.brand,
                                                 fontSize: 10.5,
                                                 fontWeight: FontWeight.w800,
                                                 letterSpacing: 0.14,

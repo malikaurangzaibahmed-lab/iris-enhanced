@@ -16,6 +16,7 @@ import '../widgets/neural_aura.dart';
 import '../core/theme_signals.dart';
 import '../core/minimal_theme.dart';
 import '../core/vital_theme.dart';
+import 'students_week_screen.dart';
 
 class TeacherLocatorScreen extends StatefulWidget {
   final OmniBrain brain;
@@ -169,6 +170,10 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
   String _resolveFacultyImageUrl(String image) {
     final raw = image.trim();
     if (raw.isEmpty) return '';
+    if (raw.contains('uploads/')) {
+      final filename = raw.split('/').last;
+      return 'assets/faculty_images/$filename';
+    }
     if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
     if (raw.startsWith('/')) return '$_helpdeskBackendBase$raw';
     return '$_helpdeskBackendBase/$raw';
@@ -360,78 +365,80 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      ValueListenableBuilder<bool>(
-                        valueListenable: ThemeSignals.useMinimalTheme,
-                        builder: (context, useMinimal, _) {
-                          return Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: useMinimal ? MinimalTokens.primary : null,
-                              gradient: useMinimal ? null : LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [purple, purpleLight, purpleLight],
-                              ),
-                              borderRadius: BorderRadius.circular(18),
-                              boxShadow: useMinimal ? null : [
-                                BoxShadow(
-                                  color: purple.withValues(alpha: 0.18),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                  spreadRadius: -2,
+                  TeacherLocatorAnimationWidget(
+                    child: Row(
+                      children: [
+                        ValueListenableBuilder<bool>(
+                          valueListenable: ThemeSignals.useMinimalTheme,
+                          builder: (context, useMinimal, _) {
+                            return Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: useMinimal ? MinimalTokens.primary : null,
+                                gradient: useMinimal ? null : LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [purple, purpleLight, purpleLight],
                                 ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.person_search_rounded,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ValueListenableBuilder<bool>(
-                              valueListenable: ThemeSignals.useMinimalTheme,
-                              builder: (context, useMinimal, _) {
-                                if (useMinimal) {
-                                  return Text(
-                                    isFacultySelection ? 'Select Teacher' : 'Teacher Locator',
-                                    style: IrisTextStyles.classSubject(context).copyWith(
-                                      color: Theme.of(context).colorScheme.primary,
-                                      fontSize: 26,
-                                      letterSpacing: 0.3,
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: useMinimal ? null : [
+                                  BoxShadow(
+                                    color: purple.withValues(alpha: 0.18),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                    spreadRadius: -2,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.person_search_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ValueListenableBuilder<bool>(
+                                valueListenable: ThemeSignals.useMinimalTheme,
+                                builder: (context, useMinimal, _) {
+                                  if (useMinimal) {
+                                    return Text(
+                                      isFacultySelection ? 'Select Teacher' : 'Teacher Locator',
+                                      style: IrisTextStyles.classSubject(context).copyWith(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontSize: 26,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    );
+                                  }
+                                  return ShaderMask(
+                                    shaderCallback: (bounds) => const LinearGradient(
+                                      colors: [purple, purpleLight],
+                                    ).createShader(bounds),
+                                    child: Text(
+                                      isFacultySelection ? 'Select Teacher' : 'Teacher Locator',
+                                      style: IrisTextStyles.classSubject(context).copyWith(color: Colors.white, fontSize: 26, letterSpacing: 0.3),
                                     ),
                                   );
-                                }
-                                return ShaderMask(
-                                  shaderCallback: (bounds) => const LinearGradient(
-                                    colors: [purple, purpleLight],
-                                  ).createShader(bounds),
-                                  child: Text(
-                                    isFacultySelection ? 'Select Teacher' : 'Teacher Locator',
-                                    style: IrisTextStyles.classSubject(context).copyWith(color: Colors.white, fontSize: 26, letterSpacing: 0.3),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isFacultySelection
-                                  ? 'Choose a teacher to load your faculty schedule'
-                                  : 'Find any teacher\'s real-time location & schedule',
-                              style: IrisTextStyles.insightSubtext(context),
-                            ),
-                          ],
+                                },
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                isFacultySelection
+                                    ? 'Choose a teacher to load your faculty schedule'
+                                    : 'Find any teacher\'s real-time location & schedule',
+                                style: IrisTextStyles.insightSubtext(context),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
                   GlassCard(

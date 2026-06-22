@@ -10,6 +10,7 @@ import '../services/ui_feedback.dart'; // For IrisHaptics/Sfx
 import '../core/app_signals.dart';
 import '../core/theme_signals.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import '../widgets/native_liquid_glass.dart';
 import 'login_screen.dart';
 import '../widgets/glass_card.dart';
@@ -521,13 +522,14 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
       ),
       title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
       subtitle: Text(subtitle, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
-      trailing: Switch.adaptive(
+      trailing: GlassSwitch(
         value: value,
         onChanged: (v) {
           IrisHaptics.selectionClick();
           onChanged(v);
         },
         activeColor: VitalTokens.blue,
+        useOwnLayer: true,
       ),
     );
   }
