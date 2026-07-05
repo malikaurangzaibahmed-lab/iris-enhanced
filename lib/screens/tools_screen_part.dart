@@ -8,6 +8,8 @@ class ToolsScreen extends StatefulWidget {
   final ValueChanged<String>? onBatchChanged;
   final Future<void> Function(ClassSession session)? onAddMakeupClass;
   final Future<void> Function(ClassSession session)? onRemoveMakeupClass;
+  final ScrollController? scrollController;
+  final String searchQuery;
 
   const ToolsScreen({
     super.key,
@@ -18,6 +20,8 @@ class ToolsScreen extends StatefulWidget {
     this.onBatchChanged,
     this.onAddMakeupClass,
     this.onRemoveMakeupClass,
+    this.scrollController,
+    this.searchQuery = '',
   });
 
   @override
@@ -25,7 +29,6 @@ class ToolsScreen extends StatefulWidget {
 }
 
 class ToolsScreenState extends State<ToolsScreen> {
-  String _searchQuery = '';
   String _activeCategory = 'All';
 
   final List<String> _categories = ['All', 'Utilities', 'People', 'Planning'];
@@ -108,6 +111,14 @@ class ToolsScreenState extends State<ToolsScreen> {
         icon: Icons.location_on_rounded,
         color: IrisTokens.success,
         description: 'Find empty classrooms and labs available now',
+      ),
+      _ToolItem(
+        id: 'doc_workspace',
+        title: 'Document Workspace',
+        subtitle: 'Edit, convert, and split docs',
+        icon: Icons.edit_document,
+        color: IrisTokens.brand,
+        description: 'Plain-text notepad editor, format converter, and PDF page splitter tools',
       ),
     ];
   }
@@ -429,6 +440,13 @@ class ToolsScreenState extends State<ToolsScreen> {
           ),
         );
         return;
+      case 'doc_workspace':
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const DocumentWorkspaceScreen(),
+          ),
+        );
+        return;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Open $id for $department')),
@@ -448,13 +466,13 @@ class ToolsScreenState extends State<ToolsScreen> {
 
     final allUniversal = _prioritizeTool(_getUniversalTools(), recommendedId);
     
-    const utilityIds = {'cgpa_calculator'};
+    const utilityIds = {'cgpa_calculator', 'doc_workspace'};
     const peopleIds = {'teacher_locator', 'teacher_directory', 'browse_classes', 'find_rooms'};
     const planningIds = {'makeup_scheduler', 'transport_schedule', 'library_schedule', 'semester_schedule'};
 
     final filteredUniversal = allUniversal.where((t) {
-      final matchesSearch = t.title.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                          t.subtitle.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesSearch = t.title.toLowerCase().contains(widget.searchQuery.toLowerCase()) || 
+                          t.subtitle.toLowerCase().contains(widget.searchQuery.toLowerCase());
       if (!matchesSearch) return false;
       
       if (_activeCategory == 'All') return true;
@@ -470,6 +488,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         children: [
           ObsidianPulse(isDark: isDark),
           CustomScrollView(
+            controller: widget.scrollController,
             physics: VitalMotion.scrollPhysics,
             slivers: [
               SliverAppBar(
@@ -491,19 +510,6 @@ class ToolsScreenState extends State<ToolsScreen> {
                     ),
                   ),
                   background: const DirectoryBackgroundWidget(),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-                  child: TextField(
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    decoration: irisFrostedInputDecoration(
-                      label: 'Search tools...',
-                      isDark: isDark,
-                      prefixIcon: Icons.search_rounded,
-                    ),
-                  ),
                 ),
               ),
               SliverToBoxAdapter(
@@ -539,7 +545,7 @@ class ToolsScreenState extends State<ToolsScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    if (_searchQuery.isEmpty && _activeCategory == 'All') ...[
+                    if (widget.searchQuery.isEmpty && _activeCategory == 'All') ...[
                       _buildSmartInsightCard(
                         context: context,
                         isDark: isDark,

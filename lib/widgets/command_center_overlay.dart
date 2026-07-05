@@ -1,11 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/tokens.dart';
 import '../services/ui_feedback.dart';
 import '../core/animations.dart';
-import '../screens/login_screen.dart';
 import '../screens/iris_hub_screen.dart';
 
 /// A powerful 3D gesture wrapper that pushes your main application into the background,
@@ -238,104 +236,6 @@ class CommandCenterOverlayState extends State<CommandCenterOverlay> with SingleT
           ),
         ),
       ),
-    );
-  }
-
-  void _showSystemTuner(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.8),
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(32),
-          decoration: const BoxDecoration(
-            color: IrisTokens.surfaceDark,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.settings_suggest_rounded, size: 48, color: IrisTokens.brand),
-              const SizedBox(height: 16),
-              const Text("System Tuner", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text("Offline caching and synchronizers are actively managing your Firebase quotas automatically. No manual tuning required.", textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, fontSize: 14)),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () { 
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Cloud Sync Validated!"), backgroundColor: IrisTokens.success));
-                  },
-                  icon: const Icon(Icons.cloud_sync_rounded, color: Colors.white),
-                  label: const Text("Force Sync Offline Queue", style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(backgroundColor: IrisTokens.brand, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ]
-          )
-        );
-      }
-    );
-  }
-
-  void _showSecurityPanel(BuildContext context, User? user) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.8),
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(32),
-          decoration: const BoxDecoration(
-            color: IrisTokens.surfaceDark,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.shield_rounded, size: 32, color: IrisTokens.success),
-                  SizedBox(width: 16),
-                  Text("Security Clearance", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 32),
-              _buildSecurityRow("Auth Engine", "Firebase Zero-Cost Tier"),
-              _buildSecurityRow("Active UID", user?.uid ?? "OFFLINE_GUEST"),
-              _buildSecurityRow("Encryption", "AES-256 (Local DB)"),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text("CLOSE SECURE LINK", style: TextStyle(color: Colors.white54, letterSpacing: 2)),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ]
-          )
-        );
-      }
-    );
-  }
-
-  Widget _buildSecurityRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label.toUpperCase(), style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10, letterSpacing: 1.5)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'monospace')),
-        ],
-      )
     );
   }
 }

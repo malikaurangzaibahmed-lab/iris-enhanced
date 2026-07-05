@@ -36,86 +36,35 @@ object LiquidGlassBitmapGenerator {
         backgroundResId: Int,
         isDark: Boolean
     ): Bitmap? {
-        Log.d(TAG, "Generating hardware-accelerated glass bitmap: ${width}x${height}, dark=$isDark")
-        if (width <= 0 || height <= 0) return null
+        // AppWidgets run in background/launcher processes where HardwareRenderer/PixelCopy 
+        // are unsupported and block the main thread, causing severe widget freezes and ANRs.
+        // Return null to let the widget layout fallback gracefully to the native XML shape/drawable.
+        return null
+    }
 
-        // Create a dummy container to host the views for rendering
-        val container = FrameLayout(context)
-        container.layoutParams = ViewGroup.LayoutParams(width, height)
-        
-        // Add background image
-        val bgView = ImageView(context)
-        bgView.setImageResource(backgroundResId)
-        bgView.scaleType = ImageView.ScaleType.CENTER_CROP
-        container.addView(bgView, FrameLayout.LayoutParams(width, height))
-
-        // Add LiquidGlassView
-        val glassView = LiquidGlassView(context)
-        glassView.setCornerRadius(32f)
-        glassView.setBlurRadius(if (isDark) 25f else 23f)
-        glassView.setTintAlpha(if (isDark) 0.48f else 0.56f)
-
-        container.addView(glassView, FrameLayout.LayoutParams(width, height))
-        glassView.bind(container)
-
-        // Measure and layout
-        container.measure(
-            View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
-        )
-        container.layout(0, 0, width, height)
-
-        // Setup HardwareRenderer to capture the shader
-        val renderNode = RenderNode("GlassWidgetRender")
-        renderNode.setPosition(0, 0, width, height)
-        
-        val canvas = renderNode.beginRecording()
-        container.draw(canvas)
-        renderNode.endRecording()
-
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val surfaceTexture = SurfaceTexture(0)
-        surfaceTexture.setDefaultBufferSize(width, height)
-        val surface = Surface(surfaceTexture)
-
-        val renderer = HardwareRenderer()
-        renderer.setSurface(surface)
-        renderer.setContentRoot(renderNode)
-        
+    private fun drawSoftwareFallback(
+        context: Context,
+        container: ViewGroup,
+        bitmap: Bitmap,
+        backgroundResId: Int,
+        width: Int,
+        height: Int
+    ) {
         try {
-            // Trigger a hardware frame
-            renderer.createRenderRequest()
-                .setVsyncTime(System.nanoTime())
-                .syncAndDraw()
-
-            // Capture the surface content back to a bitmap
-            val latch = CountDownLatch(1)
-            var pixelCopyResult = -1
-            
-            PixelCopy.request(surface, bitmap, { result ->
-                pixelCopyResult = result
-                latch.countDown()
-            }, Handler(Looper.getMainLooper()))
-            
-            val success = latch.await(2, TimeUnit.SECONDS)
-            if (!success || pixelCopyResult != PixelCopy.SUCCESS) {
-                Log.e(TAG, "PixelCopy failed: success=$success, result=$pixelCopyResult")
-                // Fallback to software draw (no glass effect)
-                val softwareCanvas = Canvas(bitmap)
-                container.draw(softwareCanvas)
-            } else {
-                Log.d(TAG, "PixelCopy successful")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Hardware rendering failed: ${e.message}", e)
             val softwareCanvas = Canvas(bitmap)
             container.draw(softwareCanvas)
-        } finally {
-            renderer.destroy()
-            surface.release()
-            surfaceTexture.release()
+        } catch (e: Exception) {
+            Log.w(TAG, "Software container draw failed, drawing fallback drawable: ${e.message}")
+            try {
+                val drawable = context.getDrawable(backgroundResId)
+                if (drawable != null) {
+                    drawable.setBounds(0, 0, width, height)
+                    val canvas = Canvas(bitmap)
+                    drawable.draw(canvas)
+                }
+            } catch (ex: Exception) {
+                Log.e(TAG, "Safelight fallback drawable failed: ${ex.message}", ex)
+            }
         }
-        
-        return bitmap
     }
 }

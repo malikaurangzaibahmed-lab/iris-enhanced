@@ -16,6 +16,7 @@ class PortalTasksWidget : AppWidgetProvider() {
     companion object {
         private const val TAG = "PortalTasksWidget"
         private val PREFS_NAMES = arrayOf(
+            "group.com.example.student_organizer",
             "com.example.student_organizer_preferences",
             "com.example.student_organizer",
             "HomeWidgetPreferences",
@@ -48,6 +49,27 @@ class PortalTasksWidget : AppWidgetProvider() {
 
                 val layoutId = if (widgetDarkMode) R.layout.widget_portal_tasks_dark else R.layout.widget_portal_tasks
                 val views = RemoteViews(context.packageName, layoutId)
+
+                // Apply Liquid Glass background effect if supported (Android 13+)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    Log.d(TAG, "Generating LiquidGlass background for PortalTasksWidget $appWidgetId")
+                    try {
+                        val sizePx = getWidgetSizePx(context, appWidgetManager, appWidgetId)
+                        val bgRes = if (widgetDarkMode) R.drawable.widget_fluffy_dark_bg else R.drawable.widget_fluffy_bg
+                        val glassBitmap = LiquidGlassBitmapGenerator.generateGlassBitmap(
+                            context,
+                            sizePx.first,
+                            sizePx.second,
+                            bgRes,
+                            widgetDarkMode,
+                        )
+                        if (glassBitmap != null) {
+                            views.setImageViewBitmap(R.id.widget_glass_bg, glassBitmap)
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "LiquidGlass background generation failed: ${e.message}", e)
+                    }
+                }
 
                 views.setTextViewText(R.id.widget_last_sync, lastSync)
 
@@ -93,6 +115,23 @@ class PortalTasksWidget : AppWidgetProvider() {
             } catch (e: Exception) {
                 Log.e(TAG, "PortalTasksWidget update failed: ${e.message}", e)
             }
+        }
+
+        private fun getWidgetSizePx(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int,
+        ): Pair<Int, Int> {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            var widthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+            var heightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+            if (widthDp <= 0) widthDp = 180
+            if (heightDp <= 0) heightDp = 110
+
+            val dm: android.util.DisplayMetrics = context.resources.displayMetrics
+            val widthPx = (widthDp * dm.density).toInt().coerceAtLeast(240)
+            val heightPx = (heightDp * dm.density).toInt().coerceAtLeast(140)
+            return Pair(widthPx, heightPx)
         }
 
         private fun updateAllInstances(

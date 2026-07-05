@@ -245,7 +245,7 @@ class PDFTimetableParser {
       startTime: timeRange.start,
       endTime: timeRange.end,
       subject: _cleanLabel(subject),
-      teacher: _cleanLabel(teacher),
+      teacher: FormatGuard.formatTeacherName(teacher),
       room: FormatGuard.sanitizeRoom(room),
     );
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'dart:isolate';
 import 'package:http/http.dart' as http;
 import 'package:iris/core/models.dart';
 import 'package:iris/services/pdf_timetable_parser.dart';
@@ -14,10 +15,10 @@ class TimetableUpdateService {
     required File pdfFile,
     required String currentBatch,
   }) async {
-    final onDevice = await PDFTimetableParser.parsePDFTimetable(
+    final onDevice = await Isolate.run(() => PDFTimetableParser.parsePDFTimetable(
       pdfFile,
       currentBatch: currentBatch,
-    );
+    ));
 
     if (onDevice.length >= minOnDeviceSessions) {
       return onDevice;

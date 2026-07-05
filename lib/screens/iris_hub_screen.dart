@@ -12,7 +12,6 @@ import '../core/theme_signals.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import '../widgets/native_liquid_glass.dart';
-import 'login_screen.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
 import '../services/system_broadcast_service.dart';
@@ -153,8 +152,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                     _buildSectionHeader("MAINTENANCE", isDark),
                     const SizedBox(height: 16),
                     _buildOTACardPremium(isDark),
-                    const SizedBox(height: 48),
-                    _buildLogoutButton(user),
                     const SizedBox(height: 120),
                   ]),
                 ),
@@ -536,25 +533,7 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
 
   // God Mode Card helper widget pruned
 
-  Widget _buildLogoutButton(User? user) {
-    final color = user == null ? VitalTokens.blue : VitalTokens.error;
-    return VitalCard(
-      onTap: user == null ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())) : _handleLogout,
-      backgroundColor: color.withValues(alpha: 0.1),
-      border: Border.all(color: color.withValues(alpha: 0.2)),
-      child: Center(
-        child: Text(
-          user == null ? "VERIFY IDENTITY" : "TERMINATE SESSION",
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.5,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildOTACardPremium(bool isDark) {
     return VitalCard(
@@ -1077,10 +1056,7 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
     }
   }
 
-  Future<void> _handleLogout() async {
-    await FirebaseAuth.instance.signOut();
-    IrisHaptics.actionHeavy();
-  }
+
 }
 
 // Background Task Entry Point

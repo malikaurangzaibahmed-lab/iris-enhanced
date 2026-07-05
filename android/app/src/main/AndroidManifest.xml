@@ -58,11 +58,9 @@
             </intent-filter>
         </receiver>
         
-        <!-- Receiver for widget updates -->
         <receiver
             android:name=".ClassTrackerWidget"
-            android:exported="true"
-            android:permission="android.permission.BIND_APPWIDGET">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.example.student_organizer.WIDGET_UPDATE" />
@@ -72,11 +70,9 @@
                 android:resource="@xml/widget_provider_info" />
         </receiver>
 
-        <!-- Receiver for PortalTasksWidget updates -->
         <receiver
             android:name=".PortalTasksWidget"
-            android:exported="true"
-            android:permission="android.permission.BIND_APPWIDGET">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.example.student_organizer.PORTAL_WIDGET_UPDATE" />

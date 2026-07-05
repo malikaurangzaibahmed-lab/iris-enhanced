@@ -57,6 +57,9 @@ class WidgetService {
   static const String _prefHeadline = 'flutter.widget_headline';
   static const String _prefSubline = 'flutter.widget_subline';
   static const String _prefWidgetDarkMode = 'flutter.widget_dark_mode';
+  static const String _prefWidgetSubject = 'flutter.widget_subject';
+  static const String _prefWidgetRoom = 'flutter.widget_room';
+  static const String _prefWidgetStartTime = 'flutter.widget_start_time';
 
   static const String _widgetGroupId = 'com.example.student_organizer';
 
@@ -317,10 +320,17 @@ class WidgetService {
     required bool isLive,
     required bool isUrgent,
     required int progressPercentage,
+    String? subject,
+    String? room,
+    String? startTime,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
+      final finalSubject = subject ?? headline;
+      final finalRoom = room ?? '';
+      final finalStartTime = startTime ?? '';
+
       // Save all data to local prefs
       await prefs.setString(_prefHeadline, headline);
       await prefs.setString(_prefSubline, subline);
@@ -329,6 +339,9 @@ class WidgetService {
       await prefs.setBool(_prefIsClassLive, isLive);
       await prefs.setBool(_prefIsUrgent, isUrgent);
       await prefs.setInt(_prefProgressPercentage, progressPercentage);
+      await prefs.setString(_prefWidgetSubject, finalSubject);
+      await prefs.setString(_prefWidgetRoom, finalRoom);
+      await prefs.setString(_prefWidgetStartTime, finalStartTime);
       
       // Save to HomeWidget
       await HomeWidget.saveWidgetData<String>(_prefHeadline, headline);
@@ -338,6 +351,9 @@ class WidgetService {
       await HomeWidget.saveWidgetData<bool>(_prefIsClassLive, isLive);
       await HomeWidget.saveWidgetData<bool>(_prefIsUrgent, isUrgent);
       await HomeWidget.saveWidgetData<int>(_prefProgressPercentage, progressPercentage);
+      await HomeWidget.saveWidgetData<String>(_prefWidgetSubject, finalSubject);
+      await HomeWidget.saveWidgetData<String>(_prefWidgetRoom, finalRoom);
+      await HomeWidget.saveWidgetData<String>(_prefWidgetStartTime, finalStartTime);
       
       // Request widget update
       await HomeWidget.updateWidget(

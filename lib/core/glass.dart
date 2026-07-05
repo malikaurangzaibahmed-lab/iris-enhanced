@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import 'animations.dart';
 import 'tokens.dart';
 
@@ -65,6 +66,35 @@ class IrisGlass {
       lightAngle: lightAngle,
       glassColor: glassColor ?? adaptiveGlassColor(context),
       thickness: adaptiveThickness(context, thickness, min: minThickness),
+    );
+  }
+
+  static lgw.LiquidGlassSettings widgetsSettings(
+    BuildContext context, {
+    required double blur,
+    required double ambientStrength,
+    required double lightAngle,
+    required double thickness,
+    Color? glassColor,
+    double minBlur = 8.0,
+    double minThickness = 10.0,
+  }) {
+    final s = settings(
+      context,
+      blur: blur,
+      ambientStrength: ambientStrength,
+      lightAngle: lightAngle,
+      thickness: thickness,
+      glassColor: glassColor,
+      minBlur: minBlur,
+      minThickness: minThickness,
+    );
+    return lgw.LiquidGlassSettings(
+      blur: s.blur,
+      ambientStrength: s.ambientStrength,
+      lightAngle: s.lightAngle,
+      glassColor: s.glassColor,
+      thickness: s.thickness,
     );
   }
 

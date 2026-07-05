@@ -347,8 +347,14 @@ class _HeadlessPortalSyncState extends State<HeadlessPortalSync> {
       
       final host = uri.host;
       final prefs = await SharedPreferences.getInstance();
-      final u = prefs.getString('iris_login_user_${host.toLowerCase()}');
-      final p = prefs.getString('iris_login_pass_${host.toLowerCase()}');
+      
+      // Check student scope, global scope, and legacy key formats
+      final u = prefs.getString('iris_login_student_${host.toLowerCase()}_u') ??
+                prefs.getString('iris_login_global_${host.toLowerCase()}_u') ??
+                prefs.getString('iris_login_user_${host.toLowerCase()}');
+      final p = prefs.getString('iris_login_student_${host.toLowerCase()}_p') ??
+                prefs.getString('iris_login_global_${host.toLowerCase()}_p') ??
+                prefs.getString('iris_login_pass_${host.toLowerCase()}');
       
       if (u == null || p == null) {
         debugPrint('IRIS Headless: No saved login for $host, cannot auto-login.');

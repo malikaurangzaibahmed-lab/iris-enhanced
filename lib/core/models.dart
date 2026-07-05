@@ -178,7 +178,7 @@ class ClassSession {
       startTime: start,
       endTime: end,
       subject: subjectStr,
-      teacher: teacherStr,
+      teacher: FormatGuard.formatTeacherName(teacherStr),
       room: FormatGuard.sanitizeRoom(roomStr),
     );
   }

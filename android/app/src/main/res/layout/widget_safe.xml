@@ -15,29 +15,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
+        <!-- Top Bar Badge & Refresh -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="6dp">
 
             <TextView
                 android:id="@+id/widget_status_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="NEXT"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:textStyle="bold"
-                android:textColor="#5B7FFF"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:background="@drawable/widget_pill_badge"
-                android:visibility="gone" />
+                android:textColor="#FF5B7FFF"
+                android:paddingLeft="9dp"
+                android:paddingRight="9dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:background="@drawable/widget_pill_badge" />
 
             <FrameLayout
                 android:layout_width="0dp"
@@ -51,49 +51,135 @@
                 android:text="↻"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:textColor="#8BB5FF"
+                android:textColor="#334155"
                 android:padding="2dp" />
         </LinearLayout>
 
+        <!-- Uppercase State Indicator -->
+        <TextView
+            android:id="@+id/widget_state_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="NEXT UP"
+            android:textColor="#64748B"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.06"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Bold Class Title (Subject) -->
         <TextView
             android:id="@+id/widget_headline"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="System Idle"
+            android:text="OBJECT ORIENTED PROGRAMMING"
             android:textColor="#1E293B"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:id="@+id/widget_subline"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Loading schedule..."
-            android:textColor="#475569"
-            android:textSize="13sp"
-            android:fontFamily="sans-serif-medium"
-            android:ellipsize="end"
             android:maxLines="2"
+            android:ellipsize="end"
             android:layout_marginBottom="6dp" />
 
-        <TextView
-            android:id="@+id/widget_teacher_info"
+        <!-- Intermediate Capsule (Time and Location) -->
+        <LinearLayout
+            android:id="@+id/widget_class_details_capsule"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/widget_details_capsule"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/widget_details_start_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8:00 AM"
+                android:textColor="#475569"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <FrameLayout
+                android:id="@+id/widget_details_divider"
+                android:layout_width="1dp"
+                android:layout_height="10dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:background="#E2E8F0" />
+
+            <ImageView
+                android:id="@+id/widget_details_loc_icon"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginRight="3dp"
+                android:src="@drawable/widget_ic_loc" />
+
+            <TextView
+                android:id="@+id/widget_details_room"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C1.2"
+                android:textColor="#475569"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Translucent Teacher sub-card -->
+        <LinearLayout
+            android:id="@+id/widget_teacher_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textColor="#64748B"
-            android:textSize="11sp"
-            android:visibility="gone"
-            android:layout_marginBottom="6dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/widget_translucent_subcard"
+            android:padding="8dp"
+            android:layout_marginBottom="4dp">
+
+            <ImageView
+                android:id="@+id/widget_teacher_avatar"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginRight="8dp"
+                android:src="@drawable/widget_ic_teacher_avatar" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="TEACHER"
+                    android:textColor="#8B5CF6"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04" />
+
+                <TextView
+                    android:id="@+id/widget_teacher_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Mr. Hamza Arif"
+                    android:textColor="#1E293B"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
+            </LinearLayout>
+        </LinearLayout>
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <!-- Bottom Countdown and Progress -->
         <ProgressBar
             android:id="@+id/widget_progress"
             style="@android:style/Widget.ProgressBar.Horizontal"
@@ -103,18 +189,32 @@
             android:max="100"
             android:progress="0"
             android:visibility="gone"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="6dp" />
 
-        <TextView
-            android:id="@+id/widget_time_info"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="--"
-            android:textColor="#5B7FFF"
-            android:textStyle="bold"
-            android:textSize="12sp"
-            android:singleLine="true"
-            android:ellipsize="end" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/widget_clock_icon"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="4dp"
+                android:src="@drawable/widget_ic_clock" />
+
+            <TextView
+                android:id="@+id/widget_time_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="IN 1d 10h"
+                android:textColor="#FF5B7FFF"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:ellipsize="end" />
+        </LinearLayout>
 
     </LinearLayout>
 </FrameLayout>

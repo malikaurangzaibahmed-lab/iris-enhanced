@@ -10,6 +10,7 @@ import '../services/analytics_manager.dart';
 import '../core/models.dart';
 import '../core/format_guard.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/glowing_input_wrapper.dart';
 import '../core/vital_theme.dart';
 import 'students_week_screen.dart';
 
@@ -168,16 +169,19 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: TextField(
-                            onChanged: (v) {
-                              _query = v;
-                              _updateFilteredAvailability();
-                            },
-                            style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
-                            decoration: irisFrostedInputDecoration(
-                              label: 'Search rooms or blocks...',
-                              isDark: isDark,
-                              prefixIcon: Icons.search_rounded,
+                          child: IrisGlowingInputWrapper(
+                            borderRadius: 14,
+                            child: TextField(
+                              onChanged: (v) {
+                                _query = v;
+                                _updateFilteredAvailability();
+                              },
+                              style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
+                              decoration: irisGlowingInputDecoration(
+                                label: 'Search rooms or blocks...',
+                                isDark: isDark,
+                                prefixIcon: Icons.search_rounded,
+                              ),
                             ),
                           ),
                         ),

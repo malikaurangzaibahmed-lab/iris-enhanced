@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
 
 class VitalRing extends StatelessWidget {

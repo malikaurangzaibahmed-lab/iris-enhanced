@@ -4,6 +4,7 @@ import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../core/theme_signals.dart';
+import '../core/glass.dart';
 
 class GlassCard extends StatelessWidget {
   final Widget child;
@@ -52,9 +53,6 @@ class GlassCard extends StatelessWidget {
     final glassColor = backgroundColor ?? (isDark
         ? const Color(0xFF020617).withValues(alpha: 0.10)
         : Colors.white.withValues(alpha: 0.48));
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.06)
-        : Colors.black.withValues(alpha: 0.04);
 
     final tiltAngle = tilt ? 0.006 : 0.0;
 
@@ -64,51 +62,58 @@ class GlassCard extends StatelessWidget {
         final reduceBlur = IrisMotion.reduceBlur || useMinimal || MediaQuery.of(context).disableAnimations;
         final blurSigma = enableBlur ? (reduceBlur ? 6.0 : 12.0) : 0.0;
 
+        final settings = IrisGlass.settings(
+          context,
+          blur: blurSigma,
+          ambientStrength: 0.72,
+          lightAngle: 1.5,
+          thickness: 12.0,
+          glassColor: glassColor,
+        );
+
         final cardBody = Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(effectiveRadius),
-        boxShadow: enableShadow
-            ? [
-                if (!isDark)
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.025),
-                    offset: const Offset(0, 10),
-                    blurRadius: 30,
-                    spreadRadius: -6,
-                  ),
-                if (glow)
-                  BoxShadow(
-                    color: tintColor.withValues(alpha: isDark ? 0.08 : 0.06),
-                    blurRadius: 20,
-                    spreadRadius: -10,
-                  ),
-              ]
-            : null,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(effectiveRadius),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap != null ? () {
-              IrisHaptics.actionSoft();
-              IrisSfx.tick();
-              onTap!();
-            } : null,
-            child: _buildGlassSurface(
-              blurSigma: blurSigma,
-              padding: effectivePadding,
-              glassColor: glassColor,
-              borderColor: borderColor,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(effectiveRadius),
+            boxShadow: enableShadow
+                ? [
+                    if (!isDark)
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.025),
+                        offset: const Offset(0, 10),
+                        blurRadius: 30,
+                        spreadRadius: -6,
+                      ),
+                    if (glow)
+                      BoxShadow(
+                        color: tintColor.withValues(alpha: isDark ? 0.08 : 0.06),
+                        blurRadius: 20,
+                        spreadRadius: -10,
+                      ),
+                  ]
+                : null,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(effectiveRadius),
+            child: GlassSurface(
+              settings: settings,
               radius: effectiveRadius,
-              glow: glow,
-              isDark: isDark,
-              child: child,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap != null ? () {
+                    IrisHaptics.actionSoft();
+                    IrisSfx.tick();
+                    onTap!();
+                  } : null,
+                  child: Padding(
+                    padding: effectivePadding,
+                    child: child,
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        );
 
         if (IrisMotion.reduceMotion || useMinimal) {
           return Transform.rotate(angle: tiltAngle, child: cardBody);
@@ -128,45 +133,5 @@ class GlassCard extends StatelessWidget {
       },
     );
   }
-
-  Widget _buildGlassSurface({
-    required double blurSigma,
-    required EdgeInsetsGeometry padding,
-    required Color glassColor,
-    required Color borderColor,
-    required double radius,
-    required bool glow,
-    required bool isDark,
-    required Widget child,
-  }) {
-    final surface = Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: glassColor,
-        borderRadius: BorderRadius.circular(radius),
-        border: border ?? Border.all(color: borderColor, width: 1.2),
-        // Subtle highlight gradient for premium depth
-        gradient: glow
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: isDark ? 0.04 : 0.12),
-                  Colors.transparent,
-                ],
-              )
-            : null,
-      ),
-      child: child,
-    );
-
-    if (blurSigma <= 0.0) {
-      return surface;
-    }
-
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-      child: surface,
-    );
-  }
 }
+

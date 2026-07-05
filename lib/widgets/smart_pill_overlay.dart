@@ -5,6 +5,8 @@ import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../core/theme_signals.dart';
 import '../services/system_broadcast_service.dart';
 import '../core/tokens.dart';
+import '../core/animations.dart';
+
 
 /// A global wrapper widget that listens to the SystemBroadcastService.
 /// Wrap this around your MaterialApp's home route, or your dashboard Scaffold,
@@ -33,6 +35,9 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
   late AnimationController _liquidController;
   late AnimationController _shimmerController;
   Offset _targetTilt = Offset.zero;
+  double _dragY = 0.0;
+  bool _isDragging = false;
+
 
   @override
   void initState() {
@@ -93,7 +98,14 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
 
   void _hide() {
     _animController.reverse().then((_) {
-      if (mounted) setState(() => _isVisible = false);
+      if (mounted) {
+        setState(() {
+          _isVisible = false;
+          _dragY = 0.0;
+          _targetTilt = Offset.zero;
+          _isDragging = false;
+        });
+      }
     });
   }
 
@@ -134,35 +146,68 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
                  );
               },
               child: GestureDetector(
+                onPanStart: (details) {
+                  setState(() {
+                    _isDragging = true;
+                  });
+                },
                 onPanUpdate: (details) {
                   setState(() {
+                    _dragY += details.delta.dy;
                     final nextY = (_targetTilt.dx + details.delta.dx * 0.0018).clamp(-0.12, 0.12);
                     final nextX = (_targetTilt.dy - details.delta.dy * 0.0018).clamp(-0.12, 0.12);
                     _targetTilt = Offset(nextY, nextX);
                   });
                 },
                 onPanEnd: (details) {
-                  if (_targetTilt.dy > 0.06 || details.velocity.pixelsPerSecond.dy < -200) {
+                  setState(() {
+                    _isDragging = false;
+                  });
+                  // Swipe up to dismiss: if visual drag offset is high and upward, or velocity is upward
+                  if (_dragY < -60 || details.velocity.pixelsPerSecond.dy < -200) {
                     _hide();
                   }
                   setState(() {
+                    _dragY = 0.0;
                     _targetTilt = Offset.zero;
                   });
                 },
-                child: TweenAnimationBuilder<Offset>(
-                  tween: Tween<Offset>(begin: Offset.zero, end: _targetTilt),
-                  duration: const Duration(milliseconds: 320),
-                  curve: Curves.easeOutBack,
-                  builder: (context, tilt, child) {
-                    return Transform(
-                      transform: Matrix4.identity()
-                        ..setEntry(3, 2, 0.002) // Perspective factor
-                        ..rotateX(tilt.dy)
-                        ..rotateY(tilt.dx),
-                      alignment: Alignment.center,
-                      child: child,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: _dragY),
+                  duration: _isDragging ? Duration.zero : const Duration(milliseconds: 450),
+                  curve: IrisMotion.spring,
+                  builder: (context, dragVal, child) {
+                    // Compute visual offset with logarithmic damping (only damp down dragging)
+                    final visualY = dragVal > 0 
+                        ? 45.0 * math.log(1.0 + dragVal / 45.0) 
+                        : dragVal;
+                    final stretch = dragVal > 0 
+                        ? (visualY / 220.0).clamp(0.0, 0.16) 
+                        : 0.0;
+                    return Transform.translate(
+                      offset: Offset(0, visualY),
+                      child: Transform.scale(
+                        scaleX: 1.0 - stretch,
+                        scaleY: 1.0 + stretch * 1.5,
+                        alignment: Alignment.topCenter,
+                        child: child,
+                      ),
                     );
                   },
+                  child: TweenAnimationBuilder<Offset>(
+                    tween: Tween<Offset>(begin: Offset.zero, end: _targetTilt),
+                    duration: _isDragging ? Duration.zero : const Duration(milliseconds: 320),
+                    curve: IrisMotion.spring,
+                    builder: (context, tilt, child) {
+                      return Transform(
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, 0.002) // Perspective factor
+                          ..rotateX(tilt.dy)
+                          ..rotateY(tilt.dx),
+                        alignment: Alignment.center,
+                        child: child,
+                      );
+                    },
                   child: Material(
                     color: Colors.transparent,
                     elevation: 0,
@@ -323,6 +368,7 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
                       ),
                     ),
                   ),
+                ),
                 ),
               ),
             ),

@@ -183,7 +183,8 @@ class HelpdeskFacultyService {
       final raw = await rootBundle.loadString(_assetPath);
       final dynamic decoded = jsonDecode(raw);
       final data = (decoded is Map<String, dynamic>) ? decoded['data'] : null;
-      final faculty = (data is Map<String, dynamic>) ? data['faculty'] : null;
+      final facultyMap = (data is Map<String, dynamic>) ? data['faculty'] : null;
+      final faculty = (facultyMap is Map<String, dynamic>) ? facultyMap['data'] : null;
       if (faculty is! List) return const [];
       return faculty
           .whereType<Map<String, dynamic>>()

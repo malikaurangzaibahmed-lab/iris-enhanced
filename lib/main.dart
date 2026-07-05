@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
   hide NotificationVisibility;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart' hide LiquidGlassSettings;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +38,7 @@ import 'screens/about_screen.dart';
 import 'screens/academics_hub_screen.dart';
 import 'screens/faculty_dashboard_screen.dart';
 import 'screens/room_finder_screen.dart';
+import 'screens/document_workspace_screen.dart';
 import 'screens/setup_screens.dart';
 import 'screens/tutorial_screen.dart';
 import 'screens/teacher_locator_screen.dart';
@@ -58,9 +59,14 @@ import 'widgets/glass_card.dart';
 import 'widgets/iris_components.dart';
 import 'widgets/neural_aura.dart';
 import 'widgets/portal_sync_card.dart';
+import 'widgets/smart_pill_overlay.dart';
+import 'widgets/glowing_input_wrapper.dart';
 import 'widgets/smooth_scroll.dart';
 import 'widgets/spring_button.dart';
 import 'widgets/vital_card.dart';
+
+import 'widgets/live_class_hub_sheet.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 part 'screens/tools_screen_part.dart';
 
@@ -90,19 +96,19 @@ Future<void> main() async {
   await IrisSfx.init();
   await IrisHaptics.init();
   runApp(LiquidGlassWidgets.wrap(
-    child: const _BootIrisApp(),
+    child: const IrisApp(),
     adaptiveQuality: true,
   ));
 }
 
-class _BootIrisApp extends StatefulWidget {
-  const _BootIrisApp();
+class IrisApp extends StatefulWidget {
+  const IrisApp();
 
   @override
-  State<_BootIrisApp> createState() => _BootIrisAppState();
+  State<IrisApp> createState() => _IrisAppBootState();
 }
 
-class _BootIrisAppState extends State<_BootIrisApp> {
+class _IrisAppBootState extends State<IrisApp> {
   late final Future<UniversityMemory> _memoryFuture;
 
   @override
@@ -290,6 +296,7 @@ class _IrisAppState extends State<_IrisApp> {
               theme: theme,
               darkTheme: darkTheme,
               scrollBehavior: const SmoothScrollBehavior(),
+              builder: (context, child) => SmartPillOverlay(child: child!),
               home: _AppRoot(
                 memory: widget.memory,
                 onToggleTheme: _toggleTheme,
@@ -330,6 +337,7 @@ class _AppRootState extends State<_AppRoot> {
   String? _userName;
   bool? _tutorialCompleted;
   late VoidCallback _roleListener;
+  String _headlessUrl = 'https://swl-sis.comsats.edu.pk/Login/Index';
 
   @override
   void initState() {
@@ -350,6 +358,7 @@ class _AppRootState extends State<_AppRoot> {
     _loadUserRole();
     _loadBatch();
     _loadUserName();
+    _loadHeadlessUrl();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestForegroundNotificationPermission();
@@ -366,6 +375,30 @@ class _AppRootState extends State<_AppRoot> {
   void dispose() {
     AppSignals.roleNotifier.removeListener(_roleListener);
     super.dispose();
+  }
+
+  Future<void> _loadHeadlessUrl() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      const activeSessionKey = 'iris_portal_student_last_active_session';
+      final raw = prefs.getString(activeSessionKey);
+      if (raw != null) {
+        final decoded = jsonDecode(raw);
+        final url = decoded['url'] as String?;
+        if (url != null && url.isNotEmpty && !url.contains('cui-helpdesk')) {
+          setState(() {
+            _headlessUrl = url;
+          });
+          debugPrint('🌐 [IRIS] Loaded Headless Scraper Target URL: $_headlessUrl');
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ [IRIS] Error loading headless URL: $e');
+    }
+    setState(() {
+      _headlessUrl = 'https://swl-sis.comsats.edu.pk/Login/Index';
+    });
   }
 
   Future<void> _loadUserRole() async {
@@ -833,7 +866,7 @@ class _AppRootState extends State<_AppRoot> {
           onChangeBatch: () => setState(() => _selectedBatch = null),
           onBatchChanged: _saveBatch,
         ),
-        const HeadlessPortalSync(url: 'https://swl-sis.comsats.edu.pk/Login/Index'),
+        HeadlessPortalSync(url: _headlessUrl),
       ],
     );
   }
@@ -909,36 +942,39 @@ class _NameCaptureScreenState extends State<_NameCaptureScreen> {
                     ),
                   ),
                   const SizedBox(height: 48),
-                  GlassCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  IrisGlowingInputWrapper(
                     borderRadius: 24,
-                    child: TextField(
-                      controller: _controller,
-                      autofocus: true,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Your Name',
-                        hintStyle: TextStyle(
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.25),
+                    child: GlassCard(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      borderRadius: 24,
+                      child: TextField(
+                        controller: _controller,
+                        autofocus: true,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : Colors.black,
                         ),
-                        border: InputBorder.none,
+                        decoration: InputDecoration(
+                          hintText: 'Your Name',
+                          hintStyle: TextStyle(
+                            color: (isDark ? Colors.white : Colors.black)
+                                .withValues(alpha: 0.25),
+                          ),
+                          border: InputBorder.none,
+                        ),
+                        onChanged: (val) {
+                          setState(() {
+                            _isValid = val.trim().length >= 2;
+                          });
+                        },
+                        onSubmitted: (val) {
+                          if (_isValid) {
+                            IrisHaptics.actionHeavy();
+                            widget.onComplete(val.trim());
+                          }
+                        },
                       ),
-                      onChanged: (val) {
-                        setState(() {
-                          _isValid = val.trim().length >= 2;
-                        });
-                      },
-                      onSubmitted: (val) {
-                        if (_isValid) {
-                          IrisHaptics.actionHeavy();
-                          widget.onComplete(val.trim());
-                        }
-                      },
                     ),
                   ),
                   const Spacer(),
@@ -2962,6 +2998,19 @@ class _DashboardState extends State<Dashboard>
   bool _isRefreshing = false;
   List<String> _pendingTimetableChanges = [];
   final Map<String, List<ClassSession>> _makeupReplacementHistory = {};
+  
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _toolsScrollController = ScrollController();
+  final ScrollController _aboutScrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+
+  bool _isMiniMode = false;
+  bool _isSearching = false;
+  bool _searchFieldFocused = false;
+  String _homeSearchQuery = '';
+  String _toolsSearchQuery = '';
+
   final GlobalKey _studentPortalNavKey = GlobalKey(
     debugLabel: 'student_portal_nav',
   );
@@ -2971,6 +3020,80 @@ class _DashboardState extends State<Dashboard>
   final GlobalKey _studentAboutNavKey = GlobalKey(
     debugLabel: 'student_about_nav',
   );
+
+  ScrollController? get _activeScrollController {
+    switch (_bottomNavIndex) {
+      case 0:
+        return _scrollController;
+      case 2:
+        return _toolsScrollController;
+      case 3:
+        return _aboutScrollController;
+      default:
+        return null;
+    }
+  }
+
+  void _onScroll() {
+    final ctrl = _activeScrollController;
+    if (ctrl == null) return;
+    final canCollapse = _bottomNavIndex == 0 || _bottomNavIndex == 2;
+    final mini = canCollapse && ctrl.hasClients && ctrl.offset > 50;
+    if (mini == _isMiniMode) return;
+    setState(() => _isMiniMode = mini);
+  }
+
+  void _onFocusChange() {
+    setState(() => _searchFieldFocused = _searchFocusNode.hasFocus);
+  }
+
+  void _updateMiniModeForActiveTab() {
+    final ctrl = _activeScrollController;
+    final canCollapse = _bottomNavIndex == 0 || _bottomNavIndex == 2;
+    final mini = canCollapse && ctrl != null && ctrl.hasClients && ctrl.offset > 50;
+    if (mini != _isMiniMode) {
+      setState(() => _isMiniMode = mini);
+    }
+  }
+
+  void _dismissMiniMode() {
+    final ctrl = _activeScrollController;
+    if (ctrl != null && ctrl.hasClients) {
+      ctrl.animateTo(
+        0,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutQuart,
+      );
+    }
+    setState(() {
+      _isMiniMode = false;
+      _isSearching = false;
+      _searchFieldFocused = false;
+    });
+  }
+
+  Future<void> _triggerBatchSelector() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BatchSelectorSheet(
+        memory: widget.memory,
+        selected: widget.batch,
+      ),
+    );
+
+    if (result != null && result != widget.batch) {
+      widget.onBatchChanged?.call(result);
+      IrisHaptics.actionHeavy();
+      if (mounted) {
+        showIrisFrostedSnackBar(
+          context,
+          content: Text('Batch updated to $result'),
+        );
+      }
+    }
+  }
 
   bool _isMakeupSession(ClassSession session) =>
       session.id.startsWith('makeup_');
@@ -3261,6 +3384,10 @@ class _DashboardState extends State<Dashboard>
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
+    _toolsScrollController.addListener(_onScroll);
+    _aboutScrollController.addListener(_onScroll);
+    _searchFocusNode.addListener(_onFocusChange);
     _loadDismissedAnnouncement();
     _checkPendingTimetableChanges();
 
@@ -3564,6 +3691,15 @@ class _DashboardState extends State<Dashboard>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _toolsScrollController.removeListener(_onScroll);
+    _toolsScrollController.dispose();
+    _aboutScrollController.removeListener(_onScroll);
+    _aboutScrollController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.removeListener(_onFocusChange);
+    _searchFocusNode.dispose();
     _ticker.cancel();
     // Don't stop foreground service here - it should persist
     super.dispose();
@@ -3933,6 +4069,9 @@ class _DashboardState extends State<Dashboard>
         isLive: insight.isLive,
         isUrgent: insight.isUrgent,
         progressPercentage: progressPercent,
+        subject: insight.subject,
+        room: insight.room,
+        startTime: insight.startTime,
       );
     } catch (e) {
       debugPrint('⚠️ Widget update failed: $e');
@@ -4038,7 +4177,12 @@ class _DashboardState extends State<Dashboard>
     setState(() {
       _studentTabSlideDirection = index > previousIndex ? 1 : -1;
       _bottomNavIndex = index;
+      _isSearching = false;
+      _searchController.clear();
+      _homeSearchQuery = '';
+      _toolsSearchQuery = '';
     });
+    _updateMiniModeForActiveTab();
 
     await Future<void>.delayed(lockDuration);
     if (!mounted) return;
@@ -4057,7 +4201,12 @@ class _DashboardState extends State<Dashboard>
     setState(() {
       _studentTabSlideDirection = index > _bottomNavIndex ? 1 : -1;
       _bottomNavIndex = index;
+      _isSearching = false;
+      _searchController.clear();
+      _homeSearchQuery = '';
+      _toolsSearchQuery = '';
     });
+    _updateMiniModeForActiveTab();
     IrisHaptics.chipSelect();
     if (index == 0) {
       _updateScheduleCache();
@@ -4617,8 +4766,366 @@ class _DashboardState extends State<Dashboard>
   }
 
 
+  Widget _buildSmartClassTrackerPill(BuildContext context, bool isDark, DateTime now) {
+    final current = widget.brain.getCurrentClass(widget.batch, now);
+    final next = widget.brain.getNextClass(widget.batch, now);
+
+    String title = '';
+    String subtitle = '';
+    IconData icon = Icons.event_note_rounded;
+    Color accentColor = IrisTokens.brand;
+    bool isActive = false;
+    
+    if (current != null) {
+      title = current.subject;
+      accentColor = IrisTokens.brand;
+      icon = Icons.school_rounded;
+      final endVal = current.safeEndVal;
+      final currentVal = now.hour + (now.minute / 60.0);
+      final remainingMinutes = ((endVal - currentVal) * 60).round();
+      subtitle = 'Ongoing in ${current.room} • ${remainingMinutes}m remaining';
+      isActive = true;
+    } else if (next != null) {
+      title = 'Next Class: ${next.subject}';
+      accentColor = IrisTokens.purple;
+      icon = Icons.hourglass_top_rounded;
+      final startVal = next.safeStartVal;
+      final currentVal = now.hour + (now.minute / 60.0);
+      final minutesToStart = ((startVal - currentVal) * 60).round();
+      if (minutesToStart > 0 && minutesToStart <= 60) {
+        subtitle = 'Starts in ${minutesToStart}m • ${next.room}';
+        isActive = true;
+      } else {
+        subtitle = 'Scheduled at ${next.startTime} • ${next.room}';
+      }
+    } else {
+      title = 'All classes ended';
+      subtitle = 'Enjoy the rest of your day! 🎉';
+      accentColor = IrisTokens.success;
+      icon = Icons.done_all_rounded;
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        borderRadius: 24,
+        accentColor: accentColor,
+        glow: isActive,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: isDark ? 0.2 : 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 18,
+                color: accentColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (isActive) ...[
+              const SizedBox(width: 8),
+              _TrackerPulseIndicator(color: accentColor),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPortalContextSheet(bool isDark) {
+    lgw.GlassModalSheet.show(
+      context: context,
+      initialState: lgw.SheetState.half,
+      settings: IrisGlass.widgetsSettings(
+        context,
+        blur: 16.0,
+        thickness: 15.0,
+        ambientStrength: isDark ? 0.65 : 0.72,
+        lightAngle: 1.5,
+        glassColor: isDark 
+            ? Colors.black.withValues(alpha: 0.20)
+            : Colors.white.withValues(alpha: 0.15),
+      ),
+      builder: (sheetContext) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white30 : Colors.black12,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Icon(
+                  Icons.public_rounded,
+                  color: isDark ? Colors.white : IrisTokens.brand,
+                  size: 26,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Portal Navigator',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildContextActionTile(
+              isDark,
+              title: 'Open in System Browser',
+              subtitle: 'Launch SWL-SIS in default browser',
+              icon: Icons.open_in_browser_rounded,
+              color: IrisTokens.brand,
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                try {
+                  final uri = Uri.parse('https://swl-sis.comsats.edu.pk/Login/Index');
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (_) {}
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildContextActionTile(
+              isDark,
+              title: 'Refresh Portal Frame',
+              subtitle: 'Reload current COMSATS webpage',
+              icon: Icons.refresh_rounded,
+              color: IrisTokens.success,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                showIrisFrostedSnackBar(context, content: const Text('Portal frame reloading...'));
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildContextActionTile(
+              isDark,
+              title: 'Clear Cache & Cookies',
+              subtitle: 'Reset portal local web session storage',
+              icon: Icons.delete_sweep_rounded,
+              color: IrisTokens.error,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                showIrisFrostedSnackBar(context, content: const Text('Session cache cleared successfully!'));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAboutContextSheet(bool isDark) {
+    lgw.GlassModalSheet.show(
+      context: context,
+      initialState: lgw.SheetState.half,
+      settings: IrisGlass.widgetsSettings(
+        context,
+        blur: 16.0,
+        thickness: 15.0,
+        ambientStrength: isDark ? 0.65 : 0.72,
+        lightAngle: 1.5,
+        glassColor: isDark 
+            ? Colors.black.withValues(alpha: 0.20)
+            : Colors.white.withValues(alpha: 0.15),
+      ),
+      builder: (sheetContext) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white30 : Colors.black12,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Icon(
+                  Icons.settings_rounded,
+                  color: isDark ? Colors.white : IrisTokens.purple,
+                  size: 26,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Quick Settings Tuner',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildContextActionTile(
+              isDark,
+              title: 'Toggle Graphics Quality',
+              subtitle: 'Switch between premium & minimal rendering',
+              icon: Icons.speed_rounded,
+              color: IrisTokens.brand,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                ThemeSignals.useMinimalTheme.value = !ThemeSignals.useMinimalTheme.value;
+                showIrisFrostedSnackBar(
+                  context,
+                  content: Text('Graphics set to ${ThemeSignals.useMinimalTheme.value ? 'MINIMAL' : 'PREMIUM'}'),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildContextActionTile(
+              isDark,
+              title: 'Reset Offline Local Storage',
+              subtitle: 'Clear local timetable caches & load seed',
+              icon: Icons.restore_rounded,
+              color: IrisTokens.warning,
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('helpdesk_has_doc_draft');
+                showIrisFrostedSnackBar(context, content: const Text('Caches cleared successfully!'));
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildContextActionTile(
+              isDark,
+              title: 'Sensory Haptics Diagnostics',
+              subtitle: 'Pulse interaction engine triggers',
+              icon: Icons.analytics_rounded,
+              color: IrisTokens.success,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                IrisHaptics.intelligencePulse();
+                showIrisFrostedSnackBar(context, content: const Text('Sensory engine diagnostics pulse sent.'));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContextActionTile(
+    bool isDark, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: (isDark ? Colors.white54 : Colors.black54),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: (isDark ? Colors.white30 : Colors.black38)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStudentBottomNavBar(bool isDark) {
-    return GlassBottomBar(
+    final activeColor = _bottomNavIndex == 1 ? IrisTokens.purple : (_bottomNavIndex == 2 ? IrisTokens.success : IrisTokens.brand);
+    
+    return GlassSearchableBottomBar(
       tabs: [
         GlassBottomBarTab(
           icon: const Icon(Icons.home_outlined),
@@ -4647,12 +5154,88 @@ class _DashboardState extends State<Dashboard>
       ],
       selectedIndex: _bottomNavIndex,
       onTabSelected: _onBottomNavTap,
+      isSearchActive: _isMiniMode || _isSearching,
       barHeight: 64,
+      searchBarHeight: 52,
       horizontalPadding: 16,
       verticalPadding: 12,
       barBorderRadius: 30,
-      selectedIconColor: isDark ? Colors.white : IrisTokens.brand,
+      selectedIconColor: isDark ? Colors.white : activeColor,
       unselectedIconColor: isDark ? Colors.white38 : Colors.black38,
+      quality: ThemeSignals.useMinimalTheme.value ? GlassQuality.minimal : GlassQuality.premium,
+      settings: IrisGlass.widgetsSettings(
+        context,
+        blur: ThemeSignals.useMinimalTheme.value ? 8.0 : 20.0,
+        thickness: ThemeSignals.useMinimalTheme.value ? 10.0 : 22.0,
+        ambientStrength: isDark ? 0.65 : 0.72,
+        lightAngle: 0.15 * math.pi,
+        glassColor: IrisGlass.adaptiveGlassColor(
+          context,
+          darkAlpha: 0.38,
+          lightAlpha: 0.46,
+        ),
+      ),
+      searchConfig: GlassSearchBarConfig(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        hintText: _bottomNavIndex == 0 ? 'Search classes...' : 'Search tools...',
+        expandWhenActive: !_isMiniMode || _isSearching,
+        showsCancelButton: true,
+        textColor: isDark ? Colors.white : Colors.black,
+        cursorColor: activeColor,
+        hintStyle: TextStyle(
+          color: (isDark ? Colors.white : Colors.black).withOpacity(0.35),
+          fontSize: 13,
+        ),
+        searchIconColor: isDark ? Colors.white70 : Colors.black87,
+        onSearchToggle: (active) {
+          if (active) {
+            if (_bottomNavIndex == 1) {
+              _showPortalContextSheet(isDark);
+              return;
+            } else if (_bottomNavIndex == 3) {
+              _showAboutContextSheet(isDark);
+              return;
+            }
+          }
+          setState(() {
+            _isSearching = active;
+          });
+          if (!active) {
+            _searchController.clear();
+            setState(() {
+              _homeSearchQuery = '';
+              _toolsSearchQuery = '';
+            });
+            _updateScheduleCache();
+          }
+        },
+        onChanged: (val) {
+          setState(() {
+            if (_bottomNavIndex == 0) {
+              _homeSearchQuery = val;
+              _updateScheduleCache();
+            } else if (_bottomNavIndex == 2) {
+              _toolsSearchQuery = val;
+            }
+          });
+        },
+        collapsedLogoBuilder: (context) {
+          final icons = [
+            Icons.home_rounded,
+            Icons.public_rounded,
+            Icons.construction_rounded,
+            Icons.info_rounded,
+          ];
+          return Center(
+            child: Icon(
+              icons[_bottomNavIndex],
+              color: isDark ? Colors.white : activeColor,
+              size: 26,
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -5001,6 +5584,7 @@ class _DashboardState extends State<Dashboard>
         color: isStudentsWeek ? const Color(0xFF10B981) : IrisTokens.brand,
         backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
         child: CustomScrollView(
+          controller: _scrollController,
           physics: const ButterScrollPhysics(),
           cacheExtent: 500,
           slivers: [
@@ -5072,35 +5656,67 @@ class _DashboardState extends State<Dashboard>
                           padding: const EdgeInsets.only(right: 44),
                           child: Row(
                             children: [
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [IrisTokens.brand, IrisTokens.purple],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: IrisTokens.brand.withValues(alpha: 0.2),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
+                              lgw.GlassMenu(
+                                menuWidth: 220,
+                                triggerBuilder: (context, toggleMenu) {
+                                  return GestureDetector(
+                                    onTap: toggleMenu,
+                                    child: Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [IrisTokens.brand, IrisTokens.purple],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: IrisTokens.brand.withValues(alpha: 0.2),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          _getInitials(widget.userName),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 20,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    _getInitials(widget.userName),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 20,
-                                      letterSpacing: 1,
-                                    ),
+                                  );
+                                },
+                                items: [
+                                  lgw.GlassMenuItem(
+                                    title: 'Student Mode',
+                                    isSelected: true,
+                                    icon: const Icon(Icons.school_rounded, size: 18),
+                                    onTap: () {},
                                   ),
-                                ),
+                                  lgw.GlassMenuItem(
+                                    title: 'Faculty Mode',
+                                    isSelected: false,
+                                    icon: const Icon(Icons.badge_rounded, size: 18),
+                                    onTap: () {
+                                      widget.onRoleChanged?.call('faculty');
+                                    },
+                                  ),
+                                  const lgw.GlassMenuDivider(),
+                                  lgw.GlassMenuItem(
+                                    title: 'Change Active Batch',
+                                    icon: const Icon(Icons.layers_rounded, size: 18),
+                                    onTap: () {
+                                      _triggerBatchSelector();
+                                    },
+                                  ),
+                                ],
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -5646,6 +6262,37 @@ class _DashboardState extends State<Dashboard>
     final schedule = _cachedSchedule;
     final filteredSchedule = schedule;
 
+    final double sysBottom = MediaQuery.of(context).padding.bottom;
+    final double pillBottom;
+    final double pillLeft;
+    final double pillRight;
+    final double pillOpacity;
+    final bool isHome = _bottomNavIndex == 0;
+
+    if (isHome) {
+      if (_isMiniMode && !_isSearching) {
+        pillBottom = 12.0 + sysBottom;
+        pillLeft = 16.0 + 50.0 + 6.0; // 72.0 (Leaves space for collapsed Home button)
+        pillRight = 16.0 + 50.0 + 6.0; // 72.0 (Leaves space for collapsed Search button)
+        pillOpacity = 1.0;
+      } else if (_isSearching) {
+        pillBottom = -64.0;
+        pillLeft = 16.0;
+        pillRight = 16.0;
+        pillOpacity = 0.0;
+      } else {
+        pillBottom = 80.0 + sysBottom;
+        pillLeft = 16.0;
+        pillRight = 16.0;
+        pillOpacity = 1.0;
+      }
+    } else {
+      pillBottom = -64.0;
+      pillLeft = 16.0;
+      pillRight = 16.0;
+      pillOpacity = 0.0;
+    }
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -5658,14 +6305,56 @@ class _DashboardState extends State<Dashboard>
                 ValueListenableBuilder<String>(
                   valueListenable: RemoteConfigService.activeAcademicPeriod,
                   builder: (context, period, _) {
+                    Widget activeWidget;
                     if (period == 'midterms' || period == 'finals') {
-                      return ExamGridDashboard(
+                      activeWidget = ExamGridDashboard(
+                        key: ValueKey('exams-$period'),
                         period: period,
                         batch: widget.batch,
                         onToggleTheme: widget.onToggleTheme,
                       );
+                    } else {
+                      activeWidget = KeyedSubtree(
+                        key: ValueKey('home-$period'),
+                        child: _buildHomeDashboard(
+                          context,
+                          isDark,
+                          now,
+                          dateLabel,
+                          insight,
+                          filteredSchedule,
+                          schedule,
+                        ),
+                      );
                     }
-                    return _buildHomeDashboard(context, isDark, now, dateLabel, insight, filteredSchedule, schedule);
+
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 550),
+                      switchInCurve: Curves.easeInOutCubic,
+                      switchOutCurve: Curves.easeInOutCubic,
+                      transitionBuilder: (child, animation) {
+                        final scale = Tween<double>(begin: 0.94, end: 1.0).animate(
+                          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                        );
+                        final opacity = Tween<double>(begin: 0.0, end: 1.0).animate(animation);
+                        final slide = Tween<Offset>(
+                          begin: const Offset(0.0, 0.06),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+
+                        return FadeTransition(
+                          opacity: opacity,
+                          child: ScaleTransition(
+                            scale: scale,
+                            child: SlideTransition(
+                              position: slide,
+                              child: child,
+                            ),
+                          ),
+                        );
+                      },
+                      child: activeWidget,
+                    );
                   },
                 ),
                 const PortalScreen(
@@ -5684,12 +6373,15 @@ class _DashboardState extends State<Dashboard>
                   onBatchChanged: widget.onBatchChanged,
                   onAddMakeupClass: _addMakeupSession,
                   onRemoveMakeupClass: _removeMakeupSession,
+                  scrollController: _toolsScrollController,
+                  searchQuery: _toolsSearchQuery,
                 ),
                 AboutScreen(
                   key: const PageStorageKey<String>('student_tab_about'),
                   memory: widget.memory,
                   onRoleChanged: widget.onRoleChanged,
                   onBatchChanged: widget.onBatchChanged,
+                  scrollController: _aboutScrollController,
                 ),
               ],
             ),
@@ -5707,6 +6399,87 @@ class _DashboardState extends State<Dashboard>
                   }
                   return const SizedBox.shrink();
                 },
+              ),
+            ),
+          ),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 380),
+            curve: Curves.easeInOutCubic,
+            bottom: pillBottom,
+            left: pillLeft,
+            right: pillRight,
+            height: 52.0,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 220),
+              opacity: pillOpacity,
+              child: GlassMenu(
+                menuWidth: 200,
+                triggerBuilder: (context, toggleMenu) {
+                  return GestureDetector(
+                    onTap: toggleMenu,
+                    child: _buildSmartClassTrackerPill(context, isDark, now),
+                  );
+                },
+                items: [
+                  GlassMenuItem(
+                    title: 'Open Class Hub',
+                    icon: const Icon(Icons.hub_rounded, size: 18),
+                    onTap: () {
+                      lgw.GlassModalSheet.show(
+                        context: context,
+                        initialState: lgw.SheetState.half,
+                        settings: IrisGlass.widgetsSettings(
+                          context,
+                          blur: 16.0,
+                          thickness: 15.0,
+                          ambientStrength: isDark ? 0.65 : 0.72,
+                          lightAngle: 1.5,
+                          glassColor: isDark 
+                              ? Colors.black.withValues(alpha: 0.20)
+                              : Colors.white.withValues(alpha: 0.15),
+                        ),
+                        builder: (sheetContext) => LiveClassHubSheet(
+                          brain: widget.brain,
+                          memory: widget.memory,
+                          batch: widget.batch,
+                          sessions: _cachedSchedule,
+                        ),
+                      );
+                    },
+                  ),
+                  GlassMenuItem(
+                    title: 'Locate Classroom',
+                    icon: const Icon(Icons.meeting_room_rounded, size: 18),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RoomFinderScreen(memory: widget.memory, brain: widget.brain),
+                        ),
+                      );
+                    },
+                  ),
+                  GlassMenuItem(
+                    title: 'Locate Instructor',
+                    icon: const Icon(Icons.person_search_rounded, size: 18),
+                    onTap: () {
+                      final currentClass = widget.brain.getCurrentClass(widget.batch, now);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TeacherLocatorScreen(
+                            brain: widget.brain,
+                            memory: widget.memory,
+                            currentBatch: widget.batch,
+                            initialTeacherQuery: currentClass?.teacher,
+                            autoSearchInitial: currentClass != null,
+                            showBackButton: true,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),
@@ -5737,6 +6510,16 @@ class _DashboardState extends State<Dashboard>
 
     // Ensure final schedule is always sorted in ascending order by start time
     mergedSchedule.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+    if (_homeSearchQuery.isNotEmpty) {
+      final query = _homeSearchQuery.toLowerCase();
+      return mergedSchedule.where((s) =>
+        s.subject.toLowerCase().contains(query) ||
+        s.teacher.toLowerCase().contains(query) ||
+        s.room.toLowerCase().contains(query)
+      ).toList();
+    }
+
     return mergedSchedule;
   }
 
@@ -6233,25 +7016,69 @@ class _CgpaRowCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: row.grade,
-                    decoration: const InputDecoration(
-                      labelText: 'Grade',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: row.gradeOptions
-                        .map(
-                          (g) => DropdownMenuItem<String>(
-                            value: g,
-                            child: Text('$g (${_CgpaCourseRow._gradePoints[g]})'),
+                  child: lgw.GlassMenu(
+                    menuWidth: 180,
+                    menuHeight: 280.0,
+                    triggerBuilder: (context, toggleMenu) {
+                      return InkWell(
+                        onTap: () {
+                          IrisHaptics.actionSoft();
+                          toggleMenu();
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: Container(
+                          height: 56,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: isDark ? Colors.white30 : Colors.black26,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      row.grade = value;
-                      onChanged();
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Grade',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: isDark ? Colors.white70 : Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    row.grade,
+                                    style: TextStyle(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: isDark ? Colors.white54 : Colors.black54,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
+                    items: row.gradeOptions.map((g) {
+                      return lgw.GlassMenuItem(
+                        title: '$g (${_CgpaCourseRow._gradePoints[g]})',
+                        onTap: () {
+                          row.grade = g;
+                          onChanged();
+                        },
+                      );
+                    }).toList(),
                   ),
                 ),
               ],
@@ -9251,35 +10078,115 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                             children: [
                               // Day Filter
                               Expanded(
-                                child: _buildFilterChip(
-                                  icon: Icons.calendar_today_rounded,
-                                  label: _filterDayIndex == null
-                                      ? 'All Days'
-                                      : [
-                                          'Mon',
-                                          'Tue',
-                                          'Wed',
-                                          'Thu',
-                                          'Fri',
-                                          'Sat',
-                                          'Sun',
-                                        ][_filterDayIndex! - 1],
-                                  onTap: () => _showDayFilter(isDark),
-                                  isDark: isDark,
+                                child: lgw.GlassMenu(
+                                  menuWidth: 160,
+                                  menuHeight: 330.0,
+                                  menuAlignment: lgw.GlassMenuAlignment.bottomCenter,
+                                  triggerBuilder: (context, toggleMenu) {
+                                    return _buildFilterChip(
+                                      icon: Icons.calendar_today_rounded,
+                                      label: _filterDayIndex == null
+                                          ? 'All Days'
+                                          : [
+                                              'Mon',
+                                              'Tue',
+                                              'Wed',
+                                              'Thu',
+                                              'Fri',
+                                              'Sat',
+                                              'Sun',
+                                            ][_filterDayIndex! - 1],
+                                      onTap: () {
+                                        IrisHaptics.actionSoft();
+                                        toggleMenu();
+                                      },
+                                      isDark: isDark,
+                                    );
+                                  },
+                                  items: [
+                                    lgw.GlassMenuItem(
+                                      title: 'All Days',
+                                      onTap: () {
+                                        setState(() {
+                                          _filterDayIndex = null;
+                                          _applyFiltersAndSort();
+                                        });
+                                      },
+                                    ),
+                                    ...List.generate(7, (i) {
+                                      final days = [
+                                        'Monday',
+                                        'Tuesday',
+                                        'Wednesday',
+                                        'Thursday',
+                                        'Friday',
+                                        'Saturday',
+                                        'Sunday',
+                                      ];
+                                      return lgw.GlassMenuItem(
+                                        title: days[i],
+                                        onTap: () {
+                                          setState(() {
+                                            _filterDayIndex = i + 1;
+                                            _applyFiltersAndSort();
+                                          });
+                                        },
+                                      );
+                                    }),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 8),
                               // Sort
                               Expanded(
-                                child: _buildFilterChip(
-                                  icon: Icons.sort_rounded,
-                                  label: _sortBy == 'earliest'
-                                      ? 'Earliest'
-                                      : _sortBy == 'duration'
-                                      ? 'Longest'
-                                      : 'Most Rooms',
-                                  onTap: () => _showSortOptions(isDark),
-                                  isDark: isDark,
+                                child: lgw.GlassMenu(
+                                  menuWidth: 180,
+                                  menuHeight: 142.0,
+                                  menuAlignment: lgw.GlassMenuAlignment.bottomCenter,
+                                  triggerBuilder: (context, toggleMenu) {
+                                    return _buildFilterChip(
+                                      icon: Icons.sort_rounded,
+                                      label: _sortBy == 'earliest'
+                                          ? 'Earliest'
+                                          : _sortBy == 'duration'
+                                          ? 'Longest'
+                                          : 'Most Rooms',
+                                      onTap: () {
+                                        IrisHaptics.actionSoft();
+                                        toggleMenu();
+                                      },
+                                      isDark: isDark,
+                                    );
+                                  },
+                                  items: [
+                                    lgw.GlassMenuItem(
+                                      title: 'Earliest First',
+                                      onTap: () {
+                                        setState(() {
+                                          _sortBy = 'earliest';
+                                          _applyFiltersAndSort();
+                                        });
+                                      },
+                                    ),
+                                    lgw.GlassMenuItem(
+                                      title: 'Longest Duration',
+                                      onTap: () {
+                                        setState(() {
+                                          _sortBy = 'duration';
+                                          _applyFiltersAndSort();
+                                        });
+                                      },
+                                    ),
+                                    lgw.GlassMenuItem(
+                                      title: 'Most Rooms Available',
+                                      onTap: () {
+                                        setState(() {
+                                          _sortBy = 'rooms';
+                                          _applyFiltersAndSort();
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -9905,6 +10812,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                 leading: Radio<int?>(
                   value: null,
                   groupValue: _filterDayIndex,
+                  activeColor: IrisTokens.brand,
                   onChanged: (val) {
                     setState(() {
                       _filterDayIndex = val;
@@ -9929,6 +10837,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                   leading: Radio<int?>(
                     value: i + 1,
                     groupValue: _filterDayIndex,
+                    activeColor: IrisTokens.brand,
                     onChanged: (val) {
                       setState(() {
                         _filterDayIndex = val;
@@ -9982,6 +10891,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
               leading: Radio<String>(
                 value: 'earliest',
                 groupValue: _sortBy,
+                activeColor: IrisTokens.brand,
                 onChanged: (val) {
                   setState(() {
                     _sortBy = val!;
@@ -9996,6 +10906,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
               leading: Radio<String>(
                 value: 'duration',
                 groupValue: _sortBy,
+                activeColor: IrisTokens.brand,
                 onChanged: (val) {
                   setState(() {
                     _sortBy = val!;
@@ -10010,6 +10921,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
               leading: Radio<String>(
                 value: 'rooms',
                 groupValue: _sortBy,
+                activeColor: IrisTokens.brand,
                 onChanged: (val) {
                   setState(() {
                     _sortBy = val!;
@@ -11304,6 +12216,58 @@ class _ExamCardState extends State<ExamCard> with SingleTickerProviderStateMixin
         );
       },
       child: cardContent,
+    );
+  }
+}
+
+class _TrackerPulseIndicator extends StatefulWidget {
+  final Color color;
+  const _TrackerPulseIndicator({required this.color});
+
+  @override
+  State<_TrackerPulseIndicator> createState() => _TrackerPulseIndicatorState();
+}
+
+class _TrackerPulseIndicatorState extends State<_TrackerPulseIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: widget.color.withOpacity(0.8),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withOpacity(0.5 * _controller.value),
+                blurRadius: 4 + 8 * _controller.value,
+                spreadRadius: 1 + 3 * _controller.value,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

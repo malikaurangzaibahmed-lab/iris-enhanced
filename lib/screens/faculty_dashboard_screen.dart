@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -5,6 +6,8 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../core/tokens.dart';
+import '../core/theme_signals.dart';
+import '../core/glass.dart';
 import '../core/models.dart';
 import '../core/omni_brain.dart';
 import '../widgets/iris_components.dart';
@@ -61,9 +64,31 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   int _bottomNavIndex = 0;
   bool _isNavBusy = false;
 
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isMiniMode = false;
+  bool _isSearching = false;
+  bool _searchFieldFocused = false;
+  String _searchQuery = '';
+
+  void _onScroll() {
+    if (_bottomNavIndex != 0) return;
+    if (!_scrollController.hasClients) return;
+    final mini = _scrollController.offset > 50;
+    if (mini == _isMiniMode) return;
+    setState(() => _isMiniMode = mini);
+  }
+
+  void _onFocusChange() {
+    setState(() => _searchFieldFocused = _searchFocusNode.hasFocus);
+  }
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
+    _searchFocusNode.addListener(_onFocusChange);
     _selectedTeacher = widget.teacherName;
     _pulseController = AnimationController(
       vsync: this,
@@ -410,6 +435,11 @@ class _FacultyDashboardState extends State<FacultyDashboard>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.removeListener(_onFocusChange);
+    _searchFocusNode.dispose();
     _ticker.cancel();
     _pulseController.dispose();
     super.dispose();
@@ -424,8 +454,17 @@ class _FacultyDashboardState extends State<FacultyDashboard>
 
     final mergedSchedule = widget.brain.getMergedConsecutiveSessions(schedule);
     mergedSchedule.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+
+    final filteredSchedule = _searchQuery.isEmpty
+        ? mergedSchedule
+        : mergedSchedule.where((s) =>
+            s.subject.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            s.room.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            s.batchKey.batch.toLowerCase().contains(_searchQuery.toLowerCase())
+          ).toList();
+
     setState(() {
-      _cachedSchedule = mergedSchedule;
+      _cachedSchedule = filteredSchedule;
     });
   }
 
@@ -671,6 +710,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
       color: IrisTokens.brand,
       backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
       child: CustomScrollView(
+        controller: _scrollController,
         physics: const ButterScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
@@ -992,7 +1032,9 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   }
 
   Widget _buildBottomNavBar(bool isDark) {
-    return GlassBottomBar(
+    final activeColor = _bottomNavIndex == 1 ? IrisTokens.purple : (_bottomNavIndex == 2 ? IrisTokens.success : IrisTokens.brand);
+
+    return GlassSearchableBottomBar(
       tabs: [
         GlassBottomBarTab(
           icon: const Icon(Icons.home_outlined),
@@ -1021,12 +1063,79 @@ class _FacultyDashboardState extends State<FacultyDashboard>
       ],
       selectedIndex: _bottomNavIndex,
       onTabSelected: _onBottomNavTap,
+      isSearchActive: _isMiniMode || _isSearching,
       barHeight: 64,
+      searchBarHeight: 52,
       horizontalPadding: 16,
       verticalPadding: 12,
       barBorderRadius: 30,
-      selectedIconColor: isDark ? Colors.white : IrisTokens.brand,
+      selectedIconColor: isDark ? Colors.white : activeColor,
       unselectedIconColor: isDark ? Colors.white38 : Colors.black38,
+      quality: ThemeSignals.useMinimalTheme.value ? GlassQuality.minimal : GlassQuality.premium,
+      settings: IrisGlass.widgetsSettings(
+        context,
+        blur: ThemeSignals.useMinimalTheme.value ? 8.0 : 20.0,
+        thickness: ThemeSignals.useMinimalTheme.value ? 10.0 : 22.0,
+        ambientStrength: isDark ? 0.65 : 0.72,
+        lightAngle: 0.15 * math.pi,
+        glassColor: IrisGlass.adaptiveGlassColor(
+          context,
+          darkAlpha: 0.38,
+          lightAlpha: 0.46,
+        ),
+      ),
+      searchConfig: GlassSearchBarConfig(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        hintText: 'Search schedule...',
+        expandWhenActive: !_isMiniMode || _isSearching,
+        showsCancelButton: true,
+        textColor: isDark ? Colors.white : Colors.black,
+        cursorColor: activeColor,
+        hintStyle: TextStyle(
+          color: (isDark ? Colors.white : Colors.black).withOpacity(0.35),
+          fontSize: 13,
+        ),
+        searchIconColor: (_bottomNavIndex == 0)
+            ? (isDark ? Colors.white70 : Colors.black87)
+            : Colors.transparent,
+        onSearchToggle: (active) {
+          if (active && _bottomNavIndex != 0) {
+            return;
+          }
+          setState(() {
+            _isSearching = active;
+          });
+          if (!active) {
+            _searchController.clear();
+            setState(() {
+              _searchQuery = '';
+            });
+            _updateScheduleCache();
+          }
+        },
+        onChanged: (val) {
+          setState(() {
+            _searchQuery = val;
+          });
+          _updateScheduleCache();
+        },
+        collapsedLogoBuilder: (context) {
+          final icons = [
+            Icons.home_rounded,
+            Icons.public_rounded,
+            Icons.badge_rounded,
+            Icons.info_rounded,
+          ];
+          return Center(
+            child: Icon(
+              icons[_bottomNavIndex],
+              color: isDark ? Colors.white : activeColor,
+              size: 26,
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -1047,6 +1156,14 @@ class _FacultyDashboardState extends State<FacultyDashboard>
     const lockDuration = Duration(milliseconds: 420);
     setState(() {
       _bottomNavIndex = index;
+      _isSearching = false;
+      _searchController.clear();
+      _searchQuery = '';
+    });
+    
+    final mini = _scrollController.hasClients && _scrollController.offset > 50;
+    setState(() {
+      _isMiniMode = (index == 0) ? mini : false;
     });
 
     await Future<void>.delayed(lockDuration);

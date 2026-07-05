@@ -286,9 +286,84 @@ document.addEventListener('DOMContentLoaded', () => {
       seg.classList.add('active');
       activeInspectorExamPeriod = seg.dataset.inspectorPeriod;
       logTerminal(`Live Inspector switched: Viewing active <strong>${activeInspectorExamPeriod.toUpperCase()}</strong>.`, 'info');
-      refreshLiveExamsInspector();
     });
   });
+  
+  // Mobile Mockup tab switching
+  const mockTabs = document.querySelectorAll('.emulator-tab-btn');
+  const mockScreens = document.querySelectorAll('.emulator-screen');
+  
+  mockTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      mockTabs.forEach(t => t.classList.remove('active'));
+      mockScreens.forEach(s => s.classList.remove('active-screen'));
+      
+      tab.classList.add('active');
+      const targetScreenId = `emulator-screen-${tab.dataset.mockTab}`;
+      const targetScreen = document.getElementById(targetScreenId);
+      if (targetScreen) {
+        targetScreen.classList.add('active-screen');
+      }
+      logTerminal(`Mockup switched view to: <strong>${tab.dataset.mockTab.toUpperCase()}</strong>`, 'info');
+    });
+  });
+
+  const onboardingDots = document.querySelectorAll('.onboarding-dot');
+  const onboardingSlides = [
+    {
+      title: "Secure Synchronization",
+      desc: "Your daily academic lectures, timetables, and notification noticeboard synced to local cache.",
+      badge: "Iris Companion",
+      color: "var(--accent-indigo)"
+    },
+    {
+      title: "Real-time Telemetry",
+      desc: "Instant live broadcast indicators, updates alerts, and offline caching overrides.",
+      badge: "ECG Telemetry",
+      color: "var(--accent-cyan)"
+    },
+    {
+      title: "Fluid Glass Design",
+      desc: "Premium obsidian dark themes, animated weather headers, and nature physics sliders.",
+      badge: "Obsidian Liquid",
+      color: "var(--accent-rose)"
+    }
+  ];
+  
+  let currentSlide = 0;
+  
+  const switchOnboardingSlide = (index) => {
+    onboardingDots.forEach((dot, idx) => {
+      dot.className = idx === index ? 'onboarding-dot active' : 'onboarding-dot';
+    });
+    
+    const slide = onboardingSlides[index];
+    const mockTitle = document.getElementById('mock-onboarding-title');
+    const mockDesc = document.getElementById('mock-onboarding-desc');
+    const mockPill = document.getElementById('mock-onboarding-pill');
+    
+    if (mockTitle) mockTitle.innerText = slide.title;
+    if (mockDesc) mockDesc.innerText = slide.desc;
+    if (mockPill) {
+      mockPill.innerHTML = `<div class="mock-floating-pill" style="background: ${slide.color}; box-shadow: 0 8px 20px ${slide.color}50;">${slide.badge}</div>`;
+    }
+  };
+  
+  onboardingDots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      currentSlide = parseInt(dot.dataset.slide);
+      switchOnboardingSlide(currentSlide);
+    });
+  });
+  
+  // Auto slide onboarding every 4s
+  setInterval(() => {
+    const onboardingScreen = document.getElementById('emulator-screen-onboarding');
+    if (onboardingScreen && onboardingScreen.classList.contains('active-screen')) {
+      currentSlide = (currentSlide + 1) % onboardingSlides.length;
+      switchOnboardingSlide(currentSlide);
+    }
+  }, 4000);
 });
 
 // ==========================================================================
@@ -436,7 +511,13 @@ function initializeFirebase(config) {
     db = firebase.firestore();
     storage = firebase.storage();
     
-    db.enablePersistence().catch(() => {});
+    try {
+      db.enablePersistence().catch((err) => {
+        console.warn("Firestore offline persistence promise rejected:", err);
+      });
+    } catch (e) {
+      console.warn("Firestore offline persistence failed synchronously:", e);
+    }
     
     isConnected = true;
     logTerminal('Credentials authenticated securely.', 'success');
@@ -595,20 +676,24 @@ closeModalBtn.addEventListener('click', () => {
 
 saveConfigBtn.addEventListener('click', () => {
   const jsonStr = configJsonArea.value.trim();
-  try {
-    const config = JSON.parse(jsonStr);
-    if (!config.apiKey || !config.projectId || !config.storageBucket) {
-      alert('Invalid configuration. Required parameters missing: API key, Project ID.');
-      return;
-    }
-    localStorage.setItem('iris_admin_firebase_config', JSON.stringify(config));
-    configModal.style.display = 'none';
-    
-    initializeFirebase(config);
-    setupAuthListeners();
-  } catch (e) {
-    alert(`Payload Parsing Failure: ${e.message}`);
+  const validated = sanitizeAndValidateFirebaseConfig(jsonStr);
+  if (!validated) {
+    showMossToast('Configuration error. See modal log entries.', 'error');
+    return;
   }
+  
+  localStorage.setItem('iris_admin_firebase_config', JSON.stringify(validated));
+  configJsonArea.value = JSON.stringify(validated, null, 2);
+  
+  showMossToast('Saving parameters & re-connecting...', 'info');
+  setTimeout(() => {
+    configModal.style.display = 'none';
+    const logConsole = document.getElementById('config-validation-log');
+    if (logConsole) logConsole.style.display = 'none';
+    
+    initializeFirebase(validated);
+    setupAuthListeners();
+  }, 1000);
 });
 
 
@@ -646,6 +731,36 @@ function syncActivePeriodState() {
       }
 
 
+      // Update Mockup period card theme
+      const mockCard = document.getElementById('mock-period-card');
+      const mockBadge = document.getElementById('mock-period-badge');
+      const mockTitle = document.getElementById('mock-period-title');
+      const mockSubtitle = document.getElementById('mock-period-subtitle');
+      if (mockCard && mockBadge && mockTitle && mockSubtitle) {
+        mockCard.className = 'emulator-mode-card';
+        if (currentPeriod === 'classes') {
+          mockCard.classList.add('theme-classes');
+          mockBadge.innerHTML = '<i class="fa-solid fa-graduation-cap"></i> CLASSES MODE';
+          mockTitle.innerText = 'CLASSES IN SESSION';
+          mockSubtitle.innerText = 'Regular academic lecturing track';
+        } else if (currentPeriod === 'midterms') {
+          mockCard.classList.add('theme-midterms');
+          mockBadge.innerHTML = '<i class="fa-solid fa-pen-clip"></i> MIDTERMS MODE';
+          mockTitle.innerText = 'MIDTERMS ACTIVE';
+          mockSubtitle.innerText = 'Warm study session tracks';
+        } else if (currentPeriod === 'finals') {
+          mockCard.classList.add('theme-finals');
+          mockBadge.innerHTML = '<i class="fa-solid fa-award"></i> FINALS MODE';
+          mockTitle.innerText = 'FINALS ACTIVE';
+          mockSubtitle.innerText = 'Obsidian exam card theme';
+        } else if (currentPeriod === 'sports_week') {
+          mockCard.classList.add('theme-sports');
+          mockBadge.innerHTML = '<i class="fa-solid fa-volleyball"></i> SPORTS WEEK';
+          mockTitle.innerText = 'SPORTS WEEK IN SESSION';
+          mockSubtitle.innerText = 'Extracurricular activities & breaks';
+        }
+      }
+
       // Render active timetable statistics dynamically from database
       if (data.active_timetable_json) {
         try {
@@ -680,6 +795,28 @@ function syncActivePeriodState() {
           broadcastMessage.value = broadcastMsg;
           updateBroadcastCharCount(broadcastMsg.length);
         }
+        
+        // Direct mockup Notice sync
+        const mockNoticeCard = document.getElementById('mock-notice-card');
+        const mockNoticeBody = document.getElementById('mock-notice-body');
+        const mockNoticeIcon = document.getElementById('mock-notice-icon-badge');
+        const mockNoticeLive = document.getElementById('mock-notice-live-tag');
+        const mockNoticeTime = document.getElementById('mock-notice-time');
+        if (mockNoticeCard && mockNoticeBody) {
+          mockNoticeBody.innerText = broadcastMsg || 'All Quiet on Campus • No active broadcasts right now';
+          if (isBroadcastOn && broadcastMsg) {
+            mockNoticeCard.className = 'mock-notice-card active-notice';
+            if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge';
+            if (mockNoticeLive) mockNoticeLive.style.display = 'inline-block';
+            if (mockNoticeTime) mockNoticeTime.innerText = formatMockTime(new Date());
+          } else {
+            mockNoticeCard.className = 'mock-notice-card notice-off';
+            if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge off';
+            if (mockNoticeLive) mockNoticeLive.style.display = 'none';
+            if (mockNoticeTime) mockNoticeTime.innerText = 'NEVER';
+          }
+        }
+        
         btnBroadcastPush.disabled = false;
         
         // Synchronize hidden legacy elements for workspace compatibility
@@ -764,6 +901,9 @@ function updateActiveTimetablePreview(json) {
   if (statCourses) statCourses.innerText = uniqueSubjects.size;
   if (statLabs) statLabs.innerText = labCount;
   if (timetableAnalytics) timetableAnalytics.style.display = 'block';
+  
+  // Sync device emulator timetable screen
+  updateEmulatorTimetables(sessions);
 }
 
 // Ribbon Switch Snappy Selection Handler
@@ -839,18 +979,35 @@ function updateBroadcastCharCount(len) {
     broadcastCharCount.classList.add('char-counter-danger');
   }
 
-  const textRender = document.getElementById('emulator-text-render');
-  const timeRender = document.getElementById('emulator-time-render');
+  const mockNoticeCard = document.getElementById('mock-notice-card');
+  const mockNoticeBody = document.getElementById('mock-notice-body');
+  const mockNoticeTime = document.getElementById('mock-notice-time');
+  const mockNoticeIcon = document.getElementById('mock-notice-icon-badge');
+  const mockNoticeLive = document.getElementById('mock-notice-live-tag');
   
-  if (textRender && broadcastMessage) {
+  if (mockNoticeBody && broadcastMessage) {
     const rawVal = broadcastMessage.value.trim();
-    textRender.innerText = rawVal || 'All Quiet on Campus • No active broadcasts right now';
+    mockNoticeBody.innerText = rawVal || 'All Quiet on Campus • No active broadcasts right now';
     
-    if (timeRender) {
-      if (rawVal) {
-        timeRender.innerText = 'BROADCASTED: ' + formatMockTime(new Date());
+    const isBroadcastEnabled = broadcastSwitchVisible ? broadcastSwitchVisible.checked : false;
+    
+    if (mockNoticeCard) {
+      if (isBroadcastEnabled && rawVal) {
+        mockNoticeCard.className = 'mock-notice-card active-notice';
+        if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge';
+        if (mockNoticeLive) mockNoticeLive.style.display = 'inline-block';
       } else {
-        timeRender.innerText = 'BROADCASTED: NEVER';
+        mockNoticeCard.className = 'mock-notice-card notice-off';
+        if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge off';
+        if (mockNoticeLive) mockNoticeLive.style.display = 'none';
+      }
+    }
+    
+    if (mockNoticeTime) {
+      if (rawVal) {
+        mockNoticeTime.innerText = formatMockTime(new Date());
+      } else {
+        mockNoticeTime.innerText = 'NEVER';
       }
     }
   }
@@ -2330,6 +2487,9 @@ function handleExamsFileSelect(file) {
       btnDeployMidterms.disabled = false;
       btnDeployFinals.disabled = false;
       
+      // Update emulator datesheet preview
+      updateEmulatorExams(parsedExams);
+      
     } catch (err) {
       logTerminal(`Excel Date Sheet Parsing Failed: ${err.message}`, 'error');
       examsAnalytics.style.display = 'none';
@@ -2434,8 +2594,303 @@ btnDeployFinals.addEventListener('click', async () => {
   }
 });
 
+let telemetryHistoryPoints = [];
+const maxTelemetryPoints = 15;
+
+function initTelemetryChart() {
+  for (let i = 0; i < maxTelemetryPoints; i++) {
+    telemetryHistoryPoints.push({
+      ops: 0,
+      latency: Math.floor(Math.random() * 15) + 5
+    });
+  }
+  
+  // Start drawing loop
+  setInterval(tickTelemetryChart, 1500);
+}
+
+function tickTelemetryChart() {
+  const svg = document.getElementById('telemetry-svg');
+  if (!svg) return;
+  
+  const currentOps = databaseWriteOps;
+  const newOpsVal = currentOps * 2 + Math.floor(Math.random() * 2);
+  const newLatencyVal = Math.floor(Math.random() * 12) + (isConnected ? 6 : 99);
+  
+  telemetryHistoryPoints.shift();
+  telemetryHistoryPoints.push({
+    ops: newOpsVal,
+    latency: newLatencyVal
+  });
+  
+  const width = 300;
+  const height = 80;
+  const pointsCount = telemetryHistoryPoints.length;
+  const dx = width / (pointsCount - 1);
+  
+  let opsPathD = '';
+  let opsAreaD = `M 0 ${height} `;
+  let latencyPathD = '';
+  let latencyAreaD = `M 0 ${height} `;
+  
+  const maxOps = Math.max(...telemetryHistoryPoints.map(p => p.ops), 10);
+  const maxLat = Math.max(...telemetryHistoryPoints.map(p => p.latency), 30);
+  
+  telemetryHistoryPoints.forEach((pt, idx) => {
+    const x = idx * dx;
+    const yOps = height - 10 - ((pt.ops / maxOps) * 50);
+    const yLat = height - 10 - ((pt.latency / maxLat) * 45);
+    
+    if (idx === 0) {
+      opsPathD += `M ${x} ${yOps} `;
+      opsAreaD += `L ${x} ${yOps} `;
+      latencyPathD += `M ${x} ${yLat} `;
+      latencyAreaD += `L ${x} ${yLat} `;
+    } else {
+      opsPathD += `L ${x} ${yOps} `;
+      opsAreaD += `L ${x} ${yOps} `;
+      latencyPathD += `L ${x} ${yLat} `;
+      latencyAreaD += `L ${x} ${yLat} `;
+    }
+  });
+  
+  opsAreaD += `L ${width} ${height} Z`;
+  latencyAreaD += `L ${width} ${height} Z`;
+  
+  const opsPathEl = document.getElementById('chart-ops-path');
+  const opsAreaEl = document.getElementById('chart-ops-area');
+  const latPathEl = document.getElementById('chart-latency-path');
+  const latAreaEl = document.getElementById('chart-latency-area');
+  const opsDotEl = document.getElementById('chart-ops-dot');
+  
+  if (opsPathEl) opsPathEl.setAttribute('d', opsPathD);
+  if (opsAreaEl) opsAreaEl.setAttribute('d', opsAreaD);
+  if (latPathEl) latPathEl.setAttribute('d', latencyPathD);
+  if (latAreaEl) latAreaEl.setAttribute('d', latencyAreaD);
+  
+  if (opsDotEl && telemetryHistoryPoints.length > 0) {
+    const finalIdx = telemetryHistoryPoints.length - 1;
+    const finalOps = telemetryHistoryPoints[finalIdx].ops;
+    const finalX = finalIdx * dx;
+    const finalY = height - 10 - ((finalOps / maxOps) * 50);
+    opsDotEl.setAttribute('cx', finalX);
+    opsDotEl.setAttribute('cy', finalY);
+  }
+}
+
+function updateEmulatorTimetables(sessions) {
+  const mockList = document.getElementById('mock-timetable-list');
+  const mockHomeList = document.getElementById('mock-feed-schedule-container');
+  if (!mockList) return;
+  
+  if (!sessions || sessions.length === 0) {
+    mockList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 10px; padding: 20px;">No daily timetables seeded. Upload a timetable to preview.</div>`;
+    if (mockHomeList) {
+      mockHomeList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 9px; padding: 10px;">All schedule tracks clean.</div>`;
+    }
+    return;
+  }
+  
+  mockList.innerHTML = '';
+  sessions.slice(0, 15).forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'mock-feed-item';
+    
+    const subject = s.subject || 'Lecture';
+    const time = s.start && s.end ? `${s.start} - ${s.end}` : (s.time || s.period || 'ON SCHEDULE');
+    const teacher = s.teacher || s.instructor || 'STAFF';
+    const venue = s.room || 'TBD';
+    
+    item.innerHTML = `
+      <div class="mock-feed-left">
+        <strong>${subject}</strong>
+        <span>${teacher}</span>
+      </div>
+      <div class="mock-feed-right">
+        <span class="badge-room">${venue}</span>
+        <span class="badge-time">${time}</span>
+      </div>
+    `;
+    mockList.appendChild(item);
+  });
+  
+  if (mockHomeList) {
+    mockHomeList.innerHTML = '';
+    const limit = Math.min(2, sessions.length);
+    for (let i = 0; i < limit; i++) {
+      const s = sessions[i];
+      const item = document.createElement('div');
+      item.className = 'mock-feed-item';
+      
+      const subject = s.subject || 'Lecture';
+      const teacher = s.teacher || s.instructor || 'STAFF';
+      const venue = s.room || 'TBD';
+      const time = s.start || s.time || '08:30';
+      
+      item.innerHTML = `
+        <div class="mock-feed-left">
+          <strong>${subject}</strong>
+          <span>${teacher}</span>
+        </div>
+        <div class="mock-feed-right">
+          <span class="badge-room">${venue}</span>
+          <span class="badge-time">${time}</span>
+        </div>
+      `;
+      mockHomeList.appendChild(item);
+    }
+  }
+}
+
+function updateEmulatorExams(exams) {
+  const mockList = document.getElementById('mock-exams-list');
+  if (!mockList) return;
+  
+  if (!exams || exams.length === 0) {
+    mockList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 10px; padding: 20px;">No exam datesheets seeded. Upload an excel sheet to preview.</div>`;
+    return;
+  }
+  
+  mockList.innerHTML = '';
+  const limit = Math.min(10, exams.length);
+  for (let i = 0; i < limit; i++) {
+    const ex = exams[i];
+    const item = document.createElement('div');
+    item.className = 'mock-feed-item';
+    item.innerHTML = `
+      <div class="mock-feed-left">
+        <strong>${ex.subject}</strong>
+        <span>${ex.batch}</span>
+      </div>
+      <div class="mock-feed-right">
+        <span class="badge-room" style="background: rgba(244, 63, 94, 0.08); border-color: rgba(244, 63, 94, 0.2); color: #f43f5e;">${ex.room}</span>
+        <span class="badge-time" style="font-size: 7px; white-space: nowrap;">${ex.date} | ${ex.time}</span>
+      </div>
+    `;
+    mockList.appendChild(item);
+  }
+}
+
+function setup3DTiltEffects() {
+  const slideDeck = document.getElementById('parallax-slide-deck');
+  if (slideDeck) {
+    const layers = slideDeck.querySelectorAll('.parallax-layer');
+    
+    slideDeck.addEventListener('mousemove', e => {
+      const rect = slideDeck.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const mouseX = e.clientX - rect.left - centerX;
+      const mouseY = e.clientY - rect.top - centerY;
+      
+      layers.forEach(layer => {
+        const depth = parseFloat(layer.dataset.depth || '0.5');
+        const tx = mouseX * depth * 0.12;
+        const ty = mouseY * depth * 0.12;
+        
+        if (layer.classList.contains('parallax-frame-layer')) {
+          const rx = -mouseY * 0.05;
+          const ry = mouseX * 0.05;
+          layer.style.transform = `translate3d(${tx}px, ${ty}px, 0px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        } else {
+          layer.style.transform = `translate3d(${tx}px, ${ty}px, 0px)`;
+        }
+      });
+    });
+    
+    slideDeck.addEventListener('mouseleave', () => {
+      layers.forEach(layer => {
+        layer.style.transform = 'translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg)';
+      });
+    });
+  }
+}
+
+function sanitizeAndValidateFirebaseConfig(jsonStr) {
+  const logConsole = document.getElementById('config-validation-log');
+  if (logConsole) {
+    logConsole.innerHTML = '';
+    logConsole.style.display = 'block';
+  }
+  
+  const addLog = (message, type = 'info') => {
+    if (logConsole) {
+      const line = document.createElement('div');
+      line.className = `val-log-line val-log-${type}`;
+      line.innerText = `> [${type.toUpperCase()}] ${message}`;
+      logConsole.appendChild(line);
+      logConsole.scrollTop = logConsole.scrollHeight;
+    }
+  };
+  
+  addLog('Initializing sanitization checks...', 'info');
+  
+  let cleaned = jsonStr.trim();
+  
+  // 1. Fix single quotes to double quotes
+  if (cleaned.includes("'")) {
+    cleaned = cleaned.replace(/'/g, '"');
+    addLog('Single quotes converted to double quotes.', 'warning');
+  }
+  
+  // 2. Quote unquoted keys (e.g. { apiKey: ... } -> { "apiKey": ... })
+  const unquotedKeyRegex = /([{,]\s*)([a-zA-Z0-9_]+)\s*:/g;
+  if (unquotedKeyRegex.test(cleaned)) {
+    cleaned = cleaned.replace(unquotedKeyRegex, '$1"$2":');
+    addLog('Added quotes to unquoted object keys.', 'warning');
+  }
+  
+  // 3. Strip trailing commas
+  const trailingCommaRegex = /,\s*([}\]])/g;
+  if (trailingCommaRegex.test(cleaned)) {
+    cleaned = cleaned.replace(trailingCommaRegex, '$1');
+    addLog('Stripped trailing commas.', 'warning');
+  }
+  
+  // 4. Wrap with curly braces if copy-pasted as raw properties without wrap
+  if (!cleaned.startsWith('{')) {
+    cleaned = '{' + cleaned + '}';
+    addLog('Wrapped properties with missing outer curly braces.', 'warning');
+  }
+  
+  let parsed = null;
+  try {
+    parsed = JSON.parse(cleaned);
+    addLog('JSON syntax verified successfully.', 'success');
+  } catch (e) {
+    addLog(`Syntax Error: ${e.message}`, 'error');
+    addLog('Parsing aborted. Check braces and comma placement.', 'error');
+    return null;
+  }
+  
+  // Validate required keys
+  const requiredKeys = ['apiKey', 'projectId', 'storageBucket'];
+  let missing = [];
+  requiredKeys.forEach(key => {
+    if (!parsed[key]) {
+      missing.push(key);
+    }
+  });
+  
+  if (missing.length > 0) {
+    addLog(`Missing required parameters: ${missing.join(', ')}`, 'error');
+    return null;
+  }
+  
+  // Verify format of specific keys
+  if (parsed.apiKey && !parsed.apiKey.startsWith('AIzaSy')) {
+    addLog('Warning: apiKey does not match standard Firebase API Key format.', 'warning');
+  }
+  if (parsed.projectId && !/^[a-z0-9-]+$/.test(parsed.projectId)) {
+    addLog('Warning: projectId contains non-standard characters.', 'warning');
+  }
+  
+  addLog('Connection configuration validation complete.', 'success');
+  return parsed;
+}
+
 function startTelemetryECG() {
-  // Disabled in favor of hardware-accelerated CSS biometric radar pulse signal beacons
+  initTelemetryChart();
 }
 
 let activeClassesData = [];
@@ -2460,6 +2915,7 @@ async function refreshLiveClassesInspector() {
       const parsed = JSON.parse(jsonStr);
       activeClassesData = Array.isArray(parsed) ? parsed : (parsed.sessions || []);
       renderLiveClassesInspector();
+      updateEmulatorTimetables(activeClassesData);
     } else {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No active configuration found on Firestore.</td></tr>`;
     }
@@ -2569,6 +3025,7 @@ async function refreshLiveExamsInspector() {
       const parsed = JSON.parse(jsonStr);
       activeExamsData = Array.isArray(parsed) ? parsed : [];
       renderLiveExamsInspector();
+      updateEmulatorExams(activeExamsData);
     } else {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No active configuration found on Firestore.</td></tr>`;
     }

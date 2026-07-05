@@ -12,6 +12,7 @@ import '../services/helpdesk_faculty_service.dart';
 import '../services/ui_feedback.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/glowing_input_wrapper.dart';
 import '../widgets/neural_aura.dart';
 import '../core/theme_signals.dart';
 import '../core/minimal_theme.dart';
@@ -445,33 +446,36 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       children: [
-                        TextField(
-                          controller: _controller,
-                          onChanged: _updateSuggestions,
-                          onSubmitted: _performSearch,
-                          style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
-                          decoration: irisFrostedInputDecoration(
-                            label: 'Teacher Name',
-                            isDark: isDark,
-                            prefixIcon: Icons.search_rounded,
-                            hint: 'e.g. Dr. Nadeem Ahmed',
-                          ).copyWith(
-                            suffixIcon: _searching
-                                ? Container(
-                                    width: 20,
-                                    height: 20,
-                                    padding: const EdgeInsets.all(12),
-                                    child: IrisComponents.loadingSpinner(
-                                      size: 16,
-                                      strokeWidth: 2,
+                        IrisGlowingInputWrapper(
+                          borderRadius: 14,
+                          child: TextField(
+                            controller: _controller,
+                            onChanged: _updateSuggestions,
+                            onSubmitted: _performSearch,
+                            style: IrisTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
+                            decoration: irisGlowingInputDecoration(
+                              label: 'Teacher Name',
+                              isDark: isDark,
+                              prefixIcon: Icons.search_rounded,
+                              hint: 'e.g. Dr. Nadeem Ahmed',
+                            ).copyWith(
+                              suffixIcon: _searching
+                                  ? Container(
+                                      width: 20,
+                                      height: 20,
+                                      padding: const EdgeInsets.all(12),
+                                      child: IrisComponents.loadingSpinner(
+                                        size: 16,
+                                        strokeWidth: 2,
+                                        color: purple,
+                                      ),
+                                    )
+                                  : IconButton(
+                                      icon: const Icon(Icons.arrow_forward_rounded),
                                       color: purple,
+                                      onPressed: () => _performSearch(),
                                     ),
-                                  )
-                                : IconButton(
-                                    icon: const Icon(Icons.arrow_forward_rounded),
-                                    color: purple,
-                                    onPressed: () => _performSearch(),
-                                  ),
+                            ),
                           ),
                         ),
                         if (_suggestions.isNotEmpty) ...[

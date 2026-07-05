@@ -26,12 +26,14 @@ class AboutScreen extends StatefulWidget {
   final ValueChanged<String>? onUserNameChanged;
   final ValueChanged<String>? onRoleChanged;
   final ValueChanged<String>? onBatchChanged;
+  final ScrollController? scrollController;
 
   const AboutScreen({
     required this.memory,
     this.onUserNameChanged,
     this.onRoleChanged,
     this.onBatchChanged,
+    this.scrollController,
     super.key,
   });
 
@@ -40,7 +42,7 @@ class AboutScreen extends StatefulWidget {
 }
 
 class _AboutScreenState extends State<AboutScreen> {
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   bool _isRefreshing = false;
   Map<String, dynamic>? _otaStatus;
   String _userName = 'Student';
@@ -54,8 +56,17 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController = widget.scrollController ?? ScrollController();
     _loadSettings();
     _refreshOTA();
+  }
+
+  @override
+  void dispose() {
+    if (widget.scrollController == null) {
+      _scrollController.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadSettings() async {
@@ -1047,28 +1058,59 @@ class _AboutScreenState extends State<AboutScreen> {
                   color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
                 ),
               ),
-              DropdownButton<String>(
-                value: IrisHaptics.profile,
-                dropdownColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-                underline: Container(),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: IrisTokens.brand,
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'gentle', child: Text("Gentle / Soft")),
-                  DropdownMenuItem(value: 'crisp', child: Text("Crisp / Sharp")),
-                  DropdownMenuItem(value: 'balanced', child: Text("Balanced")),
-                ],
-                onChanged: (val) async {
-                  if (val != null) {
-                    IrisHaptics.selectionClick();
-                    await IrisHaptics.setProfile(val);
-                    await IrisSfx.setProfile(val == 'balanced' ? 'bubble' : val);
-                    setState(() {});
-                  }
+              GlassMenu(
+                menuWidth: 160,
+                triggerBuilder: (context, toggleMenu) {
+                  return GestureDetector(
+                    onTap: toggleMenu,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          IrisHaptics.profile.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: IrisTokens.brand,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down_rounded, color: IrisTokens.brand),
+                      ],
+                    ),
+                  );
                 },
+                items: [
+                  GlassMenuItem(
+                    title: 'Gentle / Soft',
+                    isSelected: IrisHaptics.profile == 'gentle',
+                    onTap: () async {
+                      IrisHaptics.selectionClick();
+                      await IrisHaptics.setProfile('gentle');
+                      await IrisSfx.setProfile('gentle');
+                      setState(() {});
+                    },
+                  ),
+                  GlassMenuItem(
+                    title: 'Crisp / Sharp',
+                    isSelected: IrisHaptics.profile == 'crisp',
+                    onTap: () async {
+                      IrisHaptics.selectionClick();
+                      await IrisHaptics.setProfile('crisp');
+                      await IrisSfx.setProfile('crisp');
+                      setState(() {});
+                    },
+                  ),
+                  GlassMenuItem(
+                    title: 'Balanced',
+                    isSelected: IrisHaptics.profile == 'balanced',
+                    onTap: () async {
+                      IrisHaptics.selectionClick();
+                      await IrisHaptics.setProfile('balanced');
+                      await IrisSfx.setProfile('bubble');
+                      setState(() {});
+                    },
+                  ),
+                ],
               ),
             ],
           ),

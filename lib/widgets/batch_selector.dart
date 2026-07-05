@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
 import '../services/ui_feedback.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 class BatchSelectorSheet extends StatefulWidget {
   final UniversityMemory memory;
@@ -411,33 +412,53 @@ class _EnhancedDropDownRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                isExpanded: true,
-                hint: Text(
-                  'Select',
-                  style: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.black45,
+            child: lgw.GlassMenu(
+              menuWidth: 240,
+              menuHeight: items.length > 5 ? 260.0 : (items.length * 44.0 + 10.0),
+              triggerBuilder: (context, toggleMenu) {
+                return InkWell(
+                  onTap: () {
+                    IrisHaptics.actionSoft();
+                    toggleMenu();
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            value ?? 'Select',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: value == null 
+                                  ? (isDark ? Colors.white54 : Colors.black45)
+                                  : (isDark ? Colors.white : Colors.black87),
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: isDark ? Colors.white54 : Colors.black54,
+                          size: 20,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                dropdownColor: isDark
-                    ? IrisTokens.surfaceDarkElevated
-                    : Colors.white,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-                icon: Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: isDark ? Colors.white54 : Colors.black54,
-                ),
-                items: items
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: onChanged,
-              ),
+                );
+              },
+              items: items.map((e) {
+                return lgw.GlassMenuItem(
+                  title: e,
+                  onTap: () {
+                    if (onChanged != null) onChanged(e);
+                  },
+                );
+              }).toList(),
             ),
           ),
         ],

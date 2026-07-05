@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/nature_particles.dart';
 import '../services/ui_feedback.dart';
 import '../core/tokens.dart';
 
@@ -320,39 +321,43 @@ class _StudentsWeekAnimationWidgetState extends State<StudentsWeekAnimationWidge
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 36.0,
-        accentColor: const Color(0xFF10B981), // Emerald Green theme
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  _lastWidth = constraints.maxWidth;
-                  _lastHeight = constraints.maxHeight;
-                  return CustomPaint(
-                    painter: StudentsWeekPainter(
-                      progress: _controller.value,
-                      mode: _mode,
-                      particles: _particles,
-                      showText: _showText,
-                      textScale: _textScale,
-                      textOpacity: _textOpacity,
-                      isDark: isDark,
-                    ),
-                  );
-                },
+    return HeaderAtmosphereWrapper(
+      radius: 36.0,
+      themeColor: const Color(0xFF10B981),
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 36.0,
+          accentColor: const Color(0xFF10B981), // Emerald Green theme
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    _lastWidth = constraints.maxWidth;
+                    _lastHeight = constraints.maxHeight;
+                    return CustomPaint(
+                      painter: StudentsWeekPainter(
+                        progress: _controller.value,
+                        mode: _mode,
+                        particles: _particles,
+                        showText: _showText,
+                        textScale: _textScale,
+                        textOpacity: _textOpacity,
+                        isDark: isDark,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1450,40 +1455,50 @@ class _ClassesAnimationWidgetState extends State<ClassesAnimationWidget>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 36.0,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  _lastWidth = constraints.maxWidth;
-                  _lastHeight = constraints.maxHeight;
-                  return CustomPaint(
-                    painter: ClassesPainter(
-                      progress: _controller.value,
-                      period: _getPeriod(),
-                      particles: _particles,
-                      isLightOn: _isLightOn,
-                      glowScale: _bulbGlowScale,
-                      showIdeas: _showIdeas,
-                      ideasScale: _ideasScale,
-                      ideasOpacity: _ideasOpacity,
-                      isDark: isDark,
-                    ),
-                  );
-                },
+    return HeaderAtmosphereWrapper(
+      radius: 36.0,
+      themeColor: IrisTokens.brand,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 36.0,
+          accentColor: IrisTokens.brand,
+          border: Border.all(
+            color: IrisTokens.brand.withValues(alpha: 0.16),
+            width: 1.2,
+          ),
+          glow: true,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    _lastWidth = constraints.maxWidth;
+                    _lastHeight = constraints.maxHeight;
+                    return CustomPaint(
+                      painter: ClassesPainter(
+                        progress: _controller.value,
+                        period: _getPeriod(),
+                        particles: _particles,
+                        isLightOn: _isLightOn,
+                        glowScale: _bulbGlowScale,
+                        showIdeas: _showIdeas,
+                        ideasScale: _ideasScale,
+                        ideasOpacity: _ideasOpacity,
+                        isDark: isDark,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2097,38 +2112,48 @@ class _MidtermsAnimationWidgetState extends State<MidtermsAnimationWidget>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 32.0,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  _lastWidth = constraints.maxWidth;
-                  _lastHeight = constraints.maxHeight;
-                  return CustomPaint(
-                    painter: MidtermsPainter(
-                      progress: _controller.value,
-                      steamOffset: _steamOffset,
-                      particles: _particles,
-                      showFocusText: _showFocusText,
-                      focusScale: _focusScale,
-                      focusOpacity: _focusOpacity,
-                      isDark: isDark,
-                    ),
-                  );
-                },
+    return HeaderAtmosphereWrapper(
+      radius: 32.0,
+      themeColor: const Color(0xFFF59E0B),
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 32.0,
+          accentColor: const Color(0xFFF59E0B),
+          border: Border.all(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.22),
+            width: 1.2,
+          ),
+          glow: true,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    _lastWidth = constraints.maxWidth;
+                    _lastHeight = constraints.maxHeight;
+                    return CustomPaint(
+                      painter: MidtermsPainter(
+                        progress: _controller.value,
+                        steamOffset: _steamOffset,
+                        particles: _particles,
+                        showFocusText: _showFocusText,
+                        focusScale: _focusScale,
+                        focusOpacity: _focusOpacity,
+                        isDark: isDark,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2471,40 +2496,55 @@ class _FinalsAnimationWidgetState extends State<FinalsAnimationWidget>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 32.0,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  _lastWidth = constraints.maxWidth;
-                  _lastHeight = constraints.maxHeight;
-                  return CustomPaint(
-                    painter: FinalsPainter(
-                      progress: _controller.value,
-                      papers: _papers,
-                      confetti: _confetti,
-                      showDoneText: _showDoneText,
-                      doneScale: _doneScale,
-                      doneOpacity: _doneOpacity,
-                      isDark: isDark,
-                    ),
-                  );
-                },
+    return HeaderAtmosphereWrapper(
+      radius: 32.0,
+      themeColor: const Color(0xFFF43F5E),
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 32.0,
+          backgroundColor: const Color(0xFF07080C).withValues(alpha: 0.94),
+          border: Border.all(
+            color: const Color(0xFFF43F5E).withValues(alpha: 0.32),
+            width: 1.5,
+          ),
+          accentColor: const Color(0xFFF43F5E),
+          glow: true,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    _lastWidth = constraints.maxWidth;
+                    _lastHeight = constraints.maxHeight;
+                    return CustomPaint(
+                      painter: FinalsPainter(
+                        progress: _controller.value,
+                        papers: _papers,
+                        confetti: _confetti,
+                        showDoneText: _showDoneText,
+                        doneScale: _doneScale,
+                        doneOpacity: _doneOpacity,
+                        isDark: true, // Always dark obsidian mode
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: Theme(
+                  data: ThemeData(
+                    brightness: Brightness.dark,
+                    primaryColor: const Color(0xFFF43F5E),
+                  ),
+                  child: widget.child,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2759,33 +2799,37 @@ class _TeacherLocatorAnimationWidgetState extends State<TeacherLocatorAnimationW
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 36.0,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  return CustomPaint(
-                    painter: TeacherLocatorPainter(
-                      progress: _controller.value,
-                      tapPings: _tapPings,
-                      isDark: isDark,
-                    ),
-                  );
-                },
+    return HeaderAtmosphereWrapper(
+      radius: 36.0,
+      themeColor: IrisTokens.purple,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 36.0,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    return CustomPaint(
+                      painter: TeacherLocatorPainter(
+                        progress: _controller.value,
+                        tapPings: _tapPings,
+                        isDark: isDark,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3063,33 +3107,37 @@ class _RoomFinderAnimationWidgetState extends State<RoomFinderAnimationWidget>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 36.0,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  return CustomPaint(
-                    painter: RoomFinderPainter(
-                      progress: _controller.value,
-                      tapNodes: _tapNodes,
-                      isDark: isDark,
-                    ),
-                  );
-                },
+    return HeaderAtmosphereWrapper(
+      radius: 36.0,
+      themeColor: IrisTokens.brand,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 36.0,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    return CustomPaint(
+                      painter: RoomFinderPainter(
+                        progress: _controller.value,
+                        tapNodes: _tapNodes,
+                        isDark: isDark,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3360,33 +3408,37 @@ class _CgpaCalculatorAnimationWidgetState extends State<CgpaCalculatorAnimationW
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 36.0,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return CustomPaint(
-                    painter: CgpaCalculatorPainter(
-                      progress: _controller.value,
-                      floaters: _mathFloat,
-                      isDark: isDark,
-                    ),
-                  );
-                }
+    return HeaderAtmosphereWrapper(
+      radius: 36.0,
+      themeColor: IrisTokens.brand,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 36.0,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: CgpaCalculatorPainter(
+                        progress: _controller.value,
+                        floaters: _mathFloat,
+                        isDark: isDark,
+                      ),
+                    );
+                  }
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3624,33 +3676,37 @@ class _DirectoryAnimationWidgetState extends State<DirectoryAnimationWidget>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      child: GlassCard(
-        padding: const EdgeInsets.all(22),
-        borderRadius: 36.0,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  return CustomPaint(
-                    painter: DirectoryPainter(
-                      progress: _controller.value,
-                      tapPulses: _tapPulses,
-                      isDark: isDark,
-                    ),
-                  );
-                },
+    return HeaderAtmosphereWrapper(
+      radius: 36.0,
+      themeColor: IrisTokens.blue,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        child: GlassCard(
+          padding: const EdgeInsets.all(22),
+          borderRadius: 36.0,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    return CustomPaint(
+                      painter: DirectoryPainter(
+                        progress: _controller.value,
+                        tapPulses: _tapPulses,
+                        isDark: isDark,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            Container(
-              constraints: const BoxConstraints(minHeight: 130),
-              alignment: Alignment.centerLeft,
-              child: widget.child,
-            ),
-          ],
+              Container(
+                constraints: const BoxConstraints(minHeight: 130),
+                alignment: Alignment.centerLeft,
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );

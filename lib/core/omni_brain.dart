@@ -22,6 +22,9 @@ class TemporalInsight {
   final String? timeInfo; // E.g., "45 mins left", "Starting in 5 mins"
   final String? teacherInfo; // E.g., "Dr. Ahmed Khan"
   final bool isUrgent; // True if class starts within 5 mins
+  final String? subject;
+  final String? room;
+  final String? startTime;
 
   const TemporalInsight({
     required this.headline,
@@ -30,6 +33,9 @@ class TemporalInsight {
     this.timeInfo,
     this.teacherInfo,
     this.isUrgent = false,
+    this.subject,
+    this.room,
+    this.startTime,
   });
 }
 
@@ -604,6 +610,9 @@ class OmniBrain {
         teacherInfo: current.teacher,
         isLive: true,
         isUrgent: false,
+        subject: current.subject,
+        room: current.room,
+        startTime: current.startTime,
       );
     }
 
@@ -632,6 +641,9 @@ class OmniBrain {
           timeInfo: breakDuration,
           teacherInfo: mergedUpcoming.teacher,
           isLive: false,
+          subject: mergedUpcoming.subject,
+          room: mergedUpcoming.room,
+          startTime: mergedUpcoming.startTime,
         );
       }
     }
@@ -689,6 +701,9 @@ class OmniBrain {
         teacherInfo: next.teacher,
         isLive: false,
         isUrgent: isStartingSoon,
+        subject: next.subject,
+        room: next.room,
+        startTime: next.startTime,
       );
     }
 
@@ -696,6 +711,9 @@ class OmniBrain {
       headline: 'No Classes',
       subline: 'Enjoy the free time',
       isLive: false,
+      subject: 'No Classes',
+      room: '',
+      startTime: '',
     );
   }
 

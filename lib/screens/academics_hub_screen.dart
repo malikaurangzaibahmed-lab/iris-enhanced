@@ -11,6 +11,7 @@ import '../services/ui_feedback.dart';
 import '../services/remote_config_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'students_week_screen.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 class AcademicsHubScreen extends StatefulWidget {
   const AcademicsHubScreen({super.key});
@@ -442,25 +443,17 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                           color: IrisTokens.brand,
                         ),
                       ),
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: IrisTokens.brand,
-                          inactiveTrackColor: (isDark ? Colors.white24 : Colors.black12),
-                          thumbColor: IrisTokens.brand,
-                          overlayColor: IrisTokens.brand.withValues(alpha: 0.2),
-                          valueIndicatorColor: IrisTokens.brand,
-                        ),
-                        child: Slider(
-                          value: tempCgpa,
-                          min: 1.0,
-                          max: 4.0,
-                          divisions: 60,
-                          onChanged: (val) {
-                            setModalState(() {
-                              tempCgpa = double.parse(val.toStringAsFixed(2));
-                            });
-                          },
-                        ),
+                      lgw.GlassSlider(
+                        value: tempCgpa,
+                        min: 1.0,
+                        max: 4.0,
+                        divisions: 60,
+                        activeColor: IrisTokens.brand,
+                        onChanged: (val) {
+                          setModalState(() {
+                            tempCgpa = double.parse(val.toStringAsFixed(2));
+                          });
+                        },
                       ),
                       const SizedBox(height: 24),
                       Row(

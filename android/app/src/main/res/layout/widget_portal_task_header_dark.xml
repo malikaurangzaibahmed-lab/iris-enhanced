@@ -15,7 +15,7 @@
         android:gravity="center_vertical">
 
         <!-- Left Accent Bar -->
-        <View
+        <FrameLayout
             android:id="@+id/header_bar"
             android:layout_width="4dp"
             android:layout_height="14dp"

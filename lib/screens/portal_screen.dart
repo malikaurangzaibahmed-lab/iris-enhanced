@@ -23,6 +23,7 @@ import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../core/theme_signals.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 /// Portal session metadata persisted across app restarts
 class DownloadRecord {
@@ -3576,6 +3577,512 @@ class _PortalScreenState extends State<PortalScreen>
     );
   }
 
+  Widget _buildAddressBarCard({
+    required bool isDark,
+    required Color panelText,
+    required Color panelMuted,
+  }) {
+    return _buildBentoCard(
+      isDark: isDark,
+      child: Row(
+        children: [
+          Icon(
+            addressLabelSafe.startsWith('https://')
+                ? Icons.lock_outline_rounded
+                : Icons.public_rounded,
+            size: 15,
+            color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _isEditingAddress
+                ? TextField(
+                    controller: _addressController,
+                    autofocus: true,
+                    keyboardType: TextInputType.url,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: panelText,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText: 'https://example.com',
+                      hintStyle: TextStyle(
+                        color: panelMuted.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    textInputAction: TextInputAction.go,
+                    onSubmitted: _submitAddressBar,
+                  )
+                : InkWell(
+                    onTap: _openAddressBar,
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        addressLabelSafe,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: panelText.withValues(alpha: 0.9),
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            decoration: BoxDecoration(
+              color: (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success)
+                  .withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success)
+                    .withValues(alpha: 0.24),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _isOffline ? 'OFFLINE' : 'SECURE',
+                  style: TextStyle(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w800,
+                    color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
+                    letterSpacing: 0.5,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!_isEditingAddress) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: _openAddressBar,
+              child: Icon(
+                Icons.edit_rounded,
+                size: 15,
+                color: panelMuted,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBentoLayout({
+    required bool isDark,
+    required Color panelText,
+    required Color panelMuted,
+    required Color accent,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double leftTelemetryWidth = constraints.maxWidth >= 420
+            ? (constraints.maxWidth - 8) / 2
+            : constraints.maxWidth;
+        
+        final telemetryCard = _buildBentoCard(
+          isDark: isDark,
+          borderTint: _isSyncing ? IrisTokens.brand : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.analytics_rounded, size: 14, color: panelMuted),
+                  const SizedBox(width: 6),
+                  Text(
+                    'SCRAPER TELEMETRY',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: panelMuted,
+                      letterSpacing: 0.8,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _isSyncing
+                    ? '⚡ Syncing credentials...'
+                    : (_isOffline ? '❌ Engine Offline' : '✓ Scraper Engine Idle'),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: _isSyncing
+                      ? IrisTokens.brand
+                      : (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success),
+                  decoration: TextDecoration.none,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                addressLabelSafe.contains('comsats.edu.pk')
+                    ? 'Campus Node: Active'
+                    : 'External Web Node',
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  color: panelMuted.withValues(alpha: 0.8),
+                  decoration: TextDecoration.none,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  if (addressLabelSafe.contains('comsats.edu.pk')) ...[
+                    Expanded(
+                      child: _buildBentoActionBtn(
+                        isDark: isDark,
+                        icon: _isSyncing ? Icons.sync_rounded : Icons.auto_awesome_rounded,
+                        label: _isSyncing ? 'Syncing' : 'Deep Sync',
+                        primary: true,
+                        onTap: () => _syncPortalTasks(),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    if (_hasSavedLogin)
+                      Expanded(
+                        child: _buildBentoActionBtn(
+                          isDark: isDark,
+                          icon: Icons.flash_on_rounded,
+                          label: 'Warm',
+                          primary: false,
+                          onTap: () async {
+                            IrisSfx.pillTap();
+                            await _showMessage('Warming session...');
+                            final success = await SessionRefresherService.warmSession(
+                              _hostKey,
+                              _scopeSanitized,
+                            );
+                            if (success) {
+                              await _showMessage('✓ Session warmed! Reloading...');
+                              await _controller.reload();
+                            } else {
+                              await _showMessage('❌ Warming failed. Log in.');
+                            }
+                          },
+                        ),
+                      ),
+                  ] else ...[
+                    Expanded(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            'No automation for public site',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: panelMuted,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        );
+
+        final navigationCard = _buildBentoCard(
+          isDark: isDark,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.explore_rounded, size: 14, color: panelMuted),
+                  const SizedBox(width: 6),
+                  Text(
+                    'NAVIGATION DECK',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: panelMuted,
+                      letterSpacing: 0.8,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildBentoNavCircle(
+                    isDark: isDark,
+                    icon: Icons.arrow_back_rounded,
+                    tooltip: 'Back',
+                    enabled: _canGoBack,
+                    onTap: () async {
+                      await _controller.goBack();
+                      await _updateNavState();
+                    },
+                  ),
+                  _buildBentoNavCircle(
+                    isDark: isDark,
+                    icon: Icons.arrow_forward_rounded,
+                    tooltip: 'Forward',
+                    enabled: _canGoForward,
+                    onTap: () async {
+                      await _controller.goForward();
+                      await _updateNavState();
+                    },
+                  ),
+                  _buildBentoNavCircle(
+                    isDark: isDark,
+                    icon: Icons.refresh_rounded,
+                    tooltip: 'Refresh',
+                    enabled: true,
+                    onTap: () async {
+                      await _refreshPage();
+                      await _updateNavState();
+                    },
+                  ),
+                  _buildBentoNavCircle(
+                    isDark: isDark,
+                    icon: Icons.open_in_new_rounded,
+                    tooltip: 'Open Browser',
+                    enabled: true,
+                    onTap: () async {
+                      final uri = Uri.tryParse(addressLabelSafe);
+                      if (uri != null) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (widget.showBackButton) ...[
+                    Expanded(
+                      child: _buildBentoActionBtn(
+                        isDark: isDark,
+                        icon: Icons.exit_to_app_rounded,
+                        label: 'Exit Portal',
+                        primary: true,
+                        onTap: () => Navigator.pop(context),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        );
+
+        final downloadsCount = _currentSession.recentDownloads.where((d) => d.state == 'completed').length;
+        final hasDownloads = downloadsCount > 0;
+        final storageCard = _buildBentoCard(
+          isDark: isDark,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.folder_open_rounded, size: 14, color: panelMuted),
+                      const SizedBox(width: 6),
+                      Text(
+                        'STORAGE & SYSTEM',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: panelMuted,
+                          letterSpacing: 0.8,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (hasDownloads)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: IrisTokens.brand.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '$downloadsCount Files',
+                        style: TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w800,
+                          color: IrisTokens.brand,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  if (_hasFileUpload) ...[
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () async {
+                            await _triggerUploadPicker();
+                            if (mounted) setState(() => _hasFileUpload = false);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: IrisTokens.brand.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: IrisTokens.brand.withValues(alpha: 0.28),
+                                width: 0.85,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.cloud_upload_rounded, size: 14, color: IrisTokens.brand),
+                                const SizedBox(width: 6),
+                                const Expanded(
+                                  child: Text(
+                                    'Upload File',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      decoration: TextDecoration.none,
+                                    ),
+                                  ),
+                                ),
+                                Icon(Icons.chevron_right_rounded, size: 14, color: IrisTokens.brand),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _showDownloadManager,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
+                              width: 0.85,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.download_for_offline_rounded, size: 14, color: panelMuted),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  hasDownloads ? 'Open Downloads' : 'No Downloads',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: panelText.withValues(alpha: 0.96),
+                                    decoration: TextDecoration.none,
+                                  ),
+                                ),
+                              ),
+                              Icon(Icons.chevron_right_rounded, size: 14, color: panelMuted),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+
+        final isFacultyScope = widget.sessionScope == 'faculty';
+        if (constraints.maxWidth >= 420) {
+          if (isFacultyScope) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                navigationCard,
+                const SizedBox(height: 8),
+                storageCard,
+              ],
+            );
+          }
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: leftTelemetryWidth, child: telemetryCard),
+                  const SizedBox(width: 8),
+                  Expanded(child: navigationCard),
+                ],
+              ),
+              const SizedBox(height: 8),
+              storageCard,
+            ],
+          );
+        } else {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isFacultyScope) ...[
+                telemetryCard,
+                const SizedBox(height: 8),
+              ],
+              navigationCard,
+              const SizedBox(height: 8),
+              storageCard,
+            ],
+          );
+        }
+      },
+    );
+  }
+
   Widget _buildBentoCard({
     required bool isDark,
     required Widget child,
@@ -3969,758 +4476,113 @@ class _PortalScreenState extends State<PortalScreen>
                       right: 0,
                       top: 10,
                       child: Center(
-                        child: GestureDetector(
-                          onTapDown: (_) => setState(() => _isPillPressed = true),
-                          onTapUp: (_) {
-                            setState(() => _isPillPressed = false);
-                            if (_pillActive && _pillAction != null) {
-                              _pillAction!();
-                            } else {
-                              _toggleHeaderCollapsed();
-                            }
-                          },
-                          onTapCancel: () => setState(() => _isPillPressed = false),
-                          child: AnimatedScale(
-                            scale: _isPillPressed ? 0.96 : 1.0,
-                            duration: const Duration(milliseconds: 160),
-                            curve: _isPillPressed ? IrisMotion.emphasized : IrisMotion.spring,
-                            child: TweenAnimationBuilder<double>(
-                              tween: Tween<double>(
-                                begin: _isHeaderCollapsed ? 0.0 : 1.0,
-                                end: _isHeaderCollapsed ? 0.0 : 1.0,
-                              ),
-                              duration: const Duration(milliseconds: 380),
-                              curve: IrisMotion.fluid,
-                              builder: (context, expansion, child) {
-                                final currentWidth = collapsedHeaderWidth + (maxHeaderWidth - collapsedHeaderWidth) * expansion;
-                                final currentRadius = 999.0 + (22.0 - 999.0) * expansion;
-                                final currentVPadding = 8.0 + (10.0 - 8.0) * expansion;
-                                final currentHPadding = 12.0 + (14.0 - 12.0) * expansion;
-                                
-                                return SizedBox(
-                                  width: currentWidth,
-                                  child: GlassSurface(
-                                    settings: LiquidGlassSettings(
-                                      blur: 16,
-                                      ambientStrength: 0.65,
-                                      lightAngle: 0.15 * math.pi,
-                                      glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                                          .withValues(alpha: isDark ? 0.42 : 0.45),
-                                      thickness: 20,
-                                    ),
-                                    radius: currentRadius,
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: AnimatedBuilder(
-                                        animation: _pulseController,
-                                        builder: (context, child) {
-                                          final pulseVal = _pulseController.value;
-                                          final pulseTone = _pillActive
+                        child: lgw.GlassMenu(
+                          menuWidth: maxHeaderWidth,
+                          menuAlignment: lgw.GlassMenuAlignment.topCenter,
+                          menuHeight: widget.sessionScope == 'student'
+                              ? (screenSize.width >= 420 ? 370.0 : 470.0)
+                              : (screenSize.width >= 420 ? 250.0 : 350.0),
+                          menuBorderRadius: 20.0,
+                          settings: lgw.LiquidGlassSettings(
+                            blur: 16,
+                            ambientStrength: 0.65,
+                            lightAngle: 0.15 * math.pi,
+                            glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
+                                .withValues(alpha: isDark ? 0.42 : 0.45),
+                            thickness: 20,
+                          ),
+                          triggerBuilder: (context, toggleMenu) {
+                            return GestureDetector(
+                              onTapDown: (_) => setState(() => _isPillPressed = true),
+                              onTapCancel: () => setState(() => _isPillPressed = false),
+                              onTapUp: (_) {
+                                setState(() => _isPillPressed = false);
+                                IrisHaptics.actionSoft();
+                                toggleMenu();
+                              },
+                              child: AnimatedScale(
+                                scale: _isPillPressed ? 0.96 : 1.0,
+                                duration: const Duration(milliseconds: 160),
+                                curve: _isPillPressed ? IrisMotion.emphasized : IrisMotion.spring,
+                                child: Container(
+                                  width: collapsedHeaderWidth,
+                                  height: 38,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
+                                        .withValues(alpha: isDark ? 0.42 : 0.45),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: (_pillActive
                                               ? _pillTone
                                               : (_isOffline
                                                   ? const Color(0xFFEF4444)
                                                   : (_isSyncing
                                                       ? IrisTokens.brand
-                                                      : accent));
-                                          final neonAlpha = _isHeaderCollapsed
-                                              ? (0.10 + 0.15 * pulseVal)
-                                              : 0.12;
-                                          final spread = _isHeaderCollapsed
-                                              ? (-3.0 + 3.0 * pulseVal)
-                                              : -6.0;
-                                          final blur = _isHeaderCollapsed
-                                              ? (10.0 + 10.0 * pulseVal)
-                                              : 20.0;
-
-                                          return Container(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: currentVPadding,
-                                              horizontal: currentHPadding,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(currentRadius),
-                                              border: Border.all(
-                                                color: pulseTone.withValues(
-                                                  alpha: _isHeaderCollapsed
-                                                      ? (0.16 + 0.20 * pulseVal)
-                                                      : 0.18,
-                                                ),
-                                                width: 1.5,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: (isDark ? Colors.black : pulseTone).withValues(
-                                                    alpha: isDark ? 0.35 : neonAlpha,
-                                                  ),
-                                                  blurRadius: blur,
-                                                  offset: Offset(0, _isHeaderCollapsed ? 4 : 10),
-                                                  spreadRadius: spread,
-                                                ),
-                                              ],
-                                            ),
-                                            child: child,
-                                          );
-                                        },
-                                        child: child,
-                                      ),
+                                                      : accent)))
+                                          .withValues(alpha: 0.16),
+                                      width: 1.5,
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.05),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
-                              child: AnimatedSize(
-                                duration: const Duration(
-                                  milliseconds: 320,
-                                ),
-                                curve: Curves.easeOutCubic,
-                                alignment: Alignment.topCenter,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        _buildDynamicIslandLeftStatus(isDark, accent),
-                                        Expanded(
-                                          child: AnimatedSwitcher(
-                                            duration: const Duration(
-                                              milliseconds: 180,
-                                            ),
-                                            switchInCurve: Curves.easeOutCubic,
-                                            switchOutCurve: Curves.easeInCubic,
-                                            child: Text(
-                                              _pillActive
-                                                  ? (_pillMessage ?? widget.title)
-                                                  : (_isHeaderCollapsed ? idleTitle : 'Portal Control Deck'),
-                                              key: ValueKey<String>(
-                                                _pillActive
-                                                    ? (_pillMessage ?? 'portal-message')
-                                                    : (_isHeaderCollapsed ? 'portal-title-idle' : 'portal-title-full'),
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w800,
-                                                letterSpacing: 0.22,
-                                                color: panelText,
-                                                decoration: TextDecoration.none,
-                                              ),
-                                            ),
-                                          ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _buildDynamicIslandLeftStatus(isDark, accent),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        _pillActive
+                                            ? (_pillMessage ?? widget.title)
+                                            : idleTitle,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.22,
+                                          color: panelText,
+                                          decoration: TextDecoration.none,
                                         ),
-                                        const SizedBox(width: 8),
-                                        SizedBox(
-                                          width: 22,
-                                          height: 22,
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              AnimatedOpacity(
-                                                duration: const Duration(
-                                                  milliseconds: 220,
-                                                ),
-                                                curve: Curves.easeOutCubic,
-                                                opacity: (_isLoading || _isDownloading || _isPullRefreshing) ? 1 : 0,
-                                                child: AnimatedScale(
-                                                  duration: const Duration(
-                                                    milliseconds: 220,
-                                                  ),
-                                                  curve: Curves.easeOutCubic,
-                                                  scale: (_isLoading || _isDownloading || _isPullRefreshing) ? 1 : 0.7,
-                                                  child: SizedBox(
-                                                    width: 18,
-                                                    height: 18,
-                                                    child: CircularProgressIndicator(
-                                                      strokeWidth: 2.2,
-                                                      color: _isDownloading ? const Color(0xFF22D3EE) : accent,
-                                                      value: _isDownloading
-                                                          ? (_downloadProgress >= 0 ? _downloadProgress.clamp(0.0, 1.0) : null)
-                                                          : (_isPullRefreshing
-                                                              ? null
-                                                              : (_isLoading ? (_progress / 100).clamp(0.05, 0.98) : null)),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              AnimatedOpacity(
-                                                duration: const Duration(
-                                                  milliseconds: 220,
-                                                ),
-                                                curve: Curves.easeOutCubic,
-                                                opacity: (_isLoading || _isDownloading || _isPullRefreshing) ? 0 : 1,
-                                                child: AnimatedScale(
-                                                  duration: const Duration(
-                                                    milliseconds: 220,
-                                                  ),
-                                                  curve: Curves.easeOutCubic,
-                                                  scale: (_isLoading || _isDownloading || _isPullRefreshing) ? 0.7 : 1,
-                                                  child: Icon(
-                                                    headerToggleIcon,
-                                                    size: 20,
-                                                    color: panelText.withValues(
-                                                      alpha: 0.92,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    AnimatedSwitcher(
-                                      duration: const Duration(
-                                        milliseconds: 260,
                                       ),
-                                      switchInCurve: Curves.easeOutQuart,
-                                      switchOutCurve: Curves.easeOutQuart,
-                                      transitionBuilder: (child, animation) {
-                                        final size = CurvedAnimation(
-                                          parent: animation,
-                                          curve: Curves.easeOutQuart,
-                                        );
-                                        return FadeTransition(
-                                          opacity: animation,
-                                          child: SizeTransition(
-                                            sizeFactor: size,
-                                            axisAlignment: -1,
-                                            child: child,
-                                          ),
-                                        );
-                                      },
-                                      child: _isHeaderCollapsed || _pillActive
-                                          ? const SizedBox.shrink(
-                                              key: ValueKey(
-                                                'header-collapsed',
-                                              ),
-                                            )
-                                          : Column(
-                                              key: const ValueKey(
-                                                'header-expanded',
-                                              ),
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const SizedBox(height: 8),
-                                                Container(
-                                                  height: 1.0,
-                                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
-                                                ),
-                                                const SizedBox(height: 10),
-                                                
-                                                // Address Bar Bento Card
-                                                _buildBentoCard(
-                                                  isDark: isDark,
-                                                  child: Row(
-                                                    children: [
-                                                      Icon(
-                                                        addressLabelSafe.startsWith('https://')
-                                                            ? Icons.lock_outline_rounded
-                                                            : Icons.public_rounded,
-                                                        size: 15,
-                                                        color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
-                                                      ),
-                                                      const SizedBox(width: 8),
-                                                      Expanded(
-                                                        child: _isEditingAddress
-                                                            ? TextField(
-                                                                controller: _addressController,
-                                                                autofocus: true,
-                                                                keyboardType: TextInputType.url,
-                                                                style: TextStyle(
-                                                                  fontSize: 12.5,
-                                                                  fontWeight: FontWeight.w600,
-                                                                  color: panelText,
-                                                                ),
-                                                                decoration: InputDecoration(
-                                                                  isDense: true,
-                                                                  border: InputBorder.none,
-                                                                  hintText: 'https://example.com',
-                                                                  hintStyle: TextStyle(
-                                                                    color: panelMuted.withValues(alpha: 0.5),
-                                                                  ),
-                                                                ),
-                                                                textInputAction: TextInputAction.go,
-                                                                onSubmitted: _submitAddressBar,
-                                                              )
-                                                            : InkWell(
-                                                                onTap: _openAddressBar,
-                                                                borderRadius: BorderRadius.circular(4),
-                                                                child: Padding(
-                                                                  padding: const EdgeInsets.symmetric(vertical: 2),
-                                                                  child: Text(
-                                                                    addressLabelSafe,
-                                                                    maxLines: 1,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    style: TextStyle(
-                                                                      fontSize: 12,
-                                                                      fontWeight: FontWeight.w700,
-                                                                      color: panelText.withValues(alpha: 0.9),
-                                                                      decoration: TextDecoration.none,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                      ),
-                                                      const SizedBox(width: 6),
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                                        decoration: BoxDecoration(
-                                                          color: (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success)
-                                                              .withValues(alpha: 0.10),
-                                                          borderRadius: BorderRadius.circular(999),
-                                                          border: Border.all(
-                                                            color: (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success)
-                                                                .withValues(alpha: 0.24),
-                                                            width: 0.8,
-                                                          ),
-                                                        ),
-                                                        child: Row(
-                                                          mainAxisSize: MainAxisSize.min,
-                                                          children: [
-                                                            Container(
-                                                              width: 5,
-                                                              height: 5,
-                                                              decoration: BoxDecoration(
-                                                                shape: BoxShape.circle,
-                                                                color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(width: 4),
-                                                            Text(
-                                                              _isOffline ? 'OFFLINE' : 'SECURE',
-                                                              style: TextStyle(
-                                                                fontSize: 8.5,
-                                                                fontWeight: FontWeight.w800,
-                                                                color: _isOffline ? const Color(0xFFEF4444) : IrisTokens.success,
-                                                                letterSpacing: 0.5,
-                                                                decoration: TextDecoration.none,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      if (!_isEditingAddress) ...[
-                                                        const SizedBox(width: 8),
-                                                        GestureDetector(
-                                                          onTap: _openAddressBar,
-                                                          child: Icon(
-                                                            Icons.edit_rounded,
-                                                            size: 15,
-                                                            color: panelMuted,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ],
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 8),
-                                                
-                                                // Bento Grid Layout
-                                                LayoutBuilder(
-                                                  builder: (context, constraints) {
-                                                    final double leftTelemetryWidth = constraints.maxWidth >= 420
-                                                        ? (constraints.maxWidth - 8) / 2
-                                                        : constraints.maxWidth;
-                                                    
-                                                    final telemetryCard = _buildBentoCard(
-                                                      isDark: isDark,
-                                                      borderTint: _isSyncing ? IrisTokens.brand : null,
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Row(
-                                                            children: [
-                                                              Icon(Icons.analytics_rounded, size: 14, color: panelMuted),
-                                                              const SizedBox(width: 6),
-                                                              Text(
-                                                                'SCRAPER TELEMETRY',
-                                                                style: TextStyle(
-                                                                  fontSize: 9,
-                                                                  fontWeight: FontWeight.w800,
-                                                                  color: panelMuted,
-                                                                  letterSpacing: 0.8,
-                                                                  decoration: TextDecoration.none,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(height: 8),
-                                                          Text(
-                                                            _isSyncing
-                                                                ? '⚡ Syncing credentials...'
-                                                                : (_isOffline ? '❌ Engine Offline' : '✓ Scraper Engine Idle'),
-                                                            style: TextStyle(
-                                                              fontSize: 12,
-                                                              fontWeight: FontWeight.w800,
-                                                              color: _isSyncing
-                                                                  ? IrisTokens.brand
-                                                                  : (_isOffline ? const Color(0xFFEF4444) : IrisTokens.success),
-                                                              decoration: TextDecoration.none,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 3),
-                                                          Text(
-                                                            addressLabelSafe.contains('comsats.edu.pk')
-                                                                ? 'Campus Node: Active'
-                                                                : 'External Web Node',
-                                                            style: TextStyle(
-                                                              fontSize: 9.5,
-                                                              fontWeight: FontWeight.w600,
-                                                              color: panelMuted.withValues(alpha: 0.8),
-                                                              decoration: TextDecoration.none,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 12),
-                                                          Row(
-                                                            children: [
-                                                              if (addressLabelSafe.contains('comsats.edu.pk')) ...[
-                                                                Expanded(
-                                                                  child: _buildBentoActionBtn(
-                                                                    isDark: isDark,
-                                                                    icon: _isSyncing ? Icons.sync_rounded : Icons.auto_awesome_rounded,
-                                                                    label: _isSyncing ? 'Syncing' : 'Deep Sync',
-                                                                    primary: true,
-                                                                    onTap: () => _syncPortalTasks(),
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(width: 6),
-                                                                if (_hasSavedLogin)
-                                                                  Expanded(
-                                                                    child: _buildBentoActionBtn(
-                                                                      isDark: isDark,
-                                                                      icon: Icons.flash_on_rounded,
-                                                                      label: 'Warm',
-                                                                      primary: false,
-                                                                      onTap: () async {
-                                                                        IrisSfx.pillTap();
-                                                                        await _showMessage('Warming session...');
-                                                                        final success = await SessionRefresherService.warmSession(
-                                                                          _hostKey,
-                                                                          _scopeSanitized,
-                                                                        );
-                                                                        if (success) {
-                                                                          await _showMessage('✓ Session warmed! Reloading...');
-                                                                          await _controller.reload();
-                                                                        } else {
-                                                                          await _showMessage('❌ Warming failed. Log in.');
-                                                                        }
-                                                                      },
-                                                                    ),
-                                                                  ),
-                                                              ] else ...[
-                                                                Expanded(
-                                                                  child: Center(
-                                                                    child: Padding(
-                                                                      padding: const EdgeInsets.symmetric(vertical: 4),
-                                                                      child: Text(
-                                                                        'No automation for public site',
-                                                                        style: TextStyle(
-                                                                          fontSize: 10,
-                                                                          fontWeight: FontWeight.w700,
-                                                                          color: panelMuted,
-                                                                          decoration: TextDecoration.none,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-
-                                                    final navigationCard = _buildBentoCard(
-                                                      isDark: isDark,
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Row(
-                                                            children: [
-                                                              Icon(Icons.explore_rounded, size: 14, color: panelMuted),
-                                                              const SizedBox(width: 6),
-                                                              Text(
-                                                                'NAVIGATION DECK',
-                                                                style: TextStyle(
-                                                                  fontSize: 9,
-                                                                  fontWeight: FontWeight.w800,
-                                                                  color: panelMuted,
-                                                                  letterSpacing: 0.8,
-                                                                  decoration: TextDecoration.none,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(height: 10),
-                                                          Row(
-                                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                            children: [
-                                                              _buildBentoNavCircle(
-                                                                isDark: isDark,
-                                                                icon: Icons.arrow_back_rounded,
-                                                                tooltip: 'Back',
-                                                                enabled: _canGoBack,
-                                                                onTap: () async {
-                                                                  await _controller.goBack();
-                                                                  await _updateNavState();
-                                                                },
-                                                              ),
-                                                              _buildBentoNavCircle(
-                                                                isDark: isDark,
-                                                                icon: Icons.arrow_forward_rounded,
-                                                                tooltip: 'Forward',
-                                                                enabled: _canGoForward,
-                                                                onTap: () async {
-                                                                  await _controller.goForward();
-                                                                  await _updateNavState();
-                                                                },
-                                                              ),
-                                                              _buildBentoNavCircle(
-                                                                isDark: isDark,
-                                                                icon: Icons.refresh_rounded,
-                                                                tooltip: 'Refresh',
-                                                                enabled: true,
-                                                                onTap: () async {
-                                                                  await _refreshPage();
-                                                                  await _updateNavState();
-                                                                },
-                                                              ),
-                                                              _buildBentoNavCircle(
-                                                                isDark: isDark,
-                                                                icon: Icons.open_in_new_rounded,
-                                                                tooltip: 'Open Browser',
-                                                                enabled: true,
-                                                                onTap: () async {
-                                                                  final uri = Uri.tryParse(addressLabelSafe);
-                                                                  if (uri != null) {
-                                                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                                                  }
-                                                                },
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(height: 10),
-                                                          Row(
-                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                            children: [
-                                                              if (widget.showBackButton) ...[
-                                                                Expanded(
-                                                                  child: _buildBentoActionBtn(
-                                                                    isDark: isDark,
-                                                                    icon: Icons.exit_to_app_rounded,
-                                                                    label: 'Exit Portal',
-                                                                    primary: true,
-                                                                    onTap: () => Navigator.pop(context),
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(width: 6),
-                                                              ],
-                                                              Expanded(
-                                                                child: _buildBentoActionBtn(
-                                                                  isDark: isDark,
-                                                                  icon: Icons.tune_rounded,
-                                                                  label: 'Page Actions',
-                                                                  onTap: () => _showHeaderActionSheet(addressLabel: addressLabelSafe),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-
-                                                    final downloadsCount = _currentSession.recentDownloads.length;
-                                                    final hasDownloads = downloadsCount > 0;
-                                                    final storageCard = _buildBentoCard(
-                                                      isDark: isDark,
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Row(
-                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                            children: [
-                                                              Row(
-                                                                children: [
-                                                                  Icon(Icons.folder_shared_rounded, size: 14, color: panelMuted),
-                                                                  const SizedBox(width: 6),
-                                                                  Text(
-                                                                    'STORAGE & UTILITIES',
-                                                                    style: TextStyle(
-                                                                      fontSize: 9,
-                                                                      fontWeight: FontWeight.w800,
-                                                                      color: panelMuted,
-                                                                      letterSpacing: 0.8,
-                                                                      decoration: TextDecoration.none,
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              if (hasDownloads)
-                                                                Container(
-                                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                                  decoration: BoxDecoration(
-                                                                    color: IrisTokens.brand.withValues(alpha: 0.14),
-                                                                    borderRadius: BorderRadius.circular(999),
-                                                                  ),
-                                                                  child: Text(
-                                                                    '$downloadsCount Files',
-                                                                    style: TextStyle(
-                                                                      fontSize: 8.5,
-                                                                      fontWeight: FontWeight.w800,
-                                                                      color: IrisTokens.brand,
-                                                                      decoration: TextDecoration.none,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(height: 8),
-                                                          Row(
-                                                            children: [
-                                                              if (_hasFileUpload) ...[
-                                                                Expanded(
-                                                                  child: Material(
-                                                                    color: Colors.transparent,
-                                                                    child: InkWell(
-                                                                      borderRadius: BorderRadius.circular(12),
-                                                                      onTap: () async {
-                                                                        await _triggerUploadPicker();
-                                                                        if (mounted) setState(() => _hasFileUpload = false);
-                                                                      },
-                                                                      child: Container(
-                                                                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                                                                        decoration: BoxDecoration(
-                                                                          color: IrisTokens.brand.withValues(alpha: 0.08),
-                                                                          borderRadius: BorderRadius.circular(12),
-                                                                          border: Border.all(
-                                                                            color: IrisTokens.brand.withValues(alpha: 0.28),
-                                                                            width: 0.85,
-                                                                          ),
-                                                                        ),
-                                                                        child: Row(
-                                                                          children: [
-                                                                            Icon(Icons.cloud_upload_rounded, size: 14, color: IrisTokens.brand),
-                                                                            const SizedBox(width: 6),
-                                                                            const Expanded(
-                                                                              child: Text(
-                                                                                'Upload File',
-                                                                                style: TextStyle(
-                                                                                  fontSize: 11,
-                                                                                  fontWeight: FontWeight.w700,
-                                                                                  decoration: TextDecoration.none,
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                            Icon(Icons.chevron_right_rounded, size: 14, color: IrisTokens.brand),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(width: 8),
-                                                              ],
-                                                              Expanded(
-                                                                child: Material(
-                                                                  color: Colors.transparent,
-                                                                  child: InkWell(
-                                                                    borderRadius: BorderRadius.circular(12),
-                                                                    onTap: _showDownloadManager,
-                                                                    child: Container(
-                                                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                                                                      decoration: BoxDecoration(
-                                                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
-                                                                        borderRadius: BorderRadius.circular(12),
-                                                                        border: Border.all(
-                                                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
-                                                                          width: 0.85,
-                                                                        ),
-                                                                      ),
-                                                                      child: Row(
-                                                                        children: [
-                                                                          Icon(Icons.download_for_offline_rounded, size: 14, color: panelMuted),
-                                                                          const SizedBox(width: 6),
-                                                                          Expanded(
-                                                                            child: Text(
-                                                                              hasDownloads ? 'Open Downloads' : 'No Downloads',
-                                                                              style: TextStyle(
-                                                                                fontSize: 11,
-                                                                                fontWeight: FontWeight.w700,
-                                                                                color: panelText.withValues(alpha: 0.96),
-                                                                                decoration: TextDecoration.none,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                          Icon(Icons.chevron_right_rounded, size: 14, color: panelMuted),
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-
-                                                    final isFacultyScope = widget.sessionScope == 'faculty';
-                                                    if (constraints.maxWidth >= 420) {
-                                                      if (isFacultyScope) {
-                                                        return Column(
-                                                          mainAxisSize: MainAxisSize.min,
-                                                          children: [
-                                                            navigationCard,
-                                                            const SizedBox(height: 8),
-                                                            storageCard,
-                                                          ],
-                                                        );
-                                                      }
-                                                      return Column(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Row(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                              SizedBox(width: leftTelemetryWidth, child: telemetryCard),
-                                                              const SizedBox(width: 8),
-                                                              Expanded(child: navigationCard),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(height: 8),
-                                                          storageCard,
-                                                        ],
-                                                      );
-                                                    } else {
-                                                      return Column(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          if (!isFacultyScope) ...[
-                                                            telemetryCard,
-                                                            const SizedBox(height: 8),
-                                                          ],
-                                                          navigationCard,
-                                                          const SizedBox(height: 8),
-                                                          storageCard,
-                                                        ],
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.unfold_more_rounded,
+                                        size: 16,
+                                        color: panelText.withValues(alpha: 0.7),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ), // TweenAnimationBuilder
-                          ), // AnimatedScale
-                        ), // GestureDetector
-                      ), // Center
-                    ), // Positioned
+                            );
+                          },
+                          items: [
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildAddressBarCard(
+                                  isDark: isDark,
+                                  panelText: panelText,
+                                  panelMuted: panelMuted,
+                                ),
+                                const SizedBox(height: 8),
+                                _buildBentoLayout(
+                                  isDark: isDark,
+                                  panelText: panelText,
+                                  panelMuted: panelMuted,
+                                  accent: accent,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     Positioned.fill(
                       child: IgnorePointer(
                         child: Align(

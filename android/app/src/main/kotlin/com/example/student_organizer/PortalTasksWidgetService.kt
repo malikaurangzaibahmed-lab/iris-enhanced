@@ -18,6 +18,7 @@ class PortalTasksWidgetService : RemoteViewsService() {
 
 class PortalTasksRemoteViewsFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
     private val PREFS_NAMES = arrayOf(
+        "group.com.example.student_organizer",
         "com.example.student_organizer_preferences",
         "com.example.student_organizer",
         "HomeWidgetPreferences",

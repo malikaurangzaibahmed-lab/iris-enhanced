@@ -1,12 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../core/glass.dart';
 import '../core/theme_signals.dart';
 import '../services/ui_feedback.dart';
-import 'iris_components.dart';
 import 'spring_button.dart';
 import 'vital_card.dart';
 
@@ -95,63 +93,70 @@ class DashboardDock extends StatefulWidget {
                       onPointerMove: (event) => state.updateTracking(event.localPosition, constraints.maxWidth, navHeight, itemCount),
                       onPointerUp: (_) => state.endTracking(context, itemCount),
                       onPointerCancel: (_) => state.cancelTracking(),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            AnimatedPositioned(
-                              duration: state.isDragging
-                                  ? Duration.zero
-                                  : const Duration(milliseconds: 250),
-                              curve: IrisMotion.spring,
-                              top: 4,
-                              bottom: 4,
-                              left: state.interactionPosition(itemCount, selectedIndex) *
-                                      (constraints.maxWidth / itemCount) +
-                                  4,
-                              width: (constraints.maxWidth / itemCount) - 8,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: activeColor.withValues(alpha: isDark ? 0.15 : 0.08),
-                                  borderRadius: BorderRadius.circular(radius - 4),
-                                  border: Border.all(
-                                    color: activeColor.withValues(alpha: isDark ? 0.45 : 0.25),
-                                    width: 1.2,
+                      child: CustomPaint(
+                        foregroundPainter: ChromaticBorderPainter(
+                          radius: radius,
+                          width: 1.2,
+                          isDark: isDark,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              AnimatedPositioned(
+                                duration: state.isDragging
+                                    ? Duration.zero
+                                    : const Duration(milliseconds: 250),
+                                curve: IrisMotion.spring,
+                                top: 4,
+                                bottom: 4,
+                                left: state.interactionPosition(itemCount, selectedIndex) *
+                                        (constraints.maxWidth / itemCount) +
+                                    4,
+                                width: (constraints.maxWidth / itemCount) - 8,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: activeColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                                    borderRadius: BorderRadius.circular(radius - 4),
+                                    border: Border.all(
+                                      color: activeColor.withValues(alpha: isDark ? 0.45 : 0.25),
+                                      width: 1.2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: activeColor.withValues(alpha: isDark ? 0.35 : 0.15),
+                                        blurRadius: 10,
+                                        spreadRadius: 1,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                      BoxShadow(
+                                        color: (showFacultySet ? IrisTokens.purple : IrisTokens.brand).withValues(alpha: isDark ? 0.25 : 0.12),
+                                        blurRadius: 20,
+                                        spreadRadius: -2,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                      BoxShadow(
+                                        color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.15),
+                                        blurRadius: 6,
+                                        spreadRadius: -1,
+                                        offset: const Offset(-2, 0),
+                                      ),
+                                      BoxShadow(
+                                        color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.20 : 0.10),
+                                        blurRadius: 6,
+                                        spreadRadius: -1,
+                                        offset: const Offset(2, 0),
+                                      ),
+                                    ],
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: activeColor.withValues(alpha: isDark ? 0.35 : 0.15),
-                                      blurRadius: 10,
-                                      spreadRadius: 1,
-                                      offset: const Offset(0, 1),
-                                    ),
-                                    BoxShadow(
-                                      color: (showFacultySet ? IrisTokens.purple : IrisTokens.brand).withValues(alpha: isDark ? 0.25 : 0.12),
-                                      blurRadius: 20,
-                                      spreadRadius: -2,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                    BoxShadow(
-                                      color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.15),
-                                      blurRadius: 6,
-                                      spreadRadius: -1,
-                                      offset: const Offset(-2, 0),
-                                    ),
-                                    BoxShadow(
-                                      color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.20 : 0.10),
-                                      blurRadius: 6,
-                                      spreadRadius: -1,
-                                      offset: const Offset(2, 0),
-                                    ),
-                                  ],
                                 ),
                               ),
-                            ),
-                            Row(
-                              children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
-                            ),
-                          ],
+                              Row(
+                                children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -170,98 +175,100 @@ class DashboardDock extends StatefulWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(radius),
                 child: RepaintBoundary(
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 304),
-                    curve: IrisMotion.standard,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(radius),
-                      border: Border.all(
-                        color: (isDark ? Colors.white : pillAccent)
-                            .withValues(alpha: isDark ? 0.14 : 0.18),
-                        width: 1.0,
-                      ),
+                  child: CustomPaint(
+                    foregroundPainter: ChromaticBorderPainter(
+                      radius: radius,
+                      width: 1.0,
+                      isDark: isDark,
                     ),
-                    child: SizedBox(
-                      height: navHeight,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Listener(
-                            behavior: HitTestBehavior.translucent,
-                            onPointerDown: (event) => state.beginTracking(
-                              event.localPosition,
-                              constraints.maxWidth,
-                              navHeight,
-                              itemCount,
-                              selectedIndex,
-                            ),
-                            onPointerMove: (event) => state.updateTracking(
-                              event.localPosition,
-                              constraints.maxWidth,
-                              navHeight,
-                              itemCount,
-                            ),
-                            onPointerUp: (_) => state.endTracking(
-                              context,
-                              itemCount,
-                            ),
-                            onPointerCancel: (_) => state.cancelTracking(),
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                veryCompact ? 3 : (compact ? 5 : 6),
-                                veryCompact ? 2 : (compact ? 3 : 4),
-                                veryCompact ? 3 : (compact ? 5 : 6),
-                                veryCompact ? 2 : (compact ? 3 : 4),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 304),
+                      curve: IrisMotion.standard,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(radius),
+                      ),
+                      child: SizedBox(
+                        height: navHeight,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Listener(
+                              behavior: HitTestBehavior.translucent,
+                              onPointerDown: (event) => state.beginTracking(
+                                event.localPosition,
+                                constraints.maxWidth,
+                                navHeight,
+                                itemCount,
+                                selectedIndex,
                               ),
-                              child: Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    AnimatedPositioned(
-                                      duration: state.isDragging
-                                          ? Duration.zero
-                                          : const Duration(milliseconds: 250),
-                                      curve: IrisMotion.spring,
-                                      top: 3,
-                                      bottom: 3,
-                                      left: state.interactionPosition(itemCount, selectedIndex) *
-                                              (constraints.maxWidth / itemCount) +
-                                          3,
-                                      width: (constraints.maxWidth / itemCount) - 6,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: activeColor.withValues(alpha: isDark ? 0.12 : 0.06),
-                                          borderRadius: BorderRadius.circular(radius - 4),
-                                          border: Border.all(
-                                            color: activeColor.withValues(alpha: isDark ? 0.35 : 0.18),
-                                            width: 1.0,
+                              onPointerMove: (event) => state.updateTracking(
+                                event.localPosition,
+                                constraints.maxWidth,
+                                navHeight,
+                                itemCount,
+                              ),
+                              onPointerUp: (_) => state.endTracking(
+                                context,
+                                itemCount,
+                              ),
+                              onPointerCancel: (_) => state.cancelTracking(),
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  veryCompact ? 3 : (compact ? 5 : 6),
+                                  veryCompact ? 2 : (compact ? 3 : 4),
+                                  veryCompact ? 3 : (compact ? 5 : 6),
+                                  veryCompact ? 2 : (compact ? 3 : 4),
+                                ),
+                                child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      AnimatedPositioned(
+                                        duration: state.isDragging
+                                            ? Duration.zero
+                                            : const Duration(milliseconds: 250),
+                                        curve: IrisMotion.spring,
+                                        top: 3,
+                                        bottom: 3,
+                                        left: state.interactionPosition(itemCount, selectedIndex) *
+                                                (constraints.maxWidth / itemCount) +
+                                            3,
+                                        width: (constraints.maxWidth / itemCount) - 6,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: activeColor.withValues(alpha: isDark ? 0.12 : 0.06),
+                                            borderRadius: BorderRadius.circular(radius - 4),
+                                            border: Border.all(
+                                              color: activeColor.withValues(alpha: isDark ? 0.35 : 0.18),
+                                              width: 1.0,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                              BoxShadow(
+                                                color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.20 : 0.10),
+                                                blurRadius: 4,
+                                                offset: const Offset(-1, 0),
+                                              ),
+                                              BoxShadow(
+                                                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.15 : 0.08),
+                                                blurRadius: 4,
+                                                offset: const Offset(1, 0),
+                                              ),
+                                            ],
                                           ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 1),
-                                            ),
-                                            BoxShadow(
-                                              color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.20 : 0.10),
-                                              blurRadius: 4,
-                                              offset: const Offset(-1, 0),
-                                            ),
-                                            BoxShadow(
-                                              color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.15 : 0.08),
-                                              blurRadius: 4,
-                                              offset: const Offset(1, 0),
-                                            ),
-                                          ],
                                         ),
                                       ),
-                                    ),
-                                    Row(
-                                      children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
-                                    ),
-                                  ],
-                                ),
-                            ),
-                          );
-                        },
+                                      Row(
+                                        children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                                      ),
+                                    ],
+                                  ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -279,16 +286,17 @@ class DashboardDock extends StatefulWidget {
                   child: GlassSurface(
                     settings: glassSettings,
                     radius: radius,
-                    child: AnimatedContainer(
+                    child: CustomPaint(
+                      foregroundPainter: ChromaticBorderPainter(
+                        radius: radius,
+                        width: 1.5,
+                        isDark: isDark,
+                      ),
+                      child: AnimatedContainer(
                         duration: const Duration(milliseconds: 304),
                         curve: IrisMotion.standard,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(radius),
-                          border: Border.all(
-                            color: (isDark ? Colors.white : pillAccent)
-                                .withValues(alpha: isDark ? 0.14 : 0.18),
-                            width: 1.5,
-                          ),
                           boxShadow: [
                             BoxShadow(
                               color: (isDark ? Colors.black : pillAccent)
@@ -392,6 +400,7 @@ class DashboardDock extends StatefulWidget {
                           ),
                         ),
                       ),
+                    ),
                   ),
                 ),
               ),
@@ -760,11 +769,12 @@ class _NavActiveHaloState extends State<NavActiveHalo>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    widget.color.withValues(alpha: 0.14 + (t * 0.05)),
-                    widget.color.withValues(alpha: 0.05 + (t * 0.02)),
+                    widget.color.withValues(alpha: 0.22 + (t * 0.06)),
+                    const Color(0xFF00F2FE).withValues(alpha: 0.12 + (t * 0.04)),
+                    const Color(0xFFEF4444).withValues(alpha: 0.06 + (t * 0.02)),
                     Colors.transparent,
                   ],
-                  stops: const [0.0, 0.72, 1.0],
+                  stops: const [0.0, 0.45, 0.8, 1.0],
                 ),
               ),
             ),
@@ -773,6 +783,50 @@ class _NavActiveHaloState extends State<NavActiveHalo>
       },
     );
   }
+}
+
+class ChromaticBorderPainter extends CustomPainter {
+  final double radius;
+  final double width;
+  final bool isDark;
+
+  ChromaticBorderPainter({
+    required this.radius,
+    this.width = 1.5,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        const Color(0xFFEF4444).withValues(alpha: isDark ? 0.28 : 0.18),
+        const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.16),
+        const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.28 : 0.18),
+        const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.25 : 0.16),
+        const Color(0xFF10B981).withValues(alpha: isDark ? 0.22 : 0.14),
+        const Color(0xFFEF4444).withValues(alpha: isDark ? 0.28 : 0.18),
+      ],
+      stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    );
+
+    final paint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..strokeWidth = width
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant ChromaticBorderPainter oldDelegate) =>
+      oldDelegate.radius != radius || oldDelegate.width != width || oldDelegate.isDark != isDark;
 }
 
 class BouncyNavButton extends StatefulWidget {
@@ -826,12 +880,12 @@ class _BouncyNavButtonState extends State<BouncyNavButton>
     );
     _scaleCurve = Tween<double>(
       begin: 1.0,
-      end: 1.04,
-    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.entrance));
+      end: 1.08,
+    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.bouncy));
     _slideCurve = Tween<double>(
       begin: 0.0,
-      end: -0.85,
-    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.entrance));
+      end: -1.2,
+    ).animate(CurvedAnimation(parent: _selectCtrl, curve: IrisMotion.bouncy));
     if (widget.isSelected) _selectCtrl.value = 1.0;
   }
 
@@ -871,6 +925,19 @@ class _BouncyNavButtonState extends State<BouncyNavButton>
         child: Stack(
           clipBehavior: Clip.none,
           children: [
+            if (widget.isSelected)
+              Positioned(
+                left: -size * 0.6,
+                top: -size * 0.6,
+                right: -size * 0.6,
+                bottom: -size * 0.6,
+                child: Center(
+                  child: NavActiveHalo(
+                    size: size * 2.2,
+                    color: widget.activeColor,
+                  ),
+                ),
+              ),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 192),
               switchInCurve: IrisMotion.entrance,

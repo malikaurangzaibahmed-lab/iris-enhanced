@@ -29,6 +29,20 @@ class MainActivity : FlutterFragmentActivity() {
 	private var uiMediaPlayer: MediaPlayer? = null
 	private val uiAssetCache = mutableMapOf<String, String>()
 
+	override fun onAttachedToWindow() {
+		super.onAttachedToWindow()
+		if (android.os.Build.VERSION.SDK_INT >= 35) {
+			try {
+				val view = window.decorView
+				val method = View::class.java.getMethod("setFrameRateCategory", Int::class.javaPrimitiveType)
+				method.invoke(view, 4) // 4 = FRAME_RATE_CATEGORY_HIGH
+				android.util.Log.d("IRIS_NATIVE", "Successfully set FRAME_RATE_CATEGORY_HIGH (120Hz lock) on decorView")
+			} catch (e: Exception) {
+				android.util.Log.e("IRIS_NATIVE", "Failed to set FRAME_RATE_CATEGORY_HIGH: ${e.message}")
+			}
+		}
+	}
+
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 		super.configureFlutterEngine(flutterEngine)
 

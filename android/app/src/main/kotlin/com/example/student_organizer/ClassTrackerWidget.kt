@@ -31,6 +31,7 @@ class ClassTrackerWidget : AppWidgetProvider() {
         private const val LIGHT_GIF_ASSET_PATH = "flutter_assets/assets/widget_bg_light.gif"
         private const val DARK_GIF_ASSET_PATH = "flutter_assets/assets/widget_bg_dark.gif"
         private val PREFS_NAMES = arrayOf(
+            "group.com.example.student_organizer",
             "com.example.student_organizer",
             "HomeWidgetPreferences",
             "FlutterSharedPreferences",
@@ -67,6 +68,9 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 val isLive = prefs.getBoolean("flutter.is_class_live", false)
                 val isUrgent = prefs.getBoolean("flutter.is_urgent", false)
                 val widgetDarkMode = prefs.getBoolean("flutter.widget_dark_mode", false)
+                val subject = prefs.getString("flutter.widget_subject", "") ?: ""
+                val room = prefs.getString("flutter.widget_room", "") ?: ""
+                val startTime = prefs.getString("flutter.widget_start_time", "") ?: ""
 
                 val layoutId = if (widgetDarkMode) R.layout.widget_safe_dark else R.layout.widget_safe
                 val views = try {
@@ -115,16 +119,23 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     Log.d(TAG, "LiquidGlass effect skipped: API level ${Build.VERSION.SDK_INT} < 33")
                 }
 
-                views.setTextViewText(R.id.widget_headline, headline)
-                views.setTextViewText(R.id.widget_subline, subline)
-
-                val headlineColor = when {
-                    isLive -> 0xFF10B981.toInt()
-                    isUrgent -> 0xFFF59E0B.toInt()
-                    else -> if (widgetDarkMode) 0xFFE2E8F0.toInt() else 0xFF334155.toInt()
+                // 1. Uppercase State Indicator & Subject Headline
+                val finalSubject = if (subject.isNotEmpty()) subject else headline
+                val finalStateLabel = when {
+                    isLive -> "LIVE NOW"
+                    isUrgent -> "STARTING SOON"
+                    else -> headline.uppercase()
                 }
-                views.setTextColor(R.id.widget_headline, headlineColor)
-                views.setTextColor(R.id.widget_subline, if (widgetDarkMode) 0xFFFFFFFF.toInt() else 0xFF1E293B.toInt())
+                views.setTextViewText(R.id.widget_state_label, finalStateLabel)
+                views.setTextViewText(R.id.widget_headline, finalSubject)
+
+                // 2. Color Coding State Indicator & Status Badge
+                val stateColor = when {
+                    isLive -> 0xFF10B981.toInt() // Green
+                    isUrgent -> 0xFFF59E0B.toInt() // Amber
+                    else -> if (widgetDarkMode) 0xFFA5B4C5.toInt() else 0xFF64748B.toInt()
+                }
+                views.setTextColor(R.id.widget_state_label, stateColor)
 
                 when {
                     isLive -> {
@@ -139,19 +150,38 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     }
                     else -> {
                         views.setTextViewText(R.id.widget_status_badge, "NEXT")
-                        views.setTextColor(R.id.widget_status_badge, if (widgetDarkMode) 0xFFBFDBFE.toInt() else 0xFF5B7FFF.toInt())
+                        views.setTextColor(R.id.widget_status_badge, if (widgetDarkMode) 0xFF8BB5FF.toInt() else 0xFF5B7FFF.toInt())
                         views.setViewVisibility(R.id.widget_status_badge, View.VISIBLE)
                     }
                 }
 
-                if (teacher.isNotEmpty()) {
-                    views.setTextViewText(R.id.widget_teacher_info, "Teacher: $teacher")
-                    views.setTextColor(R.id.widget_teacher_info, if (widgetDarkMode) 0xFFCBD5E1.toInt() else 0xFF64748B.toInt())
-                    views.setViewVisibility(R.id.widget_teacher_info, View.VISIBLE)
+                // 3. Intermediate Capsule
+                if (startTime.isNotEmpty() || room.isNotEmpty()) {
+                    views.setViewVisibility(R.id.widget_class_details_capsule, View.VISIBLE)
+                    views.setTextViewText(R.id.widget_details_start_time, startTime)
+                    views.setViewVisibility(R.id.widget_details_divider, if (room.isNotEmpty()) View.VISIBLE else View.GONE)
+                    views.setViewVisibility(R.id.widget_details_loc_icon, if (room.isNotEmpty()) View.VISIBLE else View.GONE)
+                    views.setTextViewText(R.id.widget_details_room, room)
+                    views.setViewVisibility(R.id.widget_details_room, if (room.isNotEmpty()) View.VISIBLE else View.GONE)
+                } else if (subline.isNotEmpty() && subline != "No active class" && subline != "Loading schedule...") {
+                    views.setViewVisibility(R.id.widget_class_details_capsule, View.VISIBLE)
+                    views.setTextViewText(R.id.widget_details_start_time, subline)
+                    views.setViewVisibility(R.id.widget_details_divider, View.GONE)
+                    views.setViewVisibility(R.id.widget_details_loc_icon, View.GONE)
+                    views.setViewVisibility(R.id.widget_details_room, View.GONE)
                 } else {
-                    views.setViewVisibility(R.id.widget_teacher_info, View.GONE)
+                    views.setViewVisibility(R.id.widget_class_details_capsule, View.GONE)
                 }
 
+                // 4. Translucent Teacher Card
+                if (teacher.isNotEmpty()) {
+                    views.setTextViewText(R.id.widget_teacher_name, teacher)
+                    views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
+                } else {
+                    views.setViewVisibility(R.id.widget_teacher_card, View.GONE)
+                }
+
+                // 5. Progress Bar
                 if (isLive) {
                     views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
                     views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
@@ -159,12 +189,13 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.widget_progress, View.GONE)
                 }
 
+                // 6. Bottom Countdown Text
                 val displayTime = if (timeInfo.isEmpty()) "--" else timeInfo
                 views.setTextViewText(R.id.widget_time_info, displayTime)
                 val timeColor = when {
                     isLive -> 0xFF10B981.toInt()
                     isUrgent -> 0xFFF59E0B.toInt()
-                    else -> if (widgetDarkMode) 0xFFA5B4C5.toInt() else 0xFF64748B.toInt()
+                    else -> if (widgetDarkMode) 0xFF8BB5FF.toInt() else 0xFF5B7FFF.toInt()
                 }
                 views.setTextColor(R.id.widget_time_info, timeColor)
                 views.setTextColor(R.id.widget_refresh, if (widgetDarkMode) 0xFFBFDBFE.toInt() else 0xFF334155.toInt())
@@ -178,7 +209,6 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.widget_root, launchPending)
                 views.setOnClickPendingIntent(R.id.widget_headline, launchPending)
-                views.setOnClickPendingIntent(R.id.widget_subline, launchPending)
                 views.setOnClickPendingIntent(R.id.widget_time_info, launchPending)
 
                 val refreshIntent = Intent(context, providerClass).apply {
