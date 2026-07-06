@@ -5179,7 +5179,7 @@ class _DashboardState extends State<Dashboard>
         controller: _searchController,
         focusNode: _searchFocusNode,
         hintText: _bottomNavIndex == 0 ? 'Search classes...' : 'Search tools...',
-        expandWhenActive: !_isMiniMode || _isSearching,
+        expandWhenActive: _bottomNavIndex == 0 ? false : (!_isMiniMode || _isSearching),
         showsCancelButton: true,
         textColor: isDark ? Colors.white : Colors.black,
         cursorColor: activeColor,
@@ -5187,10 +5187,17 @@ class _DashboardState extends State<Dashboard>
           color: (isDark ? Colors.white : Colors.black).withOpacity(0.35),
           fontSize: 13,
         ),
+        searchIcon: _bottomNavIndex == 0 ? const Icon(Icons.school_rounded) : null,
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
-            if (_bottomNavIndex == 1) {
+            if (_bottomNavIndex == 0) {
+              pushIconLaunchRoute(
+                context,
+                page: const AcademicsHubScreen(),
+              );
+              return;
+            } else if (_bottomNavIndex == 1) {
               _showPortalContextSheet(isDark);
               return;
             } else if (_bottomNavIndex == 3) {

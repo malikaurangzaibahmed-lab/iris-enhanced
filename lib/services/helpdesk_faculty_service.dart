@@ -70,7 +70,7 @@ class FacultyProfile {
 
 class HelpdeskFacultyService {
   // static const String _liveUrl = 'https://cui-helpdesk-backend.onrender.com/api/faculty';
-  static const String _cacheKey = 'helpdesk_faculty_cache_v1';
+  static const String _cacheKey = 'helpdesk_faculty_cache_v2';
   static const String _assetPath = 'assets/helpdesk_backup/helpdesk_snapshot.json';
 
   static List<FacultyProfile> _memoryCache = const [];
@@ -183,8 +183,7 @@ class HelpdeskFacultyService {
       final raw = await rootBundle.loadString(_assetPath);
       final dynamic decoded = jsonDecode(raw);
       final data = (decoded is Map<String, dynamic>) ? decoded['data'] : null;
-      final facultyMap = (data is Map<String, dynamic>) ? data['faculty'] : null;
-      final faculty = (facultyMap is Map<String, dynamic>) ? facultyMap['data'] : null;
+      final faculty = (data is Map<String, dynamic>) ? data['faculty'] : null;
       if (faculty is! List) return const [];
       return faculty
           .whereType<Map<String, dynamic>>()

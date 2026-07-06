@@ -24,6 +24,7 @@ import 'portal_screen.dart';
 import 'teacher_locator_screen.dart';
 import 'students_week_screen.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 class FacultyDashboard extends StatefulWidget {
   final OmniBrain brain;
@@ -1088,7 +1089,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
         controller: _searchController,
         focusNode: _searchFocusNode,
         hintText: 'Search schedule...',
-        expandWhenActive: !_isMiniMode || _isSearching,
+        expandWhenActive: _bottomNavIndex == 3 ? false : (!_isMiniMode || _isSearching),
         showsCancelButton: true,
         textColor: isDark ? Colors.white : Colors.black,
         cursorColor: activeColor,
@@ -1096,12 +1097,19 @@ class _FacultyDashboardState extends State<FacultyDashboard>
           color: (isDark ? Colors.white : Colors.black).withOpacity(0.35),
           fontSize: 13,
         ),
-        searchIconColor: (_bottomNavIndex == 0)
+        searchIcon: _bottomNavIndex == 3 ? const Icon(Icons.tune_rounded) : null,
+        searchIconColor: (_bottomNavIndex == 0 || _bottomNavIndex == 3)
             ? (isDark ? Colors.white70 : Colors.black87)
             : Colors.transparent,
         onSearchToggle: (active) {
-          if (active && _bottomNavIndex != 0) {
-            return;
+          if (active) {
+            if (_bottomNavIndex == 3) {
+              _showAboutContextSheet(isDark);
+              return;
+            }
+            if (_bottomNavIndex != 0) {
+              return;
+            }
           }
           setState(() {
             _isSearching = active;
@@ -1135,6 +1143,161 @@ class _FacultyDashboardState extends State<FacultyDashboard>
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showAboutContextSheet(bool isDark) {
+    lgw.GlassModalSheet.show(
+      context: context,
+      initialState: lgw.SheetState.half,
+      settings: IrisGlass.widgetsSettings(
+        context,
+        blur: 16.0,
+        thickness: 15.0,
+        ambientStrength: isDark ? 0.65 : 0.72,
+        lightAngle: 1.5,
+        glassColor: isDark 
+            ? Colors.black.withValues(alpha: 0.20)
+            : Colors.white.withValues(alpha: 0.15),
+      ),
+      builder: (sheetContext) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white30 : Colors.black12,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Icon(
+                  Icons.settings_rounded,
+                  color: isDark ? Colors.white : IrisTokens.purple,
+                  size: 26,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Quick Settings Tuner',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildContextActionTile(
+              isDark,
+              title: 'Toggle Graphics Quality',
+              subtitle: 'Switch between premium & minimal rendering',
+              icon: Icons.speed_rounded,
+              color: IrisTokens.brand,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                ThemeSignals.useMinimalTheme.value = !ThemeSignals.useMinimalTheme.value;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Graphics set to ${ThemeSignals.useMinimalTheme.value ? 'MINIMAL' : 'PREMIUM'}'),
+                    backgroundColor: IrisTokens.brand,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildContextActionTile(
+              isDark,
+              title: 'Clear Cache & Sync',
+              subtitle: 'Reset local sync state',
+              icon: Icons.restore_rounded,
+              color: IrisTokens.warning,
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('helpdesk_faculty_cache_v2');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Local caches cleared!'),
+                    backgroundColor: IrisTokens.success,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContextActionTile(
+    bool isDark, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: (isDark ? Colors.white54 : Colors.black54),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: (isDark ? Colors.white30 : Colors.black38)),
+          ],
+        ),
       ),
     );
   }
