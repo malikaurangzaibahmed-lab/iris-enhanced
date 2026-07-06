@@ -3020,6 +3020,9 @@ class _DashboardState extends State<Dashboard>
   final GlobalKey _studentAboutNavKey = GlobalKey(
     debugLabel: 'student_about_nav',
   );
+  final GlobalKey _academicsIconKey = GlobalKey(
+    debugLabel: 'student_academics_nav',
+  );
 
   ScrollController? get _activeScrollController {
     switch (_bottomNavIndex) {
@@ -4324,6 +4327,9 @@ class _DashboardState extends State<Dashboard>
           memory: widget.memory,
           onRoleChanged: widget.onRoleChanged,
           onBatchChanged: widget.onBatchChanged,
+          onToggleTheme: widget.onToggleTheme,
+          currentThemeMode: widget.currentThemeMode,
+          onSetThemeMode: widget.onSetThemeMode,
         );
       default:
         return const SizedBox.shrink();
@@ -5187,13 +5193,14 @@ class _DashboardState extends State<Dashboard>
           color: (isDark ? Colors.white : Colors.black).withOpacity(0.35),
           fontSize: 13,
         ),
-        searchIcon: _bottomNavIndex == 0 ? const Icon(Icons.school_rounded) : null,
+        searchIcon: _bottomNavIndex == 0 ? Icon(Icons.school_rounded, key: _academicsIconKey) : null,
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
             if (_bottomNavIndex == 0) {
               pushIconLaunchRoute(
                 context,
+                originKey: _academicsIconKey,
                 page: const AcademicsHubScreen(),
               );
               return;

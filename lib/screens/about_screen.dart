@@ -27,6 +27,9 @@ class AboutScreen extends StatefulWidget {
   final ValueChanged<String>? onRoleChanged;
   final ValueChanged<String>? onBatchChanged;
   final ScrollController? scrollController;
+  final VoidCallback? onToggleTheme;
+  final String? currentThemeMode;
+  final Future<void> Function(String)? onSetThemeMode;
 
   const AboutScreen({
     required this.memory,
@@ -34,6 +37,9 @@ class AboutScreen extends StatefulWidget {
     this.onRoleChanged,
     this.onBatchChanged,
     this.scrollController,
+    this.onToggleTheme,
+    this.currentThemeMode,
+    this.onSetThemeMode,
     super.key,
   });
 
@@ -602,6 +608,21 @@ class _AboutScreenState extends State<AboutScreen> {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
+          _buildTunerToggle(
+            isDark,
+            title: "Dark Interface",
+            subtitle: "Force dark glass themes",
+            icon: Icons.dark_mode_rounded,
+            value: widget.currentThemeMode == 'dark' || (widget.currentThemeMode != 'light' && isDark),
+            onChanged: (v) {
+              if (widget.onSetThemeMode != null) {
+                widget.onSetThemeMode!(v ? 'dark' : 'light');
+              } else if (widget.onToggleTheme != null) {
+                widget.onToggleTheme!();
+              }
+            },
+          ),
+          Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
           _buildTunerToggle(
             isDark,
             title: "Live Class Tracker",

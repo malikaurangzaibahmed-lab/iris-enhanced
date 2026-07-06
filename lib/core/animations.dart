@@ -43,12 +43,31 @@ Future<T?> pushIconLaunchRoute<T>(
           reverseCurve: Curves.easeInQuint, // Faster exit
         );
 
+        Alignment alignment = Alignment.center;
+        if (originKey != null && originKey.currentContext != null) {
+          final renderBox = originKey.currentContext!.findRenderObject() as RenderBox?;
+          if (renderBox != null) {
+            final position = renderBox.localToGlobal(Offset.zero);
+            final size = renderBox.size;
+            final screenSize = MediaQuery.of(context).size;
+            if (screenSize.width > 0 && screenSize.height > 0) {
+              final xFraction = (position.dx + size.width / 2) / screenSize.width;
+              final yFraction = (position.dy + size.height / 2) / screenSize.height;
+              alignment = Alignment(
+                (xFraction * 2) - 1,
+                (yFraction * 2) - 1,
+              );
+            }
+          }
+        }
+
         return FadeTransition(
           opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
             CurvedAnimation(parent: animation, curve: const Cubic(0.1, 0.0, 0.1, 1.0)),
           ),
           child: ScaleTransition(
-            scale: Tween<double>(begin: lightweight ? 0.96 : 0.88, end: 1.0).animate(curve),
+            alignment: alignment,
+            scale: Tween<double>(begin: lightweight ? 0.95 : 0.05, end: 1.0).animate(curve),
             child: child,
           ),
         );
