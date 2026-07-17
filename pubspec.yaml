@@ -135,7 +135,7 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/nexsync_logo.png"
+  image_path: "assets/iris_logo.png"
 
   shaders:
     - shaders/liquidglass.frag
