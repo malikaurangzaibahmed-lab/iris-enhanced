@@ -53,6 +53,10 @@ import 'services/timetable_ota_service.dart';
 import 'services/ui_feedback.dart';
 import 'services/session_refresher_service.dart';
 import 'services/widget_service.dart';
+import 'services/app_config.dart';
+import 'services/analytics_manager.dart';
+import 'services/memory_manager.dart';
+import 'widgets/smart_widgets.dart';
 import 'widgets/batch_selector.dart';
 import 'widgets/dashboard_dock.dart' hide NavActiveHalo, BouncyNavButton;
 import 'widgets/glass_card.dart';
@@ -75,6 +79,12 @@ const MethodChannel _notificationChannel = MethodChannel('iris/notification_chan
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  // Initialize Smart Optimization Layer
+  await AppConfig().initialize();
+  ErrorHandler.setupErrorHandling();
+  ImageCacheManager.optimizeImageCache();
+
   tz.initializeTimeZones();
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
@@ -95,9 +105,12 @@ Future<void> main() async {
   await LiquidGlassWidgets.initialize();
   await IrisSfx.init();
   await IrisHaptics.init();
-  runApp(LiquidGlassWidgets.wrap(
-    child: const IrisApp(),
-    adaptiveQuality: true,
+  
+  runApp(ErrorBoundary(
+    child: LiquidGlassWidgets.wrap(
+      child: const IrisApp(),
+      adaptiveQuality: true,
+    ),
   ));
 }
 
@@ -512,7 +525,12 @@ class _AppRootState extends State<_AppRoot> {
   Future<void> _loadUserName() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _userName = prefs.getString('student_user_name');
+      final role = prefs.getString('user_role');
+      if (role == 'faculty') {
+        _userName = prefs.getString('faculty_user_name') ?? prefs.getString('faculty_teacher');
+      } else {
+        _userName = prefs.getString('student_user_name');
+      }
     });
   }
 
@@ -818,6 +836,44 @@ class _AppRootState extends State<_AppRoot> {
     setState(() => _userRole = role);
   }
 
+  Future<void> _completeOnboarding(String role, String name, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_role', role);
+    if (role == 'faculty') {
+      await prefs.setString('faculty_user_name', name);
+      await prefs.setString('faculty_teacher', value);
+      
+      // Always stop service when changing roles to ensure clean state
+      if (await FlutterForegroundTask.isRunningService) {
+        await FlutterForegroundTask.stopService();
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+      
+      setState(() {
+        _userRole = role;
+        _userName = name;
+      });
+    } else {
+      await prefs.setString('student_user_name', name);
+      await prefs.setString('user_batch', value.trim());
+      
+      final isFirstSetup = prefs.getBool('widget_prompt_shown') != true;
+      
+      setState(() {
+        _userRole = role;
+        _userName = name;
+        _selectedBatch = value.trim();
+      });
+      
+      if (isFirstSetup && mounted) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          await _showWidgetSetupPrompt();
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_tutorialCompleted == null) {
@@ -828,27 +884,29 @@ class _AppRootState extends State<_AppRoot> {
       return TutorialScreen(onComplete: _completeTutorial);
     }
 
-    if (_userRole == null) {
-      return RoleSelectorScreen(onComplete: _saveUserRole);
+    // Unified Onboarding check
+    final isStudentOnboarded = _userRole == 'student' && _selectedBatch != null && _userName != null;
+    final isFacultyOnboarded = _userRole == 'faculty' && _userName != null;
+    final isOnboarded = isStudentOnboarded || isFacultyOnboarded;
+
+    if (!isOnboarded) {
+      return OnboardingWizard(
+        memory: widget.memory,
+        onComplete: _completeOnboarding,
+      );
     }
 
     if (_userRole == 'faculty') {
+      final prefs = SharedPreferences.getInstance();
       return FacultyDashboard(
         brain: _brain,
+        teacherName: _userName ?? '',
         onToggleTheme: widget.onToggleTheme,
         onSetThemeMode: widget.onSetThemeMode,
         currentThemeMode: widget.currentThemeMode,
         onRoleChanged: _saveUserRole,
         onBatchChanged: _saveBatch,
       );
-    }
-
-    if (_selectedBatch == null) {
-      return SetupBot(memory: widget.memory, onComplete: _saveBatch);
-    }
-
-    if (_userName == null) {
-      return _NameCaptureScreen(onComplete: _saveUserName);
     }
 
     return Stack(
@@ -3028,9 +3086,9 @@ class _DashboardState extends State<Dashboard>
     switch (_bottomNavIndex) {
       case 0:
         return _scrollController;
-      case 2:
+      case 1:
         return _toolsScrollController;
-      case 3:
+      case 2:
         return _aboutScrollController;
       default:
         return null;
@@ -3040,7 +3098,7 @@ class _DashboardState extends State<Dashboard>
   void _onScroll() {
     final ctrl = _activeScrollController;
     if (ctrl == null) return;
-    final canCollapse = _bottomNavIndex == 0 || _bottomNavIndex == 2;
+    final canCollapse = _bottomNavIndex == 0 || _bottomNavIndex == 1;
     final mini = canCollapse && ctrl.hasClients && ctrl.offset > 50;
     if (mini == _isMiniMode) return;
     setState(() => _isMiniMode = mini);
@@ -3052,7 +3110,7 @@ class _DashboardState extends State<Dashboard>
 
   void _updateMiniModeForActiveTab() {
     final ctrl = _activeScrollController;
-    final canCollapse = _bottomNavIndex == 0 || _bottomNavIndex == 2;
+    final canCollapse = _bottomNavIndex == 0 || _bottomNavIndex == 1;
     final mini = canCollapse && ctrl != null && ctrl.hasClients && ctrl.offset > 50;
     if (mini != _isMiniMode) {
       setState(() => _isMiniMode = mini);
@@ -4200,7 +4258,7 @@ class _DashboardState extends State<Dashboard>
     if (!mounted) return;
     if (_isStudentNavBusy) return;
     if (index == _bottomNavIndex) return;
-    index = index.clamp(0, 3);
+    index = index.clamp(0, 2);
     setState(() {
       _studentTabSlideDirection = index > _bottomNavIndex ? 1 : -1;
       _bottomNavIndex = index;
@@ -4219,8 +4277,8 @@ class _DashboardState extends State<Dashboard>
   void _handleStudentNavDrag(DragUpdateDetails details, double width) {
     if (width <= 0) return;
     final safeDx = details.localPosition.dx.clamp(0.0, width - 1);
-    final itemWidth = width / 4;
-    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 3);
+    final itemWidth = width / 3;
+    final targetIndex = (safeDx / itemWidth).floor().clamp(0, 2);
     _setStudentTabFromDrag(targetIndex);
   }
 
@@ -4460,7 +4518,7 @@ class _DashboardState extends State<Dashboard>
                                   style: TextStyle(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.amber[200]!.withOpacity(0.6) : const Color(0xFFB45309).withOpacity(0.7),
+                                    color: isDark ? Colors.amber[200]!.withValues(alpha: 0.6) : const Color(0xFFB45309).withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],
@@ -4755,7 +4813,7 @@ class _DashboardState extends State<Dashboard>
                               fontSize: 8.5,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
-                              color: isDark ? Colors.amber[200]!.withOpacity(0.8) : const Color(0xFFD97706),
+                              color: isDark ? Colors.amber[200]!.withValues(alpha: 0.8) : const Color(0xFFD97706),
                             ),
                           ),
                         ],
@@ -4814,7 +4872,7 @@ class _DashboardState extends State<Dashboard>
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: GlassCard(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         borderRadius: 24,
         accentColor: accentColor,
         glow: isActive,
@@ -5129,7 +5187,8 @@ class _DashboardState extends State<Dashboard>
   }
 
   Widget _buildStudentBottomNavBar(bool isDark) {
-    final activeColor = _bottomNavIndex == 1 ? IrisTokens.purple : (_bottomNavIndex == 2 ? IrisTokens.success : IrisTokens.brand);
+    final activeColor = isDark ? Colors.white : Colors.black87;
+    final glowColor = isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08);
     
     return GlassSearchableBottomBar(
       tabs: [
@@ -5137,25 +5196,19 @@ class _DashboardState extends State<Dashboard>
           icon: const Icon(Icons.home_outlined),
           activeIcon: const Icon(Icons.home_rounded),
           label: 'Home',
-          glowColor: IrisTokens.brand,
-        ),
-        GlassBottomBarTab(
-          icon: const Icon(Icons.public_outlined),
-          activeIcon: const Icon(Icons.public_rounded),
-          label: 'Portal',
-          glowColor: IrisTokens.purple,
+          glowColor: glowColor,
         ),
         GlassBottomBarTab(
           icon: const Icon(Icons.construction_outlined),
           activeIcon: const Icon(Icons.construction_rounded),
           label: 'Tools',
-          glowColor: IrisTokens.success,
+          glowColor: glowColor,
         ),
         GlassBottomBarTab(
           icon: const Icon(Icons.info_outline_rounded),
           activeIcon: const Icon(Icons.info_rounded),
           label: 'About',
-          glowColor: IrisTokens.error,
+          glowColor: glowColor,
         ),
       ],
       selectedIndex: _bottomNavIndex,
@@ -5190,24 +5243,26 @@ class _DashboardState extends State<Dashboard>
         textColor: isDark ? Colors.white : Colors.black,
         cursorColor: activeColor,
         hintStyle: TextStyle(
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.35),
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.35),
           fontSize: 13,
         ),
-        searchIcon: _bottomNavIndex == 0 ? Icon(Icons.school_rounded, key: _academicsIconKey) : null,
+        searchIcon: _bottomNavIndex == 0 ? Icon(Icons.public_rounded, key: _studentPortalNavKey) : null,
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
             if (_bottomNavIndex == 0) {
               pushIconLaunchRoute(
                 context,
-                originKey: _academicsIconKey,
-                page: const AcademicsHubScreen(),
+                originKey: _studentPortalNavKey,
+                page: const PortalScreen(
+                  url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+                  title: 'COMSATS Student Portal',
+                  sessionScope: 'student',
+                  showBackButton: true,
+                ),
               );
               return;
-            } else if (_bottomNavIndex == 1) {
-              _showPortalContextSheet(isDark);
-              return;
-            } else if (_bottomNavIndex == 3) {
+            } else if (_bottomNavIndex == 2) {
               _showAboutContextSheet(isDark);
               return;
             }
@@ -5229,7 +5284,7 @@ class _DashboardState extends State<Dashboard>
             if (_bottomNavIndex == 0) {
               _homeSearchQuery = val;
               _updateScheduleCache();
-            } else if (_bottomNavIndex == 2) {
+            } else if (_bottomNavIndex == 1) {
               _toolsSearchQuery = val;
             }
           });
@@ -5237,7 +5292,6 @@ class _DashboardState extends State<Dashboard>
         collapsedLogoBuilder: (context) {
           final icons = [
             Icons.home_rounded,
-            Icons.public_rounded,
             Icons.construction_rounded,
             Icons.info_rounded,
           ];
@@ -5794,21 +5848,51 @@ class _DashboardState extends State<Dashboard>
                         Positioned(
                           right: 0,
                           top: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              onPressed: widget.onToggleTheme,
-                              icon: Icon(
-                                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                                size: 20,
-                                color: isDark ? Colors.white : IrisTokens.brand,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Academics Hub Screen Access
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  onPressed: () {
+                                    IrisHaptics.actionMedium();
+                                    pushIconLaunchRoute(
+                                      context,
+                                      page: AcademicsHubScreen(brain: widget.brain),
+                                    );
+                                  },
+                                  icon: Icon(
+                                    Icons.school_rounded,
+                                    size: 20,
+                                    color: isDark ? Colors.white : IrisTokens.brand,
+                                  ),
+                                  padding: const EdgeInsets.all(10),
+                                  constraints: const BoxConstraints(),
+                                ),
                               ),
-                              padding: const EdgeInsets.all(10),
-                              constraints: const BoxConstraints(),
-                            ),
+                              const SizedBox(width: 8),
+                              // Theme Toggle Button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  onPressed: widget.onToggleTheme,
+                                  icon: Icon(
+                                    isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                                    size: 20,
+                                    color: isDark ? Colors.white : IrisTokens.brand,
+                                  ),
+                                  padding: const EdgeInsets.all(10),
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -6312,6 +6396,18 @@ class _DashboardState extends State<Dashboard>
       body: Stack(
         children: [
           ObsidianPulse(isDark: isDark),
+          Positioned(
+            width: 0,
+            height: 0,
+            child: SizedBox.shrink(
+              child: HeadlessPortalSync(
+                url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+                onSyncComplete: (tasks) {
+                  debugPrint('IRIS Dashboard: Headless sync complete with ${tasks.length} tasks.');
+                },
+              ),
+            ),
+          ),
           Positioned.fill(
             child: IndexedStack(
               index: _bottomNavIndex,
@@ -6371,13 +6467,6 @@ class _DashboardState extends State<Dashboard>
                     );
                   },
                 ),
-                const PortalScreen(
-                  key: PageStorageKey<String>('student_tab_portal'),
-                  url: 'https://swl-sis.comsats.edu.pk/Login/Index',
-                  title: 'COMSATS Student Portal',
-                  sessionScope: 'student',
-                  showBackButton: false,
-                ),
                 ToolsScreen(
                   key: const PageStorageKey<String>('student_tab_tools'),
                   memory: widget.memory,
@@ -6422,7 +6511,7 @@ class _DashboardState extends State<Dashboard>
             bottom: pillBottom,
             left: pillLeft,
             right: pillRight,
-            height: 52.0,
+            height: 60.0,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 220),
               opacity: pillOpacity,
@@ -12270,11 +12359,11 @@ class _TrackerPulseIndicatorState extends State<_TrackerPulseIndicator>
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: widget.color.withOpacity(0.8),
+            color: widget.color.withValues(alpha: 0.8),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: widget.color.withOpacity(0.5 * _controller.value),
+                color: widget.color.withValues(alpha: 0.5 * _controller.value),
                 blurRadius: 4 + 8 * _controller.value,
                 spreadRadius: 1 + 3 * _controller.value,
               ),

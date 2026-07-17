@@ -24,6 +24,8 @@ import '../core/animations.dart';
 import '../core/theme_signals.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import '../widgets/smart_widgets.dart';
+import '../services/analytics_manager.dart';
 
 /// Portal session metadata persisted across app restarts
 class DownloadRecord {
@@ -334,7 +336,7 @@ class PortalSession {
   }
 }
 
-class PortalScreen extends StatefulWidget {
+class PortalScreen extends SmartStatefulWidget {
   final String url;
   final String title;
   final bool showBackButton;
@@ -352,7 +354,7 @@ class PortalScreen extends StatefulWidget {
   State<PortalScreen> createState() => _PortalScreenState();
 }
 
-class _PortalScreenState extends State<PortalScreen>
+class _PortalScreenState extends SmartState<PortalScreen>
     with TickerProviderStateMixin {
   static const String _portalUserAgent =
       'Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UD1A.230805.019) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.165 Mobile Safari/537.36';
@@ -3057,7 +3059,6 @@ class _PortalScreenState extends State<PortalScreen>
   }
 
   void _toggleHeaderCollapsed() {
-    HapticFeedback.selectionClick();
     setState(() => _isHeaderCollapsed = !_isHeaderCollapsed);
   }
 
@@ -3232,6 +3233,7 @@ class _PortalScreenState extends State<PortalScreen>
   @override
   void initState() {
     super.initState();
+    AnalyticsManager().trackScreenView('portal_${_scopeSanitized}');
     // Pause background sync while the user is actively in the portal
     PortalSyncService.isSyncPaused.value = true;
 

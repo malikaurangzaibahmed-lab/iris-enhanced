@@ -53,3 +53,21 @@ This file tracks outstanding engineering and visual tasks throughout the Iris co
   - Add telemetry/database operation dashboards with animated usage charts.
   - Refine Obsidian Glassmorphism card border chromatic aberration gradients and glass refract variables.
 - [x] **Telemetry Link Validation**: Add input sanitation and link verification checks to the Firebase Config setup console.
+
+---
+
+## 🚀 Upcoming UI/UX Overhauls & Optimizations
+
+- [x] **Batch Selection Screen & Modal Sheet UI/UX Overhaul**
+  - Redesign `BatchSelectorSheet` in [batch_selector.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/widgets/batch_selector.dart) and onboarding setup dropdowns in [setup_screens.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/screens/setup_screens.dart) to use a premium, glassmorphic select deck with animated transitions.
+  - Simplify selections to be more visual, responsive, and seamless, replacing standard list menus with smooth-expanding list containers.
+- [x] **Settings Screen (About Screen) Visual Overhaul**
+  - Re-conceptualize [about_screen.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/screens/about_screen.dart) into a unified settings/about center with premium bento grid configurations, smoother micro-actions, and cohesive layouts.
+- [x] **Header Animations & Gyro/Physics Overhaul**
+  - Remove all floating yellow fireflies (`NatureBeingsPainter` beings list) from [nature_particles.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/widgets/nature_particles.dart) while preserving interactive touch sparkles for a cleaner look.
+  - Redesign mode-specific header animations in `StudentsWeekPainter` inside [students_week_screen.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/screens/students_week_screen.dart) to cycle and loop seamlessly with custom easing, preventing jarring jumps or resets.
+- [x] **Room Finder Screen Complete Overhaul**
+  - Redesign [room_finder_screen.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/screens/room_finder_screen.dart) to use a modern, dual-pane search dashboard.
+  - Add quick-search tags, visual room occupancy timeline blocks, and a clean card style layout.
+- [x] **Resources/Tools Screen (Tools Screen Part) Complete Overhaul**
+  - Overhaul [tools_screen_part.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/screens/tools_screen_part.dart) layout to feature a premium category card system, glass-molded action tiles, and a floating smart recommendation bar.

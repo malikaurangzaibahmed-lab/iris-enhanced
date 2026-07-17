@@ -1,8 +1,10 @@
+import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../core/tokens.dart';
 import '../core/models.dart';
 import '../services/ui_feedback.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 class BatchSelectorSheet extends StatefulWidget {
   final UniversityMemory memory;
@@ -55,6 +57,7 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     // Filter out batch-like programs (FA##, SP##, etc.) - show only actual programs
     final programs = widget.memory
         .programs()
@@ -67,281 +70,271 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
         ? widget.memory.sections(program!, semester!)
         : <String>[];
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      Colors.white.withValues(alpha: 0.14),
-                      Colors.white.withValues(alpha: 0.07),
-                    ]
-                  : [
-                      Colors.white.withValues(alpha: 0.80),
-                      Colors.white.withValues(alpha: 0.60),
-                    ],
-            ),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.18)
-                  : Colors.white.withValues(alpha: 0.70),
-              width: isDark ? 1.5 : 2.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: IrisTokens.brand.withValues(alpha: isDark ? 0.14 : 0.10),
-                blurRadius: 18,
-                spreadRadius: -4,
-                offset: const Offset(0, 8),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.white.withValues(alpha: 0.04),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.70),
+                        Colors.white.withValues(alpha: 0.45),
+                      ],
               ),
-              BoxShadow(
-                color: (isDark ? Colors.black : Colors.black.withValues(alpha: 0.5))
-                    .withValues(alpha: 0.18),
-                blurRadius: 28,
-                spreadRadius: -10,
-                offset: const Offset(0, 16),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.16)
+                    : Colors.white.withValues(alpha: 0.60),
+                width: isDark ? 1.5 : 2.0,
               ),
-              if (isDark)
+              boxShadow: [
                 BoxShadow(
-                  color: IrisTokens.brand.withValues(alpha: 0.06),
-                  blurRadius: 20,
-                  spreadRadius: -8,
+                  color: IrisTokens.brand.withValues(alpha: isDark ? 0.14 : 0.10),
+                  blurRadius: 18,
+                  spreadRadius: -4,
+                  offset: const Offset(0, 8),
                 ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                top: -12,
-                left: -12,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withValues(alpha: isDark ? 0.16 : 0.24),
-                          Colors.white.withValues(alpha: 0.0),
-                        ],
+                BoxShadow(
+                  color: (isDark ? Colors.black : Colors.black.withValues(alpha: 0.5))
+                      .withValues(alpha: 0.18),
+                  blurRadius: 28,
+                  spreadRadius: -10,
+                  offset: const Offset(0, 16),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -12,
+                  left: -12,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: isDark ? 0.16 : 0.24),
+                            Colors.white.withValues(alpha: 0.0),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                bottom: -16,
-                right: -16,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withValues(alpha: isDark ? 0.14 : 0.20),
-                          Colors.white.withValues(alpha: 0.0),
-                        ],
+                Positioned(
+                  bottom: -16,
+                  right: -16,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: isDark ? 0.14 : 0.20),
+                            Colors.white.withValues(alpha: 0.0),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [IrisTokens.brand, IrisTokens.brandLight],
-                          ),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: IrisTokens.brand.withValues(alpha: 0.5),
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.tune_rounded,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Batch Resolver',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 22,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              'Configure your academic profile',
-                              style: TextStyle(
-                                fontSize: 14,
-                                letterSpacing: 0.3,
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _EnhancedDropDownRow(
-                    label: 'Program',
-                    value: program,
-                    items: programs,
-                    icon: Icons.school_rounded,
-                    onChanged: (value) => setState(() {
-                      program = value;
-                      semester = null;
-                      section = null;
-                    }),
-                  ),
-                  const SizedBox(height: 12),
-                  _EnhancedDropDownRow(
-                    label: 'Semester',
-                    value: semester?.toString(),
-                    items: semesters.map((e) => e.toString()).toList(),
-                    icon: Icons.calendar_month_rounded,
-                    onChanged: (value) => setState(() {
-                      semester = int.tryParse(value ?? '');
-                      section = null;
-                    }),
-                  ),
-                  const SizedBox(height: 12),
-                  _EnhancedDropDownRow(
-                    label: 'Section',
-                    value: section,
-                    items: sections,
-                    icon: Icons.group_rounded,
-                    onChanged: (value) => setState(() => section = value),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: Container(
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            gradient:
-                                (program != null &&
-                                    semester != null &&
-                                    section != null)
-                                ? const LinearGradient(
-                                    colors: [
-                                      IrisTokens.brand,
-                                      IrisTokens.brandLight,
-                                    ],
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow:
-                                (program != null &&
-                                    semester != null &&
-                                    section != null)
-                                ? [
-                                    BoxShadow(
-                                      color: IrisTokens.brand.withValues(alpha: 0.4),
-                                      blurRadius: 5,
-                                      spreadRadius: 0,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ]
-                                : null,
+                            gradient: const LinearGradient(
+                              colors: [IrisTokens.brand, IrisTokens.brandLight],
+                            ),
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: IrisTokens.brand.withValues(alpha: 0.5),
+                                blurRadius: 8,
+                                spreadRadius: 0,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          child: ElevatedButton(
-                            onPressed:
-                                (program != null &&
-                                    semester != null &&
-                                    section != null)
-                                ? () {
-                                    final batch = _resolveBatch();
-                                    if (batch == null) return;
-                                    IrisHaptics.chipSelect();
-                                    Navigator.pop(context, batch);
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
-                              disabledBackgroundColor: isDark
-                                  ? Colors.white.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.08),
-                              shadowColor: Colors.transparent,
+                          child: const Icon(
+                            Icons.tune_rounded,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Batch Resolver',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 22,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'Configure your academic profile',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  letterSpacing: 0.3,
+                                  color: (isDark ? Colors.white : Colors.black)
+                                      .withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _HorizontalChipSelector(
+                      label: 'Program',
+                      selectedValue: program,
+                      items: programs,
+                      icon: Icons.school_rounded,
+                      onSelected: (value) => setState(() {
+                        program = value;
+                        semester = null;
+                        section = null;
+                      }),
+                    ),
+                    const SizedBox(height: 18),
+                    _HorizontalChipSelector(
+                      label: 'Semester',
+                      selectedValue: semester?.toString(),
+                      items: semesters.map((e) => e.toString()).toList(),
+                      icon: Icons.calendar_month_rounded,
+                      placeholderText: program == null ? 'Select program first' : 'No semesters found',
+                      onSelected: (value) => setState(() {
+                        semester = int.tryParse(value);
+                        section = null;
+                      }),
+                    ),
+                    const SizedBox(height: 18),
+                    _HorizontalChipSelector(
+                      label: 'Section',
+                      selectedValue: section,
+                      items: sections,
+                      icon: Icons.group_rounded,
+                      placeholderText: semester == null ? 'Select semester first' : 'No sections found',
+                      onSelected: (value) => setState(() => section = value),
+                    ),
+                    const SizedBox(height: 28),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.check_circle_rounded, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Apply Changes',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: (program != null && semester != null && section != null)
+                                  ? const LinearGradient(
+                                      colors: [
+                                        IrisTokens.brand,
+                                        IrisTokens.brandLight,
+                                      ],
+                                    )
+                                  : null,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: (program != null && semester != null && section != null)
+                                  ? [
+                                      BoxShadow(
+                                        color: IrisTokens.brand.withValues(alpha: 0.4),
+                                        blurRadius: 5,
+                                        spreadRadius: 0,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: ElevatedButton(
+                              onPressed: (program != null && semester != null && section != null)
+                                  ? () {
+                                      final batch = _resolveBatch();
+                                      if (batch == null) return;
+                                      IrisHaptics.chipSelect();
+                                      Navigator.pop(context, batch);
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.08),
+                                shadowColor: Colors.transparent,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.check_circle_rounded, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Apply Changes',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -349,120 +342,138 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
   }
 }
 
-class _EnhancedDropDownRow extends StatelessWidget {
+class _HorizontalChipSelector extends StatelessWidget {
   final String label;
-  final String? value;
+  final String? selectedValue;
   final List<String> items;
   final IconData icon;
-  final ValueChanged<String?> onChanged;
+  final String placeholderText;
+  final ValueChanged<String> onSelected;
 
-  const _EnhancedDropDownRow({
+  const _HorizontalChipSelector({
     required this.label,
-    required this.value,
+    required this.selectedValue,
     required this.items,
     required this.icon,
-    required this.onChanged,
+    this.placeholderText = 'No options available',
+    required this.onSelected,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.14)
-              : Colors.black.withValues(alpha: 0.10),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isDark ? Colors.black : Colors.black.withValues(alpha: 0.5))
-                .withValues(alpha: 0.08),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: IrisTokens.brand.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: IrisTokens.brand, size: 20),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 90,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                letterSpacing: 0.2,
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: IrisTokens.brand, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 10.5,
+                letterSpacing: 1.5,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
               ),
             ),
-          ),
-          Expanded(
-            child: lgw.GlassMenu(
-              menuWidth: 240,
-              menuHeight: items.length > 5 ? 260.0 : (items.length * 44.0 + 10.0),
-              triggerBuilder: (context, toggleMenu) {
-                return InkWell(
-                  onTap: () {
-                    IrisHaptics.actionSoft();
-                    toggleMenu();
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            value ?? 'Select',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+          ],
+        ),
+        const SizedBox(height: 10),
+        items.isEmpty
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.black.withValues(alpha: 0.02),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Text(
+                  placeholderText,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white30 : Colors.black38,
+                  ),
+                ),
+              )
+            : lgw.GlassMenu(
+                menuWidth: MediaQuery.of(context).size.width - 48,
+                menuHeight: math.min(items.length * 52.0 + 16.0, 240.0),
+                menuBorderRadius: 20.0,
+                settings: lgw.LiquidGlassSettings(
+                  blur: 20,
+                  ambientStrength: 0.7,
+                  lightAngle: 0.15 * math.pi,
+                  glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
+                      .withValues(alpha: isDark ? 0.45 : 0.5),
+                  thickness: 18,
+                ),
+                triggerBuilder: (context, toggleMenu) {
+                  return InkWell(
+                    onTap: () {
+                      IrisHaptics.actionSoft();
+                      toggleMenu();
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.black.withValues(alpha: 0.02),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.08),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedValue ?? 'Select $label',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: value == null 
-                                  ? (isDark ? Colors.white54 : Colors.black45)
-                                  : (isDark ? Colors.white : Colors.black87),
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: selectedValue != null 
+                                ? (isDark ? Colors.white : Colors.black87)
+                                : (isDark ? Colors.white30 : Colors.black38),
                             ),
                           ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: isDark ? Colors.white54 : Colors.black54,
-                          size: 20,
-                        ),
-                      ],
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: isDark ? Colors.white54 : Colors.black45,
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-              items: items.map((e) {
-                return lgw.GlassMenuItem(
-                  title: e,
-                  onTap: () {
-                    if (onChanged != null) onChanged(e);
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
+                  );
+                },
+                items: items.map((String val) {
+                  return lgw.GlassMenuItem(
+                    title: val,
+                    onTap: () {
+                      IrisHaptics.chipSelect();
+                      onSelected(val);
+                    },
+                  );
+                }).toList(),
+              ),
+      ],
     );
   }
 }

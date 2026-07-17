@@ -4,6 +4,8 @@ import '../widgets/glass_card.dart';
 import '../widgets/nature_particles.dart';
 import '../services/ui_feedback.dart';
 import '../core/tokens.dart';
+import '../widgets/smart_widgets.dart';
+import '../services/analytics_manager.dart';
 
 // ==========================================================================
 // STUDENTS WEEK HEADER CARD WITH LOOPING MULTI-MODE VECTOR ANIMATIONS
@@ -441,18 +443,27 @@ class StudentsWeekPainter extends CustomPainter {
         for (double wx in [-5.0, 0.0, 5.0]) {
           canvas.drawLine(Offset(cx + 22 + wx, cy + 24), Offset(cx + 22 + wx, cy + 4), wicketPaint);
         }
+        
         // Draw red bail on top
         final bailPaint = Paint()..color = const Color(0xFFEF4444)..strokeWidth = 1.2;
-        if (progress < 0.4) {
+        if (progress < 0.45) {
           canvas.drawLine(Offset(cx + 15, cy + 3), Offset(cx + 29, cy + 3), bailPaint);
-        } else {
+        } else if (progress < 0.85) {
           // Bail flies off and rotates
-          final double bailY = cy + 3.0 - (progress - 0.4) * 45.0;
-          final double bailRotation = (progress - 0.4) * 6.5;
+          final double t = (progress - 0.45) / 0.40;
+          final double bailY = cy + 3.0 - (t * 40.0);
+          final double bailRotation = t * 6.5;
           canvas.save();
           canvas.translate(cx + 22, bailY);
           canvas.rotate(bailRotation);
           canvas.drawLine(const Offset(-7, 0), const Offset(7, 0), bailPaint);
+          canvas.restore();
+        } else {
+          // Fade bail back to normal
+          final double t = (progress - 0.85) / 0.15;
+          canvas.save();
+          canvas.translate(cx + 22, cy + 3.0);
+          canvas.drawLine(const Offset(-7, 0), const Offset(7, 0), bailPaint..color = const Color(0xFFEF4444).withValues(alpha: t));
           canvas.restore();
         }
 
@@ -464,14 +475,31 @@ class StudentsWeekPainter extends CustomPainter {
           ..color = const Color(0xFF374151)
           ..style = PaintingStyle.fill;
 
-        double batRotation = -0.6 + (progress * 1.8);
-        if (progress > 0.4) batRotation = 1.2;
+        double batRotation = -0.6;
+        if (progress < 0.2) {
+          // Prepare swing (backswing)
+          final double t = progress / 0.2;
+          batRotation = -0.6 - (t * 0.15);
+        } else if (progress < 0.45) {
+          // Forward swing
+          final double t = (progress - 0.2) / 0.25;
+          batRotation = -0.75 + (t * 1.95);
+        } else if (progress < 0.75) {
+          // Follow through
+          final double t = (progress - 0.45) / 0.3;
+          batRotation = 1.2 + math.sin(t * math.pi / 2) * 0.25;
+        } else {
+          // Return smoothly to start position
+          final double t = (progress - 0.75) / 0.25;
+          batRotation = 1.45 - (t * 2.05);
+        }
 
-        // Draw faint motion trails
-        if (progress <= 0.4) {
+        // Draw faint motion trails during forward swing
+        if (progress >= 0.2 && progress <= 0.45) {
+          final double trailT = (progress - 0.2) / 0.25;
           for (int t = 1; t <= 3; t++) {
-            final trailProgress = (progress - (t * 0.04)).clamp(0.0, 1.0);
-            final double trailRotation = -0.6 + (trailProgress * 1.8);
+            final trailProgress = (trailT - (t * 0.08)).clamp(0.0, 1.0);
+            final double trailRotation = -0.75 + (trailProgress * 1.95);
             canvas.save();
             canvas.translate(cx - 15, cy + 15);
             canvas.rotate(trailRotation);
@@ -502,40 +530,59 @@ class StudentsWeekPainter extends CustomPainter {
         );
         canvas.restore();
 
-        // draw ball moving towards hit point
-        if (progress < 0.4) {
-          final ballX = cx + 50.0 - (progress * 160.0);
-          final ballY = cy + 10.0 - (progress * 10.0);
+        // Draw ball moving and looping
+        double ballX, ballY;
+        double ballOpacity = 1.0;
+        if (progress < 0.45) {
+          // Ball approaches bat
+          final double t = progress / 0.45;
+          ballX = cx + 60.0 - (t * 80.0);
+          ballY = cy + 5.0 + (t * 5.0);
+          
           final ballPaint = Paint()
             ..color = const Color(0xFFEF4444)
             ..style = PaintingStyle.fill;
           canvas.drawCircle(Offset(ballX, ballY), 5, ballPaint);
           
-          // Draw ball motion trail
+          // Motion trails
           canvas.drawCircle(Offset(ballX + 8, ballY + 0.5), 3.5, Paint()..color = const Color(0xFFEF4444).withValues(alpha: 0.3)..style = PaintingStyle.fill);
           canvas.drawCircle(Offset(ballX + 15, ballY + 1.0), 2.0, Paint()..color = const Color(0xFFEF4444).withValues(alpha: 0.1)..style = PaintingStyle.fill);
-        } else {
-          // Ball hit and flying off! (Draw a sparks burst at cx-80, cy)
-          if (progress < 0.75) {
-            final hitX = cx - 80 - (progress - 0.4) * 80;
-            final hitY = cy - (progress - 0.4) * 60;
-            canvas.drawCircle(Offset(hitX, hitY), 4.5, Paint()..color = const Color(0xFFEF4444));
-            
-            // Sparkles at collision point
-            final collisionX = cx - 80.0;
-            final collisionY = cy;
+        } else if (progress < 0.85) {
+          // Ball hit and flying off
+          final double t = (progress - 0.45) / 0.40;
+          ballX = (cx - 20.0) - (t * 90.0);
+          ballY = (cy + 10.0) - (t * 70.0);
+          ballOpacity = (1.0 - t).clamp(0.0, 1.0);
+          
+          final ballPaint = Paint()
+            ..color = const Color(0xFFEF4444).withValues(alpha: ballOpacity)
+            ..style = PaintingStyle.fill;
+          canvas.drawCircle(Offset(ballX, ballY), 5, ballPaint);
+
+          // Draw impact sparkles at contact point
+          final double sparkT = (progress - 0.45) / 0.20;
+          if (sparkT < 1.0) {
+            final collisionX = cx - 20.0;
+            final collisionY = cy + 10.0;
             for (int s = 0; s < 8; s++) {
               final double angle = s * math.pi / 4;
-              final double sparkLen = 4.0 + (progress - 0.4) * 16.0;
+              final double sparkLen = 4.0 + sparkT * 16.0;
               canvas.drawLine(
                 Offset(collisionX, collisionY),
                 Offset(collisionX + math.cos(angle) * sparkLen, collisionY + math.sin(angle) * sparkLen),
                 Paint()
-                  ..color = const Color(0xFFFFB703).withValues(alpha: (0.75 - progress).clamp(0.0, 1.0))
+                  ..color = const Color(0xFFFFB703).withValues(alpha: (1.0 - sparkT).clamp(0.0, 1.0))
                   ..strokeWidth = 1.0,
               );
             }
           }
+        } else {
+          // Ball returns to starting point (fading in)
+          final double t = (progress - 0.85) / 0.15;
+          ballX = cx + 60.0;
+          ballY = cy + 5.0;
+          ballOpacity = t;
+          canvas.drawCircle(Offset(ballX, ballY), 5, Paint()..color = const Color(0xFFEF4444).withValues(alpha: ballOpacity));
         }
         break;
 
@@ -561,8 +608,16 @@ class StudentsWeekPainter extends CustomPainter {
         // Draw Goalkeeper Glove trying to save the ball
         final glovePaint = Paint()..color = baseColor.withValues(alpha: 0.25)..style = PaintingStyle.fill;
         final gloveOutline = Paint()..color = baseColor.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 0.8;
+        
+        double gloveY = cy + 10.0;
+        if (progress < 0.55) {
+          gloveY = cy + 10.0 - (progress / 0.55) * 22.0;
+        } else {
+          gloveY = cy - 12.0 + ((progress - 0.55) / 0.45) * 22.0;
+        }
+
         canvas.save();
-        canvas.translate(cx + 22, cy - 12);
+        canvas.translate(cx + 22, gloveY);
         final glovePath = Path()
           ..moveTo(0, 0)
           ..lineTo(-2, -6)
@@ -577,21 +632,26 @@ class StudentsWeekPainter extends CustomPainter {
         canvas.drawPath(glovePath, gloveOutline);
         canvas.restore();
 
-        // draw soccer ball
-        double ballT = (progress * 1.5).clamp(0.0, 1.0);
-        final ballX = cx - 60.0 + (ballT * 60.0);
-        final ballY = cy + 15.0 - (ballT * 15.0);
+        // Draw soccer ball
+        double ballX, ballY;
+        if (progress < 0.55) {
+          // Ball in flight to the goal
+          final double t = progress / 0.55;
+          ballX = cx - 60.0 + (t * 80.0);
+          ballY = cy + 15.0 - (t * 27.0);
 
-        // draw wind trail lines around soccer ball in flight
-        if (ballT < 0.95) {
+          // Draw wind trails in flight
           final windPaint = Paint()..color = baseColor.withValues(alpha: 0.15)..strokeWidth = 0.8;
           canvas.drawLine(Offset(ballX - 10, ballY + 2), Offset(ballX - 3, ballY + 1), windPaint);
           canvas.drawLine(Offset(ballX - 8, ballY - 2), Offset(ballX - 2, ballY - 1), windPaint);
-        }
+        } else if (progress < 0.80) {
+          // Ball hits net, flexes, and drops down
+          final double t = (progress - 0.55) / 0.25;
+          ballX = cx + 20.0 - (t * 5.0);
+          ballY = cy - 12.0 + (t * 32.0);
 
-        // draw net flex animation when ball hits goal (ballT == 1.0)
-        if (ballT >= 0.95) {
-          final flexOffset = (math.sin(progress * 12 * math.pi) * 3.5).abs();
+          // Goalpost net flex animation
+          final flexOffset = (math.sin(t * math.pi) * 3.5);
           canvas.drawArc(
             Rect.fromLTWH(cx - 20, cy - 25, 40 + flexOffset, 50),
             -math.pi / 2,
@@ -599,6 +659,11 @@ class StudentsWeekPainter extends CustomPainter {
             false,
             netPaint..color = const Color(0xFF10B981)..strokeWidth = 1.2,
           );
+        } else {
+          // Ball rolls back smoothly to start position
+          final double t = (progress - 0.80) / 0.20;
+          ballX = cx + 15.0 - (t * 75.0);
+          ballY = cy + 20.0 - (t * 5.0);
         }
 
         // Draw ball body
@@ -607,7 +672,7 @@ class StudentsWeekPainter extends CustomPainter {
           ..style = PaintingStyle.fill;
         canvas.drawCircle(Offset(ballX, ballY), 6.5, ballPaint);
         
-        // Draw soccer panels (black pentagons on white ball)
+        // Draw soccer panels
         final panelPaint = Paint()..color = isDark ? Colors.black : Colors.white;
         canvas.drawCircle(Offset(ballX, ballY), 1.5, panelPaint);
         canvas.drawCircle(Offset(ballX - 3.5, ballY - 2.5), 1.0, panelPaint);
@@ -625,7 +690,9 @@ class StudentsWeekPainter extends CustomPainter {
           ..color = const Color(0xFFD97706)
           ..style = PaintingStyle.fill;
 
+        // Smooth continuous bouncing
         final bob = math.sin(progress * math.pi * 4) * 3.5;
+        final double earRot = math.cos(progress * math.pi * 4) * 0.12;
 
         // Paw prints floating behind
         final pawPaint = Paint()..color = const Color(0xFFD97706).withValues(alpha: 0.12);
@@ -634,11 +701,20 @@ class StudentsWeekPainter extends CustomPainter {
         canvas.drawCircle(Offset(cx - 31, cy + 10 + (bob * 0.5)), 2, pawPaint);
         canvas.drawCircle(Offset(cx - 27, cy + 12 + (bob * 0.5)), 2, pawPaint);
 
-        // Draw left/right ears
-        canvas.drawCircle(Offset(cx - 12, cy - 8 + bob), 7.5, earPaint);
-        canvas.drawCircle(Offset(cx - 12, cy - 8 + bob), 4.5, Paint()..color = const Color(0xFFFCA5A5)); // inner pink ear
-        canvas.drawCircle(Offset(cx + 12, cy - 8 + bob), 7.5, earPaint);
-        canvas.drawCircle(Offset(cx + 12, cy - 8 + bob), 4.5, Paint()..color = const Color(0xFFFCA5A5));
+        // Draw left/right ears with organic sway
+        canvas.save();
+        canvas.translate(cx - 12, cy - 8 + bob);
+        canvas.rotate(earRot);
+        canvas.drawCircle(Offset.zero, 7.5, earPaint);
+        canvas.drawCircle(Offset.zero, 4.5, Paint()..color = const Color(0xFFFCA5A5)); // inner pink ear
+        canvas.restore();
+
+        canvas.save();
+        canvas.translate(cx + 12, cy - 8 + bob);
+        canvas.rotate(-earRot);
+        canvas.drawCircle(Offset.zero, 7.5, earPaint);
+        canvas.drawCircle(Offset.zero, 4.5, Paint()..color = const Color(0xFFFCA5A5));
+        canvas.restore();
 
         // Draw face
         canvas.drawCircle(Offset(cx, cy + bob), 13.5, mascotPaint);
@@ -646,51 +722,23 @@ class StudentsWeekPainter extends CustomPainter {
         // Glasses for cool mascot
         final glassesPaint = Paint()
           ..color = Colors.black87
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2;
-        canvas.drawCircle(Offset(cx - 4.5, cy - 0.5 + bob), 3.5, glassesPaint);
-        canvas.drawCircle(Offset(cx + 4.5, cy - 0.5 + bob), 3.5, glassesPaint);
-        canvas.drawLine(Offset(cx - 1, cy - 0.5 + bob), Offset(cx + 1, cy - 0.5 + bob), glassesPaint);
-        
-        // Nose and mouth lines
-        final nosePaint = Paint()..color = const Color(0xFF78350F);
-        canvas.drawCircle(Offset(cx, cy + 3.5 + bob), 1.6, nosePaint);
+          ..style = PaintingStyle.fill;
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(cx - 10, cy - 3 + bob, 8, 5), const Radius.circular(2)), glassesPaint);
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(cx + 2, cy - 3 + bob, 8, 5), const Radius.circular(2)), glassesPaint);
+        canvas.drawLine(Offset(cx - 2, cy - 1 + bob), Offset(cx + 2, cy - 1 + bob), Paint()..color = Colors.black87..strokeWidth = 1.0);
 
-        // Speech bubble saying "+10 XP"
-        if (bob < -1.5) {
-          final bubblePaint = Paint()..color = const Color(0xFF10B981)..style = PaintingStyle.fill;
-          final bubblePath = Path()
-            ..moveTo(cx + 14, cy - 18)
-            ..lineTo(cx + 36, cy - 18)
-            ..lineTo(cx + 36, cy - 8)
-            ..lineTo(cx + 22, cy - 8)
-            ..lineTo(cx + 17, cy - 3)
-            ..lineTo(cx + 18, cy - 8)
-            ..lineTo(cx + 14, cy - 8)
-            ..close();
-          canvas.drawPath(bubblePath, bubblePaint);
-          
-          const txtSpan = TextSpan(
-            text: "+10 XP",
-            style: TextStyle(fontSize: 5.0, fontWeight: FontWeight.w900, color: Colors.white),
-          );
-          final txtPainter = TextPainter(text: txtSpan, textDirection: TextDirection.ltr)..layout();
-          txtPainter.paint(canvas, Offset(cx + 18, cy - 15.5));
+        // Periodic blink animation (blinks quickly near 0.2 and 0.8 progress)
+        final bool isBlinking = (progress >= 0.18 && progress <= 0.22) || (progress >= 0.78 && progress <= 0.82);
+        if (isBlinking) {
+          // Closed eye line
+          final blinkPaint = Paint()..color = Colors.white..strokeWidth = 1.2;
+          canvas.drawLine(Offset(cx - 8, cy - 0.5 + bob), Offset(cx - 4, cy - 0.5 + bob), blinkPaint);
+          canvas.drawLine(Offset(cx + 4, cy - 0.5 + bob), Offset(cx + 8, cy - 0.5 + bob), blinkPaint);
+        } else {
+          // Open eye white circles
+          canvas.drawCircle(Offset(cx - 6, cy - 0.5 + bob), 2, Paint()..color = Colors.white);
+          canvas.drawCircle(Offset(cx + 6, cy - 0.5 + bob), 2, Paint()..color = Colors.white);
         }
-
-        // Float tiny hearts
-        final heartPaint = Paint()..color = const Color(0xFFEF4444).withValues(alpha: 0.35)..style = PaintingStyle.fill;
-        final double hProgress = (progress + bob.abs() * 0.05) % 1.0;
-        final double hx = cx - 25 + math.sin(hProgress * 2 * math.pi) * 6.0;
-        final double hy = cy - 10 - hProgress * 25.0;
-        canvas.drawCircle(Offset(hx - 1.5, hy), 1.2, heartPaint);
-        canvas.drawCircle(Offset(hx + 1.5, hy), 1.2, heartPaint);
-        final hPath = Path()
-          ..moveTo(hx - 2.7, hy + 0.4)
-          ..lineTo(hx, hy + 3.2)
-          ..lineTo(hx + 2.7, hy + 0.4)
-          ..close();
-        canvas.drawPath(hPath, heartPaint);
         break;
 
       case StudentsWeekAnimationMode.singers:
@@ -702,7 +750,7 @@ class StudentsWeekPainter extends CustomPainter {
           ..color = const Color(0xFFEC4899)
           ..style = PaintingStyle.fill;
 
-        // Draw 3 intersecting Spotlight beams
+        // Draw 3 intersecting Spotlight beams (looping perfectly)
         final colorsSpot = [
           const Color(0xFFEC4899),
           const Color(0xFF3B82F6),
@@ -759,13 +807,19 @@ class StudentsWeekPainter extends CustomPainter {
         _drawMusicNote(canvas, Offset(cx - 18 + math.sin(n1T * 2 * math.pi) * 4.0, cy - 12 - n1T * 28.0), noteCol.withValues(alpha: 1.0 - n1T));
         _drawMusicNote(canvas, Offset(cx + 16 + math.cos(n2T * 2 * math.pi) * 3.5, cy - 18 - n2T * 24.0), noteCol.withValues(alpha: 1.0 - n2T));
 
-        // Dancing audio spectrum wave rings
+        // Dancing audio spectrum wave rings (looping perfectly)
         final wavePaint = Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.8
-          ..color = const Color(0xFFEC4899).withValues(alpha: 0.22 - (progress * 0.15));
-        canvas.drawCircle(Offset(cx, cy - 8), 10.0 + (progress * 20.0), wavePaint);
-        canvas.drawCircle(Offset(cx, cy - 8), 5.0 + (progress * 12.0), wavePaint);
+          ..strokeWidth = 0.8;
+          
+        final double r1 = 5.0 + (progress * 25.0);
+        final double op1 = math.sin(progress * math.pi) * 0.22;
+        canvas.drawCircle(Offset(cx, cy - 8), r1, wavePaint..color = const Color(0xFFEC4899).withValues(alpha: op1));
+
+        final double p2 = (progress + 0.5) % 1.0;
+        final double r2 = 5.0 + (p2 * 25.0);
+        final double op2 = math.sin(p2 * math.pi) * 0.22;
+        canvas.drawCircle(Offset(cx, cy - 8), r2, wavePaint..color = const Color(0xFFEC4899).withValues(alpha: op2));
         break;
     }
 
@@ -847,14 +901,14 @@ class StudentsWeekPainter extends CustomPainter {
 // SPORTS WEEK LIVE SCOREBOARD CARD
 // ==========================================================================
 
-class LiveScoreboardWidget extends StatefulWidget {
+class LiveScoreboardWidget extends SmartStatefulWidget {
   const LiveScoreboardWidget({super.key});
 
   @override
   State<LiveScoreboardWidget> createState() => _LiveScoreboardWidgetState();
 }
 
-class _LiveScoreboardWidgetState extends State<LiveScoreboardWidget>
+class _LiveScoreboardWidgetState extends SmartState<LiveScoreboardWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
 

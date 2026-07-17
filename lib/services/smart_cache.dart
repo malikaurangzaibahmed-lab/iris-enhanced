@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Smart performance optimization layer
 class SmartCache {
   static final SmartCache _instance = SmartCache._internal();
@@ -77,7 +79,7 @@ class SmartCache {
     return {
       'size': _cache.length,
       'maxSize': _maxCacheSize,
-      'accuracy': _cache.length > 0 
+      'accuracy': _cache.isNotEmpty 
           ? _accessCount.values.fold(0, (a, b) => a + b) / _cache.length 
           : 0,
     };
@@ -157,7 +159,7 @@ extension PerfTracker<T> on Future<T> {
     } finally {
       stopwatch.stop();
       PerfMonitor().recordMetric(operationName, stopwatch.elapsed);
-      print('⏱️ $operationName: ${stopwatch.elapsedMilliseconds}ms');
+      debugPrint('⏱️ $operationName: ${stopwatch.elapsedMilliseconds}ms');
     }
   }
 }

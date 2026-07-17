@@ -55,7 +55,7 @@ class DashboardDock extends StatefulWidget {
     final radius = showFacultySet
         ? (veryCompact ? 18.0 : (compact ? 22.0 : 28.0))
         : (veryCompact ? 18.0 : (compact ? 20.0 : 24.0));
-    final itemCount = showStudentSet ? 5 : (showFacultySet ? 4 : 7);
+    final itemCount = showStudentSet ? 4 : (showFacultySet ? 3 : 6);
     final safeSelected = state.displaySelectedIndex(itemCount, selectedIndex);
     final activeColor = showFacultySet ? IrisTokens.purple : IrisTokens.brand;
     final pillAccent = IrisTokens.brand;
@@ -98,6 +98,7 @@ class DashboardDock extends StatefulWidget {
                           radius: radius,
                           width: 1.2,
                           isDark: isDark,
+                          color: activeColor.withValues(alpha: isDark ? 0.35 : 0.18),
                         ),
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
@@ -126,27 +127,9 @@ class DashboardDock extends StatefulWidget {
                                     boxShadow: [
                                       BoxShadow(
                                         color: activeColor.withValues(alpha: isDark ? 0.35 : 0.15),
-                                        blurRadius: 10,
+                                        blurRadius: 12,
                                         spreadRadius: 1,
-                                        offset: const Offset(0, 1),
-                                      ),
-                                      BoxShadow(
-                                        color: (showFacultySet ? IrisTokens.purple : IrisTokens.brand).withValues(alpha: isDark ? 0.25 : 0.12),
-                                        blurRadius: 20,
-                                        spreadRadius: -2,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                      BoxShadow(
-                                        color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.15),
-                                        blurRadius: 6,
-                                        spreadRadius: -1,
-                                        offset: const Offset(-2, 0),
-                                      ),
-                                      BoxShadow(
-                                        color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.20 : 0.10),
-                                        blurRadius: 6,
-                                        spreadRadius: -1,
-                                        offset: const Offset(2, 0),
+                                        offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
@@ -180,6 +163,7 @@ class DashboardDock extends StatefulWidget {
                       radius: radius,
                       width: 1.0,
                       isDark: isDark,
+                      color: activeColor.withValues(alpha: isDark ? 0.30 : 0.15),
                     ),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 304),
@@ -245,16 +229,6 @@ class DashboardDock extends StatefulWidget {
                                                 color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 1),
-                                              ),
-                                              BoxShadow(
-                                                color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.20 : 0.10),
-                                                blurRadius: 4,
-                                                offset: const Offset(-1, 0),
-                                              ),
-                                              BoxShadow(
-                                                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.15 : 0.08),
-                                                blurRadius: 4,
-                                                offset: const Offset(1, 0),
                                               ),
                                             ],
                                           ),
@@ -421,17 +395,15 @@ class DashboardDock extends StatefulWidget {
       child: dockContent,
     );
 
-    if (state._internalVisibility == null) return tiltedDock;
-
     return ValueListenableBuilder<double>(
-      valueListenable: state._internalVisibility!,
+      valueListenable: state._internalVisibility,
       builder: (context, v, child) {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutCubic,
           transform: Matrix4.identity()
-            ..translate(0.0, (1.0 - v) * 100)
-            ..scale(0.8 + (v * 0.2)),
+            ..multiply(Matrix4.translationValues(0.0, (1.0 - v) * 100, 0.0))
+            ..multiply(Matrix4.diagonal3Values(0.8 + (v * 0.2), 0.8 + (v * 0.2), 1.0)),
           child: Opacity(
             opacity: v.clamp(0.0, 1.0),
             child: child,
@@ -453,21 +425,18 @@ class DashboardDock extends StatefulWidget {
     return [
       _buildNavButton(0, Icons.home_filled, Icons.home_rounded, 'Home', onHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst), isDark, safeSelected, activeColor, state, itemCount),
       if (showStudentSet) ...[
-        _buildNavButton(1, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(2, Icons.school_rounded, Icons.school_outlined, 'Academics', onClasses ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(3, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(4, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(1, Icons.school_rounded, Icons.school_outlined, 'Academics', onClasses ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(2, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(3, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
       ] else if (showFacultySet) ...[
         _buildNavButton(1, Icons.badge_rounded, Icons.badge_outlined, 'Teacher', onTeacher ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(2, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(3, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(2, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
       ] else ...[
         _buildNavButton(1, Icons.search_rounded, Icons.search_rounded, 'Teacher', onTeacher ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(2, Icons.public_rounded, Icons.public_rounded, 'Portal', onPortal ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(3, Icons.school_rounded, Icons.school_outlined, 'Classes', onClasses ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(4, Icons.build_rounded, Icons.build_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(5, Icons.event_repeat_rounded, Icons.event_repeat_outlined, 'Makeup', onMakeup ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
-        _buildNavButton(6, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(2, Icons.school_rounded, Icons.school_outlined, 'Classes', onClasses ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(3, Icons.build_rounded, Icons.build_outlined, 'Tools', onTools ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(4, Icons.event_repeat_rounded, Icons.event_repeat_outlined, 'Makeup', onMakeup ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
+        _buildNavButton(5, Icons.info_rounded, Icons.info_outline_rounded, 'About', onAbout ?? () {}, isDark, safeSelected, activeColor, state, itemCount),
       ],
     ];
   }
@@ -770,11 +739,11 @@ class _NavActiveHaloState extends State<NavActiveHalo>
                 gradient: RadialGradient(
                   colors: [
                     widget.color.withValues(alpha: 0.22 + (t * 0.06)),
-                    const Color(0xFF00F2FE).withValues(alpha: 0.12 + (t * 0.04)),
-                    const Color(0xFFEF4444).withValues(alpha: 0.06 + (t * 0.02)),
+                    widget.color.withValues(alpha: 0.10 + (t * 0.03)),
+                    widget.color.withValues(alpha: 0.02),
                     Colors.transparent,
                   ],
-                  stops: const [0.0, 0.45, 0.8, 1.0],
+                  stops: const [0.0, 0.5, 0.8, 1.0],
                 ),
               ),
             ),
@@ -789,11 +758,13 @@ class ChromaticBorderPainter extends CustomPainter {
   final double radius;
   final double width;
   final bool isDark;
+  final Color? color;
 
   ChromaticBorderPainter({
     required this.radius,
     this.width = 1.5,
     required this.isDark,
+    this.color,
   });
 
   @override
@@ -801,22 +772,10 @@ class ChromaticBorderPainter extends CustomPainter {
     final rect = Offset.zero & size;
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
 
-    final gradient = LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        const Color(0xFFEF4444).withValues(alpha: isDark ? 0.28 : 0.18),
-        const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.16),
-        const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.28 : 0.18),
-        const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.25 : 0.16),
-        const Color(0xFF10B981).withValues(alpha: isDark ? 0.22 : 0.14),
-        const Color(0xFFEF4444).withValues(alpha: isDark ? 0.28 : 0.18),
-      ],
-      stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
-    );
+    final borderColor = color ?? (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08));
 
     final paint = Paint()
-      ..shader = gradient.createShader(rect)
+      ..color = borderColor
       ..strokeWidth = width
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -826,7 +785,10 @@ class ChromaticBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ChromaticBorderPainter oldDelegate) =>
-      oldDelegate.radius != radius || oldDelegate.width != width || oldDelegate.isDark != isDark;
+      oldDelegate.radius != radius ||
+      oldDelegate.width != width ||
+      oldDelegate.isDark != isDark ||
+      oldDelegate.color != color;
 }
 
 class BouncyNavButton extends StatefulWidget {

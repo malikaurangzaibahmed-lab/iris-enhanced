@@ -246,3 +246,104 @@ class ErrorHandler {
     print('🛡️ Global error handling configured');
   }
 }
+
+/// Error boundary widget to isolate and recover from UI crashes
+class ErrorBoundary extends StatefulWidget {
+  final Widget child;
+  final Widget Function(Object error, StackTrace? stackTrace)? errorBuilder;
+
+  const ErrorBoundary({
+    Key? key,
+    required this.child,
+    this.errorBuilder,
+  }) : super(key: key);
+
+  @override
+  State<ErrorBoundary> createState() => _ErrorBoundaryState();
+}
+
+class _ErrorBoundaryState extends State<ErrorBoundary> {
+  Object? _error;
+  StackTrace? _stackTrace;
+
+  @override
+  Widget build(BuildContext context) {
+    final error = _error;
+    if (error != null) {
+      if (widget.errorBuilder != null) {
+        return widget.errorBuilder!(error, _stackTrace);
+      }
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.report_problem_rounded,
+                  color: Colors.redAccent,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Something went wrong',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isDark ? Colors.white60 : Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _error = null;
+                      _stackTrace = null;
+                    });
+                  },
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Try Again'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final originalBuilder = ErrorWidget.builder;
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      AnalyticsManager().trackException(
+        details.exception,
+        details.stack,
+        context: 'ErrorBoundary Catch',
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _error = details.exception;
+            _stackTrace = details.stack;
+          });
+        }
+      });
+      return const SizedBox.shrink();
+    };
+
+    final result = widget.child;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ErrorWidget.builder = originalBuilder;
+    });
+
+    return result;
+  }
+}

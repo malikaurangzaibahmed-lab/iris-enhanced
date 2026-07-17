@@ -22,9 +22,7 @@ class PortalSyncCard extends StatefulWidget {
 class _PortalSyncCardState extends State<PortalSyncCard> {
   PortalSession? _session;
   List<PortalTask> _cachedTasks = [];
-  bool _isLoading = true;
   String _syncStatus = 'success'; // 'success' or 'failed'
-  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -64,7 +62,6 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
         _session = session;
         _cachedTasks = tasks;
         _syncStatus = status;
-        _isLoading = false;
       });
     }
   }

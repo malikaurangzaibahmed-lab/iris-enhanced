@@ -6,7 +6,7 @@ import '../services/smart_api_client.dart';
 
 /// Smart widget that rebuilds only when dependencies change
 abstract class SmartStatefulWidget extends StatefulWidget {
-  const SmartStatefulWidget({Key? key}) : super(key: key);
+  const SmartStatefulWidget({super.key});
 
   @override
   State<SmartStatefulWidget> createState();
@@ -35,7 +35,7 @@ abstract class SmartState<T extends SmartStatefulWidget> extends State<T> {
       try {
         setState(fn);
       } catch (e) {
-        print('❌ Error in setState: $e');
+        debugPrint('❌ Error in setState: $e');
       }
     }
   }
@@ -50,14 +50,15 @@ abstract class SmartState<T extends SmartStatefulWidget> extends State<T> {
     _memoryManager.registerResource(resource);
   }
 
-  /// Safely execute async operation with mounted checks
-  Future<T> safeAsync<T>(Future<T> Function() operation) async {
+  /// Safely execute async operation with mounted checks.
+  /// Type parameter 'R' prevents shadowing the class-level type parameter 'T'.
+  Future<R> safeAsync<R>(Future<R> Function() operation) async {
     try {
-      if (!mounted) return null as T;
+      if (!mounted) return null as R;
       return await operation();
     } catch (e) {
-      print('❌ Error in async operation: $e');
-      return null as T;
+      debugPrint('❌ Error in async operation: $e');
+      return null as R;
     }
   }
 
@@ -78,13 +79,13 @@ class SmartListView extends StatefulWidget {
   final Duration retrimDuration;
 
   const SmartListView({
-    Key? key,
+    super.key,
     required this.itemCount,
     required this.itemBuilder,
     this.onEndReached,
     this.scrollController,
-    this.retrimDuration = const Duration(seconds: 2),
-  }) : super(key: key);
+    this.retrimDuration = const Duration(seconds: 30),
+  });
 
   @override
   State<SmartListView> createState() => _SmartListViewState();
@@ -118,7 +119,7 @@ class _SmartListViewState extends State<SmartListView> {
       _widgetCache.removeWhere((index, _) =>
           index < visibleRange.$1 - 10 || index > visibleRange.$2 + 10);
       
-      print('🗑️ Trimmed list cache to ${_widgetCache.length} items');
+      debugPrint('🗑️ Trimmed list cache to ${_widgetCache.length} items');
     }
   }
 
@@ -169,12 +170,12 @@ class SmartGridView extends StatefulWidget {
   final ScrollController? scrollController;
 
   const SmartGridView({
-    Key? key,
+    super.key,
     required this.itemCount,
     required this.itemBuilder,
     required this.gridDelegate,
     this.scrollController,
-  }) : super(key: key);
+  });
 
   @override
   State<SmartGridView> createState() => _SmartGridViewState();
@@ -224,10 +225,10 @@ class PerformanceMonitor extends StatefulWidget {
   final String label;
 
   const PerformanceMonitor({
-    Key? key,
+    super.key,
     required this.child,
     required this.label,
-  }) : super(key: key);
+  });
 
   @override
   State<PerformanceMonitor> createState() => _PerformanceMonitorState();
@@ -236,14 +237,11 @@ class PerformanceMonitor extends StatefulWidget {
 class _PerformanceMonitorState extends State<PerformanceMonitor> {
   final Stopwatch _buildStopwatch = Stopwatch();
 
-
   @override
   Widget build(BuildContext context) {
     _buildStopwatch
       ..reset()
       ..start();
-
-
 
     return widget.child;
   }
@@ -251,7 +249,7 @@ class _PerformanceMonitorState extends State<PerformanceMonitor> {
   @override
   void deactivate() {
     _buildStopwatch.stop();
-    print('⏱️ ${widget.label}: Built times, last build: ${_buildStopwatch.elapsedMilliseconds}ms');
+    debugPrint('⏱️ ${widget.label}: Built times, last build: ${_buildStopwatch.elapsedMilliseconds}ms');
     super.deactivate();
   }
 }
@@ -259,9 +257,9 @@ class _PerformanceMonitorState extends State<PerformanceMonitor> {
 /// Similar widget to prevent unnecessary rebuilds
 class SmartRepaintBoundary extends SingleChildRenderObjectWidget {
   const SmartRepaintBoundary({
-    Key? key,
+    super.key,
     required Widget child,
-  }) : super(key: key, child: child);
+  }) : super(child: child);
 
   @override
   RenderRepaintBoundary createRenderObject(BuildContext context) {
@@ -275,7 +273,7 @@ class AnimatedListItem extends StatefulWidget {
   final int index;
   final Widget child;
 
-  const AnimatedListItem({Key? key, required this.index, required this.child}) : super(key: key);
+  const AnimatedListItem({super.key, required this.index, required this.child});
 
   @override
   State<AnimatedListItem> createState() => _AnimatedListItemState();

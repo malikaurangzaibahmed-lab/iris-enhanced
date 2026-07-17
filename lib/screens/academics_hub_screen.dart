@@ -12,21 +12,28 @@ import '../services/remote_config_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'students_week_screen.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import '../widgets/smart_widgets.dart';
+import '../services/analytics_manager.dart';
+import '../core/omni_brain.dart';
 
-class AcademicsHubScreen extends StatefulWidget {
-  const AcademicsHubScreen({super.key});
+class AcademicsHubScreen extends SmartStatefulWidget {
+  final OmniBrain? brain;
+
+  const AcademicsHubScreen({super.key, this.brain});
 
   @override
   State<AcademicsHubScreen> createState() => _AcademicsHubScreenState();
 }
 
-class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProviderStateMixin {
+class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with TickerProviderStateMixin {
   Map<String, dynamic>? _academicsData;
   bool _isLoading = false;
   final Set<String> _expandedCourses = {};
   double _targetCgpa = 3.5;
   String? _savedUserName;
   String? _savedUserBatch;
+  double _currentCgpa = 0.0;
+  int _completedCredits = 0;
   
   late final AnimationController _syncAnimCtrl;
   late final AnimationController _auraAnimCtrl;
@@ -170,6 +177,7 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
   @override
   void initState() {
     super.initState();
+    AnalyticsManager().trackScreenView('academics_hub');
     _syncAnimCtrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -203,6 +211,8 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
     final savedTarget = prefs.getDouble('iris_portal_target_cgpa') ?? 3.5;
     final userName = prefs.getString('student_user_name');
     final userBatch = prefs.getString('user_batch');
+    final currentCgpa = prefs.getDouble('iris_portal_current_cgpa') ?? 0.0;
+    final completedCredits = prefs.getInt('iris_portal_completed_credits') ?? 0;
     
     if (mounted) {
       setState(() {
@@ -210,6 +220,8 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
         _targetCgpa = savedTarget;
         _savedUserName = userName;
         _savedUserBatch = userBatch;
+        _currentCgpa = currentCgpa;
+        _completedCredits = completedCredits;
       });
     }
   }
@@ -505,6 +517,162 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
     );
   }
 
+  Color _getDifficultyColor(String difficulty) {
+    return switch (difficulty) {
+      'easy' => const Color(0xFF10B981),
+      'moderate' => const Color(0xFFF59E0B),
+      'challenging' => const Color(0xFF8B5CF6),
+      'impossible' => const Color(0xFFEF4444),
+      _ => IrisTokens.brand,
+    };
+  }
+
+  void _showCgpaConfigurationDialog() {
+    IrisHaptics.chipSelect();
+    double tempCurrentCgpa = _currentCgpa > 0.0 ? _currentCgpa : 3.0;
+    double tempCompletedCredits = _completedCredits > 0 ? _completedCredits.toDouble() : 45.0;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final glassSettings = IrisGlass.settings(
+              context,
+              blur: 24,
+              ambientStrength: 0.8,
+              lightAngle: 0.15 * math.pi,
+              thickness: 18,
+              glassColor: IrisGlass.adaptiveGlassColor(context, darkAlpha: 0.85, lightAlpha: 0.9),
+            );
+
+            return ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              child: GlassSurface(
+                settings: glassSettings,
+                radius: 30,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.white30 : Colors.black12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Configure Smart CGPA Planner',
+                        style: IrisTextStyles.headline(context).copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Enter your current standing to calculate required semester GPA.',
+                        style: IrisTextStyles.caption(context),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Current CGPA: ${tempCurrentCgpa.toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      lgw.GlassSlider(
+                        value: tempCurrentCgpa,
+                        min: 1.0,
+                        max: 4.0,
+                        divisions: 300,
+                        activeColor: IrisTokens.brand,
+                        onChanged: (val) {
+                          setModalState(() {
+                            tempCurrentCgpa = double.parse(val.toStringAsFixed(2));
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Completed Credit Hours: ${tempCompletedCredits.toInt()} Hrs',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      lgw.GlassSlider(
+                        value: tempCompletedCredits,
+                        min: 0,
+                        max: 140,
+                        divisions: 140,
+                        activeColor: IrisTokens.brand,
+                        onChanged: (val) {
+                          setModalState(() {
+                            tempCompletedCredits = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: IrisTokens.brand.withValues(alpha: 0.4)),
+                                shape: RoundedRectangleBorder(borderRadius: IrisTokens.buttonRadius),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: IrisTokens.brand,
+                                shape: RoundedRectangleBorder(borderRadius: IrisTokens.buttonRadius),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                elevation: 0,
+                              ),
+                              onPressed: () async {
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.setDouble('iris_portal_current_cgpa', tempCurrentCgpa);
+                                await prefs.setInt('iris_portal_completed_credits', tempCompletedCredits.toInt());
+                                if (mounted) {
+                                  setState(() {
+                                    _currentCgpa = tempCurrentCgpa;
+                                    _completedCredits = tempCompletedCredits.toInt();
+                                  });
+                                }
+                                IrisHaptics.actionHeavy();
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text(
+                                'Save Settings',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -539,6 +707,52 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
     
     final attendanceAvg = '${calculatedOverallAtt.toInt()}%';
     final rawAttendanceAvg = '${calculatedOverallAtt.toInt()}%';
+
+    int semesterCredits = 0;
+    for (final course in coursesList) {
+      final cr = int.tryParse(course['credits']?.toString() ?? '3') ?? 3;
+      semesterCredits += cr;
+    }
+    if (semesterCredits <= 0) semesterCredits = 15;
+
+    final plannerActive = _currentCgpa > 0.0 && _completedCredits > 0;
+    double plannerRequiredGpa = 0.0;
+    double plannerMaxPossibleCgpa = 0.0;
+    String plannerResultDifficulty = 'moderate';
+    String plannerResultMessage = '';
+
+    if (plannerActive) {
+      if (widget.brain != null) {
+        final res = widget.brain!.calculateRequiredSemesterGpa(
+          currentCgpa: _currentCgpa,
+          targetCgpa: _targetCgpa,
+          completedCredits: _completedCredits,
+          semesterCredits: semesterCredits,
+        );
+        plannerRequiredGpa = res.requiredSemesterGpa;
+        plannerMaxPossibleCgpa = res.maxPossibleCgpa;
+        plannerResultDifficulty = res.difficulty;
+        plannerResultMessage = res.message;
+      } else {
+        final totalCredits = _completedCredits + semesterCredits;
+        final requiredGpa = ((_targetCgpa * totalCredits) - (_currentCgpa * _completedCredits)) / semesterCredits;
+        final maxCgpa = ((_currentCgpa * _completedCredits) + (4.0 * semesterCredits)) / totalCredits;
+        plannerRequiredGpa = requiredGpa;
+        plannerMaxPossibleCgpa = maxCgpa;
+
+        if (requiredGpa <= 2.0) {
+          plannerResultDifficulty = 'easy';
+          plannerResultMessage = 'Comfortable target! You need an average GPA of ${requiredGpa.clamp(0.0, 4.0).toStringAsFixed(2)} to hit your target.';
+        } else if (requiredGpa > 4.00) {
+          plannerResultDifficulty = 'impossible';
+          plannerResultMessage = 'Target out of reach this semester. The highest CGPA you can achieve is ${maxCgpa.toStringAsFixed(2)} (with a perfect 4.00 GPA).';
+        } else {
+          plannerResultDifficulty = requiredGpa > 3.5 ? 'challenging' : 'moderate';
+          final status = requiredGpa > 3.5 ? 'Challenging' : 'Achievable';
+          plannerResultMessage = '$status target! You need a GPA of ${requiredGpa.toStringAsFixed(2)} in your current courses.';
+        }
+      }
+    }
 
     final glassSettings = IrisGlass.settings(
       context,
@@ -1083,6 +1297,214 @@ class _AcademicsHubScreenState extends State<AcademicsHubScreen> with TickerProv
                             ],
                           ),
                         ),
+                    const SizedBox(height: 20),
+
+                    // SMART CGPA PLANNER CARD
+                    ClipRRect(
+                      borderRadius: IrisTokens.cardRadius,
+                      child: GlassSurface(
+                        settings: glassSettings,
+                        radius: 20,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.08),
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.insights_rounded,
+                                        color: isDark ? Colors.white70 : IrisTokens.brand,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Smart CGPA Planner',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white : Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  GestureDetector(
+                                    onTap: _showCgpaConfigurationDialog,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.settings_rounded,
+                                            size: 12,
+                                            color: isDark ? Colors.white70 : IrisTokens.brand,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            plannerActive ? 'Edit Standing' : 'Setup Standing',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark ? Colors.white70 : IrisTokens.brand,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              if (!plannerActive) ...[
+                                Text(
+                                  'Calculate exactly what GPA you need in your current $semesterCredits credits this semester to hit your ${_targetCgpa.toStringAsFixed(2)} CGPA goal.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: (isDark ? Colors.white70 : Colors.black87),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: TextButton(
+                                    onPressed: _showCgpaConfigurationDialog,
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: IrisTokens.brand.withValues(alpha: 0.1),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                    ),
+                                    child: Text(
+                                      'Setup Standings to Predict GPA',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : IrisTokens.brand,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ] else ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Current CGPA',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: (isDark ? Colors.white30 : Colors.black38),
+                                          ),
+                                        ),
+                                        Text(
+                                          _currentCgpa.toStringAsFixed(2),
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Completed Credits',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: (isDark ? Colors.white30 : Colors.black38),
+                                          ),
+                                        ),
+                                        Text(
+                                          '$_completedCredits Hrs',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Semester Credits',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: (isDark ? Colors.white30 : Colors.black38),
+                                          ),
+                                        ),
+                                        Text(
+                                          '$semesterCredits Hrs',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 24, color: Colors.white10),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: _getDifficultyColor(plannerResultDifficulty).withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: _getDifficultyColor(plannerResultDifficulty).withValues(alpha: 0.3),
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        plannerResultDifficulty.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: _getDifficultyColor(plannerResultDifficulty),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        plannerResultMessage,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: (isDark ? Colors.white70 : Colors.black87),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
 
                     // LIST OF COURSES SECTION HEADER

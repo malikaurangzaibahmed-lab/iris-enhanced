@@ -30,8 +30,34 @@ class ToolsScreen extends StatefulWidget {
 
 class ToolsScreenState extends State<ToolsScreen> {
   String _activeCategory = 'All';
+  late String _searchQuery;
+  late final TextEditingController _searchController;
 
   final List<String> _categories = ['All', 'Utilities', 'People', 'Planning'];
+
+  @override
+  void initState() {
+    super.initState();
+    _searchQuery = widget.searchQuery;
+    _searchController = TextEditingController(text: widget.searchQuery);
+  }
+
+  @override
+  void didUpdateWidget(covariant ToolsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      setState(() {
+        _searchQuery = widget.searchQuery;
+        _searchController.text = widget.searchQuery;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   String _getDepartmentFromBatch() {
     final key = BatchKey.parse(widget.batch);
@@ -182,65 +208,89 @@ class ToolsScreenState extends State<ToolsScreen> {
 
     final reason = switch (recommendedId) {
       'find_rooms' => minutesToNext != null && minutesToNext <= 45
-          ? 'Smart pick: Room Finder because your next class is soon.'
-          : 'Smart pick: Room Finder because you have a long break and a study room may be open.',
-      'teacher_locator' => 'Smart pick: Teacher Locator for faculty lookup and schedule status.',
-      'cgpa_calculator' => 'Smart pick: CGPA Calculator for semester planning.',
-      'transport_schedule' => 'Smart pick: Transport Schedule for campus commute notices.',
-      'makeup_scheduler' => 'Smart pick: Makeup Planner to manage lecture overlaps.',
-      _ => 'Smart pick: Teacher Locator for quick faculty lookup.',
+          ? 'Suggested: Find a study space or empty classroom for quick prep.'
+          : 'Suggested: Find an empty classroom to study or sit during break.',
+      'teacher_locator' => 'Suggested: Track live status and office hours of your faculty.',
+      'cgpa_calculator' => 'Suggested: Calculate and track your semester CGPA goals.',
+      'transport_schedule' => 'Suggested: Check real-time bus and transit schedules.',
+      'makeup_scheduler' => 'Suggested: Plan and schedule makeup classes to resolve overlaps.',
+      _ => 'Suggested: Teacher Locator for quick faculty lookup.',
     };
+
+    final targetTool = _getUniversalTools().firstWhere((t) => t.id == recommendedId, orElse: () => _getUniversalTools().first);
+
     return DirectoryAnimationWidget(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: VitalTokens.blue.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  color: VitalTokens.blue,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'SMART ASSISTANT',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                    color: VitalTokens.blue,
+      child: GlassCard(
+        padding: const EdgeInsets.all(22),
+        borderRadius: 28,
+        onTap: () => _handleToolTap(context, targetTool.id, department),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: targetTool.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(targetTool.icon, color: targetTool.color, size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'SMART ASSISTANT',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: targetTool.color,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    reason,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white : Colors.black,
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            reason,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+            const SizedBox(width: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: targetTool.color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                color: targetTool.color,
+                size: 24,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -251,6 +301,7 @@ class ToolsScreenState extends State<ToolsScreen> {
     required String title,
     required List<_ToolItem> tools,
     required String department,
+    required String recommendedId,
   }) {
     if (tools.isEmpty) {
       return const SizedBox.shrink();
@@ -262,14 +313,14 @@ class ToolsScreenState extends State<ToolsScreen> {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 16),
           child: Text(
-              title.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
-              ),
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.35),
             ),
+          ),
         ),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -293,6 +344,7 @@ class ToolsScreenState extends State<ToolsScreen> {
                       isDark: isDark,
                       item: tool,
                       department: department,
+                      isRecommended: tool.id == recommendedId,
                     ),
                   )
                   .toList(growable: false),
@@ -308,20 +360,52 @@ class ToolsScreenState extends State<ToolsScreen> {
     required bool isDark,
     required _ToolItem item,
     required String department,
+    required bool isRecommended,
   }) {
-    return VitalCard(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
+      borderRadius: 24,
+      glow: isRecommended,
+      shimmer: isRecommended,
+      accentColor: item.color,
       onTap: () => _handleToolTap(context, item.id, department),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: item.color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(item.icon, color: item.color, size: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: item.color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: item.color.withValues(alpha: 0.25),
+                    width: 1.0,
+                  ),
+                ),
+                child: Icon(item.icon, color: item.color, size: 22),
+              ),
+              if (isRecommended)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: item.color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: item.color.withValues(alpha: 0.3), width: 0.8),
+                  ),
+                  child: Text(
+                    'STAR',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                      color: item.color,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const Spacer(),
           Text(
@@ -330,7 +414,7 @@ class ToolsScreenState extends State<ToolsScreen> {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               color: isDark ? Colors.white : Colors.black,
             ),
           ),
@@ -342,7 +426,7 @@ class ToolsScreenState extends State<ToolsScreen> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
             ),
           ),
         ],
@@ -471,8 +555,8 @@ class ToolsScreenState extends State<ToolsScreen> {
     const planningIds = {'makeup_scheduler', 'transport_schedule', 'library_schedule', 'semester_schedule'};
 
     final filteredUniversal = allUniversal.where((t) {
-      final matchesSearch = t.title.toLowerCase().contains(widget.searchQuery.toLowerCase()) || 
-                          t.subtitle.toLowerCase().contains(widget.searchQuery.toLowerCase());
+      final matchesSearch = t.title.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                          t.subtitle.toLowerCase().contains(_searchQuery.toLowerCase());
       if (!matchesSearch) return false;
       
       if (_activeCategory == 'All') return true;
@@ -497,6 +581,23 @@ class ToolsScreenState extends State<ToolsScreen> {
                 pinned: true,
                 backgroundColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
+                leading: Navigator.of(context).canPop()
+                    ? IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            size: 16,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      )
+                    : null,
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
                   titlePadding: const EdgeInsets.only(left: 24, bottom: 20),
@@ -514,30 +615,111 @@ class ToolsScreenState extends State<ToolsScreen> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      children: _categories.map((c) {
-                        final isSelected = _activeCategory == c;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(c),
-                            selected: isSelected,
-                            onSelected: (s) => setState(() => _activeCategory = c),
-                            backgroundColor: Colors.transparent,
-                            selectedColor: IrisTokens.brand.withValues(alpha: 0.2),
-                            labelStyle: TextStyle(
-                              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white54 : Colors.black54),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                              width: 1.2,
                             ),
                           ),
-                        );
-                      }).toList(),
-                    ),
+                          child: TextField(
+                            controller: _searchController,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black,
+                              fontSize: 13,
+                            ),
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Search resources...',
+                              hintStyle: TextStyle(
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+                                fontSize: 13,
+                              ),
+                              icon: Icon(
+                                Icons.search_rounded,
+                                color: isDark ? Colors.white54 : Colors.black54,
+                                size: 18,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            onChanged: (val) {
+                              setState(() {
+                                _searchQuery = val;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      lgw.GlassMenu(
+                        menuWidth: 180,
+                        menuHeight: 186.0,
+                        menuBorderRadius: 16.0,
+                        settings: lgw.LiquidGlassSettings(
+                          blur: 16,
+                          ambientStrength: 0.65,
+                          lightAngle: 0.15 * math.pi,
+                          glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
+                              .withValues(alpha: isDark ? 0.42 : 0.45),
+                          thickness: 18,
+                        ),
+                        triggerBuilder: (context, toggleMenu) {
+                          return InkWell(
+                            onTap: () {
+                              toggleMenu();
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              height: 44,
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              decoration: BoxDecoration(
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _activeCategory,
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: isDark ? Colors.white70 : Colors.black54,
+                                    size: 16,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        items: _categories.map((String cat) {
+                          return lgw.GlassMenuItem(
+                            title: cat,
+                            onTap: () {
+                              setState(() => _activeCategory = cat);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -545,7 +727,7 @@ class ToolsScreenState extends State<ToolsScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    if (widget.searchQuery.isEmpty && _activeCategory == 'All') ...[
+                    if (_searchQuery.isEmpty && _activeCategory == 'All') ...[
                       _buildSmartInsightCard(
                         context: context,
                         isDark: isDark,
@@ -563,6 +745,7 @@ class ToolsScreenState extends State<ToolsScreen> {
                         title: 'Utilities',
                         tools: filteredUniversal.where((t) => utilityIds.contains(t.id)).toList(),
                         department: department,
+                        recommendedId: recommendedId,
                       ),
                     if (_activeCategory == 'All' || _activeCategory == 'People') ...[
                       if (_activeCategory == 'All') const SizedBox(height: 32),
@@ -572,6 +755,7 @@ class ToolsScreenState extends State<ToolsScreen> {
                         title: 'People & Rooms',
                         tools: filteredUniversal.where((t) => peopleIds.contains(t.id)).toList(),
                         department: department,
+                        recommendedId: recommendedId,
                       ),
                     ],
                     if (_activeCategory == 'All' || _activeCategory == 'Planning') ...[
@@ -582,6 +766,7 @@ class ToolsScreenState extends State<ToolsScreen> {
                         title: 'Academic Planning',
                         tools: filteredUniversal.where((t) => planningIds.contains(t.id)).toList(),
                         department: department,
+                        recommendedId: recommendedId,
                       ),
                     ],
 
@@ -635,7 +820,7 @@ class _ResourceHeroCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: IrisTextStyles.classSubject(context).copyWith(
+                  style: IrisTextStyles.headline(context).copyWith(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                   ),
@@ -643,7 +828,7 @@ class _ResourceHeroCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: IrisTextStyles.metaInfo(context).copyWith(
+                  style: IrisTextStyles.caption(context).copyWith(
                     color: (isDark ? Colors.white : Colors.black)
                         .withValues(alpha: 0.62),
                     height: 1.35,
@@ -656,7 +841,6 @@ class _ResourceHeroCard extends StatelessWidget {
       ),
     );
 
-    // Select premium animation background dynamically based on content/icon
     final lowerTitle = title.toLowerCase();
     if (icon == Icons.directions_bus_rounded || lowerTitle.contains('transport') || lowerTitle.contains('bus')) {
       return TeacherLocatorAnimationWidget(child: cardContent);

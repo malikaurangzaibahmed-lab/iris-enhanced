@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,12 +24,13 @@ class RemoteConfigService {
   /// Helper to format raw timestamps/DateTimes safely in a custom, premium aesthetic
   static String formatTimestamp(DateTime? dateTime) {
     if (dateTime == null) return 'Never';
+    final localDateTime = dateTime.toLocal();
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final month = months[dateTime.month - 1];
-    final day = dateTime.day;
-    final hourVal = dateTime.hour == 0 ? 12 : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
-    final minuteVal = dateTime.minute.toString().padLeft(2, '0');
-    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    final month = months[localDateTime.month - 1];
+    final day = localDateTime.day;
+    final hourVal = localDateTime.hour == 0 ? 12 : (localDateTime.hour > 12 ? localDateTime.hour - 12 : localDateTime.hour);
+    final minuteVal = localDateTime.minute.toString().padLeft(2, '0');
+    final period = localDateTime.hour >= 12 ? 'PM' : 'AM';
     return '$month $day, $hourVal:$minuteVal $period';
   }
   
@@ -66,7 +66,7 @@ class RemoteConfigService {
       }
     });
 
-    print('📡 IRIS Remote Engine: Connecting Firestore streams...');
+    debugPrint('📡 IRIS Remote Engine: Connecting Firestore streams...');
     
     FirebaseFirestore.instance
         .collection('config')
@@ -74,7 +74,7 @@ class RemoteConfigService {
         .snapshots()
         .listen((DocumentSnapshot doc) async {
       if (!doc.exists) {
-        print('⚠️ IRIS Remote Engine: Global remote config document not found.');
+        debugPrint('⚠️ IRIS Remote Engine: Global remote config document not found.');
         return;
       }
 
@@ -99,7 +99,7 @@ class RemoteConfigService {
 
       if (remotePeriod != activeAcademicPeriod.value) {
         activeAcademicPeriod.value = remotePeriod;
-        print('⚡ IRIS Remote Engine: Academic Period Swapped to: $remotePeriod');
+        debugPrint('⚡ IRIS Remote Engine: Academic Period Swapped to: $remotePeriod');
         IrisHaptics.actionHeavy();
         
         // Notify user about remote academic mode shift
@@ -129,10 +129,10 @@ class RemoteConfigService {
 
       if (remoteTimetableJson.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
-        final currentTimetableVersion = prefs.getInt(TimetableOTAService.PREF_TIMETABLE_VERSION) ?? 0;
+        final currentTimetableVersion = prefs.getInt(TimetableOTAService.prefTimetableVersion) ?? 0;
         
         if (remoteTimetableVersion > currentTimetableVersion) {
-          print('📥 IRIS Remote Engine: Downloading remote timetable seed upgrade (v$remoteTimetableVersion)...');
+          debugPrint('📥 IRIS Remote Engine: Downloading remote timetable seed upgrade (v$remoteTimetableVersion)...');
           try {
             // Validate and parse the raw JSON payload directly
             final decoded = jsonDecode(remoteTimetableJson);
@@ -143,7 +143,7 @@ class RemoteConfigService {
               sessionCount = (decoded['sessions'] as List).length;
             }
             
-            final oldJson = prefs.getString(TimetableOTAService.PREF_CACHED_TIMETABLE) ?? '';
+            final oldJson = prefs.getString(TimetableOTAService.prefCachedTimetable) ?? '';
             final userBatch = prefs.getString('user_batch') ?? '';
             if (oldJson.isNotEmpty && userBatch.isNotEmpty) {
               final diffs = _calculateTimetableDiffs(oldJson, remoteTimetableJson, userBatch);
@@ -153,11 +153,11 @@ class RemoteConfigService {
             }
             
             // Persist locally
-            await prefs.setString(TimetableOTAService.PREF_CACHED_TIMETABLE, remoteTimetableJson);
-            await prefs.setInt(TimetableOTAService.PREF_TIMETABLE_VERSION, remoteTimetableVersion);
-            await prefs.setInt(TimetableOTAService.PREF_LAST_CHECK_TIME, remoteTimetableVersion);
+            await prefs.setString(TimetableOTAService.prefCachedTimetable, remoteTimetableJson);
+            await prefs.setInt(TimetableOTAService.prefTimetableVersion, remoteTimetableVersion);
+            await prefs.setInt(TimetableOTAService.prefLastCheckTime, remoteTimetableVersion);
             
-            print('✅ IRIS Remote Engine: Saved timetable OTA data ($sessionCount sessions)');
+            debugPrint('✅ IRIS Remote Engine: Saved timetable OTA data ($sessionCount sessions)');
             
             if (context.mounted) {
               showIrisFrostedSnackBar(
@@ -167,7 +167,7 @@ class RemoteConfigService {
               );
             }
           } catch (e) {
-            print('❌ IRIS Remote Engine: Timetable sync failed: $e');
+            debugPrint('❌ IRIS Remote Engine: Timetable sync failed: $e');
           }
         }
       }
@@ -215,7 +215,7 @@ class RemoteConfigService {
             });
           }
         } catch (e) {
-          print('❌ IRIS Remote Engine: Failed to parse active_midterm_json: $e');
+          debugPrint('❌ IRIS Remote Engine: Failed to parse active_midterm_json: $e');
         }
       } else {
         midtermExams.value = [];
@@ -235,7 +235,7 @@ class RemoteConfigService {
             });
           }
         } catch (e) {
-          print('❌ IRIS Remote Engine: Failed to parse active_finals_json: $e');
+          debugPrint('❌ IRIS Remote Engine: Failed to parse active_finals_json: $e');
         }
       } else {
         finalExams.value = [];
@@ -244,7 +244,7 @@ class RemoteConfigService {
         });
       }
     }, onError: (err) {
-      print('⚠️ IRIS Remote Engine Stream Error: $err');
+      debugPrint('⚠️ IRIS Remote Engine Stream Error: $err');
     });
   }
 
@@ -361,7 +361,7 @@ class RemoteConfigService {
         }
       }
     } catch (e) {
-      print('⚠️ Failed to calculate timetable diffs: $e');
+      debugPrint('⚠️ Failed to calculate timetable diffs: $e');
     }
     return diffs;
   }

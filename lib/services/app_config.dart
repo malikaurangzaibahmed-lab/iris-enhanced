@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Central configuration management system
@@ -36,11 +37,11 @@ class AppConfig {
   /// Initialize configuration system
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    print('⚙️ AppConfig initialized');
+    debugPrint('⚙️ AppConfig initialized');
   }
 
   // Getters for all configuration values
-  String get appVersion => getValue<String>(_keyAppVersion, appVersion);
+  String get appVersion => getValue<String>(_keyAppVersion, version);
   
   String get themeMode =>
       getValue<String>(_keyThemeMode, 'system');
@@ -88,7 +89,7 @@ class AppConfig {
         return value as T;
       }
     } catch (e) {
-      print('❌ Error reading config $key: $e');
+      debugPrint('❌ Error reading config $key: $e');
     }
 
     return defaultValue;

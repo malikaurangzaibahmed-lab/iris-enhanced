@@ -155,7 +155,6 @@ class IrisComponents {
     final fallbackIcon = isFemale ? Icons.face_3_rounded : Icons.face_rounded;
     
     // Create a deterministic background color based on name if no image
-    final nameHash = name.hashCode;
     final bgColor = accentColor.withValues(alpha: isDark ? 0.2 : 0.1);
 
     return Container(
@@ -1049,7 +1048,6 @@ class _ClassCardState extends State<ClassCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  late Animation<double> _nextPulseAnimation;
   bool _pulseRunning = false;
 
   void _syncPulse(bool shouldPulse) {
@@ -1075,10 +1073,6 @@ class _ClassCardState extends State<ClassCard>
     );
 
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(parent: _pulseController, curve: IrisMotion.standard),
-    );
-
-    _nextPulseAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
       CurvedAnimation(parent: _pulseController, curve: IrisMotion.standard),
     );
 
@@ -1863,7 +1857,7 @@ class _SectionHeaderState extends State<SectionHeader>
                           child: FadeTransition(opacity: animation, child: child),
                         ),
                         child: Transform.translate(
-                          key: ValueKey(widget.statusIndicator.value),
+                          key: ValueKey(widget.statusIndicator.toARGB32()),
                           offset: Offset(0, _bounceAnimation.value),
                           child: Container(
                             width: 16,

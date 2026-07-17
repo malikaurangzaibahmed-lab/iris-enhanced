@@ -17,7 +17,7 @@ class NativeLiquidGlass extends StatefulWidget {
   final double tintAlpha;
 
   const NativeLiquidGlass({
-    Key? key, 
+    super.key, 
     this.child,
     this.radius = 30.0,
     this.blurRadius = 4.0, // Increased default for better visibility
@@ -25,7 +25,7 @@ class NativeLiquidGlass extends StatefulWidget {
     this.refractionHeight = 45.0,
     this.refractionAmount = 35.0,
     this.tintAlpha = 0.08,
-  }) : super(key: key);
+  });
 
   @override
   State<NativeLiquidGlass> createState() => _NativeLiquidGlassState();
@@ -63,7 +63,7 @@ class _NativeLiquidGlassState extends State<NativeLiquidGlass> {
             creationParams: {
               'radius': widget.radius,
               'blurRadius': effectiveBlur,
-              'color': widget.color?.value,
+              'color': widget.color?.toARGB32(),
               'refractionHeight': effectiveRefractionHeight,
               'refractionAmount': effectiveRefractionAmount,
               'tintAlpha': effectiveTintAlpha,

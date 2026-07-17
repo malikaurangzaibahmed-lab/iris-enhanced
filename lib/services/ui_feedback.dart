@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,55 +8,28 @@ import '../core/theme_signals.dart';
 import '../core/tokens.dart';
 import 'dart:math' as math;
 
-const MethodChannel _uiSoundChannel = MethodChannel('iris/ui_sound_channel');
-
 /// UI Sound Feedback - Playing tones for natural interactions
 class IrisSfx {
-  static bool _enabled = true;
+  static bool _enabled = false;
   static String _profile = 'gentle';
-  static int _lastSoundMs = 0;
-  static final Map<String, int> _toneLastPlayedMs = <String, int>{};
 
   static Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _enabled = prefs.getBool('ui_sounds_enabled') ?? true;
-    _profile = prefs.getString('ui_feedback_profile') ?? 'gentle';
+    _enabled = false;
   }
 
   static Future<void> setEnabled(bool value) async {
-    _enabled = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('ui_sounds_enabled', value);
+    _enabled = false;
   }
 
-  static bool get enabled => _enabled;
+  static bool get enabled => false;
   static String get profile => _profile;
 
   static Future<void> setProfile(String profile) async {
-    final normalized = switch (profile) {
-      'gentle' => 'gentle',
-      'crisp' => 'crisp',
-      'bubble' => 'bubble',
-      _ => 'balanced',
-    };
-    _profile = normalized;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('ui_feedback_profile', normalized);
+    _profile = profile;
   }
 
   static bool _throttle([int minGapMs = 60]) {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - _lastSoundMs < minGapMs) return true;
-    _lastSoundMs = now;
-    return false;
-  }
-
-  static bool _toneThrottle(String tone, [int minGapMs = 52]) {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final last = _toneLastPlayedMs[tone] ?? 0;
-    if (now - last < minGapMs) return true;
-    _toneLastPlayedMs[tone] = now;
-    return false;
+    return true;
   }
 
   static Future<void> _playPattern(
@@ -194,49 +166,25 @@ class IrisSfx {
   }
 
   static void _play(String tone) {
-    if (_toneThrottle(tone)) return;
-    if (!Platform.isAndroid) {
-      SystemSound.play(SystemSoundType.click);
-      return;
-    }
-
-    _uiSoundChannel.invokeMethod('playTone', {'tone': tone}).then((_) {
-      // Sound played successfully
-    }).catchError((error) {
-      debugPrint('Sound play failed for "$tone": $error');
-      // Fallback to much softer system sound for professional feel
-      try {
-        if (Platform.isIOS) {
-          HapticFeedback.selectionClick();
-        } else {
-          SystemSound.play(SystemSoundType.click);
-        }
-      } catch (_) {
-        // Silent fallback
-      }
-    });
+    // Disabled completely
   }
 }
 
 /// UI Haptic Feedback
 class IrisHaptics {
-  static bool _enabled = true;
+  static bool _enabled = false;
   static String _profile = 'gentle';
   static int _lastPulseMs = 0;
 
   static Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _enabled = prefs.getBool('ui_haptics_enabled') ?? true;
-    _profile = prefs.getString('ui_feedback_profile') ?? 'gentle';
+    _enabled = false;
   }
 
   static Future<void> setEnabled(bool value) async {
-    _enabled = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('ui_haptics_enabled', value);
+    _enabled = false;
   }
 
-  static bool get enabled => _enabled;
+  static bool get enabled => false;
   static String get profile => _profile;
 
   static Future<void> setProfile(String profile) async {
@@ -259,17 +207,14 @@ class IrisHaptics {
   }
 
   static Future<void> _safePulse(Future<void> Function() pulse) async {
-    try {
-      await pulse();
-    } catch (_) {
-      // Ignore unsupported haptic capabilities on some devices.
-    }
+    // Disabled completely
   }
 
   static Future<void> navTransition({
     required int from,
     required int to,
   }) async {
+    if (!_enabled) return;
     if (from == to) return;
     if (_throttle(26)) return;
 
@@ -291,6 +236,7 @@ class IrisHaptics {
   }
 
   static Future<void> destinationOpen({required int destination}) async {
+    if (!_enabled) return;
     await Future<void>.delayed(const Duration(milliseconds: 34));
     if (_throttle(44)) return;
     await _safePulse(

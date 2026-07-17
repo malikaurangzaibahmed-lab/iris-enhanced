@@ -1071,4 +1071,63 @@ class OmniBrain {
 
     return suggestions;
   }
+
+  GpaPlannerResult calculateRequiredSemesterGpa({
+    required double currentCgpa,
+    required double targetCgpa,
+    required int completedCredits,
+    required int semesterCredits,
+  }) {
+    if (semesterCredits <= 0) {
+      return const GpaPlannerResult(
+        requiredSemesterGpa: 0.0,
+        maxPossibleCgpa: 0.0,
+        difficulty: 'moderate',
+        message: 'No active courses detected to perform calculation.',
+      );
+    }
+
+    final totalCredits = completedCredits + semesterCredits;
+    final requiredGpa = ((targetCgpa * totalCredits) - (currentCgpa * completedCredits)) / semesterCredits;
+    final maxCgpa = ((currentCgpa * completedCredits) + (4.0 * semesterCredits)) / totalCredits;
+
+    if (requiredGpa <= 2.0) {
+      return GpaPlannerResult(
+        requiredSemesterGpa: requiredGpa.clamp(0.0, 4.0),
+        maxPossibleCgpa: maxCgpa,
+        difficulty: 'easy',
+        message: 'Comfortable target! You need an average GPA of ${requiredGpa.clamp(0.0, 4.0).toStringAsFixed(2)} to hit your target.',
+      );
+    } else if (requiredGpa > 4.00) {
+      return GpaPlannerResult(
+        requiredSemesterGpa: requiredGpa,
+        maxPossibleCgpa: maxCgpa,
+        difficulty: 'impossible',
+        message: 'Target out of reach this semester. The highest CGPA you can achieve is ${maxCgpa.toStringAsFixed(2)} (with a perfect 4.00 GPA).',
+      );
+    } else {
+      final difficulty = requiredGpa > 3.5 ? 'challenging' : 'moderate';
+      final status = requiredGpa > 3.5 ? 'Challenging' : 'Achievable';
+      return GpaPlannerResult(
+        requiredSemesterGpa: requiredGpa,
+        maxPossibleCgpa: maxCgpa,
+        difficulty: difficulty,
+        message: '$status target! You need a GPA of ${requiredGpa.toStringAsFixed(2)} in your current courses.',
+      );
+    }
+  }
+}
+
+class GpaPlannerResult {
+  final double requiredSemesterGpa;
+  final double maxPossibleCgpa;
+  final String difficulty; // 'easy', 'moderate', 'challenging', 'impossible'
+  final String message;
+
+  const GpaPlannerResult({
+    required this.requiredSemesterGpa,
+    required this.maxPossibleCgpa,
+    required this.difficulty,
+    required this.message,
+  });
 }

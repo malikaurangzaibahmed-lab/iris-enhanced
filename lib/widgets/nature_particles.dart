@@ -53,9 +53,9 @@ class _HeaderAtmosphereWrapperState extends State<HeaderAtmosphereWrapper>
     )..repeat();
     _ticker.addListener(_onTick);
 
-    // Initialize beings
+    // Initialize beings (set to 0 to disable fireflies as requested)
     final random = math.Random();
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 0; i++) {
       _beings.add(NatureBeing(
         x: 50.0 + random.nextDouble() * 250.0,
         y: 30.0 + random.nextDouble() * 90.0,

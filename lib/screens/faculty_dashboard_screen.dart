@@ -25,8 +25,10 @@ import 'teacher_locator_screen.dart';
 import 'students_week_screen.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import '../widgets/smart_widgets.dart';
+import '../services/analytics_manager.dart';
 
-class FacultyDashboard extends StatefulWidget {
+class FacultyDashboard extends SmartStatefulWidget {
   final OmniBrain brain;
   final String teacherName;
   final VoidCallback onToggleTheme;
@@ -50,7 +52,7 @@ class FacultyDashboard extends StatefulWidget {
   State<FacultyDashboard> createState() => _FacultyDashboardState();
 }
 
-class _FacultyDashboardState extends State<FacultyDashboard>
+class _FacultyDashboardState extends SmartState<FacultyDashboard>
     with SingleTickerProviderStateMixin {
   late String? _selectedTeacher;
   int? _overrideDayIndex;
@@ -88,6 +90,7 @@ class _FacultyDashboardState extends State<FacultyDashboard>
   @override
   void initState() {
     super.initState();
+    AnalyticsManager().trackScreenView('faculty_dashboard');
     _scrollController.addListener(_onScroll);
     _searchFocusNode.addListener(_onFocusChange);
     _selectedTeacher = widget.teacherName;
