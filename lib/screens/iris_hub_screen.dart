@@ -519,14 +519,13 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
       ),
       title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
       subtitle: Text(subtitle, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
-      trailing: GlassSwitch(
+      trailing: IrisGlassSwitch(
         value: value,
         onChanged: (v) {
           IrisHaptics.selectionClick();
           onChanged(v);
         },
         activeColor: VitalTokens.blue,
-        useOwnLayer: true,
       ),
     );
   }

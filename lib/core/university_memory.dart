@@ -20,7 +20,7 @@ class UniversityMemoryLoader {
       final lastRunVersion = prefs.getInt('last_run_version_code') ?? 0;
       const currentVersion = RemoteConfigService.CURRENT_VERSION_CODE;
       if (lastRunVersion != currentVersion) {
-        print('ℹ️ App upgraded from build $lastRunVersion to $currentVersion. Resetting timetable cache.');
+        debugPrint('ℹ️ App upgraded from build $lastRunVersion to $currentVersion. Resetting timetable cache.');
         await prefs.remove('ota_cached_timetable');
         await prefs.remove('ota_timetable_version');
         await prefs.setInt('last_run_version_code', currentVersion);
@@ -28,12 +28,12 @@ class UniversityMemoryLoader {
 
       final cachedTimetable = prefs.getString('ota_cached_timetable');
       if (cachedTimetable != null && cachedTimetable.isNotEmpty) {
-        print('✅ Loading cached timetable from OTA update');
+        debugPrint('✅ Loading cached timetable from OTA update');
         raw = cachedTimetable;
         loadedFromCache = true;
       }
     } catch (e) {
-      print('⚠️ Error checking cached timetable: $e');
+      debugPrint('⚠️ Error checking cached timetable: $e');
     }
     
     List<dynamic> data = [];
@@ -41,18 +41,18 @@ class UniversityMemoryLoader {
       try {
         data = await compute(_decodeTimetableJson, raw);
       } catch (e) {
-        print('⚠️ Error parsing cached timetable: $e - falling back to assets');
+        debugPrint('⚠️ Error parsing cached timetable: $e - falling back to assets');
         loadedFromCache = false;
       }
     }
     
     if (!loadedFromCache || data.isEmpty) {
-      print('📚 Loading timetable from assets');
+      debugPrint('📚 Loading timetable from assets');
       try {
         raw = await rootBundle.loadString('assets/timetable_seed.json');
         data = await compute(_decodeTimetableJson, raw);
       } catch (e) {
-        print('❌ Critical error loading timetable assets: $e');
+        debugPrint('❌ Critical error loading timetable assets: $e');
       }
     }
     
@@ -77,7 +77,7 @@ class UniversityMemoryLoader {
 
     // Secondary fallback: if parsed cache is empty or does not contain sessions for the user's batch, load assets
     if (loadedFromCache && (sessions.isEmpty || !hasUserBatch)) {
-      print('⚠️ Parsed OTA timetable is empty or has no sessions for user batch - falling back to assets');
+      debugPrint('⚠️ Parsed OTA timetable is empty or has no sessions for user batch - falling back to assets');
       try {
         raw = await rootBundle.loadString('assets/timetable_seed.json');
         data = await compute(_decodeTimetableJson, raw);
@@ -86,7 +86,7 @@ class UniversityMemoryLoader {
           .map((item) => ClassSession.fromJson(item))
           .toList();
       } catch (e) {
-        print('❌ Critical error loading timetable assets: $e');
+        debugPrint('❌ Critical error loading timetable assets: $e');
       }
     }
 

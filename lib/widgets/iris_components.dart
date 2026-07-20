@@ -316,14 +316,13 @@ class IrisComponents {
           ),
           title: Text(title, style: IrisTextStyles.settingTitle(context)),
           subtitle: Text(subtitle, style: IrisTextStyles.settingSubtitle(context)),
-          trailing: GlassSwitch(
+          trailing: IrisGlassSwitch(
             value: value,
             onChanged: (v) {
               IrisHaptics.chipSelect();
               onChanged(v);
             },
             activeColor: IrisTokens.brand,
-            useOwnLayer: true,
           ),
         );
       },
@@ -1917,6 +1916,130 @@ class _SectionHeaderState extends State<SectionHeader>
           ),
         );
       },
+    );
+  }
+}
+
+class IrisGlassSwitch extends StatefulWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final Color? activeColor;
+
+  const IrisGlassSwitch({
+    required this.value,
+    required this.onChanged,
+    this.activeColor,
+    super.key,
+  });
+
+  @override
+  State<IrisGlassSwitch> createState() => _IrisGlassSwitchState();
+}
+
+class _IrisGlassSwitchState extends State<IrisGlassSwitch> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _thumbPosAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _thumbPosAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+    );
+    if (widget.value) {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant IrisGlassSwitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value) {
+      if (widget.value) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeCol = widget.activeColor ?? IrisTokens.brand;
+
+    return GestureDetector(
+      onTap: () {
+        IrisHaptics.selectionClick();
+        widget.onChanged(!widget.value);
+      },
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final val = _thumbPosAnim.value;
+          return Container(
+            width: 48,
+            height: 28,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(100),
+              color: Color.lerp(
+                (isDark ? Colors.white : Colors.black).withOpacity(0.06),
+                activeCol.withOpacity(0.18),
+                val,
+              ),
+              border: Border.all(
+                color: Color.lerp(
+                  (isDark ? Colors.white : Colors.black).withOpacity(0.12),
+                  activeCol.withOpacity(0.4),
+                  val,
+                )!,
+                width: 1.0,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.lerp(Alignment.centerLeft, Alignment.centerRight, val)!,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color.lerp(
+                        isDark ? Colors.white70 : Colors.black54,
+                        isDark ? Colors.white : activeCol,
+                        val,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color.lerp(
+                            Colors.black.withOpacity(0.1),
+                            activeCol.withOpacity(0.3),
+                            val,
+                          )!,
+                          blurRadius: 4,
+                          offset: const Offset(0, 1.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

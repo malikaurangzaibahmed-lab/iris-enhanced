@@ -1,10 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 import 'glass.dart';
 import 'tokens.dart';
-import 'vital_theme.dart';
 import '../widgets/vital_card.dart';
 
 /// Global signals used to toggle the minimal visual language at runtime.

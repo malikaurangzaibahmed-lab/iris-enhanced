@@ -12,10 +12,7 @@ import '../core/models.dart';
 import '../core/omni_brain.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/neural_aura.dart';
-import '../widgets/smooth_scroll.dart';
 import '../core/vital_theme.dart';
-import '../core/vital_motion.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
@@ -1100,7 +1097,7 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
         textColor: isDark ? Colors.white : Colors.black,
         cursorColor: activeColor,
         hintStyle: TextStyle(
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.35),
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.35),
           fontSize: 13,
         ),
         searchIcon: _bottomNavIndex == 3 ? const Icon(Icons.tune_rounded) : null,

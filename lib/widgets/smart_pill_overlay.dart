@@ -294,19 +294,21 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                             decoration: BoxDecoration(
-                              color: Colors.transparent,
+                              gradient: LinearGradient(
+                                colors: [
+                                  (_isUrgent ? IrisTokens.warning : IrisTokens.brand)
+                                      .withValues(alpha: isDark ? 0.15 : 0.08),
+                                  Colors.transparent,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                               borderRadius: BorderRadius.circular(32),
                               border: Border.all(
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                color: (_isUrgent ? IrisTokens.warning : IrisTokens.brand)
+                                    .withValues(alpha: isDark ? 0.32 : 0.20),
                                 width: 1.5,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (_isUrgent ? IrisTokens.warning : IrisTokens.brand).withValues(alpha: 0.12),
-                                  blurRadius: 25,
-                                  offset: const Offset(0, 8),
-                                )
-                              ]
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,

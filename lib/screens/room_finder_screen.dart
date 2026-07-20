@@ -1,9 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import '../core/tokens.dart';
 import '../core/animations.dart';
-import '../widgets/iris_components.dart';
 import '../services/room_occupancy_service.dart';
 import '../services/room_persistence_service.dart';
 import '../services/analytics_manager.dart';

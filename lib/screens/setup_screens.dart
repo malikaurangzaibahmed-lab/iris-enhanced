@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
 import '../core/vital_theme.dart';
-import '../widgets/vital_card.dart';
 import '../services/ui_feedback.dart';
-import '../services/notification_service.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../widgets/glass_card.dart';
 

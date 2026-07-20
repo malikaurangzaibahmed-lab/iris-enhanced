@@ -2464,11 +2464,11 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
                               // Launch directly without checking canLaunchUrl to bypass Android 11+ package query filters
                               await launchUrl(uri, mode: LaunchMode.externalApplication);
                             } catch (e) {
-                              print('Failed to launch URL with externalApplication: $e');
+                              debugPrint('Failed to launch URL with externalApplication: $e');
                               try {
                                 await launchUrl(uri, mode: LaunchMode.platformDefault);
                               } catch (e2) {
-                                print('Failed to launch URL with platformDefault: $e2');
+                                debugPrint('Failed to launch URL with platformDefault: $e2');
                                 if (context.mounted) {
                                   showIrisFrostedSnackBar(
                                     context,

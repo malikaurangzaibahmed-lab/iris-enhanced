@@ -61,15 +61,13 @@ class DashboardDock extends StatefulWidget {
     final pillAccent = IrisTokens.brand;
     final glassSettings = IrisGlass.settings(
       context,
-      blur: 16,
-      ambientStrength: 0.65,
+      blur: 24,
+      ambientStrength: 0.75,
       lightAngle: 0.15 * math.pi,
-      thickness: 20,
-      glassColor: IrisGlass.adaptiveGlassColor(
-        context,
-        darkAlpha: 0.42,
-        lightAlpha: 0.45,
-      ),
+      thickness: 24,
+      glassColor: isDark
+          ? Colors.black.withValues(alpha: 0.22)
+          : Colors.white.withValues(alpha: 0.32),
     );
 
     final dockContent = ValueListenableBuilder<bool>(
@@ -118,10 +116,10 @@ class DashboardDock extends StatefulWidget {
                                 width: (constraints.maxWidth / itemCount) - 8,
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: activeColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                                    color: activeColor.withValues(alpha: isDark ? 0.32 : 0.18),
                                     borderRadius: BorderRadius.circular(radius - 4),
                                     border: Border.all(
-                                      color: activeColor.withValues(alpha: isDark ? 0.45 : 0.25),
+                                      color: activeColor.withValues(alpha: isDark ? 0.65 : 0.45),
                                       width: 1.2,
                                     ),
                                     boxShadow: [
@@ -218,10 +216,10 @@ class DashboardDock extends StatefulWidget {
                                         width: (constraints.maxWidth / itemCount) - 6,
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            color: activeColor.withValues(alpha: isDark ? 0.12 : 0.06),
+                                            color: activeColor.withValues(alpha: isDark ? 0.28 : 0.15),
                                             borderRadius: BorderRadius.circular(radius - 4),
                                             border: Border.all(
-                                              color: activeColor.withValues(alpha: isDark ? 0.35 : 0.18),
+                                              color: activeColor.withValues(alpha: isDark ? 0.55 : 0.35),
                                               width: 1.0,
                                             ),
                                             boxShadow: [
@@ -328,10 +326,10 @@ class DashboardDock extends StatefulWidget {
                                         width: (constraints.maxWidth / itemCount) - 8,
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            color: activeColor.withValues(alpha: isDark ? 0.16 : 0.08),
+                                            color: activeColor.withValues(alpha: isDark ? 0.32 : 0.18),
                                             borderRadius: BorderRadius.circular(radius - 4),
                                             border: Border.all(
-                                              color: activeColor.withValues(alpha: isDark ? 0.45 : 0.25),
+                                              color: activeColor.withValues(alpha: isDark ? 0.65 : 0.45),
                                               width: 1.2,
                                             ),
                                             boxShadow: [

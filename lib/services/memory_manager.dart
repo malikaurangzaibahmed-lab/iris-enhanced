@@ -17,36 +17,36 @@ class MemoryManager {
   /// Register a resource for tracking (ListView.builder contexts, streams, etc.)
   void registerResource(MemoryResource resource) {
     _resources.add(resource);
-    print('📍 Registered resource: ${resource.name}');
+    debugPrint('📍 Registered resource: ${resource.name}');
   }
 
   /// Unregister and cleanup a resource
   Future<void> unregisterResource(MemoryResource resource) async {
     await resource.dispose();
     _resources.remove(resource);
-    print('🗑️ Unregistered resource: ${resource.name}');
+    debugPrint('🗑️ Unregistered resource: ${resource.name}');
   }
 
   /// Cleanup all resources
   Future<void> disposeAll() async {
-    print('🧹 Disposing ${_resources.length} resources...');
+    debugPrint('🧹 Disposing ${_resources.length} resources...');
     
     for (final resource in _resources.toList()) {
       try {
         await resource.dispose();
       } catch (e) {
-        print('❌ Error disposing ${resource.name}: $e');
+        debugPrint('❌ Error disposing ${resource.name}: $e');
       }
     }
     
     _resources.clear();
-    print('✅ All resources disposed');
+    debugPrint('✅ All resources disposed');
   }
 
   /// Get memory usage statistics
   void printMemoryStats() {
-    print('\n💾 Memory Statistics:');
-    print('  Registered resources: ${_resources.length}');
+    debugPrint('\n💾 Memory Statistics:');
+    debugPrint('  Registered resources: ${_resources.length}');
     
     final resourcesByType = <String, int>{};
     for (final resource in _resources) {
@@ -55,9 +55,9 @@ class MemoryManager {
     }
     
     resourcesByType.forEach((type, count) {
-      print('  $type: $count active');
+      debugPrint('  $type: $count active');
     });
-    print('');
+    debugPrint('');
   }
 }
 
@@ -83,7 +83,7 @@ class SmartListViewController {
   /// Clear cache for memory optimization
   void clearCache() {
     _widgetCache.clear();
-    print('🗑️ List widget cache cleared');
+    debugPrint('🗑️ List widget cache cleared');
   }
 
   /// Dispose controller
@@ -125,14 +125,14 @@ class StreamManager extends MemoryResource {
 
   @override
   Future<void> dispose() async {
-    print('🧹 Disposing ${_subscriptions.length} stream subscriptions...');
+    debugPrint('🧹 Disposing ${_subscriptions.length} stream subscriptions...');
     
     for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
     
     _subscriptions.clear();
-    print('✅ All stream subscriptions disposed');
+    debugPrint('✅ All stream subscriptions disposed');
   }
 }
 
@@ -167,7 +167,7 @@ class TimerManager extends MemoryResource {
 
   @override
   Future<void> dispose() async {
-    print('🧹 Cancelling ${_timers.length} active timers...');
+    debugPrint('🧹 Cancelling ${_timers.length} active timers...');
     
     for (final timer in _timers) {
       if (timer.isActive) {
@@ -176,7 +176,7 @@ class TimerManager extends MemoryResource {
     }
     
     _timers.clear();
-    print('✅ All timers cancelled');
+    debugPrint('✅ All timers cancelled');
   }
 }
 
@@ -187,26 +187,26 @@ class ImageCacheManager {
     imageCache.maximumSize = 100;
     imageCache.maximumSizeBytes = 50 * 1024 * 1024; // 50 MB
     
-    print('🖼️ Image cache optimized: 100 images, 50MB max');
+    debugPrint('🖼️ Image cache optimized: 100 images, 50MB max');
   }
 
   static void clearImageCache() {
     imageCache.clear();
     imageCache.clearLiveImages();
-    print('🗑️ Image cache cleared');
+    debugPrint('🗑️ Image cache cleared');
   }
 
   static void printImageCacheStats() {
-    print('\n🖼️ Image Cache Stats:');
-    print('  Current images: ${imageCache.currentSize}');
-    print('  Current size: ${(imageCache.currentSizeBytes / 1024 / 1024).toStringAsFixed(2)} MB');
-    print('');
+    debugPrint('\n🖼️ Image Cache Stats:');
+    debugPrint('  Current images: ${imageCache.currentSize}');
+    debugPrint('  Current size: ${(imageCache.currentSizeBytes / 1024 / 1024).toStringAsFixed(2)} MB');
+    debugPrint('');
   }
 }
 
 /// Global memory optimization helpers
 Future<void> optimizeMemory() async {
-  print('\n🔧 Running memory optimization...');
+  debugPrint('\n🔧 Running memory optimization...');
   
   // Clear image caches
   imageCache.clear();
@@ -215,7 +215,7 @@ Future<void> optimizeMemory() async {
   developer.Timeline.startSync('Memory Optimization');
   developer.Timeline.finishSync();
   
-  print('✅ Memory optimization complete');
+  debugPrint('✅ Memory optimization complete');
 }
 
 extension DisposeHelper on State {

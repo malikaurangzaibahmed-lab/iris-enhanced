@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as hp;
 import 'package:html/dom.dart' as dom;
@@ -51,14 +51,14 @@ class SessionRefresherService {
     final encP = prefs.getString(pKey);
 
     if (encU == null || encP == null || encU.isEmpty || encP.isEmpty) {
-      print('❄️ Session Refresher: No credentials stored for $host ($sessionScope). Skipping.');
+      debugPrint('❄️ Session Refresher: No credentials stored for $host ($sessionScope). Skipping.');
       return false;
     }
 
     final username = utf8.decode(base64Decode(encU));
     final password = utf8.decode(base64Decode(encP));
 
-    print('📡 Session Refresher: Warming session for $host ($sessionScope)...');
+    debugPrint('📡 Session Refresher: Warming session for $host ($sessionScope)...');
 
     try {
       final baseUrl = 'https://$host';
@@ -73,14 +73,14 @@ class SessionRefresherService {
       }).timeout(const Duration(seconds: 10));
 
       if (getResponse.statusCode != 200) {
-        print('❌ Session Refresher: Failed to load login page. Status: ${getResponse.statusCode}');
+        debugPrint('❌ Session Refresher: Failed to load login page. Status: ${getResponse.statusCode}');
         return false;
       }
 
       // 3. Extract ASP.NET_SessionId cookie
       final setCookie = getResponse.headers['set-cookie'];
       if (setCookie == null || setCookie.isEmpty) {
-        print('❌ Session Refresher: No cookies returned in initial response.');
+        debugPrint('❌ Session Refresher: No cookies returned in initial response.');
         return false;
       }
 
@@ -170,10 +170,10 @@ class SessionRefresherService {
 
       final captchaSolution = _solveMathCaptcha(getResponse.body);
       if (captchaSolution == null) {
-        print('❌ Session Refresher: Could not solve math CAPTCHA from HTML.');
+        debugPrint('❌ Session Refresher: Could not solve math CAPTCHA from HTML.');
         return false;
       }
-      print('✓ Session Refresher: Solved Math CAPTCHA: $captchaSolution');
+      debugPrint('✓ Session Refresher: Solved Math CAPTCHA: $captchaSolution');
 
       // 5. Send POST login request
       final postHeaders = {
@@ -226,7 +226,7 @@ class SessionRefresherService {
           postResponse.body.contains('Dashboard');
 
       if (!success) {
-        print('❌ Session Refresher: Login failed (incorrect credentials or expired CAPTCHA).');
+        debugPrint('❌ Session Refresher: Login failed (incorrect credentials or expired CAPTCHA).');
         return false;
       }
 
@@ -251,10 +251,10 @@ class SessionRefresherService {
         );
       }
 
-      print('🔥 Session Refresher: Session successfully warmed for $host! Cookies injected.');
+      debugPrint('🔥 Session Refresher: Session successfully warmed for $host! Cookies injected.');
       return true;
     } catch (e) {
-      print('❌ Session Refresher: Error warming session for $host: $e');
+      debugPrint('❌ Session Refresher: Error warming session for $host: $e');
       return false;
     }
   }

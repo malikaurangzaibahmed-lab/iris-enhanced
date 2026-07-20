@@ -35,7 +35,7 @@ class AnalyticsManager {
       _events.removeAt(0);
     }
     
-    print('📊 Event tracked: $eventName');
+    debugPrint('📊 Event tracked: $eventName');
   }
 
   /// Record user engagement
@@ -72,7 +72,7 @@ class AnalyticsManager {
       _crashes.removeAt(0);
     }
     
-    print('❌ Exception tracked: $exception\nContext: $context');
+    debugPrint('❌ Exception tracked: $exception\nContext: $context');
   }
 
   /// Get analytics summary
@@ -123,27 +123,27 @@ class AnalyticsManager {
 
   /// Print detailed report
   void printReport() {
-    print('\n📊 Analytics Report:');
-    print('Total events: ${_events.length}');
-    print('Total crashes: ${_crashes.length}');
+    debugPrint('\n📊 Analytics Report:');
+    debugPrint('Total events: ${_events.length}');
+    debugPrint('Total crashes: ${_crashes.length}');
     
     final summary = getAnalyticsSummary();
-    print('\nEvent Summary:');
+    debugPrint('\nEvent Summary:');
     (summary['event_counts'] as Map).forEach((event, count) {
-      print('  $event: $count');
+      debugPrint('  $event: $count');
     });
     
     if (_crashes.isNotEmpty) {
-      print('\nRecent Crashes:');
+      debugPrint('\nRecent Crashes:');
       final recentCrashes = _crashes.length > 5 ? _crashes.sublist(_crashes.length - 5) : _crashes;
       for (final crash in recentCrashes) {
-        print('  ${crash.timestamp}: ${crash.exception}');
+        debugPrint('  ${crash.timestamp}: ${crash.exception}');
         if (crash.context != null) {
-          print('    Context: ${crash.context}');
+          debugPrint('    Context: ${crash.context}');
         }
       }
     }
-    print('');
+    debugPrint('');
   }
 
   /// Export analytics data (could be sent to backend)
@@ -172,7 +172,7 @@ $recentCrashesStr
   void clear() {
     _events.clear();
     _crashes.clear();
-    print('🗑️ Analytics data cleared');
+    debugPrint('🗑️ Analytics data cleared');
   }
 }
 
@@ -243,7 +243,7 @@ class ErrorHandler {
       return true;
     };
     
-    print('🛡️ Global error handling configured');
+    debugPrint('🛡️ Global error handling configured');
   }
 }
 

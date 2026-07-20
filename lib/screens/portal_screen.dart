@@ -1561,10 +1561,10 @@ class _PortalScreenState extends SmartState<PortalScreen>
            await prefs.setString('iris_session_student_${host.toLowerCase()}_cookies', cookieString);
         }
         
-        print('🍪 Session cookies persisted for $host');
+        debugPrint('🍪 Session cookies persisted for $host');
       }
     } catch (e) {
-      print('⚠️ Cookie persistence failed: $e');
+      debugPrint('⚠️ Cookie persistence failed: $e');
     }
   }
 

@@ -368,6 +368,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       glow: isRecommended,
       shimmer: isRecommended,
       accentColor: item.color,
+      backgroundColor: item.color.withValues(alpha: isDark ? 0.08 : 0.04),
       onTap: () => _handleToolTap(context, item.id, department),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +440,7 @@ class ToolsScreenState extends State<ToolsScreen> {
     switch (id) {
       case 'cgpa_calculator':
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _CgpaCalculatorScreen()),
+          MaterialPageRoute(builder: (_) => const CgpaCalculatorScreen()),
         );
         return;
       case 'teacher_locator':
@@ -457,7 +458,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'browse_classes':
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => _DepartmentClassesScreen(
+            builder: (_) => DepartmentClassesScreen(
               memory: widget.memory,
               currentBatch: widget.batch,
               brain: widget.brain,
@@ -471,7 +472,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'teacher_directory':
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => _FacultyDirectoryScreen(
+            builder: (_) => FacultyDirectoryScreen(
               brain: widget.brain,
               onRoleChanged: widget.onRoleChanged,
               memory: widget.memory,
@@ -1697,4 +1698,22 @@ class _PersonnelTag extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ToolItem {
+  final String id;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final String description;
+
+  _ToolItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.description,
+  });
 }

@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 import '../core/tokens.dart';
 import '../core/glass.dart';
 import '../services/ui_feedback.dart';
@@ -243,34 +246,58 @@ Attach output previews and write comments below...
   Future<void> _exportDocument() async {
     setState(() {
       _isExporting = true;
-      _exportProgress = 0.0;
+      _exportProgress = 0.1;
       _exportSuccess = false;
     });
 
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    setState(() => _exportProgress = 0.30);
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 900));
-    if (!mounted) return;
-    setState(() => _exportProgress = 0.65);
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() => _exportProgress = 0.90);
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    setState(() {
-      _exportProgress = 1.0;
-      _isExporting = false;
-      _exportSuccess = true;
-    });
-    IrisHaptics.actionHeavy();
-    showIrisFrostedSnackBar(context, content: Text('Document exported as $_selectedExportFormat!'));
+    try {
+      final docText = _editorController.text;
+      
+      setState(() => _exportProgress = 0.3);
+      
+      final document = PdfDocument();
+      final page = document.pages.add();
+      
+      setState(() => _exportProgress = 0.5);
+      
+      final layoutFormat = PdfLayoutFormat(layoutType: PdfLayoutType.paginate);
+      PdfTextElement(
+        text: docText,
+        font: PdfStandardFont(PdfFontFamily.helvetica, 11),
+      ).draw(
+        page: page,
+        bounds: Rect.fromLTWH(0, 0, page.getClientSize().width, page.getClientSize().height),
+        format: layoutFormat,
+      );
+      
+      setState(() => _exportProgress = 0.7);
+      
+      final List<int> bytes = await document.save();
+      document.dispose();
+      
+      final dir = await getApplicationDocumentsDirectory();
+      final safeTitle = _titleController.text.replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_');
+      final fileName = '${safeTitle}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+      
+      setState(() {
+        _exportProgress = 1.0;
+        _isExporting = false;
+        _exportSuccess = true;
+      });
+      
+      IrisHaptics.actionHeavy();
+      showIrisFrostedSnackBar(context, content: Text('Document exported successfully: $fileName'));
+      
+      await OpenFilex.open(file.path);
+    } catch (e) {
+      setState(() {
+        _isExporting = false;
+        _exportSuccess = false;
+      });
+      showIrisFrostedSnackBar(context, content: Text('Export failed: $e'));
+    }
   }
 
   Future<void> _closeDocument() async {
@@ -347,78 +374,167 @@ Attach output previews and write comments below...
     if (_pickedFile == null) return;
     setState(() {
       _isConverting = true;
-      _conversionProgress = 0.0;
-      _conversionStep = 'Reading header nodes...';
+      _conversionProgress = 0.1;
+      _conversionStep = 'Reading picked file...';
       _conversionSuccess = false;
     });
 
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() {
-      _conversionProgress = 0.25;
-      _conversionStep = 'Analyzing document structures...';
-    });
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 900));
-    if (!mounted) return;
-    setState(() {
-      _conversionProgress = 0.60;
-      _conversionStep = 'Re-rendering vector assets and layout tables...';
-    });
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 900));
-    if (!mounted) return;
-    setState(() {
-      _conversionProgress = 0.90;
-      _conversionStep = 'Finalizing document stream compilation...';
-    });
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    setState(() {
-      _conversionProgress = 1.0;
-      _conversionStep = 'Conversion completed!';
-      _isConverting = false;
-      _conversionSuccess = true;
-    });
-    IrisHaptics.actionHeavy();
-    showIrisFrostedSnackBar(context, content: const Text('File converted successfully!'));
+    try {
+      final inputPath = _pickedFile!.path;
+      if (inputPath == null) throw 'File path is unavailable';
+      
+      setState(() {
+        _conversionProgress = 0.4;
+        _conversionStep = 'Scaffolding PDF...';
+      });
+      
+      final document = PdfDocument();
+      final page = document.pages.add();
+      
+      final ext = _pickedFile!.extension?.toLowerCase();
+      
+      if (ext == 'jpg' || ext == 'jpeg' || ext == 'png') {
+        setState(() {
+          _conversionProgress = 0.7;
+          _conversionStep = 'Drawing image bytes...';
+        });
+        final imageBytes = await File(inputPath).readAsBytes();
+        final pdfImage = PdfBitmap(imageBytes);
+        
+        final width = page.getClientSize().width;
+        final height = page.getClientSize().height;
+        page.graphics.drawImage(pdfImage, Rect.fromLTWH(0, 0, width, height));
+      } else {
+        setState(() {
+          _conversionProgress = 0.7;
+          _conversionStep = 'Encoding layout flow...';
+        });
+        final contentText = await File(inputPath).readAsString();
+        final layoutFormat = PdfLayoutFormat(layoutType: PdfLayoutType.paginate);
+        PdfTextElement(
+          text: contentText,
+          font: PdfStandardFont(PdfFontFamily.helvetica, 11),
+        ).draw(
+          page: page,
+          bounds: Rect.fromLTWH(0, 0, page.getClientSize().width, page.getClientSize().height),
+          format: layoutFormat,
+        );
+      }
+      
+      final List<int> bytes = await document.save();
+      document.dispose();
+      
+      final dir = await getApplicationDocumentsDirectory();
+      final baseName = _pickedFile!.name.split('.').first;
+      final outPath = '${dir.path}/${baseName}_converted_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final file = File(outPath);
+      await file.writeAsBytes(bytes);
+      
+      setState(() {
+        _conversionProgress = 1.0;
+        _conversionStep = 'Conversion completed!';
+        _isConverting = false;
+        _conversionSuccess = true;
+      });
+      
+      IrisHaptics.actionHeavy();
+      showIrisFrostedSnackBar(context, content: const Text('File converted successfully!'));
+      
+      await OpenFilex.open(outPath);
+    } catch (e) {
+      setState(() {
+        _isConverting = false;
+        _conversionStep = 'Conversion failed';
+        _conversionSuccess = false;
+      });
+      showIrisFrostedSnackBar(context, content: Text('Conversion failed: $e'));
+    }
   }
 
   Future<void> _runSplit() async {
     if (_splitterFile == null) return;
     setState(() {
       _isSplitting = true;
-      _splitterProgress = 0.0;
+      _splitterProgress = 0.1;
       _splitterSuccess = false;
     });
 
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    setState(() {
-      _splitterProgress = 0.35;
-    });
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() {
-      _splitterProgress = 0.75;
-    });
-    IrisHaptics.actionSoft();
-
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    setState(() {
-      _splitterProgress = 1.0;
-      _isSplitting = false;
-      _splitterSuccess = true;
-    });
-    IrisHaptics.actionHeavy();
-    showIrisFrostedSnackBar(context, content: const Text('PDF pages split successfully!'));
+    try {
+      final inputPath = _splitterFile!.path;
+      if (inputPath == null) throw 'File path is unavailable';
+      
+      final rangeText = _rangeController.text.trim();
+      if (rangeText.isEmpty) throw 'Please specify page range (e.g. 1-3)';
+      
+      int startPage = 1;
+      int endPage = 1;
+      
+      if (rangeText.contains('-')) {
+        final parts = rangeText.split('-');
+        startPage = int.parse(parts[0].trim());
+        endPage = int.parse(parts[1].trim());
+      } else {
+        startPage = int.parse(rangeText);
+        endPage = startPage;
+      }
+      
+      if (startPage <= 0 || endPage < startPage) {
+        throw 'Invalid page range specified';
+      }
+      
+      setState(() {
+        _splitterProgress = 0.4;
+      });
+      
+      final sourceBytes = await File(inputPath).readAsBytes();
+      final sourceDoc = PdfDocument(inputBytes: sourceBytes);
+      final totalPages = sourceDoc.pages.count;
+      
+      if (startPage > totalPages || endPage > totalPages) {
+        sourceDoc.dispose();
+        throw 'Range exceeds total document pages ($totalPages)';
+      }
+      
+      final destinationDoc = PdfDocument();
+      
+      for (int i = startPage; i <= endPage; i++) {
+        final sourcePage = sourceDoc.pages[i - 1];
+        final template = sourcePage.createTemplate();
+        final destPage = destinationDoc.pages.add();
+        destPage.graphics.drawPdfTemplate(template, Offset.zero);
+        
+        setState(() {
+          _splitterProgress = 0.4 + (0.4 * (i - startPage + 1) / (endPage - startPage + 1));
+        });
+      }
+      
+      final List<int> bytes = await destinationDoc.save();
+      destinationDoc.dispose();
+      sourceDoc.dispose();
+      
+      final dir = await getApplicationDocumentsDirectory();
+      final baseName = _splitterFile!.name.split('.').first;
+      final outPath = '${dir.path}/${baseName}_split_${startPage}_to_${endPage}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final file = File(outPath);
+      await file.writeAsBytes(bytes);
+      
+      setState(() {
+        _splitterProgress = 1.0;
+        _isSplitting = false;
+        _splitterSuccess = true;
+      });
+      
+      IrisHaptics.actionHeavy();
+      showIrisFrostedSnackBar(context, content: const Text('PDF pages split successfully!'));
+      
+      await OpenFilex.open(outPath);
+    } catch (e) {
+      setState(() {
+        _isSplitting = false;
+        _splitterSuccess = false;
+      });
+      showIrisFrostedSnackBar(context, content: Text('Split failed: $e'));
+    }
   }
 
   String _formatBytes(int bytes) {

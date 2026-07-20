@@ -1,19 +1,16 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
 import '../core/omni_brain.dart';
 import '../core/models.dart';
-import '../core/university_memory.dart';
 import '../services/helpdesk_faculty_service.dart';
 import '../services/ui_feedback.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glowing_input_wrapper.dart';
-import '../widgets/neural_aura.dart';
 import '../core/theme_signals.dart';
 import '../core/minimal_theme.dart';
 import '../core/vital_theme.dart';
@@ -738,9 +735,19 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withValues(alpha: 0.15)),
+        gradient: LinearGradient(
+          colors: [
+            statusColor.withValues(alpha: isDark ? 0.10 : 0.06),
+            statusColor.withValues(alpha: isDark ? 0.02 : 0.01),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: statusColor.withValues(alpha: isDark ? 0.22 : 0.15),
+          width: 1.0,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1021,9 +1028,26 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.06),
+        gradient: LinearGradient(
+          colors: [
+            accent.withValues(alpha: isDark ? 0.12 : 0.08),
+            accent.withValues(alpha: isDark ? 0.02 : 0.01),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accent.withValues(alpha: 0.12)),
+        border: Border.all(
+          color: accent.withValues(alpha: isDark ? 0.25 : 0.15),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: isDark ? 0.06 : 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1152,7 +1176,6 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (context, idx) {
             final s = sessions[idx];
-            final now = DateTime.now();
             final isLive = s.isLive;
             return GlassCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

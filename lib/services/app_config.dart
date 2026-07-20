@@ -112,14 +112,14 @@ class AppConfig {
 
       if (success) {
         _configCache[key] = value;
-        print('✅ Config updated: $key = $value');
+        debugPrint('✅ Config updated: $key = $value');
       } else {
-        print('❌ Failed to save config: $key');
+        debugPrint('❌ Failed to save config: $key');
       }
 
       return success;
     } catch (e) {
-      print('❌ Error saving config $key: $e');
+      debugPrint('❌ Error saving config $key: $e');
       return false;
     }
   }
@@ -140,16 +140,16 @@ class AppConfig {
 
   /// Print configuration
   void printConfig() {
-    print('\n⚙️ App Configuration:');
+    debugPrint('\n⚙️ App Configuration:');
     getAll().forEach((key, value) {
-      print('  $key: $value');
+      debugPrint('  $key: $value');
     });
-    print('');
+    debugPrint('');
   }
 
   /// Reset to defaults
   Future<void> resetToDefaults() async {
-    print('🔄 Resetting configuration to defaults...');
+    debugPrint('🔄 Resetting configuration to defaults...');
     
     await setValue(_keyAppVersion, appVersion);
     await setValue(_keyThemeMode, 'system');
@@ -160,14 +160,14 @@ class AppConfig {
     await setValue(_keyNotificationTimeout, defaultNotificationTimeoutSecs);
     await setValue(_keyWidgetUpdateInterval, defaultWidgetUpdateIntervalSecs);
     
-    print('✅ Configuration reset to defaults');
+    debugPrint('✅ Configuration reset to defaults');
   }
 
   /// Clear all configuration
   Future<void> clear() async {
     await _prefs.clear();
     _configCache.clear();
-    print('🗑️ All configuration cleared');
+    debugPrint('🗑️ All configuration cleared');
   }
 }
 
@@ -198,13 +198,13 @@ class FeatureFlags {
   /// Enable feature
   void enable(String featureName) {
     _flags[featureName] = true;
-    print('✅ Feature enabled: $featureName');
+    debugPrint('✅ Feature enabled: $featureName');
   }
 
   /// Disable feature
   void disable(String featureName) {
     _flags[featureName] = false;
-    print('❌ Feature disabled: $featureName');
+    debugPrint('❌ Feature disabled: $featureName');
   }
 
   /// Get all flags
@@ -212,10 +212,10 @@ class FeatureFlags {
 
   /// Print flags
   void printFlags() {
-    print('\n🚩 Feature Flags:');
+    debugPrint('\n🚩 Feature Flags:');
     _flags.forEach((name, enabled) {
-      print('  $name: ${enabled ? '✅' : '❌'}');
+      debugPrint('  $name: ${enabled ? '✅' : '❌'}');
     });
-    print('');
+    debugPrint('');
   }
 }

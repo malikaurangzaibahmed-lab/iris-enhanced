@@ -647,14 +647,13 @@ class _AboutScreenState extends State<AboutScreen> {
           color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
         ),
       ),
-      trailing: GlassSwitch(
+      trailing: IrisGlassSwitch(
         value: value,
         onChanged: (v) {
           IrisHaptics.selectionClick();
           onChanged(v);
         },
         activeColor: IrisTokens.brand,
-        useOwnLayer: true,
       ),
     );
   }

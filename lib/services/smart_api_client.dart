@@ -29,7 +29,7 @@ class SmartApiClient {
     if (!forceRefresh) {
       final cached = _cache.get<T>('get_$endpoint');
       if (cached != null) {
-        print('💾 Cache hit: $endpoint');
+        debugPrint('💾 Cache hit: $endpoint');
         return cached;
       }
     }
@@ -50,11 +50,11 @@ class SmartApiClient {
         _cache.set('get_$endpoint', result, ttl: cacheDuration);
         _monitor.recordMetric(endpoint, stopwatch.elapsed);
         
-        print('✅ API call successful: $endpoint (${stopwatch.elapsedMilliseconds}ms)');
+        debugPrint('✅ API call successful: $endpoint (${stopwatch.elapsedMilliseconds}ms)');
         return result;
       } catch (e) {
         retries++;
-        print('❌ API call failed ($retries/$_maxRetries): $endpoint - $e');
+        debugPrint('❌ API call failed ($retries/$_maxRetries): $endpoint - $e');
         
         if (retries < _maxRetries) {
           await Future.delayed(_retryDelay * retries);
@@ -62,7 +62,7 @@ class SmartApiClient {
       }
     }
     
-    print('🚨 API call failed permanently: $endpoint');
+    debugPrint('🚨 API call failed permanently: $endpoint');
     return result;
   }
 
@@ -82,12 +82,12 @@ class SmartApiClient {
         stopwatch.stop();
         
         _monitor.recordMetric('${endpoint}_post', stopwatch.elapsed);
-        print('✅ POST successful: $endpoint (${stopwatch.elapsedMilliseconds}ms)');
+        debugPrint('✅ POST successful: $endpoint (${stopwatch.elapsedMilliseconds}ms)');
         
         return result;
       } catch (e) {
         retries++;
-        print('❌ POST failed ($retries/$_maxRetries): $endpoint - $e');
+        debugPrint('❌ POST failed ($retries/$_maxRetries): $endpoint - $e');
         
         if (retries < _maxRetries) {
           await Future.delayed(_retryDelay * retries);
@@ -114,22 +114,22 @@ class SmartApiClient {
 
   /// Get performance stats
   void printStats() {
-    print('\n📊 API Performance Report:');
+    debugPrint('\n📊 API Performance Report:');
     _monitor.getReport().forEach((operation, stats) {
-      print('  $operation: $stats');
+      debugPrint('  $operation: $stats');
     });
     
-    print('\n💾 Cache Stats:');
+    debugPrint('\n💾 Cache Stats:');
     final stats = _cache.getStats();
-    print('  Size: ${stats['size']}/${stats['maxSize']}');
-    print('  Hit Accuracy: ${(stats['accuracy'] * 100).toStringAsFixed(1)}%');
-    print('');
+    debugPrint('  Size: ${stats['size']}/${stats['maxSize']}');
+    debugPrint('  Hit Accuracy: ${(stats['accuracy'] * 100).toStringAsFixed(1)}%');
+    debugPrint('');
   }
 
   /// Clear cache
   void clearCache() {
     _cache.clear();
-    print('🗑️ Cache cleared');
+    debugPrint('🗑️ Cache cleared');
   }
 }
 

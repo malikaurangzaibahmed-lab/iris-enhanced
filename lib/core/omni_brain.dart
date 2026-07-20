@@ -1,6 +1,5 @@
 import 'models.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 
 // ============ LECTURE DURATION HELPER ============

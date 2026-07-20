@@ -4,7 +4,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_widget/home_widget.dart';
 import '../core/models.dart';
-import '../core/format_guard.dart';
+import 'package:flutter/foundation.dart';
 
 @pragma('vm:entry-point')
 void startClassNotificationTask() {
@@ -357,7 +357,7 @@ class ClassNotificationTaskHandler extends TaskHandler {
           ],
         );
       } catch (e) {
-        print('Error in ClassNotificationTaskHandler: $e');
+        debugPrint('Error in ClassNotificationTaskHandler: $e');
       }
     });
   }
