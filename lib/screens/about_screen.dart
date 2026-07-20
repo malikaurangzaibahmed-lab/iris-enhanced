@@ -17,6 +17,7 @@ import '../widgets/smooth_scroll.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/batch_selector.dart';
 import '../core/vital_theme.dart';
+import '../widgets/iris_components.dart';
 import '../widgets/vital_card.dart';
 import 'legal_screens.dart';
 

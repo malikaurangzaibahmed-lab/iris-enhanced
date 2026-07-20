@@ -1,4 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import '../core/glass.dart';
+import '../core/theme_signals.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
 import '../core/omni_brain.dart';
@@ -170,7 +174,7 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                           color: isSelected
                                               ? (isDark ? Colors.white : IrisTokens.brand)
-                                              : (isDark ? Colors.white87 : Colors.black87),
+                                              : (isDark ? Colors.white.withValues(alpha: 0.87) : Colors.black87),
                                         ),
                                       ),
                                       if (isSelected)
