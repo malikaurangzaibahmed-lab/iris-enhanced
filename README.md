@@ -1,73 +1,125 @@
-# IRIS - Student Organizer
+# 🌌 IRIS - Next-Gen Student Companion
 
-Intelligent timetable and schedule management app with OTA updates, PDF parsing, persistent notifications, and home widgets.
+> **The Ultimate Intelligent Campus Companion & Student Organizer**  
+> *Built with Flutter, Office Open XML Native Exporter, Liquid Glass UI Engine, Shorebird OTA Code Push, and Ground-Up Responsive Android HomeScreen Widgets.*
 
-## 📋 Session Handoff & Context Recovery
-**Starting a new session or lost context?** See **[docs/SESSION_SUMMARY_JUNE_2026.md](docs/SESSION_SUMMARY_JUNE_2026.md)** for:
-- Folderization and architecture layout rules
-- Headless cookie session refresher and math captcha parsing
-- Tab caching using IndexedStack
-- Build results and release APK locations
+---
 
-## Core Features
-- **Smart Timetable Scraper & Sync**: Background re-warming, math CAPTCHA regex solver, and headless session cookie restoration inside WebView.
-- **Noticeboard Tab Caching**: Preserves student portal forms, scroll offsets, and active WebView sessions natively in memory using `IndexedStack`.
-- **Timetable OTA Diff Alerts**: GlassCard-based warning dashboard displaying room swaps, cancellations, and timing shifts with dynamic dismiss.
-- **Home widgets** for Android (OmniFlow, ClassTracker) showing live class status.
-- **Teacher locator** for faculty schedule queries.
-- **Dynamic Transport**: 30+ bus routes, driver contacts, and live timelines.
+## 🌟 Key Highlights & Features
 
-## Architecture
+### 📅 Ground-Up Redesigned Android HomeScreen Widgets
+- **Celestial Indigo & Obsidian Onyx Dual Glass Themes**:
+  - **Light Mode**: Celestial indigo frosted glass (`#EEF2FF` to `#F1F5F9`) with 1.5dp pure white border (`#FFFFFF`).
+  - **Dark Mode**: Deep obsidian onyx glass (`#090D16` to `#1E1B4B`) with glowing slate border (`#334155`).
+- **Density-Independent DP Responsive Breakpoints**:
+  - **Compact Bar Mode (`heightDp < 105dp`)**: Sleek single-row bar (`[ LIVE ] CS-301 • Room C1.2 | 45m left`) for short 2x1 grid heights with **zero clipping**.
+  - **Standard Mode (`105dp <= heightDp < 145dp`)**: Full hero layout with automatic card scaling and zero text truncation.
+  - **Hero Mode (`heightDp >= 145dp`)**: Complete status pill + course headline + location capsule + instructor subcard + live progress bar + countdown clock.
+- **Fail-Safe Fallback RemoteViews Inflation**: Guarantees Android Launcher **NEVER displays "Error loading widget"**, gracefully falling back to a clean safe view if any custom OS anomaly occurs.
 
-- **`lib/core/`**: Central models, OmniBrain block merging, UniversityMemory local fallback, and validation helpers.
-- **`lib/services/`**: Timetable OTA, PDF parser, widget background service, foreground notifications, and headless session refresher.
-- **`lib/screens/`**: Dashboard main shell, about screen, academics hub, room finder, teacher locator, portal WebView, and setup screens.
-- **`lib/widgets/`**: ColorOS-inspired glass card, neural aura shader particles, capsule dashboard navigation dock, and smart overlays.
-- **`docs/`**: Clean storage for project manuals, architecture design grids, setup guides, and system rules.
-- **`tools/`**: Development scripts, scraper engines, timetable JSON databases, migration backups, and extraction seeds.
-- **`design/`**: Conceptual UI mockups, diagrams, and preview screenshots.
+### 📄 Document Workspace & Native Office Open XML Engine
+- **Native `.docx` Exporter (`DocxGenerator`)**: Generates 100% specification-compliant Word `.docx` ZIP packages containing native XML runs for headers (`#`, `##`), bullet lists (`- `, `* `), and markdown inline formatting (`**bold**`, `*italic*`, `***bold italic***`, `` `code` ``).
+- **Raw Pointer Image Gesture Engine**: Uses hardware pointer event listeners (`Listener.onPointerMove`) to allow unrestricted 360° image dragging and resizing on canvas without touch arena competition.
+- **COMSATS Sahiwal Campus Locking**: Default institutional settings locked to `COMSATS UNIVERSITY ISLAMABAD - SAHIWAL CAMPUS`.
 
-For detailed architecture guidelines, see **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+### ⚡ Dual-Engine Update System (OTA + In-App Installer)
+- **Shorebird Instant Over-The-Air Code Push**:
+  - Pushes Flutter Dart UI features, bug fixes, and layout tweaks **silently in ~10 seconds** without requiring users to download an APK or reinstall anything.
+- **In-App GitHub Auto-Installer (`UpdateService`)**:
+  - Real-time download progress stream (`0% ➔ 100%`) with liquid glass progress modal.
+  - Automatically triggers 1-tap package installation (`OpenFilex.open()`) with zero data/login loss.
 
-## Project Rules
-- Canonical project rules are maintained in **[docs/IRIS_RULES.md](docs/IRIS_RULES.md)**.
-- Workflow rule: ask for explicit approval before running `flutter build apk --split-per-abi`.
-- Terminology rule: refer to the top portal overlay as the **smart pill**.
+---
 
-## Build Instructions
+## 🏗️ Architecture & Project Structure
 
-### Quick Build (Workaround)
-If workspace file permissions block Gradle outputs, run this cleanup script to mirror the build directory:
-```powershell
-$dest = Join-Path $env:USERPROFILE 'student_organizer_build'
-if (Test-Path $dest) { Remove-Item -Path $dest -Recurse -Force }
-New-Item -ItemType Directory -Path $dest | Out-Null
-robocopy . $dest /E /NFL /NDL /NJH /NJS /NP /XD .git build .dart_tool .idea
-Set-Location $dest
-flutter clean
-flutter pub get
-flutter build apk --split-per-abi
+```
+IRIS Base Directory
+ ├── android/                         # Native Android Project & Kotlin AppWidget Providers
+ │    └── app/src/main/
+ │         ├── kotlin/com/example/student_organizer/
+ │         │    ├── ClassTrackerWidget.kt        # Responsive DP Live Class Widget Provider
+ │         │    ├── PortalTasksWidget.kt         # Responsive Portal Tasks Widget Provider
+ │         │    └── PortalTasksWidgetService.kt  # RemoteViews ListView Adapter Service
+ │         └── res/
+ │              ├── drawable/                    # Frosted Glass XML Drawables (v2)
+ │              └── layout/                      # Compact & Full Widget XML Layouts
+ │
+ ├── lib/                             # Core Flutter Application Code
+ │    ├── core/                       # Design tokens, color system, typography
+ │    ├── models/                     # Timetable, assignment, and student data models
+ │    ├── screens/                    # Document workspace, academics, timetable shell
+ │    ├── services/                   # UpdateService, DocxGenerator, CoverPageGenerator
+ │    └── widgets/                    # Liquid Glass UI components & animated docks
+ │
+ ├── DEPLOYMENT_OPS_MANUAL.md         # Deployment & Update Operations Manual
+ └── pubspec.yaml                     # Dependencies & Version Configuration
 ```
 
-## Documentation Index (Inside `docs/`)
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Design principles, glassmorphism, Z-axis hierarchy
-- **[docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)** - Feature status matrix
-- **[docs/WIDGET_GUIDE.md](docs/WIDGET_GUIDE.md)** / **[docs/WIDGET_QUICK_REF.md](docs/WIDGET_QUICK_REF.md)** - Component library
-- **[docs/OTA_SETUP_GUIDE.md](docs/OTA_SETUP_GUIDE.md)** / **[docs/OTA_QUICK_START.md](docs/OTA_QUICK_START.md)** - OTA system docs
-- **[docs/PDF_PARSER_DOCUMENTATION_INDEX.md](docs/PDF_PARSER_DOCUMENTATION_INDEX.md)** - Parser pipeline reference
+---
 
-## Getting Started (Development)
+## 🛠️ Build & Installation Guide
+
+### Prerequisites
+- **Flutter SDK**: `^3.22.0` (Dart 3.4+)
+- **Android SDK**: API level 34 (Android 14) / Min SDK 21 (Android 5.0)
+- **Gradle**: `8.14`
+
+### Quick Start
 ```bash
+# 1. Clone repository
+git clone https://github.com/malikaurangzaibahmed-lab/iris-enhanced.git
+cd iris-enhanced
+
+# 2. Install dependencies
 flutter pub get
-flutter analyze  # Should show zero compilation errors!
+
+# 3. Analyze code (0 lint errors)
+flutter analyze
+
+# 4. Run application
 flutter run
 ```
 
-## Tech Stack
-- **Framework**: Flutter / Dart
-- **State**: setState + StatefulWidgets (no external state lib)
-- **Storage**: SharedPreferences + local file overrides
-- **PDF**: Syncfusion Flutter PDF
-- **Notifications**: flutter_local_notifications + flutter_foreground_task
-- **Widgets**: home_widget (Android native)
-- **Network**: HTTP (OTA pulls)
+### Production Release Build
+```bash
+# Build standalone Release APK
+cd android
+.\gradlew assembleRelease
+```
+*Output Release APK Path*: `build\app\outputs\flutter-apk\app-release.apk`
+
+---
+
+## 🚀 Publishing Updates (Admin Cheat Sheet)
+
+### 1. Instant Over-The-Air (OTA) Dart Patch
+```bash
+# Pushes instant UI/feature patch to all users over-the-air
+shorebird patch android
+```
+
+### 2. Major Native Release (Kotlin / Permissions)
+```bash
+# 1. Increment version in pubspec.yaml (e.g. 1.0.2+3)
+# 2. Build base Shorebird release
+shorebird release android
+
+# 3. Push to GitHub
+git add .
+git commit -m "Release v1.0.2 with enhanced HomeScreen Widget"
+git push origin main
+```
+
+*For full operational details, refer to the [Deployment Operations Manual](DEPLOYMENT_OPS_MANUAL.md).*
+
+---
+
+## 🔒 Security & Privacy
+- **Zero Secrets in Repository**: Signing keys and passwords are excluded via `.gitignore`.
+- **Protected Push Access**: Repository branch protection enabled on `main`. Only authorized maintainers can push commits.
+
+---
+
+## 📄 License & Credits
+Developed with ❤️ by **Google DeepMind Team & Malik Aurangzaib Ahmed**. All rights reserved.

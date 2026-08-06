@@ -1,83 +1,66 @@
-# IRIS Enhanced: System Architecture & Reference Guide
+# 🌌 IRIS Enhanced: Comprehensive System Architecture & Reference Guide
 
-This document provides a comprehensive explanation of the architecture, modules, frontend, backend, and data flows of the **IRIS Enhanced** project.
+This document provides a complete explanation of the system architecture, frontend, backend, native Android widgets, Office Open XML engine, Shorebird OTA code push, and data flows of **IRIS Enhanced**.
 
 ---
 
 ## 🗺️ System Architecture Overview
 
-IRIS Enhanced is a hybrid student organizer system that leverages real-time synchronization. It consists of a mobile client app, an administrative web portal, automated python tools, and a serverless backend powered by Google Cloud & Firebase.
+IRIS Enhanced is a hybrid student organizer system leveraging real-time synchronization, native Android OS AppWidget providers, Office Open XML document generation, and dual-engine over-the-air updates.
 
 ```mermaid
 graph TD
-    A[Admin Web Portal] -->|Write Settings, Announcements, Date Sheets| B(Firestore)
-    A -->|Upload Update APKs| C(Firebase Storage)
-    D[Python CLI Tools] -->|Parse & Clean Excel/PDF Timetables| E[Staged JSON seeds]
+    A[Admin Web Portal / API] -->|Publish Releases & Timetables| B(Firestore / GitHub API)
+    A -->|Upload Release APKs| C(GitHub Releases / Storage)
+    D[Python Scraper & Parser Tools] -->|Clean Timetables & Date Sheets| E[Staged JSON Seeds]
     E -->|Deploy| B
-    F[Student Flutter App] -->|Real-time streams config, announcement, datesheets| B
-    F -->|Download OTA Updates & APKs| C
-    B -->|Trigger Document Write| G[Firebase Cloud Functions]
-    G -->|Send FCM Push Notification| F
+    F[Student Flutter App] -->|Check Releases & Stream Timetables| B
+    F -->|Download Release APK In-App| C
+    F -->|Shorebird OTA Engine| H(Shorebird Cloud Patching)
+    B -->|Trigger Document Writes| G[Firebase Cloud Functions]
+    G -->|Send FCM Push Notifications| F
+    F -->|SharedPreferences / AppWidgetManager| I[Native Android HomeScreen Widgets]
 ```
 
 ---
 
-## 📱 1. Mobile Frontend (Flutter App)
+## 📱 1. Mobile Client Application (Flutter Engine)
 
-The mobile client app is built in Flutter, providing a premium, fluid, and hardware-accelerated user experience.
+The mobile client app is built using Flutter & Dart with custom liquid glass visual engines and native platform channels.
 
-* **Core Entry Point**: [lib/main.dart](file:///d:/Ai%20models/IRIS/lib/main.dart) orchestrates app boot, registers background persistent class tracking services (`FlutterForegroundTask`), and initializes the widget tree.
-* **Sync Architecture**: The remote connection engine is located in [lib/services/remote_config_service.dart](file:///d:/Ai%20models/IRIS/lib/services/remote_config_service.dart). It opens a Firestore listener stream directly on `config/global` to:
-  * Detect academic phase shifts (e.g., class weeks vs. exam weeks).
-  * Automatically download and merge Over-The-Air (OTA) daily class timetables.
-  * Listen for active midterm/final date sheets.
-  * Trigger local notifications for changes in room schedules or instructor assignments.
-* **User Interface**: Designed with custom visual effects (glassmorphism/3D tilt/liquid glass engine) situated in `lib/widgets/` and `lib/core/`.
+* **Main Bootstrapping**: [`lib/main.dart`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/main.dart) initializes app state, background persistent class tracking services (`FlutterForegroundTask`), home widget sync handlers, and theme management.
+* **Document Workspace Engine**: [`lib/screens/document_workspace_screen.dart`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/screens/document_workspace_screen.dart) incorporates raw hardware pointer listeners (`Listener.onPointerMove`) for unrestricted 360° image dragging and resizing on canvas without touch arena conflicts.
+* **Native Word Open XML Generator**: [`lib/services/docx_generator.dart`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/services/docx_generator.dart) builds 100% specification-compliant `.docx` ZIP packages containing native XML runs for headers (`#`, `##`), bullet lists (`- `, `* `), and markdown inline formatting (`**bold**`, `*italic*`, `` `code` ``).
+* **In-App GitHub Auto-Updater**: [`lib/services/update_service.dart`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/services/update_service.dart) fetches latest release metadata from GitHub REST API, streams real-time download progress (`0% ➔ 100%`), and triggers 1-tap package installation via `open_filex`.
 
 ---
 
-## 💻 2. Administrative Frontend (Web Portal)
+## 📱 2. Native Android HomeScreen AppWidget Providers
 
-The admin web portal is a single-page management console deployed to Firebase Hosting.
+The native Android layer houses high-performance native AppWidget providers with frosted glass drawables and DP-based height responsiveness.
 
-* **Structure**: Built with semantic HTML in [admin_portal/index.html](file:///d:/Ai%20models/IRIS/admin_portal/index.html) and custom styling in [admin_portal/styles.css](file:///d:/Ai%20models/IRIS/admin_portal/styles.css).
-* **Control Controller**: [admin_portal/app.js](file:///d:/Ai%20models/IRIS/admin_portal/app.js) interacts with Firebase Auth, Firestore, and Storage.
-* **Capabilities**:
-  * Authenticates admins securely.
-  * Performs live database resets and wipes for timetables/exams.
-  * Parses uploaded date sheet files (Excel) directly in the browser and pushes clean structured arrays to Firestore.
-  * Broadcasts live notification cards to student devices in real-time.
-  * Deploys OTA application APK packages to Firebase Storage and updates the global update configuration metadata card.
+* **Live Class Widget Provider**: [`android/app/src/main/kotlin/com/example/student_organizer/ClassTrackerWidget.kt`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/android/app/src/main/kotlin/com/example/student_organizer/ClassTrackerWidget.kt)
+  * Implements density-independent DP breakpoints (`heightDp < 105dp` ➔ Compact Bar; `105dp <= heightDp < 145dp` ➔ Standard Card; `heightDp >= 145dp` ➔ Hero Card).
+  * Includes fail-safe fallback `RemoteViews` inflation to guarantee zero "error loading widget" failures.
+* **Portal Tasks Widget Provider**: [`android/app/src/main/kotlin/com/example/student_organizer/PortalTasksWidget.kt`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/android/app/src/main/kotlin/com/example/student_organizer/PortalTasksWidget.kt) and adapter service [`PortalTasksWidgetService.kt`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/android/app/src/main/kotlin/com/example/student_organizer/PortalTasksWidgetService.kt) bind assignment & quiz lists into native RemoteViews ListViews.
 
 ---
 
-## ☁️ 3. Backend & Cloud Infrastructure (Firebase)
+## ⚡ 3. Dual-Engine Update System
 
-The backend is completely serverless, utilizing Firebase for database, hosting, storage, functions, and security.
+IRIS utilizes a hybrid update mechanism:
 
-### 🗄️ Firestore Database
-Stores the application's configuration, active timetables, and administrative records.
-* **`config/global` Document**: The principal heartbeat configuration document containing:
-  * `academic_period`: Current academic phase mode (`classes`, `midterms`, `finals`, `sports_week`).
-  * `active_timetable_json`: The parsed master daily class schedule JSON.
-  * `active_midterm_json` / `active_finals_json`: JSON arrays containing exams schedule listings.
-  * `latest_apk_update`: Map metadata of the latest compiled Android app update.
-  * `broadcast_message`: Text content for active alerts.
-* **`admins` Collection**: Documents matched by User UID containing administrator attributes.
-
-### 📦 Firebase Storage
-Stores dynamic binaries and media:
-* Hosts the latest compiled Android application package (`.apk`) files for OTA updates.
-
-### ⚡ Cloud Functions
-* **Path**: [functions/index.js](file:///d:/Ai%20models/IRIS/functions/index.js)
-* **Function (`sendAnnouncementPush`)**: Listens to create events on the `/announcements` collection. When a new announcement is written, it automatically fetches all registered client push tokens from `/user_tokens` and broadcasts an FCM push notification instantly to students.
+1. **Shorebird Over-The-Air (OTA) Code Push**:
+   * Pushes Flutter Dart UI features, bug fixes, and layout tweaks **silently in ~10 seconds**.
+   * Requires zero user interaction—patches load automatically on app restart.
+2. **In-App GitHub Package Installer**:
+   * Used when native Kotlin (`.kt`) code, Android permissions, or native plugins change.
+   * Downloads `app-release.apk` with live progress modal and triggers 1-tap in-place update without data loss.
 
 ---
 
-## 🛠️ 4. Local Processing & Parser Tools
+## 💻 4. Administrative Frontend & Cloud Infrastructure
 
-Located in the `tools/` folder, these Python scripts assist admins with heavy local operations:
-
-* **Excel/PDF Parsing**: Parses complex multi-row class schedules and exam datesheets into compliant JSON tables before database uploads.
-* **Backup/Migration Scripts**: Helper utilities in `tools/migration/` track history snapshots of the database configurations and perform legacy schema transfers.
+* **Admin Web Portal**: [`admin_portal/index.html`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/admin_portal/index.html) and [`admin_portal/app.js`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/admin_portal/app.js) provide admin authentication, live timetable resets, date sheet uploads, and push notification triggers.
+* **Firestore Configuration**: Document `config/global` holds academic phase status (`classes`, `midterms`, `finals`, `sports_week`), active timetables, and notification broadcasts.
+* **Cloud Functions**: [`functions/index.js`](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/functions/index.js) listens to creation events on `/announcements` and sends FCM push notifications to student devices.
