@@ -2773,36 +2773,6 @@ function updateEmulatorExams(exams) {
 }
 
 function setup3DTiltEffects() {
-  const slideDeck = document.getElementById('parallax-slide-deck');
-  if (slideDeck) {
-    const layers = slideDeck.querySelectorAll('.parallax-layer');
-    
-    slideDeck.addEventListener('mousemove', e => {
-      const rect = slideDeck.getBoundingClientRect();
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const mouseX = e.clientX - rect.left - centerX;
-      const mouseY = e.clientY - rect.top - centerY;
-      
-      layers.forEach(layer => {
-        const depth = parseFloat(layer.dataset.depth || '0.5');
-        const tx = mouseX * depth * 0.12;
-        const ty = mouseY * depth * 0.12;
-        
-        if (layer.classList.contains('parallax-frame-layer')) {
-          const rx = -mouseY * 0.05;
-          const ry = mouseX * 0.05;
-          layer.style.transform = `translate3d(${tx}px, ${ty}px, 0px) rotateX(${rx}deg) rotateY(${ry}deg)`;
-        } else {
-          layer.style.transform = `translate3d(${tx}px, ${ty}px, 0px)`;
-        }
-      });
-    });
-    
-    slideDeck.addEventListener('mouseleave', () => {
-      layers.forEach(layer => {
-        layer.style.transform = 'translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg)';
-      });
     });
   }
 }

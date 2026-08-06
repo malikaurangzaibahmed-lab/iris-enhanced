@@ -322,28 +322,18 @@ body {
   position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: var(--shadow-prestige);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 1;
-  transform-style: preserve-3d;
-  --rotate-x: 0deg;
-  --rotate-y: 0deg;
-  --translate-y: 0px;
-  transform: perspective(1000px) rotateX(var(--rotate-x)) rotateY(var(--rotate-y)) translateY(var(--translate-y));
-  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.1s ease-out;
-  will-change: transform;
-  overflow: visible; /* ensure pseudo elements are not clipped */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  overflow: hidden;
 }
 
 .tech-card:hover {
-  --translate-y: -4px;
   border-color: var(--border-bright);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), var(--shadow-ambient);
+  box-shadow: var(--shadow-ambient);
   background: var(--bg-card-hover);
 }
 
