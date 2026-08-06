@@ -129,7 +129,8 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
-                views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+                views.setOnClickPendingIntent(R.id.widget_glass_bg, pendingIntent)
+                views.setOnClickPendingIntent(R.id.widget_headline, pendingIntent)
 
                 // Refresh Button Intent
                 val refreshIntent = Intent(context, providerClass).apply {
@@ -146,6 +147,22 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             } catch (e: Exception) {
                 Log.e(TAG, "Widget update error: ${e.message}", e)
+                try {
+                    val fallbackViews = RemoteViews(context.packageName, R.layout.widget_safe)
+                    fallbackViews.setTextViewText(R.id.widget_headline, "IRIS Companion")
+                    fallbackViews.setTextViewText(R.id.widget_time_info, "Tap to open app")
+                    val fallbackIntent = Intent(context, MainActivity::class.java)
+                    val fallbackPending = PendingIntent.getActivity(
+                        context,
+                        appWidgetId + 2001,
+                        fallbackIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    fallbackViews.setOnClickPendingIntent(R.id.widget_glass_bg, fallbackPending)
+                    appWidgetManager.updateAppWidget(appWidgetId, fallbackViews)
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Fallback widget update failed: ${ex.message}", ex)
+                }
             }
         }
 

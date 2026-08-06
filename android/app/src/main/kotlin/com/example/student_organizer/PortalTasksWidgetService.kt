@@ -139,70 +139,18 @@ class PortalTasksRemoteViewsFactory(private val context: Context) : RemoteViewsS
         val layoutId = if (widgetDarkMode) R.layout.widget_portal_task_item_dark else R.layout.widget_portal_task_item
         val views = RemoteViews(context.packageName, layoutId)
 
-        views.setTextViewText(R.id.task_title, task.title)
-        views.setTextViewText(R.id.task_subject, task.subject)
-        views.setTextViewText(R.id.task_due_date, task.due)
+        views.setTextViewText(R.id.task_title_text, task.title)
+        views.setTextViewText(R.id.task_course_tag, task.subject)
+        views.setTextViewText(R.id.task_due_time, if (task.due.isNotEmpty()) task.due else "Due Soon")
+        views.setTextViewText(R.id.task_due_date, "11:59 PM")
 
         val isQuiz = task.type.contains("QUIZ", ignoreCase = true)
         
         // 1. Premium Pill Badge Styling
         if (isQuiz) {
             views.setTextViewText(R.id.task_type_badge, "✦ QUIZ")
-            val badgeColor = if (widgetDarkMode) 0xFFEC4899.toInt() else 0xFFDB2777.toInt()
-            views.setTextColor(R.id.task_type_badge, badgeColor)
         } else {
-            views.setTextViewText(R.id.task_type_badge, "📝 ASSIGNMENT")
-            val badgeColor = if (widgetDarkMode) 0xFF3B82F6.toInt() else 0xFF1D4ED8.toInt()
-            views.setTextColor(R.id.task_type_badge, badgeColor)
-        }
-
-        // 2. Intelligent Contrast-Adjusted Urgency Color Coding
-        val dueStr = task.due.lowercase()
-        var urgencyColor = if (widgetDarkMode) 0xFFBFDBFE.toInt() else 0xFF1E293B.toInt() // Default text color
-        var showUrgentIcon = false
-        var iconColor = urgencyColor
-
-        if (dueStr.contains("overdue")) {
-            urgencyColor = if (widgetDarkMode) 0xFFF87171.toInt() else 0xFFDC2626.toInt() // Overdue = Vivid Red
-            showUrgentIcon = true
-            iconColor = urgencyColor
-        } else if (dueStr.contains("today")) {
-            urgencyColor = if (widgetDarkMode) 0xFFFB923C.toInt() else 0xFFEA580C.toInt() // Today = Neon Orange
-            showUrgentIcon = true
-            iconColor = urgencyColor
-        } else if (dueStr.contains("tomorrow")) {
-            urgencyColor = if (widgetDarkMode) 0xFFFBBF24.toInt() else 0xFFD97706.toInt() // Tomorrow = Amber Gold
-            showUrgentIcon = true
-            iconColor = urgencyColor
-        } else {
-            // Extract the number of days from "Due in X days"
-            val days = task.due.replace("[^0-9]".toRegex(), "").toIntOrNull()
-            if (days != null) {
-                if (days <= 2) {
-                    urgencyColor = if (widgetDarkMode) 0xFFFBBF24.toInt() else 0xFFD97706.toInt() // 2 days = Gold
-                    showUrgentIcon = true
-                    iconColor = urgencyColor
-                } else if (days <= 4) {
-                    urgencyColor = if (widgetDarkMode) 0xFF60A5FA.toInt() else 0xFF2563EB.toInt() // 3-4 days = Soft Sky Blue
-                    showUrgentIcon = false
-                } else {
-                    urgencyColor = if (widgetDarkMode) 0xFF34D399.toInt() else 0xFF059669.toInt() // 5+ days = Emerald Green
-                    showUrgentIcon = false
-                }
-            }
-        }
-
-        views.setTextColor(R.id.task_due_date, urgencyColor)
-
-        if (showUrgentIcon) {
-            views.setViewVisibility(R.id.task_urgent_icon, View.VISIBLE)
-            try {
-                views.setInt(R.id.task_urgent_icon, "setColorFilter", iconColor)
-            } catch (e: Exception) {
-                // Fail-safe
-            }
-        } else {
-            views.setViewVisibility(R.id.task_urgent_icon, View.GONE)
+            views.setTextViewText(R.id.task_type_badge, "ASSIGNMENT")
         }
 
         // Click fills in pending template to open app when item is clicked
