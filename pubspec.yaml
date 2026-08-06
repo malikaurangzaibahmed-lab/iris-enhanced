@@ -54,6 +54,7 @@ dependencies:
   cloud_firestore: ^5.0.0
   firebase_messaging: ^15.0.0
   html: ^0.15.6
+  archive: ^3.6.1
 
 dev_dependencies:
   flutter_test:

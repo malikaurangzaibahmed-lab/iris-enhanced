@@ -12,6 +12,7 @@ import '../core/tokens.dart';
 import '../core/models.dart';
 import '../services/ui_feedback.dart';
 import '../services/cover_page_generator.dart';
+import '../services/docx_generator.dart';
 import '../core/animations.dart';
 
 class StudioBlock {
@@ -488,25 +489,41 @@ Summarize key findings, experimental outcomes, and list project references...
 
     if (format.contains('.docx')) {
       final fileName = '${safeTitle}_$timestamp.docx';
-      final file = File('${dir.path}/$fileName');
+      final filePath = '${dir.path}/$fileName';
       
-      final sb = StringBuffer();
-      sb.writeln('COMSATS UNIVERSITY ISLAMABAD - SAHIWAL CAMPUS');
-      sb.writeln(_deptController.text.toUpperCase());
-      sb.writeln('=' * 60);
-      sb.writeln('${_docType.toUpperCase()}: ${_titleController.text}');
-      sb.writeln('COURSE: ${_courseController.text}');
-      sb.writeln('-' * 60);
-      for (final f in _customCoverFields) {
-        sb.writeln('${f.label}: ${f.value}');
+      CoverPageData? coverData;
+      if (_includeCoverPage) {
+        coverData = await CoverPageData.resolveDefaults(
+          course: _courseController.text,
+          title: _titleController.text,
+          teacher: _authorController.text,
+          type: _docType,
+          department: _deptController.text.isNotEmpty ? _deptController.text : 'Department of Computer Science',
+        );
+        if (_customCoverFields.isNotEmpty) {
+          coverData.customFields = List.from(_customCoverFields);
+        }
       }
-      sb.writeln('=' * 60);
-      sb.writeln('\nDOCUMENT CONTENT:\n');
-      sb.writeln(docText);
-      
-      await file.writeAsString(sb.toString());
+
+      StringBuffer fullBody = StringBuffer(docText);
+      if (_floatingBlocks.isNotEmpty) {
+        fullBody.writeln('\n\n---');
+        fullBody.writeln('### ADDITIONAL NOTES & CALLOUTS');
+        for (final block in _floatingBlocks) {
+          if (block.controller.text.trim().isNotEmpty) {
+            fullBody.writeln('* ${block.type.toUpperCase()}: ${block.controller.text.trim()}');
+          }
+        }
+      }
+
+      final file = await DocxGenerator.generateDocx(
+        filePath: filePath,
+        markdownBody: fullBody.toString(),
+        coverData: coverData,
+      );
+
       IrisHaptics.actionHeavy();
-      showIrisFrostedSnackBar(context, content: Text('Word Document exported: $fileName'));
+      showIrisFrostedSnackBar(context, content: Text('Native Word Document exported: $fileName'));
       await OpenFilex.open(file.path);
     } else if (format.contains('.txt')) {
       final fileName = '${safeTitle}_$timestamp.txt';
@@ -941,12 +958,10 @@ Summarize key findings, experimental outcomes, and list project references...
         } catch (_) {
           text = 'Converted Document: ${_pickedFile!.name}\nFile Size: ${_formatBytes(_pickedFile!.size)}';
         }
-        final sb = StringBuffer();
-        sb.writeln('CONVERTED DOCUMENT - IRIS STUDIO');
-        sb.writeln('Source: ${_pickedFile!.name}');
-        sb.writeln('=' * 60);
-        sb.writeln(text);
-        await File(outPath).writeAsString(sb.toString());
+        await DocxGenerator.generateDocx(
+          filePath: outPath,
+          markdownBody: text,
+        );
 
       } else if (_targetFormat.contains('.txt')) {
         outPath = '${dir.path}/${baseName}_converted_$timestamp.txt';
