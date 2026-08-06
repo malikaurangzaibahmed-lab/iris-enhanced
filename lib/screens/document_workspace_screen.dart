@@ -1872,116 +1872,120 @@ Summarize key findings, experimental outcomes, and list project references...
                           return Positioned(
                             left: image.offset.dx,
                             top: image.offset.dy,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // MS Word Style Quick Action Toolbar above Image
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                  margin: const EdgeInsets.only(bottom: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xEE1E293B),
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // Drag Icon
-                                      const Icon(Icons.drag_indicator_rounded, size: 13, color: Colors.white70),
-                                      const SizedBox(width: 4),
-                                      // Insert In-Line with Text Button
-                                      GestureDetector(
-                                        onTap: () {
-                                          final imageName = image.file.name;
-                                          final tag = '\n\n![Image Attachment: $imageName](${image.file.path ?? "Asset"})\n\n';
-                                          final pos = _editorController.selection.baseOffset;
-                                          if (pos >= 0 && pos <= _editorController.text.length) {
-                                            final txt = _editorController.text;
-                                            _editorController.text = txt.substring(0, pos) + tag + txt.substring(pos);
-                                          } else {
-                                            _editorController.text += tag;
-                                          }
-                                          IrisHaptics.actionSoft();
-                                          _saveDraftDocument();
-                                          showIrisFrostedSnackBar(context, content: const Text('📌 Image placed in-line within text stream!'));
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF2B579A),
-                                            borderRadius: BorderRadius.circular(4),
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onPanUpdate: (details) {
+                                setState(() {
+                                  image.offset = Offset(
+                                    math.max(0.0, image.offset.dx + details.delta.dx),
+                                    math.max(0.0, image.offset.dy + details.delta.dy),
+                                  );
+                                });
+                                _saveDraftDocument();
+                              },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // MS Word Style Quick Action Toolbar above Image
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                    margin: const EdgeInsets.only(bottom: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xEE1E293B),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Drag Handle
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 2),
+                                          child: Icon(Icons.drag_indicator_rounded, size: 14, color: Colors.white),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        // Insert In-Line with Text Button
+                                        GestureDetector(
+                                          onTap: () {
+                                            final imageName = image.file.name;
+                                            final tag = '\n\n![Image Attachment: $imageName](${image.file.path ?? "Asset"})\n\n';
+                                            final pos = _editorController.selection.baseOffset;
+                                            if (pos >= 0 && pos <= _editorController.text.length) {
+                                              final txt = _editorController.text;
+                                              _editorController.text = txt.substring(0, pos) + tag + txt.substring(pos);
+                                            } else {
+                                              _editorController.text += tag;
+                                            }
+                                            IrisHaptics.actionSoft();
+                                            _saveDraftDocument();
+                                            showIrisFrostedSnackBar(context, content: const Text('📌 Image placed in-line within text stream!'));
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF2B579A),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: const Row(
+                                              children: [
+                                                Icon(Icons.notes_rounded, size: 10, color: Colors.white),
+                                                SizedBox(width: 3),
+                                                Text('In-Line Text', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                                              ],
+                                            ),
                                           ),
-                                          child: const Row(
-                                            children: [
-                                              Icon(Icons.notes_rounded, size: 10, color: Colors.white),
-                                              SizedBox(width: 3),
-                                              Text('In-Line Text', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
-                                            ],
+                                        ),
+                                        const SizedBox(width: 4),
+                                        // Align Left
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() => image.offset = Offset(20, image.offset.dy));
+                                            IrisHaptics.actionSoft();
+                                          },
+                                          child: const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 3),
+                                            child: Icon(Icons.format_align_left_rounded, size: 13, color: Colors.white),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      // Align Left
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() => image.offset = Offset(20, image.offset.dy));
-                                          IrisHaptics.actionSoft();
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 3),
-                                          child: Icon(Icons.format_align_left_rounded, size: 13, color: Colors.white),
+                                        // Align Center
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() => image.offset = Offset(160, image.offset.dy));
+                                            IrisHaptics.actionSoft();
+                                          },
+                                          child: const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 3),
+                                            child: Icon(Icons.format_align_center_rounded, size: 13, color: Colors.white),
+                                          ),
                                         ),
-                                      ),
-                                      // Align Center
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() => image.offset = Offset(160, image.offset.dy));
-                                          IrisHaptics.actionSoft();
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 3),
-                                          child: Icon(Icons.format_align_center_rounded, size: 13, color: Colors.white),
+                                        // Align Right
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() => image.offset = Offset(280, image.offset.dy));
+                                            IrisHaptics.actionSoft();
+                                          },
+                                          child: const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 3),
+                                            child: Icon(Icons.format_align_right_rounded, size: 13, color: Colors.white),
+                                          ),
                                         ),
-                                      ),
-                                      // Align Right
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() => image.offset = Offset(280, image.offset.dy));
-                                          IrisHaptics.actionSoft();
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 3),
-                                          child: Icon(Icons.format_align_right_rounded, size: 13, color: Colors.white),
+                                        const SizedBox(width: 4),
+                                        // Close / Delete
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() => _attachedImages.removeWhere((img) => img.id == image.id));
+                                            IrisHaptics.actionSoft();
+                                            _saveDraftDocument();
+                                          },
+                                          child: const Icon(Icons.close_rounded, size: 13, color: Colors.redAccent),
                                         ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      // Close / Delete
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() => _attachedImages.removeWhere((img) => img.id == image.id));
-                                          IrisHaptics.actionSoft();
-                                          _saveDraftDocument();
-                                        },
-                                        child: const Icon(Icons.close_rounded, size: 13, color: Colors.redAccent),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
 
-                                // Draggable Container
-                                GestureDetector(
-                                  onPanUpdate: (details) {
-                                    setState(() {
-                                      image.offset = Offset(
-                                        math.max(0.0, image.offset.dx + details.delta.dx),
-                                        math.max(0.0, image.offset.dy + details.delta.dy),
-                                      );
-                                    });
-                                    _saveDraftDocument();
-                                  },
-                                  child: Stack(
+                                  // Image Canvas Stack
+                                  Stack(
                                     clipBehavior: Clip.none,
                                     children: [
                                       Container(
@@ -2006,7 +2010,7 @@ Summarize key findings, experimental outcomes, and list project references...
                                         ),
                                       ),
 
-                                      // MS Word 4 Corner Blue Resize Handles
+                                      // Corner Resizers
                                       Positioned(
                                         left: -5,
                                         top: -5,
@@ -2022,11 +2026,12 @@ Summarize key findings, experimental outcomes, and list project references...
                                         bottom: -5,
                                         child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF2B579A), shape: BoxShape.circle)),
                                       ),
-                                      // Bottom Right Resizer Handle with Drag gesture
+                                      // Bottom Right Active Resizer Handle
                                       Positioned(
-                                        right: -8,
-                                        bottom: -8,
+                                        right: -10,
+                                        bottom: -10,
                                         child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
                                           onPanUpdate: (details) {
                                             setState(() {
                                               image.width = math.max(80.0, image.width + details.delta.dx);
@@ -2035,22 +2040,22 @@ Summarize key findings, experimental outcomes, and list project references...
                                             _saveDraftDocument();
                                           },
                                           child: Container(
-                                            width: 18,
-                                            height: 18,
+                                            width: 22,
+                                            height: 22,
                                             decoration: BoxDecoration(
                                               color: const Color(0xFF2B579A),
                                               shape: BoxShape.circle,
-                                              border: Border.all(color: Colors.white, width: 1.5),
+                                              border: Border.all(color: Colors.white, width: 2.0),
                                               boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
                                             ),
-                                            child: const Icon(Icons.aspect_ratio_rounded, size: 10, color: Colors.white),
+                                            child: const Icon(Icons.aspect_ratio_rounded, size: 12, color: Colors.white),
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         }),
