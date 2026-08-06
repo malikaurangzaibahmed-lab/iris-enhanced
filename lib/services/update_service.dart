@@ -29,7 +29,10 @@ class UpdateService {
 
   static Future<UpdateReleaseInfo?> checkLatestRelease(String currentVersion) async {
     try {
-      final response = await http.get(Uri.parse(githubApiUrl)).timeout(const Duration(seconds: 8));
+      final response = await http.get(
+        Uri.parse(githubApiUrl),
+        headers: {'User-Agent': 'IRIS-App/1.0'},
+      ).timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final tag = data['tag_name'] as String? ?? '';
@@ -109,55 +112,61 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
     setState(() {
       _isDownloading = true;
       _progress = 0.0;
-      _statusMessage = 'Downloading update package...';
+      _statusMessage = 'Connecting to download server...';
     });
 
     try {
-      final client = http.Client();
-      final request = http.Request('GET', Uri.parse(widget.info.downloadUrl));
-      final response = await client.send(request);
-
-      final totalBytes = response.contentLength ?? widget.info.fileSize;
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/iris_update_${widget.info.tagName}.apk');
+      if (file.existsSync()) {
+        try {
+          file.deleteSync();
+        } catch (_) {}
+      }
+
+      final ioClient = HttpClient();
+      ioClient.autoUncompress = true;
+      ioClient.connectionTimeout = const Duration(seconds: 15);
+
+      final req = await ioClient.getUrl(Uri.parse(widget.info.downloadUrl));
+      req.headers.set(HttpHeaders.userAgentHeader, 'Mozilla/5.0 (Android; Mobile; IRIS-App)');
+      req.followRedirects = true;
+      req.maxRedirects = 10;
+
+      final resp = await req.close();
+
+      if (resp.statusCode != 200) {
+        throw 'Server returned status ${resp.statusCode}';
+      }
+
+      final totalBytes = resp.contentLength > 0 ? resp.contentLength : widget.info.fileSize;
       final sink = file.openWrite();
-
       int downloadedBytes = 0;
-      final completer = Completer<void>();
 
-      response.stream.listen(
-        (chunk) {
-          downloadedBytes += chunk.length;
-          sink.add(chunk);
-          if (totalBytes > 0) {
-            setState(() {
-              _progress = (downloadedBytes / totalBytes).clamp(0.0, 1.0);
-              _statusMessage = 'Downloading: ${(_progress * 100).toStringAsFixed(1)}%';
-            });
-          }
-        },
-        onDone: () async {
-          await sink.close();
-          client.close();
-          completer.complete();
-        },
-        onError: (e) {
-          sink.close();
-          client.close();
-          completer.completeError(e);
-        },
-        cancelOnError: true,
-      );
+      await for (final chunk in resp) {
+        downloadedBytes += chunk.length;
+        sink.add(chunk);
+        if (totalBytes > 0 && mounted) {
+          setState(() {
+            _progress = (downloadedBytes / totalBytes).clamp(0.0, 1.0);
+            _statusMessage = 'Downloading: ${(_progress * 100).toStringAsFixed(1)}%';
+          });
+        }
+      }
 
-      await completer.future;
+      await sink.flush();
+      await sink.close();
+      ioClient.close();
 
-      setState(() {
-        _progress = 1.0;
-        _statusMessage = 'Download complete! Opening package installer...';
-      });
+      if (mounted) {
+        setState(() {
+          _progress = 1.0;
+          _statusMessage = 'Download complete! Launching package installer...';
+        });
+      }
 
       IrisHaptics.actionHeavy();
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 400));
       if (mounted) Navigator.of(context).pop();
 
       await OpenFilex.open(
@@ -168,9 +177,12 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
       if (mounted) {
         setState(() {
           _isDownloading = false;
-          _statusMessage = 'Download failed. Please try again.';
+          _statusMessage = 'Download interrupted. Tap to retry.';
         });
-        showIrisFrostedSnackBar(context, content: Text('Download failed: $e'));
+        showIrisFrostedSnackBar(
+          context,
+          content: const Text('Download interrupted. Please check network connection and try again.'),
+        );
       }
     }
   }
@@ -216,7 +228,7 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Update Available',
+                            'IRIS Upgrade Available',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,

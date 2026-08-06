@@ -52,6 +52,7 @@ class DocumentWorkspaceScreen extends StatefulWidget {
 
 class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isDraggingImage = false;
   
   // Document Maker Wizard State
   bool _hasActiveDocument = false;
@@ -953,10 +954,23 @@ Summarize key findings, experimental outcomes, and list project references...
       } else if (_targetFormat.contains('.docx')) {
         outPath = '${dir.path}/${baseName}_converted_$timestamp.docx';
         String text = '';
-        try {
-          text = await file.readAsString();
-        } catch (_) {
-          text = 'Converted Document: ${_pickedFile!.name}\nFile Size: ${_formatBytes(_pickedFile!.size)}';
+        if (ext == 'pdf') {
+          try {
+            final sourceBytes = await file.readAsBytes();
+            final sourceDoc = PdfDocument(inputBytes: sourceBytes);
+            final extractor = PdfTextExtractor(sourceDoc);
+            text = extractor.extractText();
+            sourceDoc.dispose();
+          } catch (e) {
+            debugPrint('Pdf text extraction error: $e');
+          }
+        }
+        if (text.trim().isEmpty) {
+          try {
+            text = await file.readAsString();
+          } catch (_) {
+            text = 'Document Title: ${_pickedFile!.name}\nFile Size: ${_formatBytes(_pickedFile!.size)}';
+          }
         }
         await DocxGenerator.generateDocx(
           filePath: outPath,
@@ -966,10 +980,23 @@ Summarize key findings, experimental outcomes, and list project references...
       } else if (_targetFormat.contains('.txt')) {
         outPath = '${dir.path}/${baseName}_converted_$timestamp.txt';
         String text = '';
-        try {
-          text = await file.readAsString();
-        } catch (_) {
-          text = 'Source File: ${_pickedFile!.name}\nFormat: ${ext.toUpperCase()}\nSize: ${_formatBytes(_pickedFile!.size)}';
+        if (ext == 'pdf') {
+          try {
+            final sourceBytes = await file.readAsBytes();
+            final sourceDoc = PdfDocument(inputBytes: sourceBytes);
+            final extractor = PdfTextExtractor(sourceDoc);
+            text = extractor.extractText();
+            sourceDoc.dispose();
+          } catch (e) {
+            debugPrint('Pdf text extraction error: $e');
+          }
+        }
+        if (text.trim().isEmpty) {
+          try {
+            text = await file.readAsString();
+          } catch (_) {
+            text = 'Source Document: ${_pickedFile!.name}\nFormat: ${ext.toUpperCase()}\nSize: ${_formatBytes(_pickedFile!.size)}';
+          }
         }
         await File(outPath).writeAsString(text);
 
@@ -1644,7 +1671,7 @@ Summarize key findings, experimental outcomes, and list project references...
             color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0), // Desk surface background
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-              physics: const BouncingScrollPhysics(),
+              physics: _isDraggingImage ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
               child: Column(
                 children: [
                   // A4 Ruler Header Line
@@ -1929,8 +1956,24 @@ Summarize key findings, experimental outcomes, and list project references...
                             left: image.offset.dx,
                             top: image.offset.dy,
                             child: Listener(
+                              onPointerDown: (_) {
+                                if (!_isDraggingImage) {
+                                  setState(() => _isDraggingImage = true);
+                                }
+                              },
+                              onPointerUp: (_) {
+                                if (_isDraggingImage) {
+                                  setState(() => _isDraggingImage = false);
+                                }
+                              },
+                              onPointerCancel: (_) {
+                                if (_isDraggingImage) {
+                                  setState(() => _isDraggingImage = false);
+                                }
+                              },
                               onPointerMove: (event) {
                                 setState(() {
+                                  _isDraggingImage = true;
                                   image.offset = Offset(
                                     math.max(0.0, image.offset.dx + event.delta.dx),
                                     math.max(0.0, image.offset.dy + event.delta.dy),
