@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../core/tokens.dart';
 import '../services/ui_feedback.dart';
 
@@ -123,8 +123,9 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
       final sink = file.openWrite();
 
       int downloadedBytes = 0;
+      final completer = Completer<void>();
 
-      await response.stream.listen(
+      response.stream.listen(
         (chunk) {
           downloadedBytes += chunk.length;
           sink.add(chunk);
@@ -138,38 +139,39 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
         onDone: () async {
           await sink.close();
           client.close();
-
-          setState(() {
-            _progress = 1.0;
-            _statusMessage = 'Download complete! Opening package installer...';
-          });
-
-          IrisHaptics.actionHeavy();
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (mounted) Navigator.of(context).pop();
-
-          await OpenFilex.open(
-            file.path,
-            type: "application/vnd.android.package-archive",
-          );
+          completer.complete();
         },
         onError: (e) {
           sink.close();
           client.close();
-          setState(() {
-            _isDownloading = false;
-            _statusMessage = 'Download failed. Please try again.';
-          });
-          showIrisFrostedSnackBar(context, content: Text('Download failed: $e'));
+          completer.completeError(e);
         },
         cancelOnError: true,
       );
-    } catch (e) {
+
+      await completer.future;
+
       setState(() {
-        _isDownloading = false;
-        _statusMessage = 'Error starting download.';
+        _progress = 1.0;
+        _statusMessage = 'Download complete! Opening package installer...';
       });
-      showIrisFrostedSnackBar(context, content: Text('Update error: $e'));
+
+      IrisHaptics.actionHeavy();
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) Navigator.of(context).pop();
+
+      await OpenFilex.open(
+        file.path,
+        type: "application/vnd.android.package-archive",
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _statusMessage = 'Download failed. Please try again.';
+        });
+        showIrisFrostedSnackBar(context, content: Text('Download failed: $e'));
+      }
     }
   }
 
@@ -180,139 +182,146 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: lgw.LiquidGlassContainer(
-        color: isDark ? Colors.black.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.85),
-        blur: 24,
-        borderWidth: 1.5,
-        borderColor: isDark ? Colors.white24 : Colors.white70,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: IrisTokens.brand.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.system_update_rounded, color: IrisTokens.brand, size: 28),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Update Available',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        Text(
-                          'Version ${widget.info.tagName}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: IrisTokens.brand,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.black.withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.88),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: isDark ? Colors.white24 : Colors.white.withValues(alpha: 0.7),
+                width: 1.5,
               ),
-              const SizedBox(height: 16),
-              Text(
-                'What\'s New:',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white70 : Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                maxHeight: 120,
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    widget.info.releaseNotes,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.4,
-                      color: isDark ? Colors.white90 : Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (_isDownloading) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: _progress,
-                    minHeight: 8,
-                    backgroundColor: isDark ? Colors.white12 : Colors.black12,
-                    valueColor: AlwaysStoppedAnimation<Color>(IrisTokens.brand),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  _statusMessage,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : Colors.black67,
-                  ),
-                ),
-              ] else ...[
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Row(
                   children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(
-                          'Later',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white54 : Colors.black45,
-                          ),
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: IrisTokens.brand.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
                       ),
+                      child: Icon(Icons.system_update_rounded, color: IrisTokens.brand, size: 28),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: _startDownloadAndInstall,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: IrisTokens.brand,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        child: const Text(
-                          'Update Now',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Update Available',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            'Version ${widget.info.tagName}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: IrisTokens.brand,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                Text(
+                  'What\'s New:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 120),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      widget.info.releaseNotes,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (_isDownloading) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: _progress,
+                      minHeight: 8,
+                      backgroundColor: isDark ? Colors.white12 : Colors.black12,
+                      valueColor: AlwaysStoppedAnimation<Color>(IrisTokens.brand),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _statusMessage,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.67),
+                    ),
+                  ),
+                ] else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            'Later',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white54 : Colors.black45,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: _startDownloadAndInstall,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: IrisTokens.brand,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: const Text(
+                            'Update Now',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
