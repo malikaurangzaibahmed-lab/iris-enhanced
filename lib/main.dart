@@ -66,33 +66,59 @@ part 'screens/tools_screen_part.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase init fallback: $e');
+  }
 
-  // Initialize Smart Optimization Layer
-  await AppConfig().initialize();
-  ErrorHandler.setupErrorHandling();
-  ImageCacheManager.optimizeImageCache();
+  try {
+    await AppConfig().initialize();
+    ErrorHandler.setupErrorHandling();
+    ImageCacheManager.optimizeImageCache();
+  } catch (e) {
+    debugPrint('AppConfig init error: $e');
+  }
 
-  tz.initializeTimeZones();
-  FlutterForegroundTask.init(
-    androidNotificationOptions: AndroidNotificationOptions(
-      channelId: 'persistent_class_foreground',
-      channelName: 'Nexsync Class Tracker',
-      channelDescription: 'Shows your current and upcoming classes',
-    ),
-    iosNotificationOptions: const IOSNotificationOptions(
-      showNotification: false,
-    ),
-    foregroundTaskOptions: ForegroundTaskOptions(
-      eventAction: ForegroundTaskEventAction.repeat(30000),
-      autoRunOnBoot: true,
-      autoRunOnMyPackageReplaced: true,
-      allowWakeLock: true,
-    ),
-  );
-  await LiquidGlassWidgets.initialize();
-  await IrisSfx.init();
-  await IrisHaptics.init();
+  try {
+    tz.initializeTimeZones();
+  } catch (e) {
+    debugPrint('Timezone init error: $e');
+  }
+
+  try {
+    FlutterForegroundTask.init(
+      androidNotificationOptions: AndroidNotificationOptions(
+        channelId: 'persistent_class_foreground',
+        channelName: 'Nexsync Class Tracker',
+        channelDescription: 'Shows your current and upcoming classes',
+      ),
+      iosNotificationOptions: const IOSNotificationOptions(
+        showNotification: false,
+      ),
+      foregroundTaskOptions: ForegroundTaskOptions(
+        eventAction: ForegroundTaskEventAction.repeat(30000),
+        autoRunOnBoot: true,
+        autoRunOnMyPackageReplaced: true,
+        allowWakeLock: true,
+      ),
+    );
+  } catch (e) {
+    debugPrint('Foreground task init error: $e');
+  }
+
+  try {
+    await LiquidGlassWidgets.initialize();
+  } catch (e) {
+    debugPrint('LiquidGlassWidgets init error: $e');
+  }
+
+  try {
+    await IrisSfx.init();
+    await IrisHaptics.init();
+  } catch (e) {
+    debugPrint('UI feedback init error: $e');
+  }
   
   runApp(ErrorBoundary(
     child: LiquidGlassWidgets.wrap(
