@@ -43,16 +43,20 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     prefs = context.getSharedPreferences(PREFS_NAMES[0], Context.MODE_PRIVATE)
                 }
 
+                val activeRole = prefs.getString("flutter.active_role", "") ?: ""
+                val isFaculty = activeRole.equals("Faculty", ignoreCase = true) || activeRole.equals("Teacher", ignoreCase = true)
+
                 val subject = prefs.getString("flutter.widget_subject", "")?.takeIf { it.isNotEmpty() }
                     ?: prefs.getString("flutter.current_class_subject", "")?.takeIf { it.isNotEmpty() }
-                    ?: prefs.getString("flutter.widget_headline", "System Idle")
-                    ?: "System Idle"
+                    ?: prefs.getString("flutter.widget_headline", if (isFaculty) "Faculty Schedule" else "System Idle")
+                    ?: if (isFaculty) "Faculty Schedule" else "System Idle"
 
                 val rawRoom = prefs.getString("flutter.widget_room", "")?.takeIf { it.isNotEmpty() }
                     ?: prefs.getString("flutter.current_class_room", "")?.takeIf { it.isNotEmpty() }
                     ?: ""
 
                 val teacher = prefs.getString("flutter.current_class_teacher", "") ?: ""
+                val batch = prefs.getString("flutter.widget_batch", "") ?: ""
                 val progressPercent = prefs.getInt("flutter.progress_percentage", 0).coerceIn(0, 100)
                 val timeInfo = prefs.getString("flutter.time_info", "--") ?: "--"
                 val isLive = prefs.getBoolean("flutter.is_class_live", false)
@@ -69,10 +73,6 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 val bgRes = if (widgetDarkMode) R.drawable.widget_bg_dark_v2 else R.drawable.widget_bg_light_v2
                 views.setImageViewResource(R.id.widget_glass_bg, bgRes)
 
-                // DP-based Breakpoints:
-                // heightDp < 105: Ultra-compact bar view (2x1 grid size)
-                // 105 <= heightDp < 145: Standard card view (4x2 grid size, teacher card hidden to prevent bottom clipping)
-                // heightDp >= 145: Full hero view with teacher card
                 val isCompact = heightDp < 105
                 val showTeacherCard = heightDp >= 145
 
@@ -85,9 +85,9 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_compact_time, timeInfo)
 
                     if (isLive) {
-                        views.setTextViewText(R.id.widget_compact_badge, "LIVE")
+                        views.setTextViewText(R.id.widget_compact_badge, if (isFaculty) "TEACHING" else "LIVE")
                     } else {
-                        views.setTextViewText(R.id.widget_compact_badge, "NEXT")
+                        views.setTextViewText(R.id.widget_compact_badge, if (isFaculty) "LECTURE" else "NEXT")
                     }
                 } else {
                     views.setViewVisibility(R.id.widget_compact_container, View.GONE)
@@ -98,11 +98,11 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_time_info, timeInfo)
 
                     if (isLive) {
-                        views.setTextViewText(R.id.widget_status_badge, "● LIVE CLASS")
+                        views.setTextViewText(R.id.widget_status_badge, if (isFaculty) "● TEACHING NOW" else "● LIVE CLASS")
                         views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
                         views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
                     } else {
-                        views.setTextViewText(R.id.widget_status_badge, "NEXT CLASS")
+                        views.setTextViewText(R.id.widget_status_badge, if (isFaculty) "NEXT LECTURE" else "NEXT CLASS")
                         views.setViewVisibility(R.id.widget_progress, View.GONE)
                     }
 
@@ -117,7 +117,11 @@ class ClassTrackerWidget : AppWidgetProvider() {
                         views.setTextViewText(R.id.widget_details_start_time, startTime)
                     }
 
-                    if (teacher.isNotEmpty() && showTeacherCard) {
+                    if (isFaculty) {
+                        val classInfoText = if (batch.isNotEmpty()) "Class: $batch" else "Faculty Schedule"
+                        views.setTextViewText(R.id.widget_teacher_name, classInfoText)
+                        views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
+                    } else if (teacher.isNotEmpty() && showTeacherCard) {
                         views.setTextViewText(R.id.widget_teacher_name, teacher)
                         views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
                     } else {
