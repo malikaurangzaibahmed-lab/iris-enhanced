@@ -108,6 +108,7 @@ flutter:
     - assets/ui_sfx_pack/
     - assets/helpdesk_backup/
     - assets/faculty_images/
+    - shorebird.yaml
 
   # To add assets to your application, add an assets section, like this:
   # assets:
