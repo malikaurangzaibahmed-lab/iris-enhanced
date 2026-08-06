@@ -45,7 +45,7 @@ class DocxGenerator {
     final zipBytes = zipEncoder.encode(archive);
 
     final file = File(filePath);
-    await file.writeAsBytes(zipBytes);
+    await file.writeAsBytes(zipBytes!);
     return file;
   }
 

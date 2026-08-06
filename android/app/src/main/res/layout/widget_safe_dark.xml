@@ -15,29 +15,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="8dp">
 
-        <!-- Top Bar Badge & Refresh -->
+        <!-- Header Status Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="6dp">
+            android:layout_marginBottom="4dp">
 
             <TextView
                 android:id="@+id/widget_status_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="NEXT CLASS"
-                android:textSize="9.5sp"
+                android:textSize="9sp"
                 android:textStyle="bold"
-                android:textColor="#FF60A5FA"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:background="@drawable/widget_pill_badge_dark" />
+                android:textColor="#60A5FA"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:background="@drawable/widget_pill_badge" />
 
             <FrameLayout
                 android:layout_width="0dp"
@@ -49,58 +49,50 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="↻"
-                android:textSize="17sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="#E2E8F0"
-                android:padding="4dp" />
+                android:textColor="#F8FAFC"
+                android:padding="2dp" />
         </LinearLayout>
 
-        <!-- Uppercase State Indicator -->
+        <!-- Uppercase Category Label -->
         <TextView
             android:id="@+id/widget_state_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="TIMETABLE INSIGHT"
-            android:textColor="#CBD5E1"
-            android:textSize="10.5sp"
+            android:textColor="#94A3B8"
+            android:textSize="9.5sp"
             android:textStyle="bold"
-            android:letterSpacing="0.08"
-            android:shadowColor="#CC000000"
-            android:shadowDx="0"
-            android:shadowDy="1"
-            android:shadowRadius="3"
-            android:layout_marginBottom="4dp" />
+            android:letterSpacing="0.06"
+            android:layout_marginBottom="2dp" />
 
-        <!-- Bold Class Title (Subject) -->
+        <!-- Bold Class Title -->
         <TextView
             android:id="@+id/widget_headline"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="OBJECT ORIENTED PROGRAMMING"
-            android:textColor="#FFFFFF"
-            android:textSize="16.5sp"
+            android:textColor="#F8FAFC"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:maxLines="2"
+            android:maxLines="1"
             android:ellipsize="end"
-            android:shadowColor="#E6000000"
-            android:shadowDx="0"
-            android:shadowDy="1"
-            android:shadowRadius="4"
-            android:layout_marginBottom="6dp" />
+            android:layout_marginBottom="4dp" />
 
-        <!-- Intermediate Capsule (Time and Location) -->
+        <!-- Details Capsule (Start Time & Room) -->
         <LinearLayout
             android:id="@+id/widget_class_details_capsule"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/widget_details_capsule_dark"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:layout_marginBottom="6dp">
+            android:background="@drawable/widget_details_capsule"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:layout_marginBottom="4dp">
 
             <TextView
                 android:id="@+id/widget_details_start_time"
@@ -108,21 +100,21 @@
                 android:layout_height="wrap_content"
                 android:text="8:00 AM"
                 android:textColor="#F8FAFC"
-                android:textSize="11.5sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
 
             <FrameLayout
                 android:id="@+id/widget_details_divider"
-                android:layout_width="1.2dp"
-                android:layout_height="12dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
+                android:layout_width="1dp"
+                android:layout_height="10dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
                 android:background="#64748B" />
 
             <ImageView
                 android:id="@+id/widget_details_loc_icon"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
                 android:layout_marginRight="4dp"
                 android:src="@drawable/widget_ic_loc" />
 
@@ -132,11 +124,11 @@
                 android:layout_height="wrap_content"
                 android:text="Room C1.2"
                 android:textColor="#F8FAFC"
-                android:textSize="11.5sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Translucent Teacher sub-card -->
+        <!-- Instructor Card -->
         <LinearLayout
             android:id="@+id/widget_teacher_card"
             android:layout_width="match_parent"
@@ -144,14 +136,14 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/widget_translucent_subcard"
-            android:padding="8dp"
-            android:layout_marginBottom="6dp">
+            android:padding="6dp"
+            android:layout_marginBottom="4dp">
 
             <ImageView
                 android:id="@+id/widget_teacher_avatar"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginRight="10dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginRight="8dp"
                 android:src="@drawable/widget_ic_teacher_avatar" />
 
             <LinearLayout
@@ -165,18 +157,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="INSTRUCTOR"
-                    android:textColor="#A855F7"
-                    android:textSize="8.5sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.06" />
+                    android:textColor="#C084FC"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/widget_teacher_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Mr. Hamza Arif"
+                    android:text="Instructor Name"
                     android:textColor="#F8FAFC"
-                    android:textSize="12.5sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:singleLine="true"
                     android:ellipsize="end" />
@@ -188,18 +179,19 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Bottom Countdown and Progress -->
+        <!-- Progress Bar -->
         <ProgressBar
             android:id="@+id/widget_progress"
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:progressDrawable="@drawable/widget_progress"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
+            android:layout_height="4dp"
             android:max="100"
             android:progress="0"
             android:visibility="gone"
-            android:layout_marginBottom="6dp" />
+            android:layout_marginBottom="4dp" />
 
+        <!-- Footer Time Info -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -208,9 +200,9 @@
 
             <ImageView
                 android:id="@+id/widget_clock_icon"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_marginRight="6dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="4dp"
                 android:src="@drawable/widget_ic_clock" />
 
             <TextView
@@ -218,13 +210,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Starts in 15 mins"
-                android:textColor="#38BDF8"
+                android:textColor="#93C5FD"
                 android:textStyle="bold"
-                android:textSize="12.5sp"
-                android:shadowColor="#E6000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
+                android:textSize="11.5sp"
                 android:singleLine="true"
                 android:ellipsize="end" />
         </LinearLayout>
