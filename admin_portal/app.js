@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logTerminal(`Initialization error: ${err.message}`, 'error');
   }
 
+  setupThemeToggle();
   setupDragAndDrop();
   setupUIHandlers();
   setup3DTiltEffects();
@@ -3455,4 +3456,39 @@ function setupGlassShaderEffects() {
 
   // Launch loop
   requestAnimationFrame(updatePhysicsAndRender);
+}
+
+// Seamless Light/Dark Theme Switcher Engine
+function setupThemeToggle() {
+  const btnThemeToggle = document.getElementById('btn-theme-toggle');
+  const savedTheme = localStorage.getItem('admin_portal_theme') || 'dark';
+  
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+
+  if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('admin_portal_theme', newTheme);
+      updateThemeIcon(newTheme);
+      logTerminal(`UI Theme toggled to ${newTheme.toUpperCase()} mode.`, 'info');
+    });
+  }
+}
+
+function updateThemeIcon(theme) {
+  const btnThemeToggle = document.getElementById('btn-theme-toggle');
+  if (btnThemeToggle) {
+    const icon = btnThemeToggle.querySelector('i');
+    if (icon) {
+      if (theme === 'light') {
+        icon.className = 'fa-solid fa-moon';
+      } else {
+        icon.className = 'fa-solid fa-sun';
+      }
+    }
+  }
 }
