@@ -1176,6 +1176,7 @@ Summarize key findings, experimental outcomes, and list project references...
             Expanded(
               child: TabBarView(
                 controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
                   // Tab 1: Document Maker
                   _buildDocMakerTab(isDark),
@@ -1855,15 +1856,6 @@ Summarize key findings, experimental outcomes, and list project references...
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 20),
-                                const Divider(height: 1),
-                                const SizedBox(height: 20),
-                              ],
-
-                              // Main WYSIWYG Document Editor Text Field
-                              TextField(
-                                controller: _editorController,
-                                maxLines: null,
                                 keyboardType: TextInputType.multiline,
                                 style: TextStyle(fontSize: 14, height: 1.6, color: paperText),
                                 decoration: InputDecoration(
@@ -2129,8 +2121,24 @@ Summarize key findings, experimental outcomes, and list project references...
                                         right: -10,
                                         bottom: -10,
                                         child: Listener(
+                                          onPointerDown: (_) {
+                                            if (!_isDraggingImage) {
+                                              setState(() => _isDraggingImage = true);
+                                            }
+                                          },
+                                          onPointerUp: (_) {
+                                            if (_isDraggingImage) {
+                                              setState(() => _isDraggingImage = false);
+                                            }
+                                          },
+                                          onPointerCancel: (_) {
+                                            if (_isDraggingImage) {
+                                              setState(() => _isDraggingImage = false);
+                                            }
+                                          },
                                           onPointerMove: (event) {
                                             setState(() {
+                                              _isDraggingImage = true;
                                               image.width = math.max(80.0, image.width + event.delta.dx);
                                               image.height = math.max(60.0, image.height + event.delta.dy);
                                             });
