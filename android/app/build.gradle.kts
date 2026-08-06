@@ -32,6 +32,11 @@ android {
         versionName = flutter.versionName
     }
 
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")

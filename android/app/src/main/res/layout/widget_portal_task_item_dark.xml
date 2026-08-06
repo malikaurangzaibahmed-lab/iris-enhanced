@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="@drawable/widget_glass_container"
-    android:padding="10dp"
+    android:background="@drawable/widget_subcard_dark_v2"
+    android:padding="8dp"
     android:gravity="center_vertical">
 
     <!-- Left Side Info -->
@@ -29,58 +29,71 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ASSIGNMENT"
-                android:textSize="9sp"
+                android:textSize="8.5sp"
                 android:textStyle="bold"
-                android:textColor="#5B7FFF"
+                android:textColor="#FFFFFF"
                 android:paddingLeft="6dp"
                 android:paddingRight="6dp"
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
-                android:background="@drawable/widget_pill_badge" />
+                android:background="@drawable/widget_pill_badge_next" />
 
-            <ImageView
-                android:id="@+id/task_urgent_icon"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
+            <!-- Course Title / Tag -->
+            <TextView
+                android:id="@+id/task_course_tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginLeft="6dp"
-                android:src="@drawable/status_dot_red"
-                android:visibility="gone" />
+                android:text="CS-301"
+                android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:textColor="#94A3B8"
+                android:singleLine="true"
+                android:ellipsize="end" />
         </LinearLayout>
 
         <!-- Task Title -->
         <TextView
-            android:id="@+id/task_title"
+            android:id="@+id/task_title_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Task Title"
-            android:textColor="#FFFFFF"
+            android:text="Assignment #2 - Binary Trees Implementation"
+            android:textColor="#F8FAFC"
             android:textSize="12sp"
             android:textStyle="bold"
             android:maxLines="2"
             android:ellipsize="end" />
-
-        <!-- Task Subject -->
-        <TextView
-            android:id="@+id/task_subject"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Course Name"
-            android:textColor="#A5B4C5"
-            android:textSize="10sp"
-            android:layout_marginTop="2dp"
-            android:singleLine="true"
-            android:ellipsize="end" />
     </LinearLayout>
 
-    <!-- Right Side Due Date -->
-    <TextView
-        android:id="@+id/task_due_date"
+    <!-- Right Side Due Badge -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Due Today"
-        android:textColor="#BFDBFE"
-        android:textSize="10sp"
-        android:textStyle="bold"
-        android:gravity="right" />
+        android:orientation="vertical"
+        android:gravity="end">
 
+        <TextView
+            android:id="@+id/task_due_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Due Today"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            android:textColor="#F87171"
+            android:paddingLeft="6dp"
+            android:paddingRight="6dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:background="@drawable/widget_details_capsule_dark_v2" />
+
+        <TextView
+            android:id="@+id/task_due_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="11:59 PM"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="#94A3B8" />
+    </LinearLayout>
 </LinearLayout>
