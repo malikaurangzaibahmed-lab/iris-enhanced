@@ -49,6 +49,7 @@ class CoverPageData {
     String? teacher,
     String? type,
     String? department,
+    String? campus,
     List<CoverPageField>? fields,
   }) async {
     final prefs = await SharedPreferences.getInstance();
@@ -72,6 +73,7 @@ class CoverPageData {
 
     final activeCourse = course?.isNotEmpty == true ? course! : (prefs.getString('widget_subject') ?? prefs.getString('active_subject') ?? '');
     final activeDept = department?.isNotEmpty == true ? department! : (prefs.getString('user_department') ?? prefs.getString('department') ?? 'Department of Computer Science');
+    final activeCampus = campus?.isNotEmpty == true ? campus! : (prefs.getString('user_campus') ?? 'COMSATS University Islamabad, Sahiwal Campus');
 
     final dateStr = DateTime.now().toLocal().toString().substring(0, 10);
 
@@ -85,7 +87,7 @@ class CoverPageData {
       batch: rawBatch,
       instructorName: teacher ?? '',
       department: activeDept,
-      campus: 'COMSATS University Islamabad, Sahiwal Campus',
+      campus: activeCampus,
       submissionDate: dateStr,
       customFields: fields ?? [],
     );
@@ -118,30 +120,19 @@ class CoverPageGenerator {
     final graphics = page.graphics;
     final pageSize = page.getClientSize();
 
-    // Color Palette
+    // 1. Typography & Colors
     final navyColor = PdfColor(15, 23, 42); // #0F172A
     final brandBlue = PdfColor(29, 78, 216); // #1D4ED8
-    final borderPen = PdfPen(navyColor, width: 2.0);
-    final innerBorderPen = PdfPen(brandBlue, width: 0.8);
-
-    // 1. Draw Double Outer Frame Border (A4 Bound)
-    graphics.drawRectangle(pen: borderPen, bounds: Rect.fromLTWH(0, 0, pageSize.width, pageSize.height));
-    graphics.drawRectangle(
-      pen: innerBorderPen,
-      bounds: Rect.fromLTWH(4, 4, pageSize.width - 8, pageSize.height - 8),
-    );
-
-    // Typography
-    final headerFont = PdfStandardFont(PdfFontFamily.helvetica, 17, style: PdfFontStyle.bold);
+    final headerFont = PdfStandardFont(PdfFontFamily.helvetica, 18, style: PdfFontStyle.bold);
     final subHeaderFont = PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
     final titleFont = PdfStandardFont(PdfFontFamily.helvetica, 22, style: PdfFontStyle.bold);
     final sectionFont = PdfStandardFont(PdfFontFamily.helvetica, 13, style: PdfFontStyle.bold);
     final bodyFont = PdfStandardFont(PdfFontFamily.helvetica, 11);
     final boldBodyFont = PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
 
-    double currentY = 28.0;
+    double currentY = 36.0;
 
-    // 2. Official COMSATS Logo Image & Crest Banner
+    // 2. Official COMSATS Crest Logo
     try {
       final logoBytes = await rootBundle.load('assets/comsats_logo.png');
       final logoBitmap = PdfBitmap(logoBytes.buffer.asUint8List());
@@ -154,7 +145,6 @@ class CoverPageGenerator {
         graphics.drawImage(logoBitmap, Rect.fromLTWH((pageSize.width - 65) / 2, currentY, 65, 65));
         currentY += 72;
       } catch (_) {
-        // Draw Vector Emblem Badge
         graphics.drawEllipse(
           Rect.fromLTWH((pageSize.width - 50) / 2, currentY, 50, 50),
           pen: PdfPen(brandBlue, width: 2.0),
@@ -170,7 +160,7 @@ class CoverPageGenerator {
         brush: PdfSolidBrush(navyColor), bounds: Rect.fromLTWH(0, currentY, pageSize.width, 24), format: headerFormat);
     currentY += 24;
 
-    graphics.drawString(data.campus.toUpperCase(), subHeaderFont,
+    graphics.drawString('SAHIWAL CAMPUS', subHeaderFont,
         brush: PdfSolidBrush(brandBlue), bounds: Rect.fromLTWH(0, currentY, pageSize.width, 18), format: headerFormat);
     currentY += 20;
 
@@ -178,36 +168,26 @@ class CoverPageGenerator {
         brush: PdfSolidBrush(navyColor), bounds: Rect.fromLTWH(0, currentY, pageSize.width, 18), format: headerFormat);
     currentY += 28;
 
-    // Horizontal Divider Rule
-    graphics.drawLine(PdfPen(brandBlue, width: 1.5), Offset(36, currentY), Offset(pageSize.width - 36, currentY));
-    currentY += 40;
+    // Subtle Horizontal Divider Rule
+    graphics.drawLine(PdfPen(PdfColor(203, 213, 225), width: 1.0), Offset(36, currentY), Offset(pageSize.width - 36, currentY));
+    currentY += 36;
 
     // 3. Document Type & Title Box
     graphics.drawString(data.docType.toUpperCase(), sectionFont,
         brush: PdfSolidBrush(brandBlue), bounds: Rect.fromLTWH(0, currentY, pageSize.width, 18), format: headerFormat);
     currentY += 22;
 
-    graphics.drawString(data.docTitle, titleFont,
-        brush: PdfSolidBrush(navyColor), bounds: Rect.fromLTWH(0, currentY, pageSize.width, 32), format: headerFormat);
-    currentY += 48;
+    if (data.docTitle.isNotEmpty) {
+      graphics.drawString(data.docTitle, titleFont,
+          brush: PdfSolidBrush(navyColor), bounds: Rect.fromLTWH(0, currentY, pageSize.width, 32), format: headerFormat);
+      currentY += 40;
+    }
 
-    // 4. Course Title Header Card Frame
-    final courseCardBounds = Rect.fromLTWH(36, currentY, pageSize.width - 72, 54);
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(PdfColor(241, 245, 249)),
-      pen: PdfPen(PdfColor(203, 213, 225), width: 1.2),
-      bounds: courseCardBounds,
-    );
-
-    final courseFormat = PdfStringFormat(alignment: PdfTextAlignment.center, lineAlignment: PdfVerticalAlignment.middle);
-    graphics.drawString(
-      'COURSE: ${data.courseTitle.toUpperCase()}',
-      boldBodyFont,
-      brush: PdfSolidBrush(navyColor),
-      bounds: courseCardBounds,
-      format: courseFormat,
-    );
-    currentY += 76;
+    if (data.courseTitle.isNotEmpty) {
+      graphics.drawString('COURSE: ${data.courseTitle.toUpperCase()}', boldBodyFont,
+          brush: PdfSolidBrush(navyColor), bounds: Rect.fromLTWH(0, currentY, pageSize.width, 20), format: headerFormat);
+      currentY += 44;
+    }
 
     // 5. Clean Metadata Table for Student & Submission Data
     final grid = PdfGrid();

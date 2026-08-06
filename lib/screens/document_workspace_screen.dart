@@ -60,6 +60,7 @@ class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with 
   final TextEditingController _authorController = TextEditingController();
   final TextEditingController _regIdController = TextEditingController();
   final TextEditingController _deptController = TextEditingController(text: 'Department of Computer Science');
+  final TextEditingController _campusController = TextEditingController(text: 'COMSATS University Islamabad, Sahiwal Campus');
   List<CoverPageField> _customCoverFields = [];
   
   // Document Editor State
@@ -105,6 +106,7 @@ class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with 
     _authorController.dispose();
     _regIdController.dispose();
     _deptController.dispose();
+    _campusController.dispose();
     _editorController.dispose();
     _rangeController.dispose();
     super.dispose();
@@ -473,6 +475,48 @@ Summarize key findings, experimental outcomes, and list project references...
         _exportSuccess = false;
       });
       showIrisFrostedSnackBar(context, content: Text('Export failed: $e'));
+    }
+  }
+
+  Future<void> _exportDocumentWithFormat(String format) async {
+    final docText = _editorController.text;
+    final dir = await getApplicationDocumentsDirectory();
+    final safeTitle = _titleController.text.isNotEmpty 
+        ? _titleController.text.replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_')
+        : 'Document';
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    if (format.contains('.docx')) {
+      final fileName = '${safeTitle}_$timestamp.docx';
+      final file = File('${dir.path}/$fileName');
+      
+      final sb = StringBuffer();
+      sb.writeln('COMSATS UNIVERSITY ISLAMABAD - SAHIWAL CAMPUS');
+      sb.writeln(_deptController.text.toUpperCase());
+      sb.writeln('=' * 60);
+      sb.writeln('${_docType.toUpperCase()}: ${_titleController.text}');
+      sb.writeln('COURSE: ${_courseController.text}');
+      sb.writeln('-' * 60);
+      for (final f in _customCoverFields) {
+        sb.writeln('${f.label}: ${f.value}');
+      }
+      sb.writeln('=' * 60);
+      sb.writeln('\nDOCUMENT CONTENT:\n');
+      sb.writeln(docText);
+      
+      await file.writeAsString(sb.toString());
+      IrisHaptics.actionHeavy();
+      showIrisFrostedSnackBar(context, content: Text('Word Document exported: $fileName'));
+      await OpenFilex.open(file.path);
+    } else if (format.contains('.txt')) {
+      final fileName = '${safeTitle}_$timestamp.txt';
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsString(docText);
+      IrisHaptics.actionHeavy();
+      showIrisFrostedSnackBar(context, content: Text('Plain Text exported: $fileName'));
+      await OpenFilex.open(file.path);
+    } else {
+      await _exportDocument();
     }
   }
 
@@ -1434,15 +1478,29 @@ Summarize key findings, experimental outcomes, and list project references...
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: _exportDocument,
-                      icon: const Icon(Icons.file_download_rounded, size: 14),
-                      label: const Text('Export PDF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: IrisTokens.brand,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    PopupMenuButton<String>(
+                      onSelected: _exportDocumentWithFormat,
+                      itemBuilder: (ctx) => [
+                        const PopupMenuItem(value: 'PDF (.pdf)', child: Row(children: [Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 18), SizedBox(width: 8), Text('PDF Document (.pdf)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))])),
+                        const PopupMenuItem(value: 'Word (.docx)', child: Row(children: [Icon(Icons.description_rounded, color: Color(0xFF2B579A), size: 18), SizedBox(width: 8), Text('Word Document (.docx)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))])),
+                        const PopupMenuItem(value: 'Text (.txt)', child: Row(children: [Icon(Icons.article_rounded, color: Colors.grey, size: 18), SizedBox(width: 8), Text('Plain Text (.txt)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))])),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: IrisTokens.brand,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.file_download_rounded, size: 14, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text('Export', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+                            SizedBox(width: 2),
+                            Icon(Icons.arrow_drop_down_rounded, size: 16, color: Colors.white),
+                          ],
+                        ),
                       ),
                     ),
                     IconButton(
@@ -1595,85 +1653,67 @@ Summarize key findings, experimental outcomes, and list project references...
                               ),
                               const SizedBox(height: 16),
 
-                              // Render Official COMSATS Cover Page Preview if enabled
+                              // Render Official COMSATS Sahiwal Campus Cover Page Preview if enabled
                               if (_includeCoverPage) ...[
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: paperBg == Colors.white ? const Color(0xFFF8FAFC) : paperBg,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFF2B579A), width: 1.5),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey.withValues(alpha: 0.3), width: 1.0),
                                   ),
                                   child: Column(
                                     children: [
-                                      // Header Badge
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF2B579A).withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          'OFFICIAL COVER • ${_docType.toUpperCase()}',
-                                          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xFF2B579A), letterSpacing: 0.5),
-                                        ),
+                                      Image.asset(
+                                        'assets/comsats_logo.png',
+                                        width: 52,
+                                        height: 52,
+                                        errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded, color: Color(0xFF2B579A), size: 44),
                                       ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Image.asset(
-                                            'assets/comsats_logo.png',
-                                            width: 48,
-                                            height: 48,
-                                            errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded, color: Color(0xFF2B579A), size: 40),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                const Text(
-                                                  'COMSATS UNIVERSITY ISLAMABAD',
-                                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: Color(0xFF2B579A)),
-                                                ),
-                                                Text(
-                                                  _deptController.text.isNotEmpty ? _deptController.text : 'Department of Computer Science',
-                                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: paperText.withValues(alpha: 0.8)),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'COMSATS UNIVERSITY ISLAMABAD',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const Text(
+                                        'SAHIWAL CAMPUS',
+                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF1D4ED8)),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      Text(
+                                        _deptController.text.isNotEmpty ? _deptController.text.toUpperCase() : 'DEPARTMENT OF COMPUTER SCIENCE',
+                                        style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: paperText.withValues(alpha: 0.8)),
+                                        textAlign: TextAlign.center,
                                       ),
                                       const Divider(height: 18),
                                       Text(
-                                        _titleController.text.isNotEmpty ? _titleController.text : 'Document Title',
-                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: paperText),
+                                        _docType.toUpperCase(),
+                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1D4ED8)),
                                         textAlign: TextAlign.center,
                                       ),
-                                      const SizedBox(height: 8),
-                                      // Course Title Header Box
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF2B579A).withValues(alpha: 0.08),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: const Color(0xFF2B579A).withValues(alpha: 0.2)),
-                                        ),
-                                        child: Text(
-                                          'COURSE: ${_courseController.text.toUpperCase()}',
-                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2B579A)),
+                                      if (_titleController.text.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _titleController.text,
+                                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: paperText),
                                           textAlign: TextAlign.center,
                                         ),
-                                      ),
+                                      ],
+                                      if (_courseController.text.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'COURSE: ${_courseController.text.toUpperCase()}',
+                                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: paperText.withValues(alpha: 0.9)),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                       const SizedBox(height: 12),
                                       // 1-to-1 Custom Cover Fields Table Grid
                                       if (_customCoverFields.isNotEmpty) ...[
                                         Container(
                                           decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(4),
                                             border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
                                           ),
                                           child: Column(
@@ -1689,14 +1729,14 @@ Summarize key findings, experimental outcomes, and list project references...
                                                       flex: 4,
                                                       child: Text(
                                                         field.label,
-                                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: paperText),
+                                                        style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: paperText),
                                                       ),
                                                     ),
                                                     Expanded(
                                                       flex: 6,
                                                       child: Text(
                                                         field.value,
-                                                        style: TextStyle(fontSize: 10, color: paperText.withValues(alpha: 0.85)),
+                                                        style: TextStyle(fontSize: 9.5, color: paperText.withValues(alpha: 0.85)),
                                                       ),
                                                     ),
                                                   ],
@@ -1704,17 +1744,6 @@ Summarize key findings, experimental outcomes, and list project references...
                                               );
                                             }).toList(),
                                           ),
-                                        ),
-                                      ] else ...[
-                                        Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text('Student: ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: paperText)),
-                                                Expanded(child: Text('${_authorController.text} (${_regIdController.text})', style: TextStyle(fontSize: 10, color: paperText))),
-                                              ],
-                                            ),
-                                          ],
                                         ),
                                       ],
                                       const SizedBox(height: 10),
@@ -1734,7 +1763,7 @@ Summarize key findings, experimental outcomes, and list project references...
                                               children: [
                                                 Icon(Icons.tune_rounded, size: 12, color: Color(0xFF2B579A)),
                                                 SizedBox(width: 4),
-                                                Text('Edit Department & Fields', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2B579A))),
+                                                Text('Edit Department & Fields', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF2B579A))),
                                               ],
                                             ),
                                           ),
