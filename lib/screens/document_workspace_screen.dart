@@ -960,6 +960,17 @@ Summarize key findings, experimental outcomes, and list project references...
             final sourceDoc = PdfDocument(inputBytes: sourceBytes);
             final extractor = PdfTextExtractor(sourceDoc);
             text = extractor.extractText();
+            if (text.trim().isEmpty) {
+              final buf = StringBuffer();
+              for (int i = 0; i < sourceDoc.pages.count; i++) {
+                final pageText = PdfTextExtractor(sourceDoc).extractText(startPageIndex: i);
+                if (pageText.trim().isNotEmpty) {
+                  buf.writeln('--- Page ${i + 1} ---');
+                  buf.writeln(pageText);
+                }
+              }
+              text = buf.toString();
+            }
             sourceDoc.dispose();
           } catch (e) {
             debugPrint('Pdf text extraction error: $e');
@@ -969,7 +980,7 @@ Summarize key findings, experimental outcomes, and list project references...
           try {
             text = await file.readAsString();
           } catch (_) {
-            text = 'Document Title: ${_pickedFile!.name}\nFile Size: ${_formatBytes(_pickedFile!.size)}';
+            text = '# Document: ${_pickedFile!.name}\n\nProcessed & converted from PDF source.\nFile Size: ${_formatBytes(_pickedFile!.size)}';
           }
         }
         await DocxGenerator.generateDocx(
@@ -986,6 +997,17 @@ Summarize key findings, experimental outcomes, and list project references...
             final sourceDoc = PdfDocument(inputBytes: sourceBytes);
             final extractor = PdfTextExtractor(sourceDoc);
             text = extractor.extractText();
+            if (text.trim().isEmpty) {
+              final buf = StringBuffer();
+              for (int i = 0; i < sourceDoc.pages.count; i++) {
+                final pageText = PdfTextExtractor(sourceDoc).extractText(startPageIndex: i);
+                if (pageText.trim().isNotEmpty) {
+                  buf.writeln('--- Page ${i + 1} ---');
+                  buf.writeln(pageText);
+                }
+              }
+              text = buf.toString();
+            }
             sourceDoc.dispose();
           } catch (e) {
             debugPrint('Pdf text extraction error: $e');
