@@ -1756,100 +1756,191 @@ Summarize key findings, experimental outcomes, and list project references...
                           ),
                         ),
 
-                        // Freeform Draggable & Resizable Floating Images Layer across paper sheet
+                        // MS Word Style Interactive Draggable & Resizable Image Layer
                         ..._attachedImages.map((image) {
                           final path = image.file.path;
                           return Positioned(
                             left: image.offset.dx,
                             top: image.offset.dy,
-                            child: GestureDetector(
-                              onPanUpdate: (details) {
-                                setState(() {
-                                  image.offset = Offset(
-                                    math.max(0.0, image.offset.dx + details.delta.dx),
-                                    math.max(0.0, image.offset.dy + details.delta.dy),
-                                  );
-                                });
-                                _saveDraftDocument();
-                              },
-                              child: Container(
-                                width: image.width,
-                                height: image.height,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFF2B579A), width: 2.0),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.25),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: path != null
-                                          ? Image.file(File(path), width: image.width, height: image.height, fit: BoxFit.cover)
-                                          : const Icon(Icons.image_rounded),
-                                    ),
-                                    // Drag handle badge
-                                    Positioned(
-                                      top: 4,
-                                      left: 4,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                        decoration: BoxDecoration(color: const Color(0xFF2B579A), borderRadius: BorderRadius.circular(4)),
-                                        child: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.drag_indicator_rounded, size: 10, color: Colors.white),
-                                            SizedBox(width: 2),
-                                            Text('DRAG', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white)),
-                                          ],
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // MS Word Style Quick Action Toolbar above Image
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  margin: const EdgeInsets.only(bottom: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xEE1E293B),
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // Drag Icon
+                                      const Icon(Icons.drag_indicator_rounded, size: 13, color: Colors.white70),
+                                      const SizedBox(width: 4),
+                                      // Insert In-Line with Text Button
+                                      GestureDetector(
+                                        onTap: () {
+                                          final imageName = image.file.name;
+                                          final tag = '\n\n![Image Attachment: $imageName](${image.file.path ?? "Asset"})\n\n';
+                                          final pos = _editorController.selection.baseOffset;
+                                          if (pos >= 0 && pos <= _editorController.text.length) {
+                                            final txt = _editorController.text;
+                                            _editorController.text = txt.substring(0, pos) + tag + txt.substring(pos);
+                                          } else {
+                                            _editorController.text += tag;
+                                          }
+                                          IrisHaptics.actionSoft();
+                                          _saveDraftDocument();
+                                          showIrisFrostedSnackBar(context, content: const Text('📌 Image placed in-line within text stream!'));
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF2B579A),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Row(
+                                            children: [
+                                              Icon(Icons.notes_rounded, size: 10, color: Colors.white),
+                                              SizedBox(width: 3),
+                                              Text('In-Line Text', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    // Close button
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: GestureDetector(
+                                      const SizedBox(width: 4),
+                                      // Align Left
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() => image.offset = Offset(20, image.offset.dy));
+                                          IrisHaptics.actionSoft();
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 3),
+                                          child: Icon(Icons.format_align_left_rounded, size: 13, color: Colors.white),
+                                        ),
+                                      ),
+                                      // Align Center
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() => image.offset = Offset(160, image.offset.dy));
+                                          IrisHaptics.actionSoft();
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 3),
+                                          child: Icon(Icons.format_align_center_rounded, size: 13, color: Colors.white),
+                                        ),
+                                      ),
+                                      // Align Right
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() => image.offset = Offset(280, image.offset.dy));
+                                          IrisHaptics.actionSoft();
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 3),
+                                          child: Icon(Icons.format_align_right_rounded, size: 13, color: Colors.white),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      // Close / Delete
+                                      GestureDetector(
                                         onTap: () {
                                           setState(() => _attachedImages.removeWhere((img) => img.id == image.id));
                                           IrisHaptics.actionSoft();
                                           _saveDraftDocument();
                                         },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(color: Color(0xB3000000), shape: BoxShape.circle),
-                                          child: const Icon(Icons.close_rounded, size: 12, color: Colors.white),
-                                        ),
+                                        child: const Icon(Icons.close_rounded, size: 13, color: Colors.redAccent),
                                       ),
-                                    ),
-                                    // Resize handle
-                                    Positioned(
-                                      bottom: 4,
-                                      right: 4,
-                                      child: GestureDetector(
-                                        onPanUpdate: (details) {
-                                          setState(() {
-                                            image.width = math.max(80.0, image.width + details.delta.dx);
-                                            image.height = math.max(60.0, image.height + details.delta.dy);
-                                          });
-                                          _saveDraftDocument();
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(color: Color(0xFF2B579A), shape: BoxShape.circle),
-                                          child: const Icon(Icons.aspect_ratio_rounded, size: 12, color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
+
+                                // Draggable Container
+                                GestureDetector(
+                                  onPanUpdate: (details) {
+                                    setState(() {
+                                      image.offset = Offset(
+                                        math.max(0.0, image.offset.dx + details.delta.dx),
+                                        math.max(0.0, image.offset.dy + details.delta.dy),
+                                      );
+                                    });
+                                    _saveDraftDocument();
+                                  },
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: image.width,
+                                        height: image.height,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: const Color(0xFF2B579A), width: 2.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(alpha: 0.25),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(6),
+                                          child: path != null
+                                              ? Image.file(File(path), width: image.width, height: image.height, fit: BoxFit.cover)
+                                              : const Icon(Icons.image_rounded),
+                                        ),
+                                      ),
+
+                                      // MS Word 4 Corner Blue Resize Handles
+                                      Positioned(
+                                        left: -5,
+                                        top: -5,
+                                        child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF2B579A), shape: BoxShape.circle)),
+                                      ),
+                                      Positioned(
+                                        right: -5,
+                                        top: -5,
+                                        child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF2B579A), shape: BoxShape.circle)),
+                                      ),
+                                      Positioned(
+                                        left: -5,
+                                        bottom: -5,
+                                        child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF2B579A), shape: BoxShape.circle)),
+                                      ),
+                                      // Bottom Right Resizer Handle with Drag gesture
+                                      Positioned(
+                                        right: -8,
+                                        bottom: -8,
+                                        child: GestureDetector(
+                                          onPanUpdate: (details) {
+                                            setState(() {
+                                              image.width = math.max(80.0, image.width + details.delta.dx);
+                                              image.height = math.max(60.0, image.height + details.delta.dy);
+                                            });
+                                            _saveDraftDocument();
+                                          },
+                                          child: Container(
+                                            width: 18,
+                                            height: 18,
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF2B579A),
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: Colors.white, width: 1.5),
+                                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                                            ),
+                                            child: const Icon(Icons.aspect_ratio_rounded, size: 10, color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         }),
