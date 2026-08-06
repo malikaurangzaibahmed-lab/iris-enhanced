@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
@@ -37,7 +38,7 @@ class ClassTrackerWidget : AppWidgetProvider() {
             "FlutterSharedPreferences",
         )
         private const val UPDATE_ACTION = "com.example.student_organizer.WIDGET_UPDATE"
-        private const val AUTO_REFRESH_INTERVAL_MS = 12_000L
+        private const val AUTO_REFRESH_INTERVAL_MS = 3_000L
         private const val AUTO_REFRESH_REQUEST_CODE = 7001
 
         fun updateAppWidget(
@@ -60,17 +61,26 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     prefs = context.getSharedPreferences(PREFS_NAMES[0], Context.MODE_PRIVATE)
                 }
 
-                val headline = prefs.getString("flutter.widget_headline", "System Idle") ?: "System Idle"
-                val subline = prefs.getString("flutter.widget_subline", "No active class") ?: "No active class"
+                val subject = prefs.getString("flutter.widget_subject", "")?.takeIf { it.isNotEmpty() }
+                    ?: prefs.getString("flutter.current_class_subject", "")?.takeIf { it.isNotEmpty() }
+                    ?: prefs.getString("flutter.widget_headline", "System Idle")
+                    ?: "System Idle"
+
+                val rawRoom = prefs.getString("flutter.widget_room", "")?.takeIf { it.isNotEmpty() }
+                    ?: prefs.getString("flutter.current_class_room", "")?.takeIf { it.isNotEmpty() }
+                    ?: ""
+
+                val subline = prefs.getString("flutter.widget_subline", "")?.takeIf { it.isNotEmpty() }
+                    ?: if (rawRoom.isNotEmpty()) rawRoom else "No active class"
+
                 val teacher = prefs.getString("flutter.current_class_teacher", "") ?: ""
                 val progressPercent = prefs.getInt("flutter.progress_percentage", 0).coerceIn(0, 100)
                 val timeInfo = prefs.getString("flutter.time_info", "--") ?: "--"
                 val isLive = prefs.getBoolean("flutter.is_class_live", false)
                 val isUrgent = prefs.getBoolean("flutter.is_urgent", false)
                 val widgetDarkMode = prefs.getBoolean("flutter.widget_dark_mode", false)
-                val subject = prefs.getString("flutter.widget_subject", "") ?: ""
-                val room = prefs.getString("flutter.widget_room", "") ?: ""
-                val startTime = prefs.getString("flutter.widget_start_time", "") ?: ""
+                val startTime = prefs.getString("flutter.widget_start_time", "")?.takeIf { it.isNotEmpty() }
+                    ?: prefs.getString("flutter.current_class_end_time", "") ?: ""
 
                 val layoutId = if (widgetDarkMode) R.layout.widget_safe_dark else R.layout.widget_safe
                 val views = try {
@@ -82,69 +92,103 @@ class ClassTrackerWidget : AppWidgetProvider() {
 
                 val sizePx = getWidgetSizePx(context, appWidgetManager, appWidgetId)
 
-                // Primary background: render a dynamic frame from GIF for a living background.
-                val gifApplied = applyGifBackground(
-                    context = context,
-                    views = views,
-                    widthPx = sizePx.first,
-                    heightPx = sizePx.second,
-                    widgetDarkMode = widgetDarkMode,
-                    isLive = isLive,
-                    isUrgent = isUrgent,
-                    progressPercent = progressPercent,
-                )
+                // Dynamically select role-based & academic period liquid glass background picture
+                val role = prefs.getString("flutter.active_role", "student") ?: "student"
+                val period = prefs.getString("active_academic_period", "classes") ?: "classes"
+                
+                val assetName = when {
+                    period == "midterms" || period == "finals" || period == "exams" -> "widget_bg_exams.png"
+                    period == "sports_week" || period == "students_week" || period == "gala" -> "widget_bg_sports.png"
+                    role == "faculty" && (isLive || isUrgent) -> "widget_bg_faculty.png"
+                    role == "faculty" -> "widget_bg_idle.png"
+                    isLive || isUrgent -> "widget_bg_student.png"
+                    else -> "widget_bg_idle.png"
+                }
+                
+                val bgXmlRes = when {
+                    period == "midterms" || period == "finals" || period == "exams" -> R.drawable.widget_bg_exams
+                    period == "sports_week" || period == "students_week" || period == "gala" -> R.drawable.widget_bg_sports
+                    role == "faculty" && (isLive || isUrgent) -> R.drawable.widget_bg_faculty
+                    role == "faculty" -> R.drawable.widget_bg_idle
+                    isLive || isUrgent -> R.drawable.widget_bg_student
+                    else -> R.drawable.widget_bg_idle
+                }
 
-                // Apply Liquid Glass effect if supported (Android 13+)
-                if (!gifApplied && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    Log.d(TAG, "Attempting to generate LiquidGlass effect for widget $appWidgetId")
-                    try {
-                        val bgRes = if (widgetDarkMode) R.drawable.widget_fluffy_dark_bg else R.drawable.widget_fluffy_bg
-                        val glassBitmap = LiquidGlassBitmapGenerator.generateGlassBitmap(
-                            context,
-                            sizePx.first,
-                            sizePx.second,
-                            bgRes,
-                            widgetDarkMode,
-                        )
-                        if (glassBitmap != null) {
-                            Log.d(TAG, "Successfully generated glass bitmap: ${glassBitmap.width}x${glassBitmap.height}")
-                            views.setImageViewBitmap(R.id.widget_glass_bg, glassBitmap)
-                        } else {
-                            Log.w(TAG, "Generated glass bitmap is null")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "LiquidGlass effect generation failed: ${e.message}", e)
-                    }
+                val glassBitmap = loadAssetBitmap(context, assetName)
+                if (glassBitmap != null) {
+                    views.setImageViewBitmap(R.id.widget_glass_bg, glassBitmap)
                 } else {
-                    Log.d(TAG, "LiquidGlass effect skipped: API level ${Build.VERSION.SDK_INT} < 33")
+                    views.setImageViewResource(R.id.widget_glass_bg, bgXmlRes)
                 }
 
-                // 1. Uppercase State Indicator & Subject Headline
-                val finalSubject = if (subject.isNotEmpty()) subject else headline
+                val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+                val widthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).let { if (it <= 0) 180 else it }
+                val heightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).let { if (it <= 0) 110 else it }
+
+                val isShortHeight = heightDp < 90
+                val isNarrowWidth = widthDp < 120
+                val isUltraCompact = heightDp < 80 || widthDp < 100
+
+                // 1. Contextual Subheader & Subject Headline
+                val finalSubject = subject
                 val finalStateLabel = when {
-                    isLive -> "LIVE NOW"
-                    isUrgent -> "STARTING SOON"
-                    else -> headline.uppercase()
+                    period == "midterms" || period == "finals" || period == "exams" -> "EXAM DATESHEET"
+                    period == "sports_week" || period == "students_week" || period == "gala" -> "STUDENTS WEEK"
+                    role == "faculty" -> "FACULTY SCHEDULE"
+                    isLive -> "CURRENT LECTURE"
+                    isUrgent -> "UPCOMING LECTURE"
+                    subject.isEmpty() || subject == "All classes completed" -> "SYSTEM IDLE"
+                    else -> "TIMETABLE INSIGHT"
                 }
-                views.setTextViewText(R.id.widget_state_label, finalStateLabel)
+                
+                if (isShortHeight || isUltraCompact) {
+                    views.setInt(R.id.widget_headline, "setMaxLines", 1)
+                    views.setTextViewTextSize(R.id.widget_headline, android.util.TypedValue.COMPLEX_UNIT_SP, 13.5f)
+                } else {
+                    views.setInt(R.id.widget_headline, "setMaxLines", 2)
+                    views.setTextViewTextSize(R.id.widget_headline, android.util.TypedValue.COMPLEX_UNIT_SP, 16.5f)
+                }
+
+                if (isNarrowWidth || isUltraCompact) {
+                    views.setViewVisibility(R.id.widget_state_label, View.GONE)
+                } else {
+                    views.setTextViewText(R.id.widget_state_label, finalStateLabel)
+                    views.setViewVisibility(R.id.widget_state_label, View.VISIBLE)
+                }
                 views.setTextViewText(R.id.widget_headline, finalSubject)
 
                 // 2. Color Coding State Indicator & Status Badge
-                val stateColor = when {
-                    isLive -> 0xFF10B981.toInt() // Green
-                    isUrgent -> 0xFFF59E0B.toInt() // Amber
-                    else -> if (widgetDarkMode) 0xFFA5B4C5.toInt() else 0xFF64748B.toInt()
-                }
+                val stateColor = if (widgetDarkMode) 0xFFA5B4C5.toInt() else 0xFF475569.toInt()
                 views.setTextColor(R.id.widget_state_label, stateColor)
 
                 when {
+                    period == "midterms" -> {
+                        views.setTextViewText(R.id.widget_status_badge, "✍️ MIDTERM")
+                        views.setTextColor(R.id.widget_status_badge, 0xFFF59E0B.toInt())
+                        views.setViewVisibility(R.id.widget_status_badge, View.VISIBLE)
+                    }
+                    period == "finals" -> {
+                        views.setTextViewText(R.id.widget_status_badge, "🎓 FINAL EXAM")
+                        views.setTextColor(R.id.widget_status_badge, 0xFF8B5CF6.toInt())
+                        views.setViewVisibility(R.id.widget_status_badge, View.VISIBLE)
+                    }
+                    period == "ramadan" -> {
+                        views.setTextViewText(R.id.widget_status_badge, "🌙 RAMADAN")
+                        views.setTextColor(R.id.widget_status_badge, 0xFF10B981.toInt())
+                        views.setViewVisibility(R.id.widget_status_badge, View.VISIBLE)
+                    }
+                    period == "sports_week" || period == "students_week" -> {
+                        views.setTextViewText(R.id.widget_status_badge, "🏆 SPORTS GALA")
+                        views.setTextColor(R.id.widget_status_badge, 0xFF06B6D4.toInt())
+                        views.setViewVisibility(R.id.widget_status_badge, View.VISIBLE)
+                    }
                     isLive -> {
-                        views.setTextViewText(R.id.widget_status_badge, "LIVE")
+                        views.setTextViewText(R.id.widget_status_badge, "🔴 LIVE")
                         views.setTextColor(R.id.widget_status_badge, 0xFF10B981.toInt())
                         views.setViewVisibility(R.id.widget_status_badge, View.VISIBLE)
                     }
                     isUrgent -> {
-                        views.setTextViewText(R.id.widget_status_badge, "SOON")
+                        views.setTextViewText(R.id.widget_status_badge, "⚡ SOON")
                         views.setTextColor(R.id.widget_status_badge, 0xFFF59E0B.toInt())
                         views.setViewVisibility(R.id.widget_status_badge, View.VISIBLE)
                     }
@@ -155,14 +199,21 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     }
                 }
 
-                // 3. Intermediate Capsule
-                if (startTime.isNotEmpty() || room.isNotEmpty()) {
+                // 3. Intermediate Capsule (Time and Room)
+                val displayRoom = when {
+                    rawRoom.isEmpty() -> ""
+                    rawRoom.startsWith("Room") || rawRoom.startsWith("Hall") || rawRoom.startsWith("Lab") -> rawRoom
+                    period == "midterms" || period == "finals" || period == "exams" -> "Exam Hall: $rawRoom"
+                    else -> "Room $rawRoom"
+                }
+
+                if (startTime.isNotEmpty() || displayRoom.isNotEmpty()) {
                     views.setViewVisibility(R.id.widget_class_details_capsule, View.VISIBLE)
-                    views.setTextViewText(R.id.widget_details_start_time, startTime)
-                    views.setViewVisibility(R.id.widget_details_divider, if (room.isNotEmpty()) View.VISIBLE else View.GONE)
-                    views.setViewVisibility(R.id.widget_details_loc_icon, if (room.isNotEmpty()) View.VISIBLE else View.GONE)
-                    views.setTextViewText(R.id.widget_details_room, room)
-                    views.setViewVisibility(R.id.widget_details_room, if (room.isNotEmpty()) View.VISIBLE else View.GONE)
+                    views.setTextViewText(R.id.widget_details_start_time, if (startTime.isNotEmpty()) startTime else "--")
+                    views.setViewVisibility(R.id.widget_details_divider, if (displayRoom.isNotEmpty()) View.VISIBLE else View.GONE)
+                    views.setViewVisibility(R.id.widget_details_loc_icon, if (displayRoom.isNotEmpty()) View.VISIBLE else View.GONE)
+                    views.setTextViewText(R.id.widget_details_room, displayRoom)
+                    views.setViewVisibility(R.id.widget_details_room, if (displayRoom.isNotEmpty()) View.VISIBLE else View.GONE)
                 } else if (subline.isNotEmpty() && subline != "No active class" && subline != "Loading schedule...") {
                     views.setViewVisibility(R.id.widget_class_details_capsule, View.VISIBLE)
                     views.setTextViewText(R.id.widget_details_start_time, subline)
@@ -173,16 +224,37 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.widget_class_details_capsule, View.GONE)
                 }
 
-                // 4. Translucent Teacher Card
-                if (teacher.isNotEmpty()) {
-                    views.setTextViewText(R.id.widget_teacher_name, teacher)
+                // 4. Translucent Role Subcard (Faculty = BATCH, Student = INSTRUCTOR, Exam = INVIGILATOR)
+                val subcardLabel = when {
+                    period == "midterms" || period == "finals" || period == "exams" -> "INVIGILATOR"
+                    role == "faculty" -> "STUDENT BATCH"
+                    else -> "INSTRUCTOR"
+                }
+
+                val displaySubcardText = if (role == "faculty") {
+                    val batch = prefs.getString("flutter.faculty_assigned_batch", "")?.takeIf { it.isNotEmpty() }
+                        ?: prefs.getString("flutter.widget_batch", "")?.takeIf { it.isNotEmpty() }
+                        ?: teacher
+                    if (batch.isNotEmpty()) batch else "BSCS-4A"
+                } else {
+                    teacher
+                }
+
+                try {
+                    views.setTextViewText(R.id.widget_teacher_label, subcardLabel)
+                } catch (e: Exception) {
+                    Log.w(TAG, "widget_teacher_label set failed", e)
+                }
+
+                if (displaySubcardText.isNotEmpty() && !isShortHeight) {
+                    views.setTextViewText(R.id.widget_teacher_name, displaySubcardText)
                     views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
                 } else {
                     views.setViewVisibility(R.id.widget_teacher_card, View.GONE)
                 }
 
                 // 5. Progress Bar
-                if (isLive) {
+                if (isLive && !isShortHeight) {
                     views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
                     views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
                 } else {
@@ -474,6 +546,18 @@ class ClassTrackerWidget : AppWidgetProvider() {
             val appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget)
             for (appWidgetId in appWidgetIds) {
                 updateAppWidget(context, appWidgetManager, appWidgetId, providerClass)
+            }
+        }
+
+        private fun loadAssetBitmap(context: Context, assetFileName: String): Bitmap? {
+            return try {
+                val assetPath = "flutter_assets/assets/$assetFileName"
+                context.assets.open(assetPath).use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load asset bitmap $assetFileName: ${e.message}")
+                null
             }
         }
 

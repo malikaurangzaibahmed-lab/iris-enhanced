@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
 import '../core/vital_theme.dart';
@@ -178,6 +179,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   String? _program;
   int? _semester;
   String? _section;
+  String _rollNo = '';
 
   // Faculty specific selections
   String? _selectedTeacher;
@@ -281,7 +283,11 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     if (_currentStep < 3) {
       IrisHaptics.actionMedium();
       setState(() {
-        _currentStep++;
+        if (_currentStep == 0 && _role == 'faculty') {
+          _currentStep = 2; // Jump directly from Role Selection (0) to Faculty List (2)
+        } else {
+          _currentStep++;
+        }
       });
 
       if (_currentStep == 3) {
@@ -294,7 +300,11 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     if (_currentStep > 0) {
       IrisHaptics.actionMedium();
       setState(() {
-        _currentStep--;
+        if (_currentStep == 2 && _role == 'faculty') {
+          _currentStep = 0; // Go back directly from Faculty List (2) to Role Selection (0)
+        } else {
+          _currentStep--;
+        }
       });
     }
   }
@@ -352,7 +362,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           final value = _role == 'faculty'
               ? _selectedTeacher!
               : (_resolveBatch() ?? '$_program-$_semester$_section');
-          widget.onComplete(_role!, _name, value);
+          final finalName = _role == 'faculty' ? _selectedTeacher! : _name;
+          widget.onComplete(_role!, finalName, value);
         });
       }
     });
@@ -798,6 +809,16 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 placeholder: _semester == null ? 'Select semester first' : 'No sections found',
                 onSelected: (value) => setState(() => _section = value),
               ),
+              const SizedBox(height: 20),
+              _RollNumberInputField(
+                rollNo: _rollNo,
+                onChanged: (newRoll) {
+                  setState(() => _rollNo = newRoll);
+                  SharedPreferences.getInstance().then((prefs) {
+                    prefs.setString('student_roll_no', newRoll);
+                  });
+                },
+              ),
             ],
           ),
         ),
@@ -942,6 +963,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                             IrisHaptics.chipSelect();
                             setState(() {
                               _selectedTeacher = teacherName;
+                              _name = teacherName;
                             });
                           },
                           child: Container(
@@ -1269,6 +1291,128 @@ class _HorizontalSelectorRow extends StatelessWidget {
                   );
                 }).toList(),
               ),
+      ],
+    );
+  }
+}
+
+class _RollNumberInputField extends StatefulWidget {
+  final String rollNo;
+  final ValueChanged<String> onChanged;
+
+  const _RollNumberInputField({
+    required this.rollNo,
+    required this.onChanged,
+  });
+
+  @override
+  State<_RollNumberInputField> createState() => _RollNumberInputFieldState();
+}
+
+class _RollNumberInputFieldState extends State<_RollNumberInputField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.rollNo);
+  }
+
+  @override
+  void didUpdateWidget(covariant _RollNumberInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.rollNo != oldWidget.rollNo && widget.rollNo != _controller.text) {
+      _controller.text = widget.rollNo;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.badge_rounded, color: IrisTokens.brand, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              'ROLL NUMBER (3 DIGITS)',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 10.5,
+                letterSpacing: 1.5,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.02),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.08),
+              width: 1.2,
+            ),
+          ),
+          child: TextField(
+            controller: _controller,
+            keyboardType: TextInputType.number,
+            maxLength: 3,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2.0,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            decoration: InputDecoration(
+              counterText: '',
+              hintText: 'e.g. 042',
+              hintStyle: TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+                color: isDark ? Colors.white30 : Colors.black38,
+              ),
+              border: InputBorder.none,
+              suffixIcon: _controller.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.cancel_rounded, size: 18),
+                      color: isDark ? Colors.white54 : Colors.black45,
+                      onPressed: () {
+                        IrisHaptics.actionSoft();
+                        _controller.clear();
+                        widget.onChanged('');
+                      },
+                    )
+                  : null,
+            ),
+            onChanged: (val) {
+              final numericVal = val.replaceAll(RegExp(r'\D'), '');
+              if (numericVal != val) {
+                _controller.value = TextEditingValue(
+                  text: numericVal,
+                  selection: TextSelection.collapsed(offset: numericVal.length),
+                );
+              }
+              widget.onChanged(numericVal);
+            },
+          ),
+        ),
       ],
     );
   }

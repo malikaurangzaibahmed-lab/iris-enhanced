@@ -1,6 +1,7 @@
 import 'models.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../services/remote_config_service.dart';
 
 // ============ LECTURE DURATION HELPER ============
 /// Helper functions to handle 1-hour lecture duration calculations
@@ -177,7 +178,7 @@ class OmniBrain {
 
   List<ClassSession> scheduleForTeacher(String teacherName) {
     final name = teacherName.trim().toLowerCase();
-    return memory.sessions
+    return memory.activeSessions()
         .where((s) => s.teacher.trim().toLowerCase() == name)
         .toList();
   }
@@ -389,13 +390,13 @@ class OmniBrain {
 
   List<String> findEmptyRooms(DateTime now) {
     final rooms = <String>{};
-    for (final session in memory.sessions) {
+    for (final session in memory.activeSessions()) {
       rooms.add(session.room);
     }
 
     final occupied = <String>{};
     final currentT = now.hour + (now.minute / 60.0);
-    for (final session in memory.sessions) {
+    for (final session in memory.activeSessions()) {
       final actualEnd = _getActualEndTime(session);
       if (session.dayIndex == now.weekday && currentT >= session.safeStartVal && currentT < actualEnd) {
         occupied.add(session.room);
@@ -410,7 +411,7 @@ class OmniBrain {
   List<String> findEmptyRoomsForSlot(int dayIndex, double startTime, double endTime) {
     // Get all unique rooms
     final allRooms = <String>{};
-    for (final session in memory.sessions) {
+    for (final session in memory.activeSessions()) {
       if (session.room.isNotEmpty && session.room.toLowerCase() != 'unknown') {
         allRooms.add(session.room);
       }
@@ -418,7 +419,7 @@ class OmniBrain {
 
     // Find occupied rooms during this slot
     final occupied = <String>{};
-    for (final session in memory.sessions) {
+    for (final session in memory.activeSessions()) {
       if (session.dayIndex == dayIndex) {
         // Check if there's any overlap
         final sessionEnd = session.safeEndVal;
@@ -439,7 +440,7 @@ class OmniBrain {
   /// Get all unique teacher names from the registry
   List<String> allTeachers() {
     final names = <String>{};
-    for (final session in memory.sessions) {
+    for (final session in memory.activeSessions()) {
       if (session.teacher.isNotEmpty && session.teacher != 'Unknown') {
         names.add(session.teacher);
       }
@@ -474,7 +475,7 @@ class OmniBrain {
     final matchedSessions = <ClassSession>[];
     String? resolvedName;
 
-    for (final session in memory.sessions) {
+    for (final session in memory.activeSessions()) {
       if (_matchesTeacher(session.teacher, search)) {
         matchedSessions.add(session);
         // Keep the most common full name
@@ -594,17 +595,25 @@ class OmniBrain {
         .toList()
       ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
 
+    final period = RemoteConfigService.activeAcademicPeriod.value;
+    final isExam = period == 'midterms' || period == 'finals';
+
     if (current != null) {
-      // Time remaining calculation accounting for 1-hour lectures
       final actualEndTime = _getActualEndTime(current);
       final minutesLeft = ((actualEndTime - currentT) * 60).round();
       final timeLeft = minutesLeft > 60 
           ? '${(minutesLeft / 60).floor()}h ${minutesLeft % 60}m left'
           : '$minutesLeft mins left';
       
+      final headlineText = isExam
+          ? (period == 'midterms' ? 'Live Midterm' : 'Live Final Exam')
+          : (period == 'sports_week' ? 'Gala Event Live' : 'Live Now');
+      
+      final roomPrefix = isExam ? 'Hall: ' : '';
+      
       return TemporalInsight(
-        headline: 'Live Now',
-        subline: '${current.subject} · ${current.room}',
+        headline: headlineText,
+        subline: '${current.subject} · $roomPrefix${current.room}',
         timeInfo: timeLeft,
         teacherInfo: current.teacher,
         isLive: true,
@@ -726,6 +735,9 @@ class OmniBrain {
         .toList()
       ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
 
+    final period = RemoteConfigService.activeAcademicPeriod.value;
+    final isExam = period == 'midterms' || period == 'finals';
+
     if (current != null) {
       final actualEndTime = _getActualEndTime(current);
       final minutesLeft = ((actualEndTime - currentT) * 60).round();
@@ -733,9 +745,14 @@ class OmniBrain {
           ? '${(minutesLeft / 60).floor()}h ${minutesLeft % 60}m left'
           : '$minutesLeft mins left';
 
+      final headlineText = isExam
+          ? 'Invigilating Now'
+          : (period == 'sports_week' ? 'Gala Event Duty' : 'Teaching Now');
+      final roomPrefix = isExam ? 'Supervision Hall: ' : '';
+
       return TemporalInsight(
-        headline: 'Teaching Now',
-        subline: '${current.subject} · ${current.room}',
+        headline: headlineText,
+        subline: '${current.subject} · $roomPrefix${current.room}',
         timeInfo: timeLeft,
         teacherInfo: teacherName,
         isLive: true,
@@ -824,7 +841,7 @@ class OmniBrain {
   Map<int, (double, double)> _getOperatingHours() {
     final operatingHours = <int, (double, double)>{};
     
-    for (final session in memory.sessions) {
+    for (final session in memory.activeSessions()) {
       final day = session.dayIndex;
       final start = session.safeStartVal;
       final end = session.safeEndVal;

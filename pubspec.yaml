@@ -83,9 +83,16 @@ flutter:
     - assets/timetable_seed.json
     - assets/nexsync_logo.png
     - assets/iris_logo.png
+    - assets/comsats_logo.png
+    - assets/comsats_logo.jpg
     - assets/Alex_Jones.gif
     - assets/widget_bg_light.gif
     - assets/widget_bg_dark.gif
+    - assets/widget_bg_student.png
+    - assets/widget_bg_faculty.png
+    - assets/widget_bg_sports.png
+    - assets/widget_bg_exams.png
+    - assets/widget_bg_idle.png
     - assets/sfx_nav_soft.ogg
     - assets/sfx_nav_click.ogg
     - assets/sfx_confirm.ogg

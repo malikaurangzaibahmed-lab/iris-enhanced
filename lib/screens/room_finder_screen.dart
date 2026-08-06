@@ -11,6 +11,7 @@ import '../widgets/glass_card.dart';
 import '../widgets/glowing_input_wrapper.dart';
 import '../core/vital_theme.dart';
 import '../services/ui_feedback.dart';
+import '../services/remote_config_service.dart';
 import 'students_week_screen.dart';
 
 // ==========================================================================
@@ -47,7 +48,23 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
   int _likelyBuildingCount = 0;
   List<String> _buildings = ['All'];
 
+  List<String> get _currentSlots {
+    final period = RemoteConfigService.activeAcademicPeriod.value;
+    if (period == 'midterms' || period == 'finals' || period == 'exams') {
+      return ['Exam Slot 1 (09:30 AM)', 'Exam Slot 2 (01:30 PM)'];
+    }
+    return _slots;
+  }
+
   double _slotToHour(int slotIndex) {
+    final period = RemoteConfigService.activeAcademicPeriod.value;
+    if (period == 'midterms' || period == 'finals' || period == 'exams') {
+      switch (slotIndex) {
+        case 0: return 10.0;  // 09:30 AM - 11:30 AM Exam Paper Slot
+        case 1: return 14.5;  // 01:30 PM - 03:30 PM Exam Paper Slot
+        default: return 10.0;
+      }
+    }
     switch (slotIndex) {
       case 0: return 8.5;     // 8:30 AM (1st)
       case 1: return 9.916;   // 9:55 AM (2nd)
@@ -82,7 +99,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
     final storedRooms = await _persistence.loadRooms();
     final Map<String, Room> roomMap = {for (var r in storedRooms) r.id: r};
     
-    final sessionsRooms = widget.memory.sessions.map((s) => s.room).toSet();
+    final sessionsRooms = widget.memory.activeSessions().map((s) => s.room).toSet();
     bool newlyAdded = false;
 
     for (final r in sessionsRooms) {
@@ -111,14 +128,14 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
     final now = DateTime.now();
     final day = _targetDay ?? now.weekday;
     final hour = _targetHour ?? (now.hour + (now.minute / 60.0));
-    final allSessions = widget.memory.sessions;
+    final allSessions = widget.memory.activeSessions();
 
     _allAvailability = _service.getRoomAvailabilityAt(allSessions, hour, day);
     
     if (_targetHour == null) {
       _recommendation = _service.getSmartRecommendation(
         allSessions, 
-        widget.memory.sessions.where((s) => s.batchKey.batch == 'UNKNOWN').toList(),
+        widget.memory.activeSessions().where((s) => s.batchKey.batch == 'UNKNOWN').toList(),
         80,
       );
     } else {
@@ -222,19 +239,24 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // 6. Lecture slots selectors
-                    _buildSectionHeader('LECTURE SLOTS', isDark),
+                    ValueListenableBuilder<String>(
+                      valueListenable: RemoteConfigService.activeAcademicPeriod,
+                      builder: (context, period, _) {
+                        final isExam = period == 'midterms' || period == 'finals' || period == 'exams';
+                        return _buildSectionHeader(isExam ? 'EXAM PAPER SLOTS' : 'LECTURE SLOTS', isDark);
+                      },
+                    ),
                     const SizedBox(height: 12),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
                       child: Row(
-                        children: List.generate(_slots.length, (index) {
+                        children: List.generate(_currentSlots.length, (index) {
                           final isSelected = _targetSlot == index;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: RoomFilterChip(
-                              label: '${_slots[index]} Slot',
+                              label: _currentSlots[index],
                               isSelected: isSelected,
                               onSelected: (s) {
                                 setState(() {
@@ -329,6 +351,34 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                         letterSpacing: 1.5,
                         color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
                       ),
+                    ),
+                    const Spacer(),
+                    ValueListenableBuilder<String>(
+                      valueListenable: RemoteConfigService.activeAcademicPeriod,
+                      builder: (context, period, _) {
+                        String badge = 'CLASSES MODE';
+                        if (period == 'midterms' || period == 'finals' || period == 'exams') {
+                          badge = '📝 EXAM HALL MODE';
+                        } else if (period == 'sports_week' || period == 'students_week') {
+                          badge = '🏆 GALA MODE';
+                        }
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: IrisTokens.brand.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badge,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: IrisTokens.brand,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -800,13 +850,18 @@ class RoomAvailabilityCard extends StatelessWidget {
                                 color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                availability.building,
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: (isDark ? Colors.white70 : Colors.black87),
-                                ),
+                              Builder(
+                                builder: (_) {
+                                  final details = RoomPersistenceService.parseRoomCode(availability.roomId);
+                                  return Text(
+                                    details.formattedLocation,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: (isDark ? Colors.white70 : Colors.black87),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),

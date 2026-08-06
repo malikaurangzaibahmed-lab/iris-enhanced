@@ -72,9 +72,10 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
       _error = '';
     });
 
-    final list = await _service.fetchOfflineOnly();
+    final payload = await _service.fetchLiveFirstWithFallbackPayload();
     if (!mounted) return;
 
+    final list = List<FacultyProfile>.from(payload.items);
     if (list.isEmpty) {
       setState(() {
         _all = const [];
@@ -89,7 +90,7 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     setState(() {
       _all = list;
       _loading = false;
-      _source = HelpdeskFacultySource.cache;
+      _source = payload.source;
     });
     _applyFilter();
   }
@@ -125,10 +126,12 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     final value = location.trim();
     if (value.isEmpty) return 'Unknown';
     final upper = value.toUpperCase();
-    if (upper.contains('A BLOCK')) return 'A Block';
-    if (upper.contains('B BLOCK')) return 'B Block';
-    if (upper.contains('C BLOCK')) return 'C Block';
-    if (upper.contains('D BLOCK')) return 'D Block';
+    if (upper.contains('A BLOCK') || upper.startsWith('A')) return 'A Block';
+    if (upper.contains('B BLOCK') || upper.startsWith('B')) return 'B Block';
+    if (upper.contains('C BLOCK') || upper.startsWith('C')) return 'C Block';
+    if (upper.contains('D BLOCK') || upper.startsWith('D')) return 'D Block';
+    if (upper.contains('E BLOCK') || upper.startsWith('E')) return 'E Block';
+    if (upper.contains('WORKSHOP')) return 'Workshop Block';
     return value;
   }
 

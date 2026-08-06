@@ -223,6 +223,10 @@ class ToolsScreenState extends State<ToolsScreen> {
       child: GlassCard(
         padding: const EdgeInsets.all(22),
         borderRadius: 28,
+        glow: true,
+        shimmer: true,
+        accentColor: targetTool.color,
+        backgroundColor: targetTool.color.withValues(alpha: isDark ? 0.12 : 0.06),
         onTap: () => _handleToolTap(context, targetTool.id, department),
         child: Row(
           children: [
@@ -233,31 +237,43 @@ class ToolsScreenState extends State<ToolsScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: targetTool.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: [
+                              targetTool.color.withValues(alpha: 0.3),
+                              targetTool.color.withValues(alpha: 0.1),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: targetTool.color.withValues(alpha: 0.4), width: 1.0),
                         ),
-                        child: Icon(targetTool.icon, color: targetTool.color, size: 18),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'SMART ASSISTANT',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: targetTool.color,
-                          letterSpacing: 1.0,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(targetTool.icon, color: targetTool.color, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              'AI ASSISTANT INSIGHT',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                color: targetTool.color,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
@@ -269,24 +285,39 @@ class ToolsScreenState extends State<ToolsScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      height: 1.3,
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                      height: 1.35,
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Container(
-              padding: const EdgeInsets.all(12),
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: targetTool.color.withValues(alpha: 0.12),
+                gradient: LinearGradient(
+                  colors: [
+                    targetTool.color,
+                    targetTool.color.withValues(alpha: 0.7),
+                  ],
+                ),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: targetTool.color.withValues(alpha: 0.4),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Icon(
-                Icons.arrow_forward_rounded,
-                color: targetTool.color,
-                size: 24,
+              child: const Center(
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ),
             ),
           ],
@@ -311,32 +342,38 @@ class ToolsScreenState extends State<ToolsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 16),
+          padding: const EdgeInsets.only(left: 4, bottom: 14),
           child: Text(
             title.toUpperCase(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.5,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.35),
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
             ),
           ),
         ),
         LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth;
-            final crossAxisCount = availableWidth >= 760
+            final crossAxisCount = availableWidth >= 800
                 ? 4
-                : availableWidth >= 560
+                : availableWidth >= 520
                     ? 3
                     : 2;
+            final childAspectRatio = availableWidth >= 800
+                ? 1.25
+                : availableWidth >= 520
+                    ? 1.18
+                    : 1.12;
+
             return GridView.count(
               crossAxisCount: crossAxisCount,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 10,
-              childAspectRatio: 0.94,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 12,
+              childAspectRatio: childAspectRatio,
               children: tools
                   .map(
                     (tool) => _buildToolCard(
@@ -362,6 +399,15 @@ class ToolsScreenState extends State<ToolsScreen> {
     required String department,
     required bool isRecommended,
   }) {
+    final badgeLabel = switch (item.id) {
+      'teacher_locator' => 'STAR',
+      'cgpa_calculator' => 'POPULAR',
+      'find_rooms' => 'LIVE',
+      'doc_workspace' => 'NEW',
+      'makeup_scheduler' => 'PLANNER',
+      _ => null,
+    };
+
     return GlassCard(
       padding: const EdgeInsets.all(16),
       borderRadius: 24,
@@ -379,30 +425,40 @@ class ToolsScreenState extends State<ToolsScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: item.color.withValues(alpha: 0.12),
+                  gradient: LinearGradient(
+                    colors: [
+                      item.color.withValues(alpha: isDark ? 0.25 : 0.16),
+                      item.color.withValues(alpha: isDark ? 0.10 : 0.06),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: item.color.withValues(alpha: 0.25),
+                    color: item.color.withValues(alpha: isDark ? 0.35 : 0.25),
                     width: 1.0,
                   ),
                 ),
                 child: Icon(item.icon, color: item.color, size: 22),
               ),
-              if (isRecommended)
+              if (badgeLabel != null || isRecommended)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                   decoration: BoxDecoration(
-                    color: item.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: item.color.withValues(alpha: 0.3), width: 0.8),
+                    gradient: LinearGradient(
+                      colors: [
+                        item.color.withValues(alpha: 0.22),
+                        item.color.withValues(alpha: 0.10),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(color: item.color.withValues(alpha: 0.35), width: 0.9),
                   ),
                   child: Text(
-                    'STAR',
+                    badgeLabel ?? 'STAR',
                     style: TextStyle(
-                      fontSize: 8,
+                      fontSize: 8.5,
                       fontWeight: FontWeight.w900,
                       color: item.color,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.6,
                     ),
                   ),
                 ),
@@ -411,23 +467,25 @@ class ToolsScreenState extends State<ToolsScreen> {
           const Spacer(),
           Text(
             item.title,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white : Colors.black,
+              letterSpacing: 0.2,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Text(
             item.subtitle,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+              height: 1.25,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.50),
             ),
           ),
         ],
@@ -617,108 +675,113 @@ class ToolsScreenState extends State<ToolsScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Container(
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-                              width: 1.2,
-                            ),
+                      // Liquid Glass Search Input
+                      Container(
+                        height: 48,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.05 : 0.03),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                            width: 1.2,
                           ),
-                          child: TextField(
-                            controller: _searchController,
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black,
-                              fontSize: 13,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search_rounded,
+                              color: isDark ? Colors.white60 : Colors.black54,
+                              size: 20,
                             ),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Search resources...',
-                              hintStyle: TextStyle(
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
-                                fontSize: 13,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Search resources & campus tools...',
+                                  hintStyle: TextStyle(
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.35),
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _searchQuery = val;
+                                  });
+                                },
                               ),
-                              icon: Icon(
-                                Icons.search_rounded,
-                                color: isDark ? Colors.white54 : Colors.black54,
-                                size: 18,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
                             ),
-                            onChanged: (val) {
-                              setState(() {
-                                _searchQuery = val;
-                              });
-                            },
-                          ),
+                            if (_searchQuery.isNotEmpty)
+                              IconButton(
+                                icon: const Icon(Icons.cancel_rounded, size: 18),
+                                color: isDark ? Colors.white54 : Colors.black45,
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      lgw.GlassMenu(
-                        menuWidth: 180,
-                        menuHeight: 186.0,
-                        menuBorderRadius: 16.0,
-                        settings: lgw.LiquidGlassSettings(
-                          blur: 16,
-                          ambientStrength: 0.65,
-                          lightAngle: 0.15 * math.pi,
-                          glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                              .withValues(alpha: isDark ? 0.42 : 0.45),
-                          thickness: 18,
-                        ),
-                        triggerBuilder: (context, toggleMenu) {
-                          return InkWell(
-                            onTap: () {
-                              toggleMenu();
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              height: 44,
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              decoration: BoxDecoration(
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                                  width: 1.2,
+                      const SizedBox(height: 14),
+                      
+                      // Horizontal Category Filter Pills
+                      SizedBox(
+                        height: 38,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _categories.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final cat = _categories[index];
+                            final isSelected = _activeCategory == cat;
+                            return InkWell(
+                              onTap: () {
+                                IrisHaptics.chipSelect();
+                                setState(() => _activeCategory = cat);
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? IrisTokens.brand.withValues(alpha: isDark ? 0.25 : 0.15)
+                                      : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03)),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? IrisTokens.brand
+                                        : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08)),
+                                    width: isSelected ? 1.5 : 1.0,
+                                  ),
+                                ),
+                                child: Text(
+                                  cat,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                    color: isSelected
+                                        ? IrisTokens.brand
+                                        : (isDark ? Colors.white70 : Colors.black87),
+                                  ),
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    _activeCategory,
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? Colors.white : Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    Icons.keyboard_arrow_down_rounded,
-                                    color: isDark ? Colors.white70 : Colors.black54,
-                                    size: 16,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        items: _categories.map((String cat) {
-                          return lgw.GlassMenuItem(
-                            title: cat,
-                            onTap: () {
-                              setState(() => _activeCategory = cat);
-                            },
-                          );
-                        }).toList(),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -951,12 +1014,12 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
                             children: [
                               Text(
                                 payload.source == CampusScheduleSource.asset
-                                    ? 'Loaded from local cache'
-                                    : 'Campus schedule cache is currently unavailable',
+                                    ? '📦 Offline Campus Calendar Data'
+                                    : 'Campus schedule offline',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                                  fontWeight: FontWeight.w700,
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
                                 ),
                               ),
                               if (payload.capturedAt != null) ...[
@@ -1165,6 +1228,64 @@ class _LibraryScheduleScreen extends StatelessWidget {
                 icon: Icons.local_library_rounded,
                 accent: VitalTokens.blue,
                 isDark: isDark,
+              ),
+              const SizedBox(height: 14),
+              
+              // Live Library Status Card
+              Builder(
+                builder: (_) {
+                  final now = DateTime.now();
+                  final weekday = now.weekday;
+                  final hour = now.hour + (now.minute / 60.0);
+                  bool isOpen = false;
+                  if (weekday >= 1 && weekday <= 4 && hour >= 8.5 && hour < 21.0) {
+                    isOpen = true;
+                  } else if (weekday == 5 && hour >= 8.5 && hour < 17.0) {
+                    isOpen = true;
+                  } else if (weekday == 6 && hour >= 10.0 && hour < 16.0) {
+                    isOpen = true;
+                  }
+
+                  return GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    backgroundColor: (isOpen ? VitalTokens.success : VitalTokens.pink).withValues(alpha: 0.08),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isOpen ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                          color: isOpen ? VitalTokens.success : VitalTokens.pink,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isOpen ? 'LIBRARY IS OPEN NOW' : 'LIBRARY IS CURRENTLY CLOSED',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                  color: isOpen ? VitalTokens.success : VitalTokens.pink,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isOpen ? 'Quiet study zones & computer terminals available' : 'Reopens next scheduled morning slot at 08:30 AM',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
               Padding(

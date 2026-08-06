@@ -65,9 +65,7 @@ class DashboardDock extends StatefulWidget {
       ambientStrength: 0.75,
       lightAngle: 0.15 * math.pi,
       thickness: 24,
-      glassColor: isDark
-          ? Colors.black.withValues(alpha: 0.22)
-          : Colors.white.withValues(alpha: 0.32),
+      glassColor: Colors.transparent,
     );
 
     final dockContent = ValueListenableBuilder<bool>(
@@ -344,18 +342,6 @@ class DashboardDock extends StatefulWidget {
                                                 blurRadius: 20,
                                                 spreadRadius: -2,
                                                 offset: const Offset(0, 4),
-                                              ),
-                                              BoxShadow(
-                                                color: const Color(0xFF06B6D4).withValues(alpha: isDark ? 0.25 : 0.15),
-                                                blurRadius: 6,
-                                                spreadRadius: -1,
-                                                offset: const Offset(-2, 0),
-                                              ),
-                                              BoxShadow(
-                                                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.20 : 0.10),
-                                                blurRadius: 6,
-                                                spreadRadius: -1,
-                                                offset: const Offset(2, 0),
                                               ),
                                             ],
                                           ),

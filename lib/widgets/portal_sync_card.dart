@@ -80,17 +80,16 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_cachedTasks.isEmpty && _session == null) {
-      return const SizedBox.shrink();
-    }
-
     final tasks = _cachedTasks.where((t) => !t.isCompleted).toList();
     final displayTasks = tasks.take(10).toList();
-    final isFailed = _session == null || !_session!.hasValidCookies || _syncStatus == 'failed';
-    final accentColor = isFailed ? IrisTokens.error : IrisTokens.brand;
-    final statusLabel = isFailed 
-        ? (_session == null || !_session!.hasValidCookies ? 'Session Expired' : 'Connection Lost')
-        : (tasks.isEmpty ? 'Synced' : 'Active Updates');
+    final isUnsynced = _cachedTasks.isEmpty && _session == null;
+    final isFailed = isUnsynced || _session == null || !_session!.hasValidCookies || _syncStatus == 'failed';
+    final accentColor = isFailed ? (isUnsynced ? IrisTokens.brand : IrisTokens.error) : IrisTokens.brand;
+    final statusLabel = isUnsynced
+        ? 'Tap to Sync'
+        : (isFailed 
+            ? (_session == null || !_session!.hasValidCookies ? 'Session Expired' : 'Connection Lost')
+            : (tasks.isEmpty ? 'All Synced' : '${tasks.length} Active Tasks'));
 
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeSignals.useVitalTheme,

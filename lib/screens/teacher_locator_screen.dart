@@ -14,6 +14,7 @@ import '../widgets/glowing_input_wrapper.dart';
 import '../core/theme_signals.dart';
 import '../core/minimal_theme.dart';
 import '../core/vital_theme.dart';
+import '../services/remote_config_service.dart';
 import 'students_week_screen.dart';
 
 class TeacherLocatorScreen extends StatefulWidget {
@@ -426,11 +427,22 @@ class _TeacherLocatorScreenState extends State<TeacherLocatorScreen> {
                                 },
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                isFacultySelection
-                                    ? 'Choose a teacher to load your faculty schedule'
-                                    : 'Find any teacher\'s real-time location & schedule',
-                                style: IrisTextStyles.insightSubtext(context),
+                              ValueListenableBuilder<String>(
+                                valueListenable: RemoteConfigService.activeAcademicPeriod,
+                                builder: (context, period, _) {
+                                  String subtitle = 'Find any teacher\'s real-time location & schedule';
+                                  if (isFacultySelection) {
+                                    subtitle = 'Choose a teacher to load your faculty schedule';
+                                  } else if (period == 'midterms' || period == 'finals' || period == 'exams') {
+                                    subtitle = '📝 EXAM MODE: Find teacher\'s invigilation duty & exam hall';
+                                  } else if (period == 'sports_week' || period == 'students_week') {
+                                    subtitle = '🏆 GALA MODE: Find teacher\'s event & sports duty';
+                                  }
+                                  return Text(
+                                    subtitle,
+                                    style: IrisTextStyles.insightSubtext(context),
+                                  );
+                                },
                               ),
                             ],
                           ),

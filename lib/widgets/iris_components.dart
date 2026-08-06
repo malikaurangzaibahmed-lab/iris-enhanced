@@ -1381,9 +1381,11 @@ class _ClassCardState extends State<ClassCard>
                                   ],
                                   Expanded(
                                     child: Text(
-                                      widget.session.subject,
+                                      widget.session.subject.replaceAll('[EXAM]', '').trim(),
                                       style: IrisTextStyles.classSubject(context).copyWith(
-                                        color: live ? IrisTokens.success : textPrimary,
+                                        color: widget.session.subject.contains('[EXAM]')
+                                            ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
+                                            : (live ? IrisTokens.success : textPrimary),
                                         decoration: isCompleted ? TextDecoration.lineThrough : null,
                                       ),
                                     ),
@@ -1392,7 +1394,26 @@ class _ClassCardState extends State<ClassCard>
                               ),
                             ),
                             const SizedBox(width: 8),
-                            if (live) ...[
+                            if (widget.session.subject.contains('[EXAM]')) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF59E0B).withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4), width: 1),
+                                ),
+                                child: const Text(
+                                  '✍️ EXAM PAPER',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFFD97706),
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ] else if (live) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
@@ -1479,13 +1500,19 @@ class _ClassCardState extends State<ClassCard>
                             Row(
                               children: [
                                 Icon(
-                                  Icons.location_on_rounded,
+                                  widget.session.subject.contains('[EXAM]')
+                                      ? Icons.account_balance_rounded
+                                      : Icons.location_on_rounded,
                                   size: 16,
-                                  color: live ? IrisTokens.success : textSecondary.withValues(alpha: 0.6),
+                                  color: widget.session.subject.contains('[EXAM]')
+                                      ? const Color(0xFFF59E0B)
+                                      : (live ? IrisTokens.success : textSecondary.withValues(alpha: 0.6)),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  widget.session.room,
+                                  widget.session.subject.contains('[EXAM]')
+                                      ? 'Hall: ${widget.session.room}'
+                                      : widget.session.room,
                                   style: IrisTextStyles.classSessionMeta(context).copyWith(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -1497,11 +1524,15 @@ class _ClassCardState extends State<ClassCard>
                             Text(
                               widget.isFacultyView
                                   ? widget.session.batchKey.batch
-                                  : widget.session.teacher,
+                                  : (widget.session.subject.contains('[EXAM]')
+                                      ? 'Invigilator: ${widget.session.teacher}'
+                                      : widget.session.teacher),
                               style: IrisTextStyles.metaInfo(context).copyWith(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: textSecondary.withValues(alpha: 0.7),
+                                color: widget.session.subject.contains('[EXAM]')
+                                    ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155))
+                                    : textSecondary.withValues(alpha: 0.7),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

@@ -15,25 +15,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="14dp">
 
-        <!-- Header Row -->
+        <!-- Header Glass Container -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:background="@drawable/widget_glass_container_light"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginBottom="10dp">
 
             <TextView
                 android:id="@+id/widget_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="PORTAL UPDATES"
-                android:textSize="11sp"
+                android:text="📋 PORTAL TASKS"
+                android:textSize="11.5sp"
                 android:textStyle="bold"
-                android:textColor="#5B7FFF"
-                android:letterSpacing="0.08" />
+                android:textColor="#1D4ED8"
+                android:letterSpacing="0.06" />
 
             <FrameLayout
                 android:layout_width="0dp"
@@ -45,8 +50,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Not Synced"
-                android:textSize="10sp"
-                android:textColor="#64748B" />
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="#475569" />
         </LinearLayout>
 
         <!-- Empty State View -->
@@ -55,11 +61,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="✓ All caught up!\nNo pending tasks"
-            android:textColor="#475569"
-            android:textSize="13sp"
+            android:text="🎉 All caught up!\nNo pending portal assignments or quizzes"
+            android:textColor="#334155"
+            android:textSize="13.5sp"
             android:textStyle="bold"
-            android:lineSpacingMultiplier="1.2"
+            android:lineSpacingMultiplier="1.25"
             android:visibility="gone" />
 
         <!-- Scrollable Tasks List -->
@@ -68,7 +74,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:divider="@null"
-            android:dividerHeight="6dp"
+            android:dividerHeight="8dp"
             android:scrollbarStyle="outsideOverlay" />
 
     </LinearLayout>

@@ -190,6 +190,16 @@ class MainActivity : FlutterFragmentActivity() {
 							result.error("ENQUEUE_FAILED", e.message, null)
 						}
 					}
+					"getCookiesForUrl" -> {
+						try {
+							val url = call.argument<String>("url") ?: ""
+							val cookieManager = android.webkit.CookieManager.getInstance()
+							val cookies = cookieManager.getCookie(url) ?: ""
+							result.success(cookies)
+						} catch (e: Exception) {
+							result.success("")
+						}
+					}
 					"openSystemDownloads" -> {
 						try {
 							val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)

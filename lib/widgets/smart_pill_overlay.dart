@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../core/theme_signals.dart';
 import '../services/system_broadcast_service.dart';
+import '../services/portal_sync_service.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
 
 
-/// A global wrapper widget that listens to the SystemBroadcastService.
+/// A global wrapper widget that listens to the SystemBroadcastService and PortalSyncService.
 /// Wrap this around your MaterialApp's home route, or your dashboard Scaffold,
-/// and it will automatically pop the "Smart Pill" whenever an announcement drops.
+/// and it will automatically pop the "Smart Pill" whenever an announcement drops or deep sync runs.
 class SmartPillOverlay extends StatefulWidget {
   final Widget child; // The main screen content
 
@@ -74,6 +75,29 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
         );
       }
     });
+
+    PortalSyncService.isDeepSyncing.addListener(_onDeepSyncStatusChanged);
+  }
+
+  void _onDeepSyncStatusChanged() {
+    final syncing = PortalSyncService.isDeepSyncing.value;
+    if (syncing) {
+      _show(
+        '⚡ Deep Syncing Portal...',
+        'Scraping academic courses & assignments in background',
+        false,
+        isPersistent: true,
+      );
+    } else {
+      if (_isPersistent && _title.contains('Deep Syncing')) {
+        _show(
+          '✓ Deep Sync Complete',
+          'All academic records & courses updated',
+          false,
+          isPersistent: false,
+        );
+      }
+    }
   }
 
   void _show(String title, String body, bool isUrgent, {bool isPersistent = false}) {
@@ -111,6 +135,7 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
 
   @override
   void dispose() {
+    PortalSyncService.isDeepSyncing.removeListener(_onDeepSyncStatusChanged);
     _sub.cancel();
     _hideTimer?.cancel();
     _animController.dispose();

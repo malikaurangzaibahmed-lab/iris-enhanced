@@ -21,10 +21,17 @@ class _CgpaCalculatorScreenState extends State<CgpaCalculatorScreen> {
     CgpaCourseRow(),
   ];
 
+  final TextEditingController _priorCgpaController = TextEditingController();
+  final TextEditingController _priorCreditsController = TextEditingController();
+
   double _semesterGpa = 0.0;
+  double _cumulativeCgpa = 0.0;
+  bool _includePriorCgpa = false;
 
   @override
   void dispose() {
+    _priorCgpaController.dispose();
+    _priorCreditsController.dispose();
     for (final row in _rows) {
       row.dispose();
     }
@@ -32,20 +39,32 @@ class _CgpaCalculatorScreenState extends State<CgpaCalculatorScreen> {
   }
 
   void _recalculate() {
-    double qualityPoints = 0;
-    double totalCredits = 0;
+    double semQualityPoints = 0;
+    double semTotalCredits = 0;
 
     for (final row in _rows) {
       final credits = double.tryParse(row.creditsController.text) ?? 0;
-      if (credits <= 0) {
-        continue;
-      }
-      qualityPoints += credits * row.gradePoint;
-      totalCredits += credits;
+      if (credits <= 0) continue;
+      semQualityPoints += credits * row.gradePoint;
+      semTotalCredits += credits;
+    }
+
+    final priorCgpa = double.tryParse(_priorCgpaController.text) ?? 0.0;
+    final priorCredits = double.tryParse(_priorCreditsController.text) ?? 0.0;
+
+    double cumulativeGpa = 0.0;
+    if (_includePriorCgpa && priorCredits > 0) {
+      final priorQualityPoints = priorCgpa * priorCredits;
+      final totalQualityPoints = priorQualityPoints + semQualityPoints;
+      final totalCredits = priorCredits + semTotalCredits;
+      cumulativeGpa = totalCredits > 0 ? totalQualityPoints / totalCredits : 0.0;
+    } else {
+      cumulativeGpa = semTotalCredits > 0 ? semQualityPoints / semTotalCredits : 0.0;
     }
 
     setState(() {
-      _semesterGpa = totalCredits > 0 ? qualityPoints / totalCredits : 0.0;
+      _semesterGpa = semTotalCredits > 0 ? semQualityPoints / semTotalCredits : 0.0;
+      _cumulativeCgpa = cumulativeGpa;
     });
   }
 
@@ -130,43 +149,143 @@ class _CgpaCalculatorScreenState extends State<CgpaCalculatorScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: IrisTokens.brand.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.school_rounded,
-                          color: IrisTokens.brand,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Current Semester GPA',
+                              'Semester GPA',
                               style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.68),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               _semesterGpa.toStringAsFixed(2),
                               style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.3,
-                                color: isDark ? Colors.white : Colors.black,
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                                color: IrisTokens.brand,
                               ),
                             ),
                           ],
                         ),
                       ),
+                      Container(height: 40, width: 1, color: isDark ? Colors.white10 : Colors.black12),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _includePriorCgpa ? 'Cumulative CGPA' : 'Target CGPA',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _includePriorCgpa ? _cumulativeCgpa.toStringAsFixed(2) : _semesterGpa.toStringAsFixed(2),
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                                color: IrisTokens.purple,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Cumulative CGPA Toggle Card
+              GlassCard(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.calculate_rounded, color: IrisTokens.purple, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Calculate Overall Cumulative CGPA',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'Include previous semesters\' CGPA & total credit hours',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _includePriorCgpa,
+                            activeThumbColor: IrisTokens.purple,
+                            onChanged: (val) {
+                              setState(() => _includePriorCgpa = val);
+                              _recalculate();
+                              IrisHaptics.chipSelect();
+                            },
+                          ),
+                        ],
+                      ),
+                      if (_includePriorCgpa) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _priorCgpaController,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                onChanged: (_) => _recalculate(),
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                decoration: InputDecoration(
+                                  labelText: 'Prior CGPA',
+                                  hintText: 'e.g. 3.45',
+                                  isDense: true,
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                controller: _priorCreditsController,
+                                keyboardType: TextInputType.number,
+                                onChanged: (_) => _recalculate(),
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                decoration: InputDecoration(
+                                  labelText: 'Prior Credits',
+                                  hintText: 'e.g. 45',
+                                  isDense: true,
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

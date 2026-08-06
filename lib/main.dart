@@ -36,6 +36,7 @@ import 'screens/tutorial_screen.dart';
 import 'screens/teacher_locator_screen.dart';
 import 'screens/students_week_screen.dart';
 import 'services/remote_config_service.dart';
+import 'services/app_update_service.dart';
 import 'services/helpdesk_schedule_data_service.dart';
 import 'services/headless_portal_sync.dart';
 import 'services/notification_service.dart';
@@ -1185,16 +1186,33 @@ class _FacultyFullScheduleScreenState
                               ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Text(
-                                  'FACULTY SCHEDULE',
-                                  style: TextStyle(
-                                    fontSize: isVeryCompactCard ? 11 : 12,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.0,
-                                    color:
-                                        (isDark ? Colors.white : Colors.black)
-                                            .withValues(alpha: isDark ? 0.46 : 0.40),
-                                  ),
+                                child: ValueListenableBuilder<String>(
+                                  valueListenable: RemoteConfigService.activeAcademicPeriod,
+                                  builder: (context, period, _) {
+                                    String title = 'FACULTY SCHEDULE';
+                                    if (period == 'ramadan') {
+                                      title = '🌙 RAMADAN SCHEDULE';
+                                    } else if (period == 'midterms') {
+                                      title = '✍️ MIDTERM INVIGILATION';
+                                    } else if (period == 'finals') {
+                                      title = '🎓 FINAL EXAM SUPERVISION';
+                                    } else if (period == 'sports_week') {
+                                      title = '🏆 GALA EVENT DUTY';
+                                    }
+                                    return Text(
+                                      title,
+                                      style: TextStyle(
+                                        fontSize: isVeryCompactCard ? 11 : 12,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.0,
+                                        color: period == 'classes'
+                                            ? (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.46 : 0.40)
+                                            : (period == 'ramadan' || period == 'sports_week'
+                                                ? const Color(0xFF10B981)
+                                                : (period == 'midterms' ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6))),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ],
@@ -2190,7 +2208,7 @@ class _DashboardState extends State<Dashboard>
 
     // Serialize timetable data
     final timetableData = {
-      'sessions': widget.memory.sessions.map((s) => s.toJson()).toList(),
+      'sessions': widget.memory.activeSessions().map((s) => s.toJson()).toList(),
     };
     await prefs.setString('timetable_data', jsonEncode(timetableData));
 
@@ -2198,7 +2216,7 @@ class _DashboardState extends State<Dashboard>
         prefs.getBool('lecture_reminders_enabled') ?? false;
     if (remindersEnabled) {
       // Schedule 5-minute reminders for today's classes
-      final todayClasses = widget.memory.sessions
+      final todayClasses = widget.memory.activeSessions()
           .where(
             (s) =>
                 s.batchKey.batch == widget.batch &&
@@ -2218,14 +2236,7 @@ class _DashboardState extends State<Dashboard>
     final currentTime = now.hour + (now.minute / 60.0);
     final dayIndex = now.weekday;
 
-    // Animated colored progress bar with glowy emojis
-    String _bar(double p) {
-      const total = 8;
-      final filled = (p * total).round().clamp(0, total);
-      return '🟦' * filled + '⬜' * (total - filled);
-    }
-
-    final todayAll = widget.memory.sessions
+    final todayAll = widget.memory.activeSessions()
         .where(
           (s) => s.batchKey.batch == widget.batch && s.dayIndex == dayIndex,
         )
@@ -2259,12 +2270,13 @@ class _DashboardState extends State<Dashboard>
           .where((s) => s.safeStartVal > currentTime)
           .length;
       final classCount = remaining > 0
-          ? ' · $remaining more today'
-          : ' · Last one';
+          ? ' • $remaining more today'
+          : ' • Last session today';
 
-      notifTitle = '🎓 ${current.subject} · $timeLeft';
+      final cleanSub = current.subject.replaceAll('[EXAM]', '').trim();
+      notifTitle = '🎓 $cleanSub • $progressPercent%';
       notifBody =
-          '${_bar(progress)} $progressPercent%$classCount\n📍 ${current.room} · ${current.teacher}';
+          '⏱️ $timeLeft (${current.startTime} - ${current.endTime})$classCount\n📍 ${current.room} • ${current.teacher}';
     } else if (next != null) {
       int daysAhead = 0;
       if (next.dayIndex != dayIndex) {
@@ -2396,7 +2408,7 @@ class _DashboardState extends State<Dashboard>
         }
 
         // Get today's classes for the student's batch
-        final todayClasses = widget.memory.sessions
+        final todayClasses = widget.memory.activeSessions()
             .where(
               (s) =>
                   s.batchKey.batch == widget.batch &&
@@ -2489,7 +2501,10 @@ class _DashboardState extends State<Dashboard>
     if (academicPeriod != 'classes') {
       String notifTitle = '';
       String notifBody = '';
-      if (academicPeriod == 'sports_week') {
+      if (academicPeriod == 'ramadan') {
+        notifTitle = '🌙 Ramadan Timings Active';
+        notifBody = '🕌 Ramadan Schedule · Compressed lecture hours in effect';
+      } else if (academicPeriod == 'sports_week') {
         notifTitle = '🏆 Sports Week active';
         notifBody = '🏅 Sports Week Mode · Enjoy matches & events!';
       } else if (academicPeriod == 'midterms') {
@@ -2555,14 +2570,7 @@ class _DashboardState extends State<Dashboard>
 
     _previousNotificationHash = currentHash;
 
-    // Animated colored progress bar with glowy emojis
-    String _bar(double p) {
-      const total = 8;
-      final filled = (p * total).round().clamp(0, total);
-      return '🟦' * filled + '⬜' * (total - filled);
-    }
-
-    final todayAll = widget.memory.sessions
+    final todayAll = widget.memory.activeSessions()
         .where(
           (s) => s.batchKey.batch == widget.batch && s.dayIndex == dayIndex,
         )
@@ -2595,12 +2603,13 @@ class _DashboardState extends State<Dashboard>
             .where((s) => s.safeStartVal > currentTime)
             .length;
         final classCount = remaining > 0
-            ? ' · $remaining more today'
-            : ' · Last one';
+            ? ' • $remaining more today'
+            : ' • Last session today';
 
-        notifTitle = '🎓 ${current.subject} · $timeLeft';
+        final cleanSub = current.subject.replaceAll('[EXAM]', '').trim();
+        notifTitle = '🎓 $cleanSub • $progressPercent%';
         notifBody =
-            '${_bar(progress)} $progressPercent%$classCount\n📍 ${current.room} · ${current.teacher}';
+            '⏱️ $timeLeft (${current.startTime} - ${current.endTime})$classCount\n📍 ${current.room} • ${current.teacher}';
       } else if (next != null) {
         int daysAhead = 0;
         if (next.dayIndex != dayIndex) {
@@ -2723,7 +2732,10 @@ class _DashboardState extends State<Dashboard>
       if (academicPeriod != 'classes') {
         String headline = '';
         String subline = '';
-        if (academicPeriod == 'sports_week') {
+        if (academicPeriod == 'ramadan') {
+          headline = 'Ramadan Mode';
+          subline = 'Compressed schedule active';
+        } else if (academicPeriod == 'sports_week') {
           headline = 'Sports Week';
           subline = 'Enjoy matches & events!';
         } else if (academicPeriod == 'midterms') {
@@ -3539,7 +3551,9 @@ class _DashboardState extends State<Dashboard>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         borderRadius: 24,
         accentColor: accentColor,
-        glow: isActive,
+        glow: false,
+        enableShadow: false,
+        backgroundColor: Colors.transparent,
         child: Row(
           children: [
             Container(
@@ -3892,11 +3906,7 @@ class _DashboardState extends State<Dashboard>
         thickness: ThemeSignals.useMinimalTheme.value ? 10.0 : 22.0,
         ambientStrength: isDark ? 0.65 : 0.72,
         lightAngle: 0.15 * math.pi,
-        glassColor: IrisGlass.adaptiveGlassColor(
-          context,
-          darkAlpha: 0.38,
-          lightAlpha: 0.46,
-        ),
+        glassColor: Colors.transparent,
       ),
       searchConfig: GlassSearchBarConfig(
         controller: _searchController,
@@ -4115,30 +4125,9 @@ class _DashboardState extends State<Dashboard>
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
                         elevation: 0,
                       ),
-                      onPressed: () async {
+                      onPressed: () {
                         IrisHaptics.actionHeavy();
-                        if (apkUrl.isNotEmpty) {
-                          final uri = Uri.tryParse(apkUrl);
-                          if (uri != null) {
-                            try {
-                              await launchUrl(uri, mode: LaunchMode.externalApplication);
-                            } catch (e) {
-                              debugPrint('Failed to launch URL with externalApplication: $e');
-                              try {
-                                await launchUrl(uri, mode: LaunchMode.platformDefault);
-                              } catch (e2) {
-                                debugPrint('Failed to launch URL with platformDefault: $e2');
-                                if (context.mounted) {
-                                  showIrisFrostedSnackBar(
-                                    context,
-                                    content: const Text('Could not open APK download link. Try copying it manually.'),
-                                    tint: IrisTokens.error,
-                                  );
-                                }
-                              }
-                            }
-                          }
-                        }
+                        AppUpdateService.showUpdateDialog(context, updateInfo: update);
                       },
                       icon: const Icon(Icons.download_rounded, size: 16),
                       label: const Text(
@@ -4300,6 +4289,144 @@ class _DashboardState extends State<Dashboard>
     }
   }
 
+  Widget _buildExamModeDashboardBanner(BuildContext context, bool isDark) {
+    return ValueListenableBuilder<String>(
+      valueListenable: RemoteConfigService.activeAcademicPeriod,
+      builder: (context, period, _) {
+        if (period == 'classes') return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+        final isMidterm = period == 'midterms';
+        final isFinal = period == 'finals';
+        final isSports = period == 'sports_week';
+
+        final accentColor = isMidterm
+            ? const Color(0xFFF59E0B)
+            : (isFinal
+                ? const Color(0xFF8B5CF6)
+                : const Color(0xFF10B981));
+
+        final secondaryAccent = isMidterm
+            ? const Color(0xFFD97706)
+            : (isFinal
+                ? const Color(0xFFEC4899)
+                : const Color(0xFF06B6D4));
+
+        final titleText = isMidterm
+            ? '✍️ MIDTERM DATESHEET MATRIX'
+            : (isFinal
+                ? '🎓 FINAL EXAM DATESHEET MATRIX'
+                : (isSports
+                    ? '🏆 SPORTS GALA FESTIVAL SCHEDULE'
+                    : '🌙 RAMADAN TIMINGS IN EFFECT'));
+
+        final subText = isMidterm || isFinal
+            ? 'Tap to search full exam paper schedule, halls & invigilators across all batches ➔'
+            : (isSports
+                ? 'Sports Week Gala active · Enjoy match fixtures & events!'
+                : 'All lectures are running on compressed 45-min / 1-hr Ramadan schedule.');
+
+        return SliverToBoxAdapter(
+          child: RepaintBoundary(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              child: GestureDetector(
+                onTap: () {
+                  IrisHaptics.chipSelect();
+                  if (isMidterm || isFinal) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ExamGridDashboard(
+                          period: period,
+                          batch: widget.batch,
+                          onToggleTheme: widget.onToggleTheme,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        accentColor.withValues(alpha: isDark ? 0.22 : 0.14),
+                        secondaryAccent.withValues(alpha: isDark ? 0.10 : 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.35),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withValues(alpha: 0.12),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isMidterm || isFinal
+                              ? Icons.grid_view_rounded
+                              : (isSports ? Icons.emoji_events_rounded : Icons.nights_stay_rounded),
+                          color: accentColor,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              titleText,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: accentColor,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              subText,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.75),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isMidterm || isFinal)
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: accentColor.withValues(alpha: 0.8),
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildHomeDashboard(
     BuildContext context,
     bool isDark,
@@ -4352,36 +4479,12 @@ class _DashboardState extends State<Dashboard>
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-              /*
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: LiveScoreboardWidget(),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: StudentsWeekMatchesWidget(),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: StudentsWeekStandingsWidget(),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-              */
-            ] else ...[
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                  child: ClassesAnimationWidget(
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+            ],
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: ClassesAnimationWidget(
                     child: Stack(
                       children: [
                         Padding(
@@ -4500,6 +4603,43 @@ class _DashboardState extends State<Dashboard>
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
+                                        ),
+                                        ValueListenableBuilder<String>(
+                                          valueListenable: RemoteConfigService.activeAcademicPeriod,
+                                          builder: (context, period, _) {
+                                            final modeColor = period == 'ramadan' || period == 'sports_week'
+                                                ? const Color(0xFF10B981)
+                                                : (period == 'midterms' ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6));
+                                            final modeLabel = period == 'ramadan'
+                                                ? '🌙 RAMADAN'
+                                                : (period == 'sports_week'
+                                                    ? '🏆 GALA'
+                                                    : (period == 'midterms' ? '✍️ MIDTERMS' : '🎓 FINALS'));
+                                            if (period == 'classes') return const SizedBox.shrink();
+                                            return Padding(
+                                              padding: const EdgeInsets.only(left: 6),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: modeColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                                                  borderRadius: BorderRadius.circular(99),
+                                                  border: Border.all(
+                                                    color: modeColor.withValues(alpha: 0.4),
+                                                    width: 1.0,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  modeLabel,
+                                                  style: TextStyle(
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: modeColor,
+                                                    letterSpacing: 0.4,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),
@@ -4846,9 +4986,9 @@ class _DashboardState extends State<Dashboard>
                   ),
                 ),
               ),
-            ],
             SliverToBoxAdapter(child: PortalSyncCard(isDark: isDark)),
             _buildPersistentAnnouncementCard(context, isDark),
+            _buildExamModeDashboardBanner(context, isDark),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -5001,7 +5141,7 @@ class _DashboardState extends State<Dashboard>
                       ),
                     ),
             ),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 126)),
+            const SliverToBoxAdapter(child: SizedBox(height: 126)),
           ],
         ),
       ),
@@ -5079,28 +5219,18 @@ class _DashboardState extends State<Dashboard>
                 ValueListenableBuilder<String>(
                   valueListenable: RemoteConfigService.activeAcademicPeriod,
                   builder: (context, period, _) {
-                    Widget activeWidget;
-                    if (period == 'midterms' || period == 'finals') {
-                      activeWidget = ExamGridDashboard(
-                        key: ValueKey('exams-$period'),
-                        period: period,
-                        batch: widget.batch,
-                        onToggleTheme: widget.onToggleTheme,
-                      );
-                    } else {
-                      activeWidget = KeyedSubtree(
-                        key: ValueKey('home-$period'),
-                        child: _buildHomeDashboard(
-                          context,
-                          isDark,
-                          now,
-                          dateLabel,
-                          insight,
-                          filteredSchedule,
-                          schedule,
-                        ),
-                      );
-                    }
+                    final activeWidget = KeyedSubtree(
+                      key: ValueKey('home-$period'),
+                      child: _buildHomeDashboard(
+                        context,
+                        isDark,
+                        now,
+                        dateLabel,
+                        insight,
+                        filteredSchedule,
+                        schedule,
+                      ),
+                    );
 
                     return AnimatedSwitcher(
                       duration: const Duration(milliseconds: 550),
@@ -5339,23 +5469,44 @@ class _DashboardState extends State<Dashboard>
     DateTime now,
     int? overrideDay,
   ) {
+    final period = RemoteConfigService.activeAcademicPeriod.value;
     if (schedule.isEmpty && overrideDay != null) {
-      return '${FormatGuard.normalizeDay(overrideDay)} Timeline';
+      final dayName = FormatGuard.normalizeDay(overrideDay);
+      if (period == 'midterms') return '$dayName Midterm Papers';
+      if (period == 'finals') return '$dayName Final Exams';
+      if (period == 'sports_week') return '$dayName Gala Timetable';
+      if (period == 'ramadan') return '$dayName Ramadan Timeline';
+      return '$dayName Timeline';
     }
-    if (schedule.isEmpty) return 'No Classes';
+    if (schedule.isEmpty) {
+      if (period == 'midterms') return 'No Midterm Papers';
+      if (period == 'finals') return 'No Final Exams';
+      if (period == 'sports_week') return 'No Gala Events';
+      return 'No Classes';
+    }
     final dayIndex = overrideDay ?? schedule.first.dayIndex;
 
     if (dayIndex == now.weekday) {
+      if (period == 'midterms') return 'Today\'s Midterm Papers';
+      if (period == 'finals') return 'Today\'s Final Exams';
+      if (period == 'sports_week') return 'Today\'s Gala Schedule';
+      if (period == 'ramadan') return 'Today\'s Ramadan Timeline';
       return 'Today\'s Timeline';
     }
 
-    // Check if it's tomorrow
     final tomorrowIndex = (now.weekday % 7) + 1;
     if (dayIndex == tomorrowIndex && overrideDay == null) {
+      if (period == 'midterms') return 'Tomorrow\'s Midterms';
+      if (period == 'finals') return 'Tomorrow\'s Finals';
+      if (period == 'sports_week') return 'Tomorrow\'s Gala Events';
       return 'Tomorrow Morning';
     }
 
     final dayName = FormatGuard.normalizeDay(dayIndex);
+    if (period == 'midterms') return '$dayName Midterms';
+    if (period == 'finals') return '$dayName Finals';
+    if (period == 'sports_week') return '$dayName Gala Schedule';
+    if (period == 'ramadan') return '$dayName Ramadan Timeline';
     return '$dayName Timeline';
   }
 
@@ -5364,7 +5515,10 @@ class _DashboardState extends State<Dashboard>
     DateTime now,
     int? overrideDay,
   ) {
+    final period = RemoteConfigService.activeAcademicPeriod.value;
     if (schedule.isEmpty && overrideDay != null) {
+      if (period == 'midterms' || period == 'finals') return 'No exam papers scheduled • All clear! 🎉';
+      if (period == 'sports_week') return 'No gala matches scheduled • Enjoy! 🎉';
       return 'No classes scheduled • Free day! 🎉';
     }
     if (schedule.isEmpty) return 'No sessions in the registry';
@@ -5372,21 +5526,21 @@ class _DashboardState extends State<Dashboard>
     final dayIndex = overrideDay ?? schedule.first.dayIndex;
     final currentTime = now.hour + (now.minute / 60.0);
 
+    final noun = period == 'midterms' || period == 'finals' ? 'paper' : (period == 'sports_week' ? 'event' : 'class');
+    final nouns = period == 'midterms' || period == 'finals' ? 'papers' : (period == 'sports_week' ? 'events' : 'classes');
+
     if (dayIndex == now.weekday) {
-      // Show smart live status
       final current = widget.brain.getCurrentClass(widget.batch, now);
 
       if (current != null && current.isLive(now)) {
-        // Currently in a class
         final remaining = schedule
             .where((s) => s.safeStartVal > currentTime)
             .length;
         final classesLeft = remaining > 0
-            ? '$remaining ${remaining == 1 ? 'class' : 'classes'} left'
-            : 'Last class today';
+            ? '$remaining ${remaining == 1 ? noun : nouns} left'
+            : 'Last $noun today';
         return '${current.subject} • $classesLeft';
       } else {
-        // Between classes or before first class
         final nextClass = schedule.firstWhere(
           (s) => s.safeStartVal > currentTime,
           orElse: () => schedule.first,
@@ -5396,8 +5550,9 @@ class _DashboardState extends State<Dashboard>
           final minutesUntil = ((nextClass.safeStartVal - currentTime) * 60)
               .round();
 
+          final prefix = period == 'midterms' || period == 'finals' ? 'Paper' : (period == 'sports_week' ? 'Event' : 'Next');
           if (minutesUntil > 60) {
-            return '${(minutesUntil / 60).floor()}h ${minutesUntil % 60}m free • Next: ${nextClass.subject}';
+            return '${(minutesUntil / 60).floor()}h ${minutesUntil % 60}m free • $prefix: ${nextClass.subject}';
           } else if (minutesUntil > 15) {
             return '${minutesUntil} min break • ${nextClass.subject} in ${nextClass.room}';
           } else {
@@ -5406,20 +5561,10 @@ class _DashboardState extends State<Dashboard>
         }
       }
 
-      return '${schedule.length} ${schedule.length == 1 ? 'class' : 'classes'} today';
+      return '${schedule.length} ${schedule.length == 1 ? noun : nouns} today';
     }
 
-    // Check if it's tomorrow
-    final tomorrowIndex = (now.weekday % 7) + 1;
-    if (dayIndex == tomorrowIndex && overrideDay == null) {
-      return '${schedule.length} ${schedule.length == 1 ? 'class' : 'classes'} tomorrow • First: ${schedule.first.subject}';
-    }
-
-    if (overrideDay != null) {
-      return '${schedule.length} ${schedule.length == 1 ? 'class' : 'classes'} • ${_getDayName(dayIndex)}';
-    }
-
-    return 'Upcoming schedule';
+    return '${schedule.length} ${schedule.length == 1 ? noun : nouns} scheduled';
   }
 
   String _getDayName(int day) {

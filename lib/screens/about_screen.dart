@@ -17,6 +17,7 @@ import '../widgets/smooth_scroll.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/batch_selector.dart';
 import '../core/vital_theme.dart';
+import '../core/vital_motion.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/vital_card.dart';
 import 'legal_screens.dart';
@@ -322,104 +323,313 @@ class _AboutScreenState extends State<AboutScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: isDark ? IrisTokens.surfaceDark : IrisTokens.surfaceLight,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           ObsidianPulse(isDark: isDark),
-          NestedScrollView(
+          CustomScrollView(
             controller: _scrollController,
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                  expandedHeight: 180,
-                  pinned: true,
-                  stretch: true,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  leading: IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                        shape: BoxShape.circle,
+            physics: VitalMotion.scrollPhysics,
+            slivers: [
+              // Hero Profile Header with Multi-Ring Aura
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 72, 24, 20),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: isDark ? Colors.white : Colors.black87,
+                                size: 18,
+                              ),
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'SETTINGS',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2.0,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const Spacer(),
+                          const SizedBox(width: 48),
+                        ],
                       ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 16,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
-                      ),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: true,
-                    titlePadding: const EdgeInsets.only(bottom: 16),
-                    title: Text(
-                      'SETTINGS',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    background: Container(
-                      color: Colors.transparent,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 48),
-                            Icon(
-                              Icons.settings_suggest_rounded,
-                              size: 40,
-                              color: isDark ? Colors.white30 : Colors.black26,
+                      const SizedBox(height: 20),
+                      
+                      // Profile Avatar Container
+                      Container(
+                        width: 110,
+                        height: 110,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [VitalTokens.blue, VitalTokens.purple],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: VitalTokens.blue.withValues(alpha: 0.4),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
+                        child: Center(
+                          child: Text(
+                            _userName.isNotEmpty ? _userName[0].toUpperCase() : 'S',
+                            style: const TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 14),
+                      
+                      // Name & Persona Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _userName,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          IconButton(
+                            icon: const Icon(Icons.edit_note_rounded, size: 20),
+                            color: VitalTokens.blue,
+                            onPressed: _editUserName,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      
+                      // Badges Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Role Badge
+                          InkWell(
+                            onTap: _toggleRole,
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: VitalTokens.blue.withValues(alpha: isDark ? 0.2 : 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: VitalTokens.blue.withValues(alpha: 0.3),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: VitalTokens.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _userRole.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      color: VitalTokens.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.sync_alt_rounded, size: 12, color: VitalTokens.blue),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (_userRole == 'student') ...[
+                            const SizedBox(width: 8),
+                            // Batch Switcher Button
+                            InkWell(
+                              onTap: _updateBatch,
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: VitalTokens.purple.withValues(alpha: isDark ? 0.2 : 0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: VitalTokens.purple.withValues(alpha: 0.3),
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.school_rounded, size: 13, color: VitalTokens.purple),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'BATCH: ${_batch.toUpperCase()}',
+                                      style: const TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.0,
+                                        color: VitalTokens.purple,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ];
-            },
-            body: ScrollConfiguration(
-              behavior: const SmoothScrollBehavior(),
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                children: [
-                  // 1. Account & Profile Info Card
-                  _buildSectionHeader('PROFILE ACCOUNT'),
-                  const SizedBox(height: 8),
-                  _buildProfileCard(isDark),
-
-                  const SizedBox(height: 24),
-
-                  // 2. Synchronizations Card
-                  _buildSectionHeader('CLOUD SYNCHRONIZATIONS'),
-                  const SizedBox(height: 8),
-                  _buildOTACard(isDark),
-
-                  const SizedBox(height: 24),
-
-                  // 3. Tuner Preferences Switches
-                  _buildSectionHeader('PREFERENCES TUNING'),
-                  const SizedBox(height: 8),
-                  _buildPreferencesCard(isDark),
-
-                  const SizedBox(height: 24),
-
-                  // 4. Reference Legal Links Card
-                  _buildSectionHeader('INFORMATION & SUPPORT'),
-                  const SizedBox(height: 8),
-                  _buildInfoLinksCard(isDark),
-                ],
               ),
-            ),
+              
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildSectionHeader('APPEARANCE & THEME'),
+                    const SizedBox(height: 8),
+                    _buildThemeCard(isDark),
+
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('HYPER-SYNC & OTA ENGINE'),
+                    const SizedBox(height: 8),
+                    _buildOTACard(isDark),
+
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('TACTILE & AUDIO ENGINE'),
+                    const SizedBox(height: 8),
+                    _buildPreferencesCard(isDark),
+
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('INFORMATION & LEGAL'),
+                    const SizedBox(height: 8),
+                    _buildInfoLinksCard(isDark),
+                    const SizedBox(height: 100),
+                  ]),
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildThemeCard(bool isDark) {
+    final currentMode = widget.currentThemeMode ?? 'system';
+    return VitalCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: VitalTokens.purple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.palette_rounded, color: VitalTokens.purple, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Appearance Mode', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
+                  SizedBox(height: 2),
+                  Text('Select dark, light, or system sync', style: TextStyle(fontSize: 11.5, color: Colors.grey)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildThemeOption(isDark, 'system', 'SYSTEM', Icons.hdr_auto_rounded, currentMode),
+              const SizedBox(width: 8),
+              _buildThemeOption(isDark, 'dark', 'DARK', Icons.dark_mode_rounded, currentMode),
+              const SizedBox(width: 8),
+              _buildThemeOption(isDark, 'light', 'LIGHT', Icons.light_mode_rounded, currentMode),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(bool isDark, String modeKey, String label, IconData icon, String currentMode) {
+    final isSelected = currentMode == modeKey;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          IrisHaptics.chipSelect();
+          widget.onSetThemeMode?.call(modeKey);
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? VitalTokens.blue.withValues(alpha: isDark ? 0.25 : 0.15)
+                : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? VitalTokens.blue
+                  : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08)),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 18, color: isSelected ? VitalTokens.blue : (isDark ? Colors.white60 : Colors.black54)),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: isSelected ? VitalTokens.blue : (isDark ? Colors.white60 : Colors.black54),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -188,6 +188,7 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
     )..repeat(reverse: true);
     _loadLocalData();
     PortalSyncService.syncNotifier.addListener(_onPortalUpdated);
+    PortalSyncService.isDeepSyncing.addListener(_onDeepSyncingChanged);
     RemoteConfigService.startRemoteListener(context);
   }
 
@@ -196,11 +197,25 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
     _syncAnimCtrl.dispose();
     _auraAnimCtrl.dispose();
     PortalSyncService.syncNotifier.removeListener(_onPortalUpdated);
+    PortalSyncService.isDeepSyncing.removeListener(_onDeepSyncingChanged);
     super.dispose();
   }
 
   void _onPortalUpdated() {
     if (mounted) {
+      _loadLocalData();
+    }
+  }
+
+  void _onDeepSyncingChanged() {
+    if (!mounted) return;
+    final syncing = PortalSyncService.isDeepSyncing.value;
+    setState(() => _isLoading = syncing);
+    if (syncing) {
+      if (!_syncAnimCtrl.isAnimating) _syncAnimCtrl.repeat();
+    } else {
+      _syncAnimCtrl.stop();
+      _syncAnimCtrl.reset();
       _loadLocalData();
     }
   }
@@ -223,6 +238,14 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
         _currentCgpa = currentCgpa;
         _completedCredits = completedCredits;
       });
+
+      // Auto-trigger Deep Sync for first-time if no courses cached
+      final courses = (data?['courses'] as List?) ?? [];
+      final hasAutoTriggered = prefs.getBool('academics_first_auto_synced') ?? false;
+      if (courses.isEmpty && !hasAutoTriggered && !PortalSyncService.isDeepSyncing.value) {
+        await prefs.setBool('academics_first_auto_synced', true);
+        PortalSyncService.startBackgroundDeepSync(force: true);
+      }
     }
   }
 
@@ -343,48 +366,27 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
   }
 
   Future<void> _triggerManualSync() async {
-    if (_isLoading) return;
-    
-    IrisHaptics.refreshStart();
-    setState(() => _isLoading = true);
-    _syncAnimCtrl.repeat();
-
-    try {
-      if (PortalSyncService.triggerHeadlessSync != null) {
-        await PortalSyncService.triggerHeadlessSync!();
-      } else {
-        await PortalSyncService.performBackgroundSync(force: true);
-      }
-      
-      // Delay slightly for natural feel
-      await Future.delayed(const Duration(milliseconds: 1500));
-      
-      await _loadLocalData();
-      
+    if (PortalSyncService.isDeepSyncing.value) {
       if (mounted) {
-        IrisHaptics.refreshSuccess();
         showIrisFrostedSnackBar(
           context,
-          content: const Text('Academics Hub sync complete!'),
-          tint: IrisTokens.success,
+          content: const Text('Deep Sync is already running in background...'),
+          tint: IrisTokens.brand,
         );
       }
-    } catch (e) {
-      if (mounted) {
-        IrisSfx.error();
-        showIrisFrostedSnackBar(
-          context,
-          content: Text('Sync failed: $e'),
-          tint: IrisTokens.error,
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        _syncAnimCtrl.stop();
-        _syncAnimCtrl.reset();
-      }
+      return;
     }
+
+    IrisHaptics.refreshStart();
+    if (mounted) {
+      showIrisFrostedSnackBar(
+        context,
+        content: const Text('⚡ Deep Sync started in background...'),
+        tint: IrisTokens.brand,
+      );
+    }
+
+    await PortalSyncService.startBackgroundDeepSync(force: true);
   }
 
   void _showCgpaPicker() {

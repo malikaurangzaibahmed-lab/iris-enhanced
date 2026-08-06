@@ -281,12 +281,6 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
         }
       }
 
-      String _bar(double p) {
-        const total = 8;
-        final filled = (p * total).round().clamp(0, total);
-        return '🟦' * filled + '⬜' * (total - filled);
-      }
-
       String notifTitle = 'IRIS Faculty Tracker';
       String notifBody = 'No classes scheduled';
 
@@ -306,10 +300,11 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
                 : 'Ending now';
 
         final remaining = mergedToday.where((s) => s.safeStartVal > currentTime).length;
-        final classCount = remaining > 0 ? ' · $remaining more today' : ' · Last one';
+        final classCount = remaining > 0 ? ' • $remaining more today' : ' • Last session today';
 
-        notifTitle = '🎓 ${currentLive.subject} · $timeLeft';
-        notifBody = '${_bar(progress)} $progressPercent%$classCount\n📍 ${currentLive.room} · ${currentLive.batchKey.batch}';
+        final cleanSub = currentLive.subject.replaceAll('[EXAM]', '').trim();
+        notifTitle = '🎓 $cleanSub • $progressPercent%';
+        notifBody = '⏱️ $timeLeft (${currentLive.startTime} - ${currentLive.endTime})$classCount\n📍 ${currentLive.room} • ${currentLive.batchKey.batch}';
 
         final displayTime = '${currentLive.startTime} - ${currentLive.endTime}';
         await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', true);

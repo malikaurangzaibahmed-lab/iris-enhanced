@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as hp;
@@ -29,12 +30,39 @@ class PortalSyncService {
   /// A notifier to pause background sync when the user is actively in the portal
   static final ValueNotifier<bool> isSyncPaused = ValueNotifier<bool>(false);
 
+  /// Global notifier indicating whether Deep Sync is actively running in background
+  static final ValueNotifier<bool> isDeepSyncing = ValueNotifier<bool>(false);
+
   /// Callback to manually trigger the background headless WebView scraper on demand
   static Future<void> Function()? triggerHeadlessSync;
 
   /// Notifies all listeners that portal data has changed
   static void notifyUpdate() {
     syncNotifier.value++;
+  }
+
+  /// Starts an un-interrupted Deep Sync operation in the background that survives screen transitions.
+  static Future<void> startBackgroundDeepSync({bool force = true}) async {
+    if (isDeepSyncing.value) return;
+    isDeepSyncing.value = true;
+    isSyncPaused.value = false;
+
+    unawaited(() async {
+      try {
+        debugPrint('🚀 [IRIS] PortalSyncService: Starting un-interrupted Deep Sync in background...');
+        if (triggerHeadlessSync != null) {
+          await triggerHeadlessSync!();
+        } else {
+          await performBackgroundSync(force: force);
+        }
+      } catch (e) {
+        debugPrint('⚠️ [IRIS] Background Deep Sync error: $e');
+      } finally {
+        isDeepSyncing.value = false;
+        notifyUpdate();
+        debugPrint('✓ [IRIS] Background Deep Sync completed & notified all screens.');
+      }
+    }());
   }
 
   /// Performs a full background sync of assignments and quizzes.

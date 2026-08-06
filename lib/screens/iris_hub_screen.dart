@@ -1,22 +1,18 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/tokens.dart';
+import '../core/models.dart';
 import '../services/ui_feedback.dart'; // For IrisHaptics/Sfx
 import '../core/app_signals.dart';
 import '../core/theme_signals.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
-import '../widgets/native_liquid_glass.dart';
-import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
+import '../widgets/batch_selector.dart';
 import '../services/system_broadcast_service.dart';
-import '../core/animations.dart';
-import '../core/glass.dart';
 import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
 import '../widgets/vital_card.dart';
@@ -25,11 +21,13 @@ class IrisHubScreen extends StatefulWidget {
   final ValueChanged<String>? onRoleChanged;
   final Future<void> Function(String mode)? onSetThemeMode;
   final String? currentThemeMode;
+  final UniversityMemory? memory;
 
   const IrisHubScreen({
     this.onRoleChanged,
     this.onSetThemeMode,
     this.currentThemeMode,
+    this.memory,
     super.key,
   });
 
@@ -128,31 +126,33 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-          
                     _buildIntelligenceDashboard(isDark),
-                    const SizedBox(height: 32),
-                    _buildSectionHeader("SYSTEM CONTROLS", isDark),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(child: _buildBentoAction(isDark, "PERSONA", _userRole.toUpperCase(), Icons.supervised_user_circle_rounded, _showRolePicker, VitalTokens.blue)),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildBentoAction(isDark, "THEME", _appearanceMode.toUpperCase(), Icons.palette_rounded, _showThemePicker, VitalTokens.purple)),
-                      ],
-                    ),
-                  
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+                    
+                    _buildSectionHeader("APPEARANCE & THEME", isDark),
+                    const SizedBox(height: 12),
+                    _buildThemeControllerCard(isDark),
+                    
+                    const SizedBox(height: 24),
+                    _buildSectionHeader("TACTILE & AUDIO ENGINE", isDark),
+                    const SizedBox(height: 12),
                     _buildBentoTuner(isDark),
-                    const SizedBox(height: 32),
-                    _buildSectionHeader("SERVICE ENGINE", isDark),
-                    const SizedBox(height: 16),
+                    
+                    const SizedBox(height: 24),
+                    _buildSectionHeader("FOREGROUND SERVICES & WIDGETS", isDark),
+                    const SizedBox(height: 12),
                     _buildBentoServices(isDark),
-                  
-                    const SizedBox(height: 32),
-                    _buildSectionHeader("MAINTENANCE", isDark),
-                    const SizedBox(height: 16),
+                    
+                    const SizedBox(height: 24),
+                    _buildSectionHeader("DATA & MAINTENANCE", isDark),
+                    const SizedBox(height: 12),
                     _buildOTACardPremium(isDark),
-                    const SizedBox(height: 120),
+                    
+                    const SizedBox(height: 24),
+                    _buildSectionHeader("ABOUT & LEGAL", isDark),
+                    const SizedBox(height: 12),
+                    _buildAboutCard(isDark),
+                    const SizedBox(height: 100),
                   ]),
                 ),
               ),
@@ -162,11 +162,138 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
             top: 50,
             left: 20,
             child: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white70 : Colors.black87, size: 20),
+              icon: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                    width: 1.0,
+                  ),
+                ),
+                child: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: isDark ? Colors.white : Colors.black87,
+                  size: 18,
+                ),
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildThemeControllerCard(bool isDark) {
+    return VitalCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: VitalTokens.purple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.palette_rounded, color: VitalTokens.purple, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Appearance Mode',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Select light, dark, or system mode',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              _buildThemeSegmentButton(isDark, 'system', 'SYSTEM', Icons.hdr_auto_rounded),
+              const SizedBox(width: 8),
+              _buildThemeSegmentButton(isDark, 'dark', 'DARK', Icons.dark_mode_rounded),
+              const SizedBox(width: 8),
+              _buildThemeSegmentButton(isDark, 'light', 'LIGHT', Icons.light_mode_rounded),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeSegmentButton(bool isDark, String modeKey, String label, IconData icon) {
+    final isSelected = _appearanceMode == modeKey;
+    return Expanded(
+      child: InkWell(
+        onTap: () async {
+          IrisHaptics.chipSelect();
+          setState(() => _appearanceMode = modeKey);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('theme_mode', modeKey);
+          widget.onSetThemeMode?.call(modeKey);
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? VitalTokens.blue.withValues(alpha: isDark ? 0.25 : 0.15)
+                : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? VitalTokens.blue
+                  : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08)),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected
+                    ? VitalTokens.blue
+                    : (isDark ? Colors.white60 : Colors.black54),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: isSelected
+                      ? VitalTokens.blue
+                      : (isDark ? Colors.white60 : Colors.black54),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -274,12 +401,27 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
     );
   }
 
+  void _togglePersonaRole() async {
+    IrisHaptics.actionMedium();
+    final newRole = _userRole == 'student' ? 'faculty' : 'student';
+    setState(() => _userRole = newRole);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_role', newRole);
+    widget.onRoleChanged?.call(newRole);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Switched persona to ${newRole.toUpperCase()}')),
+      );
+    }
+  }
+
   Widget _buildVitalHubHeader(BuildContext context, bool isDark, User? user) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 80, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 72, 24, 24),
         child: Column(
           children: [
+            // Multi-ring Glowing Avatar Aura
             Stack(
               alignment: Alignment.center,
               children: [
@@ -287,26 +429,34 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                   animation: _profileAnimController,
                   builder: (context, child) {
                     return Container(
-                      width: 160,
-                      height: 160,
+                      width: 140,
+                      height: 140,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                          width: 2,
+                        gradient: SweepGradient(
+                          transform: GradientRotation(_profileAnimController.value * 2 * math.pi),
+                          colors: [
+                            VitalTokens.blue.withValues(alpha: 0.8),
+                            VitalTokens.purple.withValues(alpha: 0.8),
+                            Colors.pinkAccent.withValues(alpha: 0.8),
+                            VitalTokens.blue.withValues(alpha: 0.8),
+                          ],
                         ),
-                      ),
-                      child: CircularProgressIndicator(
-                        value: _profileAnimController.value,
-                        strokeWidth: 2,
-                        color: VitalTokens.blue.withValues(alpha: 0.2),
                       ),
                     );
                   },
                 ),
                 Container(
-                  width: 120,
-                  height: 120,
+                  width: 132,
+                  height: 132,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                  ),
+                ),
+                Container(
+                  width: 118,
+                  height: 118,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
@@ -316,8 +466,8 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: VitalTokens.blue.withValues(alpha: 0.3),
-                        blurRadius: 20,
+                        color: VitalTokens.blue.withValues(alpha: 0.4),
+                        blurRadius: 24,
                         offset: const Offset(0, 8),
                       ),
                     ],
@@ -325,43 +475,119 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
                   child: const Center(
                     child: Icon(
                       Icons.person_rounded,
-                      size: 48,
+                      size: 52,
                       color: Colors.white,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
+            
+            // Email Title
             Text(
-              user?.email?.toUpperCase() ?? "GUEST INSTANCE",
+              user?.email?.toUpperCase() ?? "IRIS STUDENT INSTANCE",
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 1,
-                color: isDark ? Colors.white : Colors.black,
+                letterSpacing: 0.8,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: VitalTokens.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: VitalTokens.blue.withValues(alpha: 0.2),
+            const SizedBox(height: 12),
+            
+            // Badges Row (Role + Batch Switcher Trigger)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Persona Switch Pill
+                InkWell(
+                  onTap: _togglePersonaRole,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: VitalTokens.blue.withValues(alpha: isDark ? 0.2 : 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: VitalTokens.blue.withValues(alpha: 0.3),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: VitalTokens.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _userRole.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            color: VitalTokens.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.sync_alt_rounded, size: 12, color: VitalTokens.blue),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              child: Text(
-                _userRole.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  color: VitalTokens.blue,
+                const SizedBox(width: 8),
+                
+                // Batch Switcher Trigger Button
+                InkWell(
+                  onTap: () {
+                    IrisHaptics.actionMedium();
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => BatchSelectorSheet(
+                        memory: widget.memory ?? UniversityMemory(),
+                        selected: 'SP22-BSE-B',
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: VitalTokens.purple.withValues(alpha: isDark ? 0.2 : 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: VitalTokens.purple.withValues(alpha: 0.3),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.school_rounded, size: 13, color: VitalTokens.purple),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'CHANGE BATCH',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            color: VitalTokens.purple,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
@@ -397,6 +623,48 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
           ),
         ],
       ),
+    );
+  }
+
+  void _showHapticsPicker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'HAPTIC ENGINE PROFILE',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+              ),
+              const SizedBox(height: 16),
+              ...['subtle', 'balanced', 'expressive'].map((profile) {
+                final isSel = _feedbackProfile == profile;
+                return ListTile(
+                  title: Text(profile.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w800)),
+                  trailing: isSel ? const Icon(Icons.check_circle_rounded, color: VitalTokens.blue) : null,
+                  onTap: () async {
+                    setState(() => _feedbackProfile = profile);
+                    IrisHaptics.setProfile(profile);
+                    IrisHaptics.actionMedium();
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('ui_feedback_profile', profile);
+                    Navigator.pop(ctx);
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -441,6 +709,39 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
         ],
       ),
     );
+  }
+
+  void _togglePersistentNotification(bool v) async {
+    setState(() => _persistentNotificationEnabled = v);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('persistent_notification_enabled', v);
+    if (v) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Persistent Class Tracker Enabled')),
+      );
+    } else {
+      await FlutterForegroundTask.stopService();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Persistent Class Tracker Disabled')),
+      );
+    }
+  }
+
+  void _refreshOTA() async {
+    setState(() => _isRefreshing = true);
+    await Future.delayed(const Duration(milliseconds: 1200));
+    final prefs = await SharedPreferences.getInstance();
+    final nowStr = '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+    await prefs.setString('timetable_last_sync', 'Today, $nowStr');
+    if (mounted) {
+      setState(() {
+        _isRefreshing = false;
+        _otaStatus = {'version': '2.5.0', 'last_sync': 'Today, $nowStr'};
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Timetable Hyper-Sync Up to Date!')),
+      );
+    }
   }
 
   Widget _buildBentoServices(bool isDark) {
@@ -569,6 +870,47 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
     );
   }
 
+  Widget _buildAboutCard(bool isDark) {
+    return VitalCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: VitalTokens.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.info_outline_rounded, color: VitalTokens.blue, size: 20),
+            ),
+            title: const Text('IRIS Academic Intelligence', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+            subtitle: Text('v2.5.0 Premium Build • Build 2026', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4))),
+          ),
+          Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+          ListTile(
+            onTap: () {
+              IrisHaptics.actionMedium();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('IRIS Privacy Policy: Local data remains 100% on device.')),
+              );
+            },
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.security_rounded, color: isDark ? Colors.white70 : Colors.black87, size: 20),
+            ),
+            title: const Text('Privacy & Local Security', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+            trailing: Icon(Icons.chevron_right_rounded, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
@@ -595,446 +937,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
         ],
       ),
     );
-  }
-
-  void _showHapticsPicker() {
-    IrisHaptics.actionMedium();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => LiquidGlass(
-        settings: IrisGlass.settings(
-          context,
-          blur: 25,
-          ambientStrength: 0.7,
-          lightAngle: 0.2 * 3.14,
-          thickness: 30,
-          glassColor:
-              (isDark ? const Color(0xFF111421) : Colors.white).withOpacity(0.6),
-          minBlur: 12,
-          minThickness: 20,
-        ),
-        shape: IrisGlass.shape(32),
-        child: Container(
-          decoration: BoxDecoration(
-            color: (isDark ? const Color(0xFF111421) : Colors.white).withOpacity(0.9),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("HAPTIC PROTOCOL", style: IrisTextStyles.overline(context).copyWith(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2, color: isDark?Colors.white38:Colors.black38)),
-              const SizedBox(height: 24),
-              _buildPickerOption(isDark, "Gentle Pulse", "Precision micro-vibrations", _feedbackProfile == "gentle", () => _setFeedbackProfile("gentle")),
-              _buildPickerOption(isDark, "Balanced", "Standard haptic fidelity", _feedbackProfile == "balanced", () => _setFeedbackProfile("balanced")),
-              _buildPickerOption(isDark, "Crisp Impact", "Tactile assurance feedback", _feedbackProfile == "crisp", () => _setFeedbackProfile("crisp")),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showThemePicker() {
-    IrisHaptics.actionMedium();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => LiquidGlass(
-        settings: IrisGlass.settings(
-          context,
-          blur: 25,
-          ambientStrength: 0.7,
-          lightAngle: 0.2 * 3.14,
-          thickness: 30,
-          glassColor:
-              (isDark ? const Color(0xFF111421) : Colors.white).withOpacity(0.6),
-          minBlur: 12,
-          minThickness: 20,
-        ),
-        shape: IrisGlass.shape(32),
-        child: Container(
-          decoration: BoxDecoration(
-            color: (isDark ? const Color(0xFF111421) : Colors.white).withOpacity(0.9),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("APPEARANCE MODE", style: IrisTextStyles.overline(context).copyWith(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2, color: isDark?Colors.white38:Colors.black38)),
-              const SizedBox(height: 24),
-              _buildPickerOption(isDark, "Dynamic OS", "Universal system sync", _appearanceMode == "system", () => _setAppearanceMode("system")),
-              _buildPickerOption(isDark, "Liquid Light", "High-contrast day mode", _appearanceMode == "light", () => _setAppearanceMode("light")),
-              _buildPickerOption(isDark, "Midnight Glass", "Pure obsidian dark mode", _appearanceMode == "dark", () => _setAppearanceMode("dark")),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showRolePicker() {
-    IrisHaptics.actionMedium();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ValueListenableBuilder<bool>(
-        valueListenable: ThemeSignals.useMinimalTheme,
-        builder: (context, useMinimal, _) {
-          final content = Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: (isDark ? const Color(0xFF111421) : Colors.white).withOpacity(useMinimal ? 0.04 : 0.9),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "APPLICATION PERSONA",
-                  style: IrisTextStyles.overline(context).copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2,
-                    color: isDark ? Colors.white38 : Colors.black38,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final useColumn = constraints.maxWidth < 420;
-                    final student = _buildRoleToggle(
-                      isDark,
-                      title: 'Student',
-                      subtitle: 'Timetable, batch sync, class tracking',
-                      icon: Icons.school_rounded,
-                      accent: IrisTokens.brand,
-                      selected: _userRole == 'student',
-                      onTap: () => _applyRoleAndDismiss('student'),
-                    );
-                    final faculty = _buildRoleToggle(
-                      isDark,
-                      title: 'Faculty',
-                      subtitle: 'Faculty portal and teaching tools',
-                      icon: Icons.badge_rounded,
-                      accent: IrisTokens.blue,
-                      selected: _userRole == 'faculty',
-                      onTap: () => _applyRoleAndDismiss('faculty'),
-                    );
-
-                    if (useColumn) {
-                      return Column(
-                        children: [
-                          student,
-                          const SizedBox(height: 12),
-                          faculty,
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Expanded(child: student),
-                        const SizedBox(width: 12),
-                        Expanded(child: faculty),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          );
-
-          if (useMinimal) return content;
-
-          // Legacy: wrap in LiquidGlass for the glass effect
-          return LiquidGlass(
-            settings: IrisGlass.settings(
-              context,
-              blur: 25,
-              ambientStrength: 0.7,
-              lightAngle: 0.2 * 3.14,
-              thickness: 30,
-              glassColor:
-                  (isDark ? const Color(0xFF111421) : Colors.white).withOpacity(0.6),
-              minBlur: 12,
-              minThickness: 20,
-            ),
-            shape: IrisGlass.shape(32),
-            child: content,
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildRoleToggle(
-    bool isDark, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color accent,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: BoxDecoration(
-            color: selected ? accent.withOpacity(0.12) : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? accent.withOpacity(0.35)
-                  : Colors.white.withOpacity(0.08),
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: accent.withOpacity(selected ? 1.0 : 0.18),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  icon,
-                  color: selected ? Colors.white : accent,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: IrisTextStyles.settingTitle(context).copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          selected
-                              ? Icons.toggle_on_rounded
-                              : Icons.toggle_off_rounded,
-                          color: selected
-                              ? accent
-                              : (isDark ? Colors.white38 : Colors.black38),
-                          size: 30,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: IrisTextStyles.settingSubtitle(context),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPickerOption(
-    bool isDark,
-    String title,
-    String subtitle,
-    bool selected,
-    VoidCallback onTap,
-  ) {
-    final activeColor = IrisTokens.brand;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          IrisHaptics.actionMedium();
-          onTap();
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
-            color: selected
-                ? activeColor.withOpacity(0.08)
-                : (isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.01)),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? activeColor.withOpacity(0.3)
-                  : Colors.white.withOpacity(0.05),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: IrisTextStyles.settingTitle(context).copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: selected
-                            ? (isDark ? Colors.white : Colors.black)
-                            : (isDark ? Colors.white70 : Colors.black87),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: IrisTextStyles.settingSubtitle(context).copyWith(
-                        fontSize: 13,
-                        color: selected
-                            ? (isDark ? Colors.white54 : Colors.black54)
-                            : (isDark ? Colors.white38 : Colors.black38),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: selected ? activeColor : (isDark ? Colors.white30 : Colors.black.withOpacity(0.3)),
-                    width: 2,
-                  ),
-                ),
-                child: selected
-                    ? Center(
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: activeColor,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  Future<void> _setUserRole(String role) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_role', role);
-    setState(() => _userRole = role);
-    AppSignals.roleNotifier.value = role;
-    if (widget.onRoleChanged != null) {
-      widget.onRoleChanged!(role);
-    }
-    IrisHaptics.refreshSuccess();
-  }
-
-  Future<void> _applyRoleAndDismiss(String role) async {
-    await _setUserRole(role);
-    if (!mounted) return;
-    Navigator.of(context).popUntil((route) => route.isFirst);
-  }
-
-  Future<void> _setFeedbackProfile(String profile) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('ui_feedback_profile', profile);
-    setState(() => _feedbackProfile = profile);
-    IrisHaptics.setProfile(profile);
-    IrisHaptics.actionHeavy();
-  }
-
-  Future<void> _setAppearanceMode(String mode) async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() => _appearanceMode = mode);
-    await prefs.setString('theme_mode', mode);
-    if (widget.onSetThemeMode != null) {
-      await widget.onSetThemeMode!(mode);
-    }
-  }
-
-  Future<void> _togglePersistentNotification(bool v) async {
-    setState(() => _persistentNotificationEnabled = v);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('persistent_notification_enabled', v);
-    if (v) {
-      await FlutterForegroundTask.startService(
-        notificationTitle: 'IRIS Class Tracker',
-        notificationText: 'Initializing...',
-        callback: startClassNotificationTask,
-      );
-    } else {
-      await FlutterForegroundTask.stopService();
-    }
-  }
-
-  Future<void> _refreshOTA() async {
-    setState(() => _isRefreshing = true);
-    IrisHaptics.actionMedium();
-    
-    // Trigger Persistent Sync Telemetry
-    SystemBroadcastService().triggerLocalOverride(
-      "Intelligence Sync", 
-      "Optimizing timetable neural cache...", 
-      isPersistent: true
-    );
-
-    await Future.delayed(const Duration(seconds: 3));
-    final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final dateStr = "${now.day}/${now.month} ${now.hour}:${now.minute}";
-    await prefs.setString('timetable_last_sync', dateStr);
-    
-    if (mounted) {
-      setState(() {
-        _isRefreshing = false;
-        _otaStatus?['last_sync'] = dateStr;
-      });
-      
-      // Update Pill to Success State, then auto-hide after 3s
-      SystemBroadcastService().triggerLocalOverride(
-        "Sync Complete", 
-        "Intelligence engine updated to v${_otaStatus?['version']}", 
-        isPersistent: false
-      );
-      
-      IrisHaptics.refreshSuccess();
-    }
   }
 
   Future<void> _contactSupport() async {

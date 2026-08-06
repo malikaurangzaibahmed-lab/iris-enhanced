@@ -1,4 +1,5 @@
 import 'format_guard.dart';
+import '../services/remote_config_service.dart';
 
 class BatchKey {
   final String batch;
@@ -182,6 +183,148 @@ class ClassSession {
       room: FormatGuard.sanitizeRoom(roomStr),
     );
   }
+
+  static final RegExp _examTagRegex = RegExp(r'\[EXAM\]', caseSensitive: false);
+  static final RegExp _parenthesesRegex = RegExp(r'\(.*?\)', caseSensitive: false);
+
+  static String _resolveExamInvigilator(
+    Map<String, dynamic> json,
+    BatchKey batchKey,
+    String rawSubject,
+    UniversityMemory? memory,
+  ) {
+    var rawTeacher = (json['invigilator'] ??
+            json['invigilator_name'] ??
+            json['invigilators'] ??
+            json['teacher'] ??
+            json['instructor'] ??
+            json['faculty'] ??
+            json['duty'] ??
+            json['supervised_by'] ??
+            json['supervisor'] ??
+            '')
+        .toString()
+        .trim();
+
+    if (rawTeacher.isNotEmpty &&
+        rawTeacher.toLowerCase() != 'invigilator assigned' &&
+        rawTeacher.toLowerCase() != 'tbd' &&
+        rawTeacher.toLowerCase() != 'unknown') {
+      return FormatGuard.formatTeacherName(rawTeacher);
+    }
+
+    if (memory != null) {
+      final cleanSubject = rawSubject
+          .replaceAll(_examTagRegex, '')
+          .replaceAll(_parenthesesRegex, '')
+          .trim()
+          .toLowerCase();
+
+      if (cleanSubject.isNotEmpty) {
+        final targetBatch = batchKey.batch.toLowerCase();
+        final targetProg = batchKey.program.toLowerCase();
+        final targetSec = batchKey.section.toLowerCase();
+
+        for (final session in memory.sessions) {
+          final sBatch = session.batchKey.batch.toLowerCase();
+          final bMatch = sBatch == targetBatch ||
+              (session.batchKey.program.toLowerCase() == targetProg &&
+                  session.batchKey.semester == batchKey.semester &&
+                  session.batchKey.section.toLowerCase() == targetSec);
+          if (bMatch) {
+            final sSub = session.subject
+                .replaceAll(_parenthesesRegex, '')
+                .trim()
+                .toLowerCase();
+            if (sSub.contains(cleanSubject) || cleanSubject.contains(sSub)) {
+              if (session.teacher.isNotEmpty && session.teacher != 'Unknown') {
+                return FormatGuard.formatTeacherName(session.teacher);
+              }
+            }
+          }
+        }
+
+        for (final session in memory.sessions) {
+          final sSub = session.subject
+              .replaceAll(_parenthesesRegex, '')
+              .trim()
+              .toLowerCase();
+          if (sSub.contains(cleanSubject) || cleanSubject.contains(sSub)) {
+            if (session.teacher.isNotEmpty && session.teacher != 'Unknown') {
+              return FormatGuard.formatTeacherName(session.teacher);
+            }
+          }
+        }
+      }
+    }
+
+    return rawTeacher.isNotEmpty ? FormatGuard.formatTeacherName(rawTeacher) : 'Invigilator Assigned';
+  }
+
+  static ClassSession fromExamJson(
+    Map<String, dynamic> json, {
+    int index = 0,
+    UniversityMemory? memory,
+  }) {
+    final batchStr = (json['batch'] ?? json['session'] ?? json['class_name'] ?? 'ALL').toString();
+    final batchKey = BatchKey.parse(batchStr);
+
+    String start = '09:00 AM';
+    String end = '12:00 PM';
+    final timeStr = (json['time'] ?? '').toString();
+    if (timeStr.isNotEmpty) {
+      final parts = timeStr.split('-');
+      if (parts.length >= 2) {
+        start = parts[0].trim();
+        end = parts[1].trim();
+      } else if (parts.isNotEmpty) {
+        start = parts[0].trim();
+      }
+    }
+
+    final dateStr = (json['date'] ?? '').toString();
+    int dayIdx = DateTime.now().weekday;
+    final lowerDate = dateStr.toLowerCase();
+    if (lowerDate.contains('mon')) {
+      dayIdx = 1;
+    } else if (lowerDate.contains('tue')) {
+      dayIdx = 2;
+    } else if (lowerDate.contains('wed')) {
+      dayIdx = 3;
+    } else if (lowerDate.contains('thu')) {
+      dayIdx = 4;
+    } else if (lowerDate.contains('fri')) {
+      dayIdx = 5;
+    } else if (lowerDate.contains('sat')) {
+      dayIdx = 6;
+    } else if (lowerDate.contains('sun')) {
+      dayIdx = 7;
+    } else {
+      final match = RegExp(r'(\d{2})-(\d{2})-(\d{4})').firstMatch(dateStr);
+      if (match != null) {
+        final d = int.parse(match.group(1)!);
+        final m = int.parse(match.group(2)!);
+        final y = int.parse(match.group(3)!);
+        dayIdx = DateTime(y, m, d).weekday;
+      }
+    }
+
+    final rawSubject = (json['subject'] ?? json['course'] ?? 'EXAM').toString();
+    final subjectStr = rawSubject.startsWith('[EXAM]') ? rawSubject : '[EXAM] $rawSubject';
+    final teacherStr = _resolveExamInvigilator(json, batchKey, rawSubject, memory);
+    final roomStr = (json['room'] ?? json['hall'] ?? 'Exam Hall').toString();
+
+    return ClassSession(
+      id: 'exam_${batchKey.batch}_${index}_$start',
+      batchKey: batchKey,
+      dayIndex: dayIdx,
+      startTime: start,
+      endTime: end,
+      subject: subjectStr,
+      teacher: teacherStr,
+      room: FormatGuard.sanitizeRoom(roomStr),
+    );
+  }
 }
 
 class UniversityMemory {
@@ -189,15 +332,97 @@ class UniversityMemory {
 
   UniversityMemory(this.sessions);
 
+  List<ClassSession>? _cachedActiveSessions;
+  String? _cachedPeriodKey;
+  int? _cachedExamsHash;
+
+  List<ClassSession> _toRamadanSessions(List<ClassSession> regularSessions) {
+    return regularSessions.map((s) {
+      String newStart = s.startTime;
+      String newEnd = s.endTime;
+
+      if (s.startTime.contains('08:30') || s.startTime.contains('8:30')) {
+        newStart = '08:30 AM';
+        newEnd = '09:30 AM';
+      } else if (s.startTime.contains('10:00')) {
+        newStart = '09:30 AM';
+        newEnd = '10:30 AM';
+      } else if (s.startTime.contains('11:30')) {
+        newStart = '10:30 AM';
+        newEnd = '11:30 AM';
+      } else if (s.startTime.contains('01:30') || s.startTime.contains('1:30')) {
+        newStart = '11:30 AM';
+        newEnd = '12:30 PM';
+      } else if (s.startTime.contains('03:00') || s.startTime.contains('3:00')) {
+        newStart = '12:30 PM';
+        newEnd = '01:30 PM';
+      }
+
+      return ClassSession(
+        id: '${s.id}_ramadan',
+        batchKey: s.batchKey,
+        dayIndex: s.dayIndex,
+        startTime: newStart,
+        endTime: newEnd,
+        subject: s.subject,
+        teacher: s.teacher,
+        room: s.room,
+      );
+    }).toList();
+  }
+
+  List<ClassSession> activeSessions({
+    String? overridePeriod,
+    List<dynamic>? customMidterms,
+    List<dynamic>? customFinals,
+  }) {
+    final period = overridePeriod ?? RemoteConfigService.activeAcademicPeriod.value;
+    final rawExams = period == 'midterms'
+        ? (customMidterms ?? RemoteConfigService.midtermExams.value)
+        : (period == 'finals' ? (customFinals ?? RemoteConfigService.finalExams.value) : null);
+
+    final examsHash = rawExams != null ? Object.hash(rawExams.length, rawExams.hashCode) : 0;
+    final periodKey = '${period}_$overridePeriod';
+
+    if (_cachedActiveSessions != null &&
+        _cachedPeriodKey == periodKey &&
+        _cachedExamsHash == examsHash) {
+      return _cachedActiveSessions!;
+    }
+
+    List<ClassSession> result;
+    if ((period == 'midterms' || period == 'finals') && rawExams != null && rawExams.isNotEmpty) {
+      final parsed = <ClassSession>[];
+      for (int i = 0; i < rawExams.length; i++) {
+        final item = rawExams[i];
+        if (item is Map<String, dynamic>) {
+          parsed.add(ClassSession.fromExamJson(item, index: i, memory: this));
+        } else if (item is Map) {
+          parsed.add(ClassSession.fromExamJson(Map<String, dynamic>.from(item), index: i, memory: this));
+        }
+      }
+      result = parsed.isNotEmpty ? parsed : sessions;
+    } else if (period == 'ramadan') {
+      result = _toRamadanSessions(sessions);
+    } else {
+      result = sessions;
+    }
+
+    _cachedActiveSessions = result;
+    _cachedPeriodKey = periodKey;
+    _cachedExamsHash = examsHash;
+    return result;
+  }
+
   List<String> get allBatches {
-    final batches = sessions.map((s) => s.batchKey.batch).toSet().toList();
+    final batches = activeSessions().map((s) => s.batchKey.batch).toSet().toList();
     batches.sort();
     return batches;
   }
 
   Map<String, List<ClassSession>> byBatch() {
     final map = <String, List<ClassSession>>{};
-    for (final session in sessions) {
+    for (final session in activeSessions()) {
       map.putIfAbsent(session.batchKey.batch, () => []).add(session);
     }
     return map;
@@ -205,20 +430,20 @@ class UniversityMemory {
 
   Map<String, List<ClassSession>> byProgram(String program) {
     final map = <String, List<ClassSession>>{};
-    for (final session in sessions.where((s) => s.batchKey.program == program)) {
+    for (final session in activeSessions().where((s) => s.batchKey.program == program)) {
       map.putIfAbsent(session.batchKey.batch, () => []).add(session);
     }
     return map;
   }
 
   List<String> programs() {
-    final items = sessions.map((s) => s.batchKey.program).toSet().toList();
+    final items = activeSessions().map((s) => s.batchKey.program).toSet().toList();
     items.sort();
     return items;
   }
 
   List<int> semesters(String program) {
-    final items = sessions
+    final items = activeSessions()
         .where((s) => s.batchKey.program == program)
         .map((s) => s.batchKey.semester)
         .toSet()
@@ -228,7 +453,7 @@ class UniversityMemory {
   }
 
   List<String> sections(String program, int semester) {
-    final items = sessions
+    final items = activeSessions()
         .where((s) => s.batchKey.program == program && s.batchKey.semester == semester)
         .map((s) => s.batchKey.section)
         .toSet()

@@ -53,13 +53,44 @@ class WidgetService {
   static const String _prefIsUrgent = 'flutter.is_urgent';
   static const String _prefLastUpdate = 'flutter.last_update_hash';
   
-  // Temporal Insight fields for widget display
   static const String _prefHeadline = 'flutter.widget_headline';
   static const String _prefSubline = 'flutter.widget_subline';
   static const String _prefWidgetDarkMode = 'flutter.widget_dark_mode';
   static const String _prefWidgetSubject = 'flutter.widget_subject';
   static const String _prefWidgetRoom = 'flutter.widget_room';
   static const String _prefWidgetStartTime = 'flutter.widget_start_time';
+  static const String _prefActiveRole = 'flutter.active_role';
+  static const String _prefWidgetBatch = 'flutter.widget_batch';
+
+  static Future<void> setActiveRole(String role) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefActiveRole, role);
+      await HomeWidget.saveWidgetData<String>(_prefActiveRole, role);
+      await HomeWidget.updateWidget(
+        name: 'ClassTrackerWidget',
+        iOSName: 'OmniFlowWidget',
+        androidName: 'ClassTrackerWidget',
+      );
+    } catch (e) {
+      debugPrint('⚠️ setActiveRole failed: $e');
+    }
+  }
+
+  static Future<void> setBatch(String batch) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefWidgetBatch, batch);
+      await HomeWidget.saveWidgetData<String>(_prefWidgetBatch, batch);
+      await HomeWidget.updateWidget(
+        name: 'ClassTrackerWidget',
+        iOSName: 'OmniFlowWidget',
+        androidName: 'ClassTrackerWidget',
+      );
+    } catch (e) {
+      debugPrint('⚠️ setBatch failed: $e');
+    }
+  }
 
   static const String _widgetGroupId = 'com.example.student_organizer';
 
@@ -130,6 +161,12 @@ class WidgetService {
         await prefs.setInt(_prefProgressPercentage, sanitizedProgress);
         await prefs.setString(_prefTimeInfo, sanitizedTimeInfo);
         await prefs.setBool(_prefIsUrgent, isUrgent);
+
+        await prefs.setString(_prefHeadline, sanitizedSubject);
+        await prefs.setString(_prefSubline, isLive ? 'Ending $sanitizedEndTime • $sanitizedRoom' : sanitizedRoom);
+        await prefs.setString(_prefWidgetSubject, sanitizedSubject);
+        await prefs.setString(_prefWidgetRoom, sanitizedRoom);
+        await prefs.setString(_prefWidgetStartTime, nextClassStartTime);
         debugPrint('✅ Local preferences saved');
       } catch (e) {
         debugPrint('⚠️ Local pref save failed: $e');
@@ -145,10 +182,15 @@ class WidgetService {
         await HomeWidget.saveWidgetData<int>(_prefProgressPercentage, sanitizedProgress);
         await HomeWidget.saveWidgetData<String>(_prefTimeInfo, sanitizedTimeInfo);
         await HomeWidget.saveWidgetData<bool>(_prefIsUrgent, isUrgent);
+
+        await HomeWidget.saveWidgetData<String>(_prefHeadline, sanitizedSubject);
+        await HomeWidget.saveWidgetData<String>(_prefSubline, isLive ? 'Ending $sanitizedEndTime • $sanitizedRoom' : sanitizedRoom);
+        await HomeWidget.saveWidgetData<String>(_prefWidgetSubject, sanitizedSubject);
+        await HomeWidget.saveWidgetData<String>(_prefWidgetRoom, sanitizedRoom);
+        await HomeWidget.saveWidgetData<String>(_prefWidgetStartTime, nextClassStartTime);
         debugPrint('✅ HomeWidget data saved');
       } catch (e) {
         debugPrint('⚠️ HomeWidget save failed: $e');
-        // Continue anyway - widget will use local prefs
       }
 
       // STEP 4: Request widget update
@@ -202,8 +244,8 @@ class WidgetService {
         return defaultValue;
       }
       
-      // Sanitize first
-      String sanitized = trimmed.replaceAll(RegExp(r'[^\w\s·–\-:/()&]'), '');
+      // Sanitize first preserving dots, commas, colons, dashes, brackets
+      String sanitized = trimmed.replaceAll(RegExp(r'[^\w\s·–\-:/().,&+]'), '');
       
       // Then limit length safely
       if (sanitized.length > maxLength) {
@@ -377,6 +419,7 @@ class WidgetService {
       pendingTasks.sort((a, b) => a.daysRemaining.compareTo(b.daysRemaining));
       
       final count = pendingTasks.length;
+      final urgentCount = pendingTasks.where((t) => t.isUrgent || t.daysRemaining <= 1).length;
       final prefs = await SharedPreferences.getInstance();
       
       // Serialize pending tasks to JSON format for scrollable widget listview
@@ -393,24 +436,29 @@ class WidgetService {
           'title': t.title,
           'subject': t.subject,
           'due': dueStr,
-          'urgent': t.isUrgent,
+          'urgent': t.isUrgent || daysLeft <= 1,
           'type': t.type.toUpperCase(),
         };
       }).toList();
 
       final String serializedJson = jsonEncode(tasksJsonList);
+      final String summaryText = count == 0 
+          ? '✓ All Tasks Complete' 
+          : '$count Pending (${urgentCount > 0 ? "$urgentCount Urgent" : "Normal"})';
 
-      // Save counts and JSON to local storage and HomeWidget
+      // Save counts, summary, and JSON to local storage and HomeWidget
       await prefs.setInt('flutter.portal_task_count', count);
       await prefs.setString('flutter.portal_tasks_json', serializedJson);
+      await prefs.setString('flutter.portal_summary', summaryText);
       
       await HomeWidget.saveWidgetData<int>('flutter.portal_task_count', count);
       await HomeWidget.saveWidgetData<String>('flutter.portal_tasks_json', serializedJson);
+      await HomeWidget.saveWidgetData<String>('flutter.portal_summary', summaryText);
       
       // Generate formatted time
       final now = DateTime.now();
       final formattedTime = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-      final syncText = 'Synced at $formattedTime';
+      final syncText = 'Synced $formattedTime';
       await prefs.setString('flutter.portal_last_sync', syncText);
       await HomeWidget.saveWidgetData<String>('flutter.portal_last_sync', syncText);
 

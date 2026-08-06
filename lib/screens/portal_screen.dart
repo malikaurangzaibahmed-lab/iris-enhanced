@@ -15,6 +15,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'academics_hub_screen.dart';
+import '../core/models.dart';
 import '../services/ui_feedback.dart';
 import '../services/portal_sync_service.dart';
 import '../services/headless_portal_sync.dart';
@@ -696,9 +697,13 @@ class _PortalScreenState extends SmartState<PortalScreen>
         });
       }
 
-      // Automatically autofill credentials to streamline session holding
-      if (_hasLoginForm && _hasSavedLogin && mounted) {
-        await _autofillSavedLogin();
+      // Automatically autofill credentials or registration prefix to streamline login
+      if (_hasLoginForm && mounted) {
+        if (_hasSavedLogin) {
+          await _autofillSavedLogin();
+        } else {
+          await _autofillSuggestedRegistration();
+        }
       }
 
       // Intelligent Scraper: Auto-trigger silent deep sync when logged in on the portal dashboard
@@ -1889,6 +1894,84 @@ class _PortalScreenState extends SmartState<PortalScreen>
     await _showMessage('Autofilled saved login');
   }
 
+  Future<void> _autofillSuggestedRegistration() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final rawBatch = prefs.getString('current_batch') ?? prefs.getString('student_batch') ?? '';
+      final savedRoll = prefs.getString('student_roll_no') ?? '';
+
+      String suggestedReg = '';
+      final trimmedBatch = rawBatch.trim().toUpperCase();
+
+      // Check if full reg number e.g. FA25-BCS-101 or SP23-BSE-055
+      final fullMatch = RegExp(r'^((?:FA|SP)\d{2})-([A-Z]{2,6})-(\d{1,4})$').firstMatch(trimmedBatch);
+      if (fullMatch != null) {
+        final sess = fullMatch.group(1)!;
+        final prog = fullMatch.group(2)!;
+        final num = fullMatch.group(3)!.padLeft(3, '0');
+        suggestedReg = '$sess-$prog-$num';
+      } else if (trimmedBatch.isNotEmpty) {
+        final key = BatchKey.parse(trimmedBatch);
+        final session = key.intake.isNotEmpty ? key.intake.toUpperCase() : 'FA25';
+        final prog = key.program.isNotEmpty ? key.program.toUpperCase() : 'BCS';
+        
+        // Extract 3-digit roll number if typed in keypad or rawBatch
+        String rollNum = savedRoll.trim();
+        final rawRollMatch = RegExp(r'\d{3}').firstMatch(trimmedBatch);
+        if (rollNum.isEmpty && rawRollMatch != null) {
+          rollNum = rawRollMatch.group(0)!;
+        }
+
+        if (rollNum.isNotEmpty) {
+          final paddedRoll = rollNum.padLeft(3, '0');
+          suggestedReg = '$session-$prog-$paddedRoll';
+        } else {
+          suggestedReg = '$session-$prog-';
+        }
+      }
+
+      if (suggestedReg.isEmpty) return;
+
+      final jsUser = jsonEncode(suggestedReg);
+      final script = '''
+(() => {
+  const setNativeValue = (element, value) => {
+    if (!element) return false;
+    element.value = value;
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') || 
+                         Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(element, value);
+      }
+    } catch (_) {}
+    element.dispatchEvent(new Event('focus', { bubbles: true }));
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+    element.dispatchEvent(new Event('blur', { bubbles: true }));
+    return true;
+  };
+
+  const isVisible = (element) => {
+    const style = window.getComputedStyle(element);
+    return !!element && style && style.display !== 'none' && style.visibility !== 'hidden' && element.getClientRects().length > 0;
+  };
+
+  const pwd = document.querySelector('input[type="password"]');
+  const candidates = Array.from(document.querySelectorAll('input, textarea'))
+    .filter((element) => element !== pwd && (element.type || '').toLowerCase() !== 'hidden')
+    .filter((element) => isVisible(element));
+  const user = candidates[0] || null;
+
+  if (user && !user.value) {
+    setNativeValue(user, $jsUser);
+  }
+})();
+''';
+      await _controller.runJavaScript(script);
+    } catch (_) {}
+  }
+
   Future<void> _clearSavedLogin() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_loginUserKey(_hostKey));
@@ -2075,7 +2158,20 @@ class _PortalScreenState extends SmartState<PortalScreen>
     return _ensureFileExtension(baseName, contentType);
   }
 
-  Future<String> _readPortalCookieHeader() async {
+  Future<String> _readPortalCookieHeader([String? targetUrl]) async {
+    final url = targetUrl ?? (_currentUrl.isEmpty ? widget.url : _currentUrl);
+    if (Platform.isAndroid && url.isNotEmpty) {
+      try {
+        final nativeCookies = await _androidDownloadChannel.invokeMethod<String>(
+          'getCookiesForUrl',
+          {'url': url},
+        );
+        if (nativeCookies != null && nativeCookies.trim().isNotEmpty) {
+          return nativeCookies.trim();
+        }
+      } catch (_) {}
+    }
+
     try {
       final raw = await _controller.runJavaScriptReturningResult(
         'document.cookie',
@@ -2110,7 +2206,7 @@ class _PortalScreenState extends SmartState<PortalScreen>
       await saveDir.create(recursive: true);
     }
 
-    final cookieHeader = await _readPortalCookieHeader();
+    final cookieHeader = await _readPortalCookieHeader(uri.toString());
     final currentUri = Uri.tryParse(
       _currentUrl.isEmpty ? widget.url : _currentUrl,
     );
@@ -2288,7 +2384,7 @@ class _PortalScreenState extends SmartState<PortalScreen>
     // Try System Download Manager on Android first
     if (Platform.isAndroid) {
       try {
-        final cookieHeader = await _readPortalCookieHeader();
+        final cookieHeader = await _readPortalCookieHeader(uri.toString());
         final currentUri = Uri.tryParse(
           _currentUrl.isEmpty ? widget.url : _currentUrl,
         );
@@ -2778,7 +2874,7 @@ class _PortalScreenState extends SmartState<PortalScreen>
 })();
 ''';
 
-  // Intercepts download link clicks and routes them to the native handler
+  // Intercepts download link clicks and routes them to the native handler with browser-context fetch
   static const String _downloadInterceptScript = r'''
 (() => {
   if (window._irisDownloadWatcher) return;
@@ -2802,7 +2898,6 @@ class _PortalScreenState extends SmartState<PortalScreen>
     // Keywords that are always downloads
     const keywords = ['getfile', 'getassignment', 'assignmentfile', 'resultcard', 'challan', 'fee_challan', 'printchallan', 'attachment'];
     if (keywords.some(kw => lower.includes(kw))) {
-      // Exclude main page routes that contain these keywords but are actually pages
       const path = cleanUrl.replace(/^https?:\/\/[^\/]+/, '');
       if (!hasQuery) {
         if (path === '/student/resultcard' || 
@@ -2821,7 +2916,6 @@ class _PortalScreenState extends SmartState<PortalScreen>
 
     if (lower.includes('download') || lower.includes('export') || lower.includes('stream') || lower.includes('generate') || lower.includes('viewfile')) {
       if (isPageExt && !hasQuery) return false;
-      // Exclude main download hub pages
       const path = cleanUrl.replace(/^https?:\/\/[^\/]+/, '');
       if (path === '/download' || path === '/downloads' || path === '/export' || path.endsWith('/download') || path.endsWith('/downloads')) {
         return false;
@@ -2829,6 +2923,45 @@ class _PortalScreenState extends SmartState<PortalScreen>
       return true;
     }
     return false;
+  };
+
+  const fetchAndPassDownload = async (url, suggestedName) => {
+    try {
+      if (window.IrisPortalChannel) {
+        window.IrisPortalChannel.postMessage(JSON.stringify({ type: 'download_retry', attempt: 1 }));
+      }
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+
+      const disposition = response.headers.get('content-disposition') || '';
+      let filename = suggestedName || '';
+      const filenameMatch = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+      if (filenameMatch) {
+        filename = decodeURIComponent(filenameMatch[1] || filenameMatch[2] || filename);
+      }
+      if (!filename) {
+        filename = url.split('/').pop().split('?')[0] || 'download.pdf';
+      }
+
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result;
+        if (window.IrisPortalChannel) {
+          window.IrisPortalChannel.postMessage(JSON.stringify({
+            type: 'download_data',
+            filename: filename,
+            data: dataUrl,
+            sourceUrl: url
+          }));
+        }
+      };
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      if (window.IrisPortalChannel) {
+        window.IrisPortalChannel.postMessage(JSON.stringify({ type: 'download', url: url }));
+      }
+    }
   };
 
   document.addEventListener('click', function(e) {
@@ -2842,7 +2975,8 @@ class _PortalScreenState extends SmartState<PortalScreen>
       if (window.IrisPortalChannel) {
         e.preventDefault();
         e.stopPropagation();
-        window.IrisPortalChannel.postMessage(JSON.stringify({ type: 'download', url: href }));
+        const suggestedName = a.getAttribute('download') || (a.innerText || '').trim();
+        fetchAndPassDownload(href, suggestedName);
       }
     }
   }, true);

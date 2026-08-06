@@ -2,8 +2,99 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/models.dart';
 
+class RoomLocationDetails {
+  final String block;
+  final String floor;
+  final String roomName;
+  final int floorNumber;
+
+  const RoomLocationDetails({
+    required this.block,
+    required this.floor,
+    required this.roomName,
+    required this.floorNumber,
+  });
+
+  String get formattedLocation => '$block • $floor • $roomName';
+}
+
 class RoomPersistenceService {
   static const String _key = 'iris_rooms';
+
+  /// Parse any COMSATS room ID (e.g. A2.4, B2, C1.1, C-204) into Block, Floor, and Room
+  static RoomLocationDetails parseRoomCode(String roomId) {
+    final raw = roomId.trim().toUpperCase();
+    String block = 'Other';
+    String floor = 'Ground Floor';
+    int floorNumber = 0;
+    String roomName = raw;
+
+    final blockMatch = RegExp(r'^([A-E|W|M|S])').firstMatch(raw);
+    if (blockMatch != null) {
+      final letter = blockMatch.group(1)!;
+      switch (letter) {
+        case 'A': block = 'A Block'; break;
+        case 'B': block = 'B Block'; break;
+        case 'C': block = 'C Block'; break;
+        case 'D': block = 'D Block'; break;
+        case 'E': block = 'E Block'; break;
+        case 'W': block = 'Workshop Block'; break;
+        case 'M': block = 'Main Building'; break;
+        case 'S': block = 'Seminar Block'; break;
+      }
+    } else if (raw.startsWith('CS') || raw.startsWith('C-')) {
+      block = 'C Block';
+    } else if (raw.startsWith('ME')) {
+      block = 'Workshop Block';
+    } else if (raw.startsWith('BE')) {
+      block = 'B Block';
+    }
+
+    // Format 1: Dot format e.g. A1.5, A2.4, B0.2, C1.12
+    final dotMatch = RegExp(r'^[A-E|W|M|S]\s*(\d)\.(\d+)$').firstMatch(raw);
+    if (dotMatch != null) {
+      floorNumber = int.parse(dotMatch.group(1)!);
+      final roomNum = dotMatch.group(2)!;
+      floor = floorNumber == 0 ? 'Ground Floor' : '${floorNumber}${_floorSuffix(floorNumber)} Floor';
+      roomName = 'Room $roomNum';
+    } else {
+      // Format 2: Dash format e.g. C-204, A-101
+      final dashMatch = RegExp(r'^[A-E]\-?(\d)(\d{2})$').firstMatch(raw);
+      if (dashMatch != null) {
+        floorNumber = int.parse(dashMatch.group(1)!);
+        final roomNum = int.parse(dashMatch.group(2)!);
+        floor = floorNumber == 0 ? 'Ground Floor' : '${floorNumber}${_floorSuffix(floorNumber)} Floor';
+        roomName = 'Room $roomNum';
+      } else {
+        // Format 3: Single digit format e.g. B2 (B Block Ground Floor Room 2), A5 (A Block Ground Floor Room 5)
+        final singleDigitMatch = RegExp(r'^[A-E](\d)$').firstMatch(raw);
+        if (singleDigitMatch != null) {
+          floorNumber = 0; // Ground Floor (no zero in room numbers)
+          final roomNum = singleDigitMatch.group(1)!;
+          floor = 'Ground Floor';
+          roomName = 'Room $roomNum';
+        }
+      }
+    }
+
+    if (raw.contains('LAB')) {
+      roomName = raw;
+    }
+
+    return RoomLocationDetails(
+      block: block,
+      floor: floor,
+      roomName: roomName,
+      floorNumber: floorNumber,
+    );
+  }
+
+  static String _floorSuffix(int n) {
+    if (n == 1) return 'st';
+    if (n == 2) return 'nd';
+    if (n == 3) return 'rd';
+    return 'th';
+  }
 
   /// Save a list of rooms to SharedPreferences
   Future<void> saveRooms(List<Room> rooms) async {
@@ -28,44 +119,8 @@ class RoomPersistenceService {
 
   /// Apply heuristics to a room ID to generate default metadata
   Room generateDefaultRoom(String roomId) {
-    String building = 'Other';
-    String normalizedRoom = roomId.trim().toUpperCase();
-    
-    // Improved naming logic: Map "C 1.1", "C-1", "CS-1", etc. to "C Block"
-    final blockMatch = RegExp(r'^([A-E|W|M|S])[\s\-0-9]?').firstMatch(normalizedRoom);
-    
-    if (blockMatch != null) {
-      String prefix = blockMatch.group(1)!;
-      switch (prefix) {
-        case 'A': building = 'A Block'; break;
-        case 'B': building = 'B Block'; break;
-        case 'C': building = 'C Block'; break;
-        case 'D': building = 'D Block'; break;
-        case 'E': building = 'E Block'; break;
-        case 'W': building = 'Workshop Block'; break;
-        case 'M': building = 'Main Building'; break;
-        case 'S': building = 'Seminar Block'; break;
-      }
-    } else if (normalizedRoom.startsWith('CS') || normalizedRoom.startsWith('C-')) {
-      building = 'C Block';
-    } else if (normalizedRoom.startsWith('ME') || normalizedRoom.startsWith('A-')) {
-      building = normalizedRoom.contains('LAB') ? 'Workshop Block' : 'A Block';
-    } else if (normalizedRoom.startsWith('BE') || normalizedRoom.startsWith('B-')) {
-      building = 'B Block';
-    } else if (normalizedRoom.contains('CLAB') || normalizedRoom.contains('C LAB')) {
-      final match = RegExp(r'(\d+)').firstMatch(normalizedRoom);
-      if (match != null) {
-        int labNum = int.parse(match.group(1)!);
-        if (labNum == 9 || labNum == 10) building = 'A Block';
-        else if (labNum == 14) building = 'B Block';
-        else if ((labNum >= 1 && labNum <= 8) || (labNum >= 11 && labNum <= 13)) building = 'C Block';
-      }
-    } else if (normalizedRoom.contains('LIB') || normalizedRoom.contains('LIBRARY')) {
-      building = 'A Block';
-    } else if (normalizedRoom.contains('AUDI') || normalizedRoom.contains('AUDITORIUM')) {
-      building = 'Main Building';
-    }
-
+    final details = parseRoomCode(roomId);
+    final normalizedRoom = roomId.trim().toUpperCase();
     final isLab = normalizedRoom.contains('LAB');
     final amenities = isLab 
         ? ['PC', 'Internet', 'AC', 'Whiteboard'] 
@@ -73,7 +128,7 @@ class RoomPersistenceService {
 
     return Room(
       id: roomId,
-      building: building,
+      building: details.block,
       capacity: isLab ? 30 : 40,
       amenities: amenities,
       registeredAt: DateTime.now(),

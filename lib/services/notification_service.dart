@@ -102,21 +102,34 @@ class ClassNotificationTaskHandler extends TaskHandler {
           return;
         }
 
-        if (timetableJson == null) {
+        List<ClassSession> allSessions = [];
+        if (academicPeriod == 'midterms' || academicPeriod == 'finals') {
+          final cachedExams = prefs.getString(academicPeriod == 'midterms' ? 'cached_midterm_exams' : 'cached_finals_exams') ?? '';
+          if (cachedExams.isNotEmpty) {
+            try {
+              final decoded = jsonDecode(cachedExams);
+              if (decoded is List) {
+                allSessions = decoded.asMap().entries.map((e) => ClassSession.fromExamJson(Map<String, dynamic>.from(e.value), index: e.key)).toList();
+              }
+            } catch (_) {}
+          }
+        }
+
+        if (allSessions.isEmpty && timetableJson != null) {
+          final List<dynamic> parsedList = jsonDecode(timetableJson);
+          allSessions = parsedList.map((json) => ClassSession.fromJson(json)).toList();
+        }
+
+        if (allSessions.isEmpty) {
           await FlutterForegroundTask.updateService(
             notificationTitle: notifTitle,
-            notificationText: 'No timetable data synced',
+            notificationText: 'No schedule data synced',
             notificationButtons: [
               NotificationButton(id: 'open', text: 'Open IRIS'),
             ],
           );
           return;
         }
-
-        final List<dynamic> parsedList = jsonDecode(timetableJson);
-        final List<ClassSession> allSessions = parsedList
-            .map((json) => ClassSession.fromJson(json))
-            .toList();
 
         final List<ClassSession> userSchedule = allSessions.where((s) {
           if (role == 'faculty') {
@@ -215,12 +228,6 @@ class ClassNotificationTaskHandler extends TaskHandler {
           }
         }
 
-        String _bar(double p) {
-          const total = 8;
-          final filled = (p * total).round().clamp(0, total);
-          return '🟦' * filled + '⬜' * (total - filled);
-        }
-
         if (currentLive != null) {
           final duration = (currentLive.safeEndVal - currentLive.safeStartVal).abs();
           final progress = ((currentTime - currentLive.safeStartVal) / duration).clamp(0.0, 1.0);
@@ -237,15 +244,17 @@ class ClassNotificationTaskHandler extends TaskHandler {
                   : 'Ending now';
 
           final remaining = mergedToday.where((s) => s.safeStartVal > currentTime).length;
-          final classCount = remaining > 0 ? ' · $remaining more today' : ' · Last one';
+          final classCount = remaining > 0 ? ' • $remaining more today' : ' • Last session today';
 
-          notifTitle = '🎓 ${currentLive.subject} · $timeLeft';
-          notifBody = '${_bar(progress)} $progressPercent%$classCount\n📍 ${currentLive.room} · ${role == 'faculty' ? currentLive.batchKey.batch : currentLive.teacher}';
+          final cleanSubject = currentLive.subject.replaceAll('[EXAM]', '').trim();
+
+          notifTitle = '🎓 $cleanSubject • $progressPercent%';
+          notifBody = '⏱️ $timeLeft (${currentLive.startTime} - ${currentLive.endTime})$classCount\n📍 ${currentLive.room} • ${role == 'faculty' ? currentLive.batchKey.batch : currentLive.teacher}';
 
           // Update ClassTrackerWidget homescreen widget in background
           final displayTime = '${currentLive.startTime} - ${currentLive.endTime}';
           await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', true);
-          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', currentLive.subject);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', cleanSubject);
           await HomeWidget.saveWidgetData<String>('flutter.widget_subline', currentLive.room);
           await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', role == 'faculty' ? currentLive.batchKey.batch : currentLive.teacher);
           await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', progressPercent);
