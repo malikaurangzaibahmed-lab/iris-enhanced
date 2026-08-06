@@ -1,7 +1,6 @@
 package com.example.student_organizer
 
 import android.app.PendingIntent
-import android.app.AlarmManager
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
@@ -9,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
@@ -24,8 +22,6 @@ class ClassTrackerWidget : AppWidgetProvider() {
             "FlutterSharedPreferences",
         )
         private const val UPDATE_ACTION = "com.example.student_organizer.WIDGET_UPDATE"
-        private const val AUTO_REFRESH_INTERVAL_MS = 3_000L
-        private const val AUTO_REFRESH_REQUEST_CODE = 7001
 
         fun updateAppWidget(
             context: Context,
@@ -70,69 +66,59 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 val sizePx = getWidgetSizePx(context, appWidgetManager, appWidgetId)
                 val heightPx = sizePx.second
 
-                // Generate background glass bitmap matched to exact widget bounds
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    try {
-                        val role = prefs.getString("flutter.active_role", "student") ?: "student"
-                        val period = prefs.getString("active_academic_period", "classes") ?: "classes"
-                        val assetName = when {
-                            period == "midterms" || period == "finals" || period == "exams" -> "widget_bg_exams.png"
-                            period == "sports" || period == "gala" -> "widget_bg_sports.png"
-                            role == "faculty" -> "widget_bg_faculty.png"
-                            isLive -> "widget_bg_student.png"
-                            else -> "widget_bg_idle.png"
-                        }
-                        val glassBitmap = LiquidGlassBitmapGenerator.generateGlassBitmapFromAsset(
-                            context,
-                            sizePx.first,
-                            sizePx.second,
-                            assetName,
-                            widgetDarkMode
-                        )
-                        if (glassBitmap != null) {
-                            views.setImageViewBitmap(R.id.widget_glass_bg, glassBitmap)
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Glass background failed: ${e.message}")
-                    }
-                }
+                // Set native background drawable
+                val bgRes = if (widgetDarkMode) R.drawable.widget_bg_dark_v2 else R.drawable.widget_bg_light_v2
+                views.setImageViewResource(R.id.widget_glass_bg, bgRes)
 
-                // Text Binds
-                views.setTextViewText(R.id.widget_headline, subject)
-                views.setTextViewText(R.id.widget_time_info, timeInfo)
-                
-                if (isLive) {
-                    views.setTextViewText(R.id.widget_status_badge, "● LIVE CLASS")
-                    views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
-                    views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
-                } else {
-                    views.setTextViewText(R.id.widget_status_badge, "NEXT CLASS")
-                    views.setViewVisibility(R.id.widget_progress, View.GONE)
-                }
-
-                if (rawRoom.isNotEmpty()) {
-                    views.setTextViewText(R.id.widget_details_room, rawRoom)
-                    views.setViewVisibility(R.id.widget_class_details_capsule, View.VISIBLE)
-                } else {
-                    views.setViewVisibility(R.id.widget_class_details_capsule, View.GONE)
-                }
-
-                if (startTime.isNotEmpty()) {
-                    views.setTextViewText(R.id.widget_details_start_time, startTime)
-                }
-
-                if (teacher.isNotEmpty()) {
-                    views.setTextViewText(R.id.widget_teacher_name, teacher)
-                }
-
-                // Responsive auto-hiding for small widget sizes (< 140px height)
-                val isCompact = heightPx < 140
+                // Compact vs Full Container Dynamic Responsive Switching
+                val isCompact = heightPx < 125
                 if (isCompact) {
-                    views.setViewVisibility(R.id.widget_state_label, View.GONE)
-                    views.setViewVisibility(R.id.widget_teacher_card, View.GONE)
+                    views.setViewVisibility(R.id.widget_compact_container, View.VISIBLE)
+                    views.setViewVisibility(R.id.widget_full_container, View.GONE)
+
+                    val compactTitle = if (rawRoom.isNotEmpty()) "$subject • $rawRoom" else subject
+                    views.setTextViewText(R.id.widget_compact_title, compactTitle)
+                    views.setTextViewText(R.id.widget_compact_time, timeInfo)
+
+                    if (isLive) {
+                        views.setTextViewText(R.id.widget_compact_badge, "LIVE")
+                    } else {
+                        views.setTextViewText(R.id.widget_compact_badge, "NEXT")
+                    }
                 } else {
-                    views.setViewVisibility(R.id.widget_state_label, View.VISIBLE)
-                    views.setViewVisibility(R.id.widget_teacher_card, if (teacher.isNotEmpty()) View.VISIBLE else View.GONE)
+                    views.setViewVisibility(R.id.widget_compact_container, View.GONE)
+                    views.setViewVisibility(R.id.widget_full_container, View.VISIBLE)
+
+                    // Text Binds
+                    views.setTextViewText(R.id.widget_headline, subject)
+                    views.setTextViewText(R.id.widget_time_info, timeInfo)
+
+                    if (isLive) {
+                        views.setTextViewText(R.id.widget_status_badge, "● LIVE CLASS")
+                        views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
+                        views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
+                    } else {
+                        views.setTextViewText(R.id.widget_status_badge, "NEXT CLASS")
+                        views.setViewVisibility(R.id.widget_progress, View.GONE)
+                    }
+
+                    if (rawRoom.isNotEmpty()) {
+                        views.setTextViewText(R.id.widget_details_room, rawRoom)
+                        views.setViewVisibility(R.id.widget_class_details_capsule, View.VISIBLE)
+                    } else {
+                        views.setViewVisibility(R.id.widget_class_details_capsule, View.GONE)
+                    }
+
+                    if (startTime.isNotEmpty()) {
+                        views.setTextViewText(R.id.widget_details_start_time, startTime)
+                    }
+
+                    if (teacher.isNotEmpty()) {
+                        views.setTextViewText(R.id.widget_teacher_name, teacher)
+                        views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
+                    } else {
+                        views.setViewVisibility(R.id.widget_teacher_card, View.GONE)
+                    }
                 }
 
                 // App Launch Intent
@@ -175,8 +161,8 @@ class ClassTrackerWidget : AppWidgetProvider() {
             if (heightDp <= 0) heightDp = 110
 
             val dm = context.resources.displayMetrics
-            val widthPx = (widthDp * dm.density).toInt().coerceAtLeast(200)
-            val heightPx = (heightDp * dm.density).toInt().coerceAtLeast(100)
+            val widthPx = (widthDp * dm.density).toInt().coerceAtLeast(180)
+            val heightPx = (heightDp * dm.density).toInt().coerceAtLeast(90)
             return Pair(widthPx, heightPx)
         }
 

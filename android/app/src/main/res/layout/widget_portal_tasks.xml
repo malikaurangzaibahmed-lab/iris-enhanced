@@ -4,18 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Premium Background Glass Shape -->
     <ImageView
         android:id="@+id/widget_glass_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/widget_fluffy_bg" />
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_bg_light_v2" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="14dp">
+        android:padding="10dp">
 
         <!-- Header Glass Container -->
         <LinearLayout
@@ -23,22 +24,22 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/widget_glass_container_light"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:layout_marginBottom="8dp">
+            android:background="@drawable/widget_details_capsule_v2"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginBottom="6dp">
 
             <TextView
                 android:id="@+id/widget_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="📋 PORTAL TASKS"
-                android:textSize="11.5sp"
+                android:textSize="11sp"
                 android:textStyle="bold"
-                android:textColor="#1D4ED8"
-                android:letterSpacing="0.06" />
+                android:textColor="#4F46E5"
+                android:letterSpacing="0.05" />
 
             <FrameLayout
                 android:layout_width="0dp"
@@ -50,9 +51,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Not Synced"
-                android:textSize="10.5sp"
+                android:textSize="10sp"
                 android:textStyle="bold"
-                android:textColor="#475569" />
+                android:textColor="#64748B" />
         </LinearLayout>
 
         <!-- Empty State View -->
@@ -63,9 +64,9 @@
             android:gravity="center"
             android:text="🎉 All caught up!\nNo pending portal assignments or quizzes"
             android:textColor="#334155"
-            android:textSize="13.5sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:lineSpacingMultiplier="1.25"
+            android:lineSpacingMultiplier="1.2"
             android:visibility="gone" />
 
         <!-- Scrollable Tasks List -->
@@ -74,7 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:divider="@null"
-            android:dividerHeight="8dp"
+            android:dividerHeight="6dp"
             android:scrollbarStyle="outsideOverlay" />
 
     </LinearLayout>

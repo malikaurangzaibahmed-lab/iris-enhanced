@@ -4,95 +4,146 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Premium Background Card -->
     <ImageView
         android:id="@+id/widget_glass_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/widget_background_light" />
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_bg_light_v2" />
 
+    <!-- 1. Compact Single-Bar View (Active when height < 125dp) -->
     <LinearLayout
+        android:id="@+id/widget_compact_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/widget_compact_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LIVE"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:paddingLeft="6dp"
+            android:paddingRight="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:background="@drawable/widget_pill_badge_live" />
+
+        <TextView
+            android:id="@+id/widget_compact_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="CS-301 • Room C1.2"
+            android:textColor="#0F172A"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/widget_compact_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="45m left"
+            android:textColor="#4F46E5"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 2. Standard / Full View (Active when height >= 125dp) -->
+    <LinearLayout
+        android:id="@+id/widget_full_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="12dp">
 
-        <!-- Header Status Bar -->
+        <!-- Top Header Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="4dp">
+            android:layout_marginBottom="6dp">
 
             <TextView
                 android:id="@+id/widget_status_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="NEXT CLASS"
-                android:textSize="9sp"
+                android:textSize="9.5sp"
                 android:textStyle="bold"
-                android:textColor="#FF1D4ED8"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
+                android:textColor="#FFFFFF"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
                 android:paddingTop="3dp"
                 android:paddingBottom="3dp"
-                android:background="@drawable/widget_pill_badge" />
+                android:background="@drawable/widget_pill_badge_next" />
 
-            <FrameLayout
+            <TextView
+                android:id="@+id/widget_state_label"
                 android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginLeft="8dp"
+                android:text="TIMETABLE INSIGHT"
+                android:textColor="#64748B"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:singleLine="true"
+                android:ellipsize="end" />
 
             <TextView
                 android:id="@+id/widget_refresh"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="↻"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#475569"
                 android:padding="2dp" />
         </LinearLayout>
 
-        <!-- Uppercase Category Label -->
-        <TextView
-            android:id="@+id/widget_state_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TIMETABLE INSIGHT"
-            android:textColor="#334155"
-            android:textSize="9.5sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.06"
-            android:layout_marginBottom="2dp" />
-
-        <!-- Bold Class Title -->
+        <!-- Course Title Headline -->
         <TextView
             android:id="@+id/widget_headline"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="OBJECT ORIENTED PROGRAMMING"
             android:textColor="#0F172A"
-            android:textSize="15sp"
+            android:textSize="15.5sp"
             android:textStyle="bold"
-            android:maxLines="1"
+            android:maxLines="2"
             android:ellipsize="end"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="6dp" />
 
-        <!-- Details Capsule (Start Time & Room) -->
+        <!-- Details Capsule (Room & Start Time) -->
         <LinearLayout
             android:id="@+id/widget_class_details_capsule"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/widget_details_capsule"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp"
-            android:layout_marginBottom="4dp">
+            android:background="@drawable/widget_details_capsule_v2"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginBottom="6dp">
 
             <TextView
                 android:id="@+id/widget_details_start_time"
@@ -100,21 +151,21 @@
                 android:layout_height="wrap_content"
                 android:text="8:00 AM"
                 android:textColor="#0F172A"
-                android:textSize="10.5sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <FrameLayout
                 android:id="@+id/widget_details_divider"
                 android:layout_width="1dp"
-                android:layout_height="10dp"
-                android:layout_marginLeft="6dp"
-                android:layout_marginRight="6dp"
-                android:background="#94A3B8" />
+                android:layout_height="12dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:background="#CBD5E1" />
 
             <ImageView
                 android:id="@+id/widget_details_loc_icon"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
+                android:layout_width="11dp"
+                android:layout_height="11dp"
                 android:layout_marginRight="4dp"
                 android:src="@drawable/widget_ic_loc" />
 
@@ -124,25 +175,28 @@
                 android:layout_height="wrap_content"
                 android:text="Room C1.2"
                 android:textColor="#0F172A"
-                android:textSize="10.5sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Instructor Card -->
+        <!-- Instructor Subcard -->
         <LinearLayout
             android:id="@+id/widget_teacher_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/widget_translucent_subcard"
-            android:padding="6dp"
-            android:layout_marginBottom="4dp">
+            android:background="@drawable/widget_subcard_v2"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginBottom="6dp">
 
             <ImageView
                 android:id="@+id/widget_teacher_avatar"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_marginRight="8dp"
                 android:src="@drawable/widget_ic_teacher_avatar" />
 
@@ -166,8 +220,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Instructor Name"
-                    android:textColor="#0F172A"
-                    android:textSize="11sp"
+                    android:textColor="#1E293B"
+                    android:textSize="11.5sp"
                     android:textStyle="bold"
                     android:singleLine="true"
                     android:ellipsize="end" />
@@ -179,19 +233,19 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Progress Bar -->
+        <!-- Live Progress Bar -->
         <ProgressBar
             android:id="@+id/widget_progress"
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:progressDrawable="@drawable/widget_progress"
             android:layout_width="match_parent"
-            android:layout_height="4dp"
+            android:layout_height="5dp"
             android:max="100"
             android:progress="0"
             android:visibility="gone"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="6dp" />
 
-        <!-- Footer Time Info -->
+        <!-- Time Info & Countdown -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -200,9 +254,9 @@
 
             <ImageView
                 android:id="@+id/widget_clock_icon"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:layout_marginRight="4dp"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_marginRight="6dp"
                 android:src="@drawable/widget_ic_clock" />
 
             <TextView
@@ -210,9 +264,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Starts in 15 mins"
-                android:textColor="#1E40AF"
+                android:textColor="#4F46E5"
                 android:textStyle="bold"
-                android:textSize="11.5sp"
+                android:textSize="12sp"
                 android:singleLine="true"
                 android:ellipsize="end" />
         </LinearLayout>
