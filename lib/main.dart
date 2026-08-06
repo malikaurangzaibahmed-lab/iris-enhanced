@@ -61,6 +61,7 @@ import 'screens/department_classes_screen.dart';
 import 'screens/makeup_lecture_scheduler_screen.dart';
 import 'screens/exam_grid_dashboard_screen.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 part 'screens/tools_screen_part.dart';
 
@@ -137,11 +138,41 @@ class IrisApp extends StatefulWidget {
 
 class _IrisAppBootState extends State<IrisApp> {
   late final Future<UniversityMemory> _memoryFuture;
+  final _shorebirdCodePush = ShorebirdCodePush();
 
   @override
   void initState() {
     super.initState();
     _memoryFuture = UniversityMemoryLoader.loadFromAssets();
+    _checkShorebirdPatch();
+  }
+
+  Future<void> _checkShorebirdPatch() async {
+    try {
+      final isAvailable = await _shorebirdCodePush.isNewPatchAvailableForDownload();
+      if (isAvailable) {
+        await _shorebirdCodePush.downloadUpdateIfAvailable();
+        if (mounted) {
+          showIrisFrostedSnackBar(
+            context,
+            content: const Row(
+              children: [
+                Icon(Icons.bolt_rounded, color: Colors.amber, size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '⚡ Over-the-air update installed! Restart app to apply.',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Shorebird patch check: $e');
+    }
   }
 
   @override
