@@ -138,7 +138,7 @@ class IrisApp extends StatefulWidget {
 
 class _IrisAppBootState extends State<IrisApp> {
   late final Future<UniversityMemory> _memoryFuture;
-  final _shorebirdCodePush = ShorebirdCodePush();
+  final _shorebirdUpdater = ShorebirdUpdater();
 
   @override
   void initState() {
@@ -149,9 +149,10 @@ class _IrisAppBootState extends State<IrisApp> {
 
   Future<void> _checkShorebirdPatch() async {
     try {
-      final isAvailable = await _shorebirdCodePush.isNewPatchAvailableForDownload();
-      if (isAvailable) {
-        await _shorebirdCodePush.downloadUpdateIfAvailable();
+      if (!_shorebirdUpdater.isAvailable) return;
+      final status = await _shorebirdUpdater.checkForUpdate();
+      if (status == UpdateStatus.outdated) {
+        await _shorebirdUpdater.update();
         if (mounted) {
           showIrisFrostedSnackBar(
             context,
