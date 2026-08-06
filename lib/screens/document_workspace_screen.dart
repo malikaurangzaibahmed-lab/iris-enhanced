@@ -1856,6 +1856,12 @@ Summarize key findings, experimental outcomes, and list project references...
                                     ],
                                   ),
                                 ),
+                              ],
+                              
+                              // Main WYSIWYG Document Editor Text Field
+                              TextField(
+                                controller: _editorController,
+                                maxLines: null,
                                 keyboardType: TextInputType.multiline,
                                 style: TextStyle(fontSize: 14, height: 1.6, color: paperText),
                                 decoration: InputDecoration(
