@@ -2773,8 +2773,7 @@ function updateEmulatorExams(exams) {
 }
 
 function setup3DTiltEffects() {
-    });
-  }
+  // 3D tilt effects disabled for clean, stable layout
 }
 
 function sanitizeAndValidateFirebaseConfig(jsonStr) {
