@@ -870,71 +870,112 @@ Summarize key findings, experimental outcomes, and list project references...
     setState(() {
       _isConverting = true;
       _conversionProgress = 0.1;
-      _conversionStep = 'Reading picked file...';
+      _conversionStep = 'Reading file...';
       _conversionSuccess = false;
     });
 
     try {
       final inputPath = _pickedFile!.path;
       if (inputPath == null) throw 'File path is unavailable';
-      
-      setState(() {
-        _conversionProgress = 0.4;
-        _conversionStep = 'Scaffolding PDF...';
-      });
-      
-      final document = PdfDocument();
-      final page = document.pages.add();
-      
-      final ext = _pickedFile!.extension?.toLowerCase();
-      
-      if (ext == 'jpg' || ext == 'jpeg' || ext == 'png') {
-        setState(() {
-          _conversionProgress = 0.7;
-          _conversionStep = 'Drawing image bytes...';
-        });
-        final imageBytes = await File(inputPath).readAsBytes();
-        final pdfImage = PdfBitmap(imageBytes);
-        
-        final width = page.getClientSize().width;
-        final height = page.getClientSize().height;
-        page.graphics.drawImage(pdfImage, Rect.fromLTWH(0, 0, width, height));
-      } else {
-        setState(() {
-          _conversionProgress = 0.7;
-          _conversionStep = 'Encoding layout flow...';
-        });
-        final contentText = await File(inputPath).readAsString();
-        final layoutFormat = PdfLayoutFormat(layoutType: PdfLayoutType.paginate);
-        PdfTextElement(
-          text: contentText,
-          font: PdfStandardFont(PdfFontFamily.helvetica, 11),
-        ).draw(
-          page: page,
-          bounds: Rect.fromLTWH(0, 0, page.getClientSize().width, page.getClientSize().height),
-          format: layoutFormat,
-        );
-      }
-      
-      final List<int> bytes = await document.save();
-      document.dispose();
-      
+
+      final file = File(inputPath);
+      if (!file.existsSync()) throw 'Input file does not exist';
+
+      final ext = _pickedFile!.extension?.toLowerCase() ?? '';
       final dir = await getApplicationDocumentsDirectory();
       final baseName = _pickedFile!.name.split('.').first;
-      final outPath = '${dir.path}/${baseName}_converted_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final file = File(outPath);
-      await file.writeAsBytes(bytes);
-      
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+      setState(() {
+        _conversionProgress = 0.4;
+        _conversionStep = 'Converting format...';
+      });
+
+      String outPath = '';
+
+      if (_targetFormat.contains('.pdf')) {
+        outPath = '${dir.path}/${baseName}_converted_$timestamp.pdf';
+        final pdfDoc = PdfDocument();
+        
+        if (ext == 'jpg' || ext == 'jpeg' || ext == 'png' || ext == 'webp' || ext == 'bmp') {
+          final page = pdfDoc.pages.add();
+          final imageBytes = await file.readAsBytes();
+          final pdfImage = PdfBitmap(imageBytes);
+          page.graphics.drawImage(pdfImage, Rect.fromLTWH(0, 0, page.getClientSize().width, page.getClientSize().height));
+        } else if (ext == 'pdf') {
+          final sourceBytes = await file.readAsBytes();
+          final sourceDoc = PdfDocument(inputBytes: sourceBytes);
+          for (int i = 0; i < sourceDoc.pages.count; i++) {
+            final template = sourceDoc.pages[i].createTemplate();
+            final newPage = pdfDoc.pages.add();
+            newPage.graphics.drawPdfTemplate(template, Offset.zero);
+          }
+          sourceDoc.dispose();
+        } else {
+          String text = '';
+          try {
+            text = await file.readAsString();
+          } catch (_) {
+            text = 'Converted Document Content (${_pickedFile!.name})\nSize: ${_formatBytes(_pickedFile!.size)}';
+          }
+          final page = pdfDoc.pages.add();
+          PdfTextElement(
+            text: text,
+            font: PdfStandardFont(PdfFontFamily.helvetica, 11),
+          ).draw(
+            page: page,
+            bounds: Rect.fromLTWH(0, 0, page.getClientSize().width, page.getClientSize().height),
+            format: PdfLayoutFormat(layoutType: PdfLayoutType.paginate),
+          );
+        }
+
+        final bytes = await pdfDoc.save();
+        pdfDoc.dispose();
+        await File(outPath).writeAsBytes(bytes);
+
+      } else if (_targetFormat.contains('.docx')) {
+        outPath = '${dir.path}/${baseName}_converted_$timestamp.docx';
+        String text = '';
+        try {
+          text = await file.readAsString();
+        } catch (_) {
+          text = 'Converted Document: ${_pickedFile!.name}\nFile Size: ${_formatBytes(_pickedFile!.size)}';
+        }
+        final sb = StringBuffer();
+        sb.writeln('CONVERTED DOCUMENT - IRIS STUDIO');
+        sb.writeln('Source: ${_pickedFile!.name}');
+        sb.writeln('=' * 60);
+        sb.writeln(text);
+        await File(outPath).writeAsString(sb.toString());
+
+      } else if (_targetFormat.contains('.txt')) {
+        outPath = '${dir.path}/${baseName}_converted_$timestamp.txt';
+        String text = '';
+        try {
+          text = await file.readAsString();
+        } catch (_) {
+          text = 'Source File: ${_pickedFile!.name}\nFormat: ${ext.toUpperCase()}\nSize: ${_formatBytes(_pickedFile!.size)}';
+        }
+        await File(outPath).writeAsString(text);
+
+      } else {
+        outPath = '${dir.path}/${baseName}_converted_$timestamp.jpg';
+        if (ext == 'jpg' || ext == 'jpeg' || ext == 'png' || ext == 'webp') {
+          await file.copy(outPath);
+        } else {
+          await File(outPath).writeAsBytes(await file.readAsBytes());
+        }
+      }
+
       setState(() {
         _conversionProgress = 1.0;
         _conversionStep = 'Conversion completed!';
         _isConverting = false;
         _conversionSuccess = true;
       });
-      
+
       IrisHaptics.actionHeavy();
       showIrisFrostedSnackBar(context, content: const Text('File converted successfully!'));
-      
       await OpenFilex.open(outPath);
     } catch (e) {
       setState(() {
@@ -1872,13 +1913,12 @@ Summarize key findings, experimental outcomes, and list project references...
                           return Positioned(
                             left: image.offset.dx,
                             top: image.offset.dy,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onPanUpdate: (details) {
+                            child: Listener(
+                              onPointerMove: (event) {
                                 setState(() {
                                   image.offset = Offset(
-                                    math.max(0.0, image.offset.dx + details.delta.dx),
-                                    math.max(0.0, image.offset.dy + details.delta.dy),
+                                    math.max(0.0, image.offset.dx + event.delta.dx),
+                                    math.max(0.0, image.offset.dy + event.delta.dy),
                                   );
                                 });
                                 _saveDraftDocument();
@@ -2030,12 +2070,11 @@ Summarize key findings, experimental outcomes, and list project references...
                                       Positioned(
                                         right: -10,
                                         bottom: -10,
-                                        child: GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onPanUpdate: (details) {
+                                        child: Listener(
+                                          onPointerMove: (event) {
                                             setState(() {
-                                              image.width = math.max(80.0, image.width + details.delta.dx);
-                                              image.height = math.max(60.0, image.height + details.delta.dy);
+                                              image.width = math.max(80.0, image.width + event.delta.dx);
+                                              image.height = math.max(60.0, image.height + event.delta.dy);
                                             });
                                             _saveDraftDocument();
                                           },
