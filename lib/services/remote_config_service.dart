@@ -9,8 +9,8 @@ import '../services/ui_feedback.dart';
 /// Establishes real-time listeners with Firebase Firestore to toggle academic modes,
 /// sync OTA timetable schedules, and notify users about system update APKs.
 class RemoteConfigService {
-  static const int CURRENT_VERSION_CODE = 2;
-  static const String CURRENT_VERSION_NAME = '1.0.1';
+  static const int CURRENT_VERSION_CODE = 3;
+  static const String CURRENT_VERSION_NAME = '1.0.2';
 
   static final ValueNotifier<String> activeAcademicPeriod = ValueNotifier<String>('classes');
   static final ValueNotifier<Map<String, dynamic>?> latestApkUpdate = ValueNotifier<Map<String, dynamic>?>(null);
