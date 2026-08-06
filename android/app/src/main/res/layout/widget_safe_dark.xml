@@ -12,17 +12,17 @@
         android:scaleType="fitXY"
         android:src="@drawable/widget_bg_dark_v2" />
 
-    <!-- 1. Compact Single-Bar View (Active when height < 125dp) -->
+    <!-- 1. Compact Single-Bar View (Active when height < 105dp) -->
     <LinearLayout
         android:id="@+id/widget_compact_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingLeft="12dp"
-        android:paddingRight="12dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:visibility="gone">
 
         <TextView
@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="LIVE"
-            android:textSize="9sp"
+            android:textSize="8.5sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:paddingLeft="6dp"
@@ -44,11 +44,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
             android:text="CS-301 • Room C1.2"
             android:textColor="#F8FAFC"
-            android:textSize="12sp"
+            android:textSize="11.5sp"
             android:textStyle="bold"
             android:singleLine="true"
             android:ellipsize="end" />
@@ -59,17 +59,20 @@
             android:layout_height="wrap_content"
             android:text="45m left"
             android:textColor="#38BDF8"
-            android:textSize="11sp"
+            android:textSize="10.5sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- 2. Standard / Full View (Active when height >= 125dp) -->
+    <!-- 2. Standard / Full View (Active when height >= 105dp) -->
     <LinearLayout
         android:id="@+id/widget_full_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
 
         <!-- Top Header Bar -->
         <LinearLayout
@@ -77,20 +80,20 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="6dp">
+            android:layout_marginBottom="3dp">
 
             <TextView
                 android:id="@+id/widget_status_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="NEXT CLASS"
-                android:textSize="9.5sp"
+                android:textSize="8.5sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="3dp"
-                android:paddingBottom="3dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:background="@drawable/widget_pill_badge_next" />
 
             <TextView
@@ -98,12 +101,12 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginLeft="8dp"
+                android:layout_marginLeft="6dp"
                 android:text="TIMETABLE INSIGHT"
                 android:textColor="#94A3B8"
-                android:textSize="9sp"
+                android:textSize="8.5sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.05"
+                android:letterSpacing="0.04"
                 android:singleLine="true"
                 android:ellipsize="end" />
 
@@ -112,7 +115,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="↻"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:textColor="#94A3B8"
                 android:padding="2dp" />
@@ -125,11 +128,11 @@
             android:layout_height="wrap_content"
             android:text="OBJECT ORIENTED PROGRAMMING"
             android:textColor="#F8FAFC"
-            android:textSize="15.5sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:maxLines="2"
+            android:maxLines="1"
             android:ellipsize="end"
-            android:layout_marginBottom="6dp" />
+            android:layout_marginBottom="3dp" />
 
         <!-- Details Capsule (Room & Start Time) -->
         <LinearLayout
@@ -139,11 +142,11 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/widget_details_capsule_dark_v2"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:layout_marginBottom="6dp">
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginBottom="3dp">
 
             <TextView
                 android:id="@+id/widget_details_start_time"
@@ -151,21 +154,21 @@
                 android:layout_height="wrap_content"
                 android:text="8:00 AM"
                 android:textColor="#F8FAFC"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
 
             <FrameLayout
                 android:id="@+id/widget_details_divider"
                 android:layout_width="1dp"
-                android:layout_height="12dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
+                android:layout_height="10dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
                 android:background="#475569" />
 
             <ImageView
                 android:id="@+id/widget_details_loc_icon"
-                android:layout_width="11dp"
-                android:layout_height="11dp"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
                 android:layout_marginRight="4dp"
                 android:src="@drawable/widget_ic_loc" />
 
@@ -175,7 +178,7 @@
                 android:layout_height="wrap_content"
                 android:text="Room C1.2"
                 android:textColor="#F8FAFC"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -187,17 +190,17 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/widget_subcard_dark_v2"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:layout_marginBottom="6dp">
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginBottom="3dp">
 
             <ImageView
                 android:id="@+id/widget_teacher_avatar"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginRight="8dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginRight="6dp"
                 android:src="@drawable/widget_ic_teacher_avatar" />
 
             <LinearLayout
@@ -212,7 +215,7 @@
                     android:layout_height="wrap_content"
                     android:text="INSTRUCTOR"
                     android:textColor="#C084FC"
-                    android:textSize="8sp"
+                    android:textSize="7.5sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -221,7 +224,7 @@
                     android:layout_height="wrap_content"
                     android:text="Instructor Name"
                     android:textColor="#F8FAFC"
-                    android:textSize="11.5sp"
+                    android:textSize="10.5sp"
                     android:textStyle="bold"
                     android:singleLine="true"
                     android:ellipsize="end" />
@@ -239,11 +242,11 @@
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:progressDrawable="@drawable/widget_progress"
             android:layout_width="match_parent"
-            android:layout_height="5dp"
+            android:layout_height="4dp"
             android:max="100"
             android:progress="0"
             android:visibility="gone"
-            android:layout_marginBottom="6dp" />
+            android:layout_marginBottom="3dp" />
 
         <!-- Time Info & Countdown -->
         <LinearLayout
@@ -254,9 +257,9 @@
 
             <ImageView
                 android:id="@+id/widget_clock_icon"
-                android:layout_width="13dp"
-                android:layout_height="13dp"
-                android:layout_marginRight="6dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="4dp"
                 android:src="@drawable/widget_ic_clock" />
 
             <TextView
@@ -266,7 +269,7 @@
                 android:text="Starts in 15 mins"
                 android:textColor="#38BDF8"
                 android:textStyle="bold"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:singleLine="true"
                 android:ellipsize="end" />
         </LinearLayout>

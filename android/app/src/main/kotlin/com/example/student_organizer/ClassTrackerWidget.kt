@@ -63,15 +63,19 @@ class ClassTrackerWidget : AppWidgetProvider() {
                 val layoutId = if (widgetDarkMode) R.layout.widget_safe_dark else R.layout.widget_safe
                 val views = RemoteViews(context.packageName, layoutId)
 
-                val sizePx = getWidgetSizePx(context, appWidgetManager, appWidgetId)
-                val heightPx = sizePx.second
+                val (widthDp, heightDp) = getWidgetSizeDp(context, appWidgetManager, appWidgetId)
 
                 // Set native background drawable
                 val bgRes = if (widgetDarkMode) R.drawable.widget_bg_dark_v2 else R.drawable.widget_bg_light_v2
                 views.setImageViewResource(R.id.widget_glass_bg, bgRes)
 
-                // Compact vs Full Container Dynamic Responsive Switching
-                val isCompact = heightPx < 125
+                // DP-based Breakpoints:
+                // heightDp < 105: Ultra-compact bar view (2x1 grid size)
+                // 105 <= heightDp < 145: Standard card view (4x2 grid size, teacher card hidden to prevent bottom clipping)
+                // heightDp >= 145: Full hero view with teacher card
+                val isCompact = heightDp < 105
+                val showTeacherCard = heightDp >= 145
+
                 if (isCompact) {
                     views.setViewVisibility(R.id.widget_compact_container, View.VISIBLE)
                     views.setViewVisibility(R.id.widget_full_container, View.GONE)
@@ -113,7 +117,7 @@ class ClassTrackerWidget : AppWidgetProvider() {
                         views.setTextViewText(R.id.widget_details_start_time, startTime)
                     }
 
-                    if (teacher.isNotEmpty()) {
+                    if (teacher.isNotEmpty() && showTeacherCard) {
                         views.setTextViewText(R.id.widget_teacher_name, teacher)
                         views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
                     } else {
@@ -166,7 +170,7 @@ class ClassTrackerWidget : AppWidgetProvider() {
             }
         }
 
-        private fun getWidgetSizePx(
+        private fun getWidgetSizeDp(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int,
@@ -176,11 +180,7 @@ class ClassTrackerWidget : AppWidgetProvider() {
             var heightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
             if (widthDp <= 0) widthDp = 180
             if (heightDp <= 0) heightDp = 110
-
-            val dm = context.resources.displayMetrics
-            val widthPx = (widthDp * dm.density).toInt().coerceAtLeast(180)
-            val heightPx = (heightDp * dm.density).toInt().coerceAtLeast(90)
-            return Pair(widthPx, heightPx)
+            return Pair(widthDp, heightDp)
         }
 
         fun updateAllInstances(context: Context) {
