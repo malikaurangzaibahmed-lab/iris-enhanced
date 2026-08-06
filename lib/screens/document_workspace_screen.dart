@@ -55,10 +55,11 @@ class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with 
   // Document Maker Wizard State
   bool _hasActiveDocument = false;
   String _docType = 'Assignment'; // 'Assignment', 'Quiz Prep', 'Project Report'
-  final TextEditingController _courseController = TextEditingController(text: 'Object Oriented Programming');
-  final TextEditingController _titleController = TextEditingController(text: 'Assignment 3');
-  final TextEditingController _authorController = TextEditingController(text: 'Malik Aurangzaib Ahmed');
-  final TextEditingController _regIdController = TextEditingController(text: 'FA22-BCS-089');
+  final TextEditingController _courseController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _authorController = TextEditingController();
+  final TextEditingController _regIdController = TextEditingController();
+  final TextEditingController _deptController = TextEditingController(text: 'Department of Computer Science');
   List<CoverPageField> _customCoverFields = [];
   
   // Document Editor State
@@ -93,6 +94,7 @@ class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with 
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadDraftDocument();
+    _smartAutofillIdentity();
   }
 
   @override
@@ -102,6 +104,7 @@ class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with 
     _titleController.dispose();
     _authorController.dispose();
     _regIdController.dispose();
+    _deptController.dispose();
     _editorController.dispose();
     _rangeController.dispose();
     super.dispose();
@@ -113,29 +116,43 @@ class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with 
         ? prefs.getString('student_user_name')!.trim()
         : (prefs.getString('faculty_user_name')?.trim().isNotEmpty == true
             ? prefs.getString('faculty_user_name')!.trim()
-            : 'Student Profile');
+            : prefs.getString('user_name')?.trim() ?? '');
 
-    final rawBatch = prefs.getString('student_batch') ?? prefs.getString('user_batch') ?? prefs.getString('current_batch') ?? 'SP22-BSE-B';
-    final savedRoll = prefs.getString('student_roll_no') ?? prefs.getString('roll_no') ?? '042';
+    final rawBatch = prefs.getString('student_batch') ?? prefs.getString('user_batch') ?? prefs.getString('current_batch') ?? '';
+    final savedRoll = prefs.getString('student_roll_no') ?? prefs.getString('roll_no') ?? '';
 
-    final key = BatchKey.parse(rawBatch);
-    final term = key.intake.isNotEmpty ? key.intake : 'SP22';
-    final program = key.program.isNotEmpty ? key.program : 'BSE';
-    final rollFormatted = savedRoll.padLeft(3, '0');
-    final formattedRegId = '$term-$program-$rollFormatted';
+    String formattedRegId = '';
+    if (rawBatch.isNotEmpty || savedRoll.isNotEmpty) {
+      final key = BatchKey.parse(rawBatch);
+      final term = key.intake.isNotEmpty ? key.intake : 'FA22';
+      final program = key.program.isNotEmpty ? key.program : 'BCS';
+      final rollFormatted = savedRoll.isNotEmpty ? savedRoll.padLeft(3, '0') : '089';
+      formattedRegId = '$term-$program-$rollFormatted';
+    }
+
+    final activeCourse = prefs.getString('widget_subject') ?? prefs.getString('active_subject') ?? prefs.getString('current_course') ?? '';
+    final activeDept = prefs.getString('user_department') ?? prefs.getString('department') ?? 'Department of Computer Science';
 
     setState(() {
-      _authorController.text = savedName;
-      _regIdController.text = formattedRegId;
+      if (savedName.isNotEmpty && _authorController.text.isEmpty) {
+        _authorController.text = savedName;
+      }
+      if (formattedRegId.isNotEmpty && _regIdController.text.isEmpty) {
+        _regIdController.text = formattedRegId;
+      }
+      if (activeCourse.isNotEmpty && _courseController.text.isEmpty) {
+        _courseController.text = activeCourse;
+      }
+      if (activeDept.isNotEmpty) {
+        _deptController.text = activeDept;
+      }
     });
 
-    if (showFeedback && mounted) {
+    if (showFeedback && mounted && (savedName.isNotEmpty || formattedRegId.isNotEmpty)) {
       IrisHaptics.actionSoft();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('⚡ Auto-filled Identity: $formattedRegId ($savedName)'),
-          duration: const Duration(seconds: 2),
-        ),
+      showIrisFrostedSnackBar(
+        context,
+        content: Text('⚡ Intelligent App-Data Prefilled: ${formattedRegId.isNotEmpty ? formattedRegId : savedName}'),
       );
     }
   }
@@ -376,6 +393,7 @@ Summarize key findings, experimental outcomes, and list project references...
           title: _titleController.text,
           teacher: _authorController.text.isNotEmpty ? _authorController.text : 'Dr. Wasim',
           type: _docType,
+          department: _deptController.text.isNotEmpty ? _deptController.text : 'Department of Computer Science',
         );
         if (_customCoverFields.isNotEmpty) {
           coverData.customFields = List.from(_customCoverFields);
@@ -543,7 +561,7 @@ Summarize key findings, experimental outcomes, and list project references...
       final coverData = await CoverPageData.resolveDefaults(
         course: _courseController.text,
         title: _titleController.text,
-        teacher: _authorController.text.isNotEmpty ? _authorController.text : 'Dr. Wasim',
+        teacher: _authorController.text,
         type: _docType,
       );
 
@@ -598,7 +616,28 @@ Summarize key findings, experimental outcomes, and list project references...
                     'Add, edit, or remove fields for your official cover sheet table.',
                     style: TextStyle(fontSize: 12, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6)),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
+                  Text(
+                    'DEPARTMENT / FACULTY HEADER',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: (isDark ? Colors.white54 : Colors.black54),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _deptController,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. Department of Computer Science',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
                   Expanded(
                     child: ListView.builder(
                       physics: const BouncingScrollPhysics(),
@@ -1562,12 +1601,12 @@ Summarize key findings, experimental outcomes, and list project references...
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: paperBg == Colors.white ? const Color(0xFFF8FAFC) : paperBg,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: const Color(0xFF2B579A).withValues(alpha: 0.5), width: 1.5),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFF2B579A), width: 1.5),
                                   ),
                                   child: Column(
                                     children: [
-                                      // Document Type Header Tag
+                                      // Header Badge
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
@@ -1599,41 +1638,85 @@ Summarize key findings, experimental outcomes, and list project references...
                                                   style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: Color(0xFF2B579A)),
                                                 ),
                                                 Text(
-                                                  'Department of Computer Science',
-                                                  style: TextStyle(fontSize: 10, color: paperText.withValues(alpha: 0.8)),
+                                                  _deptController.text.isNotEmpty ? _deptController.text : 'Department of Computer Science',
+                                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: paperText.withValues(alpha: 0.8)),
                                                 ),
                                               ],
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const Divider(height: 20),
-                                      Row(
-                                        children: [
-                                          Text('Course: ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: paperText)),
-                                          Expanded(
-                                            child: Text(_courseController.text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2B579A))),
-                                          ),
-                                        ],
+                                      const Divider(height: 18),
+                                      Text(
+                                        _titleController.text.isNotEmpty ? _titleController.text : 'Document Title',
+                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: paperText),
+                                        textAlign: TextAlign.center,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Text('Title: ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: paperText)),
-                                          Expanded(
-                                            child: Text(_titleController.text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: paperText)),
-                                          ),
-                                        ],
+                                      const SizedBox(height: 8),
+                                      // Course Title Header Box
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2B579A).withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: const Color(0xFF2B579A).withValues(alpha: 0.2)),
+                                        ),
+                                        child: Text(
+                                          'COURSE: ${_courseController.text.toUpperCase()}',
+                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2B579A)),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Text('Student: ', style: TextStyle(fontSize: 10.5, color: paperText.withValues(alpha: 0.7))),
-                                          Expanded(
-                                            child: Text('${_authorController.text} (${_regIdController.text})', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: paperText)),
+                                      const SizedBox(height: 12),
+                                      // 1-to-1 Custom Cover Fields Table Grid
+                                      if (_customCoverFields.isNotEmpty) ...[
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
                                           ),
-                                        ],
-                                      ),
+                                          child: Column(
+                                            children: _customCoverFields.map((field) {
+                                              return Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  border: Border(bottom: BorderSide(color: Colors.grey.withValues(alpha: 0.15))),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      flex: 4,
+                                                      child: Text(
+                                                        field.label,
+                                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: paperText),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      flex: 6,
+                                                      child: Text(
+                                                        field.value,
+                                                        style: TextStyle(fontSize: 10, color: paperText.withValues(alpha: 0.85)),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+                                        ),
+                                      ] else ...[
+                                        Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text('Student: ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: paperText)),
+                                                Expanded(child: Text('${_authorController.text} (${_regIdController.text})', style: TextStyle(fontSize: 10, color: paperText))),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                       const SizedBox(height: 10),
                                       Align(
                                         alignment: Alignment.centerRight,
@@ -1651,7 +1734,7 @@ Summarize key findings, experimental outcomes, and list project references...
                                               children: [
                                                 Icon(Icons.tune_rounded, size: 12, color: Color(0xFF2B579A)),
                                                 SizedBox(width: 4),
-                                                Text('Customize Fields', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2B579A))),
+                                                Text('Edit Department & Fields', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2B579A))),
                                               ],
                                             ),
                                           ),

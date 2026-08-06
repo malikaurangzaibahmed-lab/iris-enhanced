@@ -48,6 +48,7 @@ class CoverPageData {
     String? title,
     String? teacher,
     String? type,
+    String? department,
     List<CoverPageField>? fields,
   }) async {
     final prefs = await SharedPreferences.getInstance();
@@ -55,29 +56,35 @@ class CoverPageData {
         ? prefs.getString('student_user_name')!.trim()
         : (prefs.getString('faculty_user_name')?.trim().isNotEmpty == true
             ? prefs.getString('faculty_user_name')!.trim()
-            : 'Student Profile');
+            : prefs.getString('user_name')?.trim() ?? '');
 
-    final rawBatch = prefs.getString('student_batch') ?? prefs.getString('user_batch') ?? prefs.getString('current_batch') ?? 'SP22-BSE-B';
-    final savedRoll = prefs.getString('student_roll_no') ?? prefs.getString('roll_no') ?? '042';
+    final rawBatch = prefs.getString('student_batch') ?? prefs.getString('user_batch') ?? prefs.getString('current_batch') ?? '';
+    final savedRoll = prefs.getString('student_roll_no') ?? prefs.getString('roll_no') ?? '';
 
-    final key = BatchKey.parse(rawBatch);
-    final term = key.intake.isNotEmpty ? key.intake : 'SP22';
-    final program = key.program.isNotEmpty ? key.program : 'BSE';
-    final rollFormatted = savedRoll.padLeft(3, '0');
-    final formattedRegId = '$term-$program-$rollFormatted';
+    String formattedRegId = '';
+    if (rawBatch.isNotEmpty || savedRoll.isNotEmpty) {
+      final key = BatchKey.parse(rawBatch);
+      final term = key.intake.isNotEmpty ? key.intake : '';
+      final program = key.program.isNotEmpty ? key.program : '';
+      final rollFormatted = savedRoll.isNotEmpty ? savedRoll.padLeft(3, '0') : '';
+      formattedRegId = [term, program, rollFormatted].where((s) => s.isNotEmpty).join('-');
+    }
+
+    final activeCourse = course?.isNotEmpty == true ? course! : (prefs.getString('widget_subject') ?? prefs.getString('active_subject') ?? '');
+    final activeDept = department?.isNotEmpty == true ? department! : (prefs.getString('user_department') ?? prefs.getString('department') ?? 'Department of Computer Science');
 
     final dateStr = DateTime.now().toLocal().toString().substring(0, 10);
 
     return CoverPageData(
       docType: type ?? 'Assignment',
-      courseTitle: course ?? 'Object Oriented Programming',
-      courseCode: 'CSC-211',
-      docTitle: title ?? 'Assignment 1',
+      courseTitle: activeCourse,
+      courseCode: '',
+      docTitle: title ?? '',
       studentName: studentName,
       registrationId: formattedRegId,
       batch: rawBatch,
-      instructorName: teacher ?? 'Dr. Wasim',
-      department: 'Department of Computer Science',
+      instructorName: teacher ?? '',
+      department: activeDept,
       campus: 'COMSATS University Islamabad, Sahiwal Campus',
       submissionDate: dateStr,
       customFields: fields ?? [],
