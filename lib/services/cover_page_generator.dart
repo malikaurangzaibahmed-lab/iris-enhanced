@@ -28,7 +28,7 @@ class CoverPageData {
   final String department;
   final String campus;
   final String submissionDate;
-  final List<CoverPageField> customFields;
+  List<CoverPageField> customFields;
 
   CoverPageData({
     required this.docType,
@@ -547,43 +547,56 @@ class RichMarkdownPdfRenderer {
     final bodyFont = PdfStandardFont(PdfFontFamily.helvetica, 11);
     final boldFont = PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
     final italicFont = PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.italic);
+    final boldItalicFont = PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
 
-    final regex = RegExp(r'(\*\*[^*]+\*\*|\*[^*]+\*|[^*]+)');
-    final matches = regex.allMatches(text);
+    final spanRegex = RegExp(r'(\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*|`.*?`|[^\*`]+)');
+    final matches = spanRegex.allMatches(text);
 
     double currentX = startX;
     double currentY = startY;
+    final double lineHeight = 16.0;
 
     for (final match in matches) {
       final token = match.group(0)!;
       PdfStandardFont font = bodyFont;
       String cleanToken = token;
 
-      if (token.startsWith('**') && token.endsWith('**') && token.length > 4) {
+      if (token.startsWith('***') && token.endsWith('***') && token.length >= 6) {
+        font = boldItalicFont;
+        cleanToken = token.substring(3, token.length - 3);
+      } else if (token.startsWith('**') && token.endsWith('**') && token.length >= 4) {
         font = boldFont;
         cleanToken = token.substring(2, token.length - 2);
-      } else if (token.startsWith('*') && token.endsWith('*') && token.length > 2) {
+      } else if (token.startsWith('*') && token.endsWith('*') && token.length >= 2) {
         font = italicFont;
+        cleanToken = token.substring(1, token.length - 1);
+      } else if (token.startsWith('`') && token.endsWith('`') && token.length >= 2) {
+        font = boldFont;
         cleanToken = token.substring(1, token.length - 1);
       }
 
-      final textSize = font.measureString(cleanToken);
-      if (currentX + textSize.width > startX + maxWidth) {
-        currentX = startX;
-        currentY += 16.0;
+      final words = cleanToken.split(RegExp(r'(?<=\s)|(?=\s)'));
+      for (final word in words) {
+        if (word.isEmpty) continue;
+
+        final wordSize = font.measureString(word);
+        if (currentX + wordSize.width > startX + maxWidth && currentX > startX) {
+          currentX = startX;
+          currentY += lineHeight;
+        }
+
+        page.graphics.drawString(
+          word,
+          font,
+          brush: PdfSolidBrush(defaultColor),
+          bounds: Rect.fromLTWH(currentX, currentY, wordSize.width + 2, wordSize.height + 2),
+        );
+
+        currentX += wordSize.width;
       }
-
-      page.graphics.drawString(
-        cleanToken,
-        font,
-        brush: PdfSolidBrush(defaultColor),
-        bounds: Rect.fromLTWH(currentX, currentY, textSize.width + 4, textSize.height + 2),
-      );
-
-      currentX += textSize.width;
     }
 
-    return math.max(18.0, (currentY - startY) + 18.0);
+    return math.max(18.0, (currentY - startY) + lineHeight);
   }
 
   static String _cleanInlineFormatting(String text) {

@@ -61,6 +61,7 @@ class _DocumentWorkspaceScreenState extends State<DocumentWorkspaceScreen> with 
   final TextEditingController _titleController = TextEditingController(text: 'Assignment 3');
   final TextEditingController _authorController = TextEditingController(text: 'Malik Aurangzaib Ahmed');
   final TextEditingController _regIdController = TextEditingController(text: 'FA22-BCS-089');
+  List<CoverPageField> _customCoverFields = [];
   
   // Document Editor State
   final TextEditingController _editorController = TextEditingController();
@@ -294,19 +295,28 @@ Summarize key findings, experimental outcomes, and list project references...
         final unwrapped = selectedText.substring(prefix.length, selectedText.length - suffix.length);
         final newText = text.replaceRange(selection.start, selection.end, unwrapped);
         _editorController.text = newText;
-        _editorController.selection = TextSelection.collapsed(offset: selection.start + unwrapped.length);
+        _editorController.selection = TextSelection(
+          baseOffset: selection.start,
+          extentOffset: selection.start + unwrapped.length,
+        );
       } else {
         final wrapped = '$prefix$selectedText$suffix';
         final newText = text.replaceRange(selection.start, selection.end, wrapped);
         _editorController.text = newText;
-        _editorController.selection = TextSelection.collapsed(offset: selection.start + wrapped.length);
+        _editorController.selection = TextSelection(
+          baseOffset: selection.start + prefix.length,
+          extentOffset: selection.start + prefix.length + selectedText.length,
+        );
       }
     } else {
       final snippet = '$prefix$defaultText$suffix';
       final start = selection.start >= 0 ? selection.start : text.length;
       final newText = text.replaceRange(start, start, snippet);
       _editorController.text = newText;
-      _editorController.selection = TextSelection.collapsed(offset: start + prefix.length + defaultText.length);
+      _editorController.selection = TextSelection(
+        baseOffset: start + prefix.length,
+        extentOffset: start + prefix.length + defaultText.length,
+      );
     }
     _saveDraftDocument();
     IrisHaptics.actionSoft();
@@ -366,9 +376,12 @@ Summarize key findings, experimental outcomes, and list project references...
         final coverData = await CoverPageData.resolveDefaults(
           course: _courseController.text,
           title: _titleController.text,
-          teacher: _authorController.text.isNotEmpty ? 'Dr. Wasim' : null,
+          teacher: _authorController.text.isNotEmpty ? _authorController.text : 'Dr. Wasim',
           type: _docType,
         );
+        if (_customCoverFields.isNotEmpty) {
+          coverData.customFields = List.from(_customCoverFields);
+        }
         await CoverPageGenerator.drawCoverPageOnDocument(document, coverData);
       }
 
@@ -393,19 +406,25 @@ Summarize key findings, experimental outcomes, and list project references...
         docTitle: _titleController.text,
       );
 
-      // Embed attached figures/images into PDF pages
+      // Embed attached figures/images at user's exact dragged position and size on the PDF document page
       if (_attachedImages.isNotEmpty) {
+        final targetPageIdx = _includeCoverPage ? 1 : 0;
+        final targetPage = document.pages.count > targetPageIdx 
+            ? document.pages[targetPageIdx] 
+            : document.pages.add();
+
         for (final imgItem in _attachedImages) {
           if (imgItem.file.path != null && File(imgItem.file.path!).existsSync()) {
             final imageBytes = File(imgItem.file.path!).readAsBytesSync();
             final bitmap = PdfBitmap(imageBytes);
-            final imgPage = document.pages.add();
-            final pageWidth = imgPage.getClientSize().width;
-            final scale = pageWidth / bitmap.width;
-            final imgHeight = bitmap.height * scale;
-            imgPage.graphics.drawImage(
+            targetPage.graphics.drawImage(
               bitmap,
-              Rect.fromLTWH(0, 20, pageWidth, (imgHeight > imgPage.getClientSize().height - 40) ? (imgPage.getClientSize().height - 40) : imgHeight),
+              Rect.fromLTWH(
+                imgItem.offset.dx.clamp(0.0, targetPage.getClientSize().width - 40.0),
+                imgItem.offset.dy.clamp(0.0, targetPage.getClientSize().height - 40.0),
+                imgItem.width,
+                imgItem.height,
+              ),
             );
           }
         }
@@ -522,20 +541,24 @@ Summarize key findings, experimental outcomes, and list project references...
   }
 
   Future<void> _showCustomizeFieldsSheet() async {
-    final coverData = await CoverPageData.resolveDefaults(
-      course: _courseController.text,
-      title: _titleController.text,
-      teacher: 'Dr. Wasim',
-      type: _docType,
-    );
+    if (_customCoverFields.isEmpty) {
+      final coverData = await CoverPageData.resolveDefaults(
+        course: _courseController.text,
+        title: _titleController.text,
+        teacher: _authorController.text.isNotEmpty ? _authorController.text : 'Dr. Wasim',
+        type: _docType,
+      );
 
-    final fields = <CoverPageField>[
-      CoverPageField('Student Name', _authorController.text.isNotEmpty ? _authorController.text : coverData.studentName),
-      CoverPageField('Registration ID', _regIdController.text.isNotEmpty ? _regIdController.text : coverData.registrationId),
-      CoverPageField('Program & Batch', coverData.batch),
-      CoverPageField('Submitted To', coverData.instructorName),
-      CoverPageField('Submission Date', coverData.submissionDate),
-    ];
+      _customCoverFields = [
+        CoverPageField('Student Name', _authorController.text.isNotEmpty ? _authorController.text : coverData.studentName),
+        CoverPageField('Registration ID', _regIdController.text.isNotEmpty ? _regIdController.text : coverData.registrationId),
+        CoverPageField('Program & Batch', coverData.batch),
+        CoverPageField('Submitted To', coverData.instructorName),
+        CoverPageField('Submission Date', coverData.submissionDate),
+      ];
+    }
+
+    final fields = List<CoverPageField>.from(_customCoverFields);
 
     if (!mounted) return;
 
@@ -590,10 +613,9 @@ Summarize key findings, experimental outcomes, and list project references...
                             children: [
                               Expanded(
                                 flex: 4,
-                                child: TextField(
-                                  controller: TextEditingController(text: item.label)
-                                    ..selection = TextSelection.collapsed(offset: item.label.length),
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                child: TextFormField(
+                                  initialValue: item.label,
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                                   decoration: InputDecoration(
                                     labelText: 'Field Label',
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -605,10 +627,9 @@ Summarize key findings, experimental outcomes, and list project references...
                               const SizedBox(width: 8),
                               Expanded(
                                 flex: 5,
-                                child: TextField(
-                                  controller: TextEditingController(text: item.value)
-                                    ..selection = TextSelection.collapsed(offset: item.value.length),
-                                  style: const TextStyle(fontSize: 13),
+                                child: TextFormField(
+                                  initialValue: item.value,
+                                  style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87),
                                   decoration: InputDecoration(
                                     labelText: 'Field Value',
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -652,6 +673,7 @@ Summarize key findings, experimental outcomes, and list project references...
                       ElevatedButton.icon(
                         onPressed: () {
                           setState(() {
+                            _customCoverFields = List.from(fields);
                             for (final f in fields) {
                               final label = f.label.toLowerCase();
                               if (label.contains('student') || label.contains('name') || label.contains('author')) {
