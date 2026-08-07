@@ -406,7 +406,7 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       transitionDuration: const Duration(milliseconds: 304),
       reverseTransitionDuration: const Duration(milliseconds: 240),
       page: const PortalScreen(
-        url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+        url: 'https://swl-sis.comsats.edu.pk/',
         title: 'COMSATS Student Portal',
         sessionScope: 'student',
       ),

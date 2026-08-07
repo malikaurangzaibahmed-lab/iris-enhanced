@@ -70,7 +70,7 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const PortalScreen(
-          url: 'https://swl-sis.comsats.edu.pk/Login.aspx',
+          url: 'https://swl-sis.comsats.edu.pk/',
           title: 'COMSATS Student Portal',
           sessionScope: 'student',
         ),

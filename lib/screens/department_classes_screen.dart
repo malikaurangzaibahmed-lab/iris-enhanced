@@ -1172,7 +1172,7 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                   onPortal: () => pushIconLaunchRoute(
                     context,
                     page: const PortalScreen(
-                      url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+                      url: 'https://swl-sis.comsats.edu.pk/',
                       title: 'COMSATS Student Portal',
                       sessionScope: 'student',
                     ),

@@ -396,7 +396,7 @@ class _AppRootState extends State<_AppRoot> {
   String? _userName;
   bool? _tutorialCompleted;
   late VoidCallback _roleListener;
-  String _headlessUrl = 'https://swl-sis.comsats.edu.pk/Login/Index';
+  String _headlessUrl = 'https://swl-sis.comsats.edu.pk/';
 
   @override
   void initState() {
@@ -456,7 +456,7 @@ class _AppRootState extends State<_AppRoot> {
       debugPrint('⚠️ [IRIS] Error loading headless URL: $e');
     }
     setState(() {
-      _headlessUrl = 'https://swl-sis.comsats.edu.pk/Login/Index';
+      _headlessUrl = 'https://swl-sis.comsats.edu.pk/';
     });
   }
 
@@ -2881,7 +2881,7 @@ class _DashboardState extends State<Dashboard>
       context,
       originKey: originKey,
       page: const PortalScreen(
-        url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+        url: 'https://swl-sis.comsats.edu.pk/',
         title: 'COMSATS Student Portal',
         sessionScope: 'student',
       ),
@@ -3093,7 +3093,7 @@ class _DashboardState extends State<Dashboard>
       case 1:
         return const PortalScreen(
           key: PageStorageKey<String>('student_tab_portal'),
-          url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+          url: 'https://swl-sis.comsats.edu.pk/',
           title: 'COMSATS Student Portal',
           sessionScope: 'student',
           showBackButton: false,
@@ -3726,7 +3726,7 @@ class _DashboardState extends State<Dashboard>
               onTap: () async {
                 Navigator.pop(sheetContext);
                 try {
-                  final uri = Uri.parse('https://swl-sis.comsats.edu.pk/Login/Index');
+                  final uri = Uri.parse('https://swl-sis.comsats.edu.pk/');
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 } catch (_) {}
               },
@@ -3987,7 +3987,7 @@ class _DashboardState extends State<Dashboard>
                 context,
                 originKey: _studentPortalNavKey,
                 page: const PortalScreen(
-                  url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+                  url: 'https://swl-sis.comsats.edu.pk/',
                   title: 'COMSATS Student Portal',
                   sessionScope: 'student',
                   showBackButton: true,
@@ -5263,7 +5263,7 @@ class _DashboardState extends State<Dashboard>
             height: 0,
             child: SizedBox.shrink(
               child: HeadlessPortalSync(
-                url: 'https://swl-sis.comsats.edu.pk/Login/Index',
+                url: 'https://swl-sis.comsats.edu.pk/',
                 onSyncComplete: (tasks) {
                   debugPrint('IRIS Dashboard: Headless sync complete with ${tasks.length} tasks.');
                 },
