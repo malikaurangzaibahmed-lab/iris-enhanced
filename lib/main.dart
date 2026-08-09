@@ -3019,7 +3019,12 @@ class _DashboardState extends State<Dashboard>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => DepartmentClassesScreen(memory: widget.memory),
+                          builder: (_) => DepartmentClassesScreen(
+                            memory: widget.memory,
+                            currentBatch: widget.batch,
+                            brain: widget.brain,
+                            onRoleChanged: widget.onRoleChanged,
+                          ),
                         ),
                       );
                     },
