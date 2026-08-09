@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
   hide NotificationVisibility;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
