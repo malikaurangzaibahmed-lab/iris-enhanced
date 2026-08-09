@@ -4343,14 +4343,57 @@ class _DashboardState extends State<Dashboard>
           color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.35),
           fontSize: 13,
         ),
-        searchIcon: _bottomNavIndex == 0 ? Icon(Icons.public_rounded, key: _studentPortalNavKey) : null,
+        searchIcon: _bottomNavIndex == 0
+            ? lgw.GlassMenu(
+                menuWidth: 230,
+                settings: IrisGlass.widgetsSettings(
+                  context,
+                  blur: 20,
+                  thickness: 18,
+                  ambientStrength: 0.7,
+                  lightAngle: 0.15 * math.pi,
+                ),
+                triggerBuilder: (context, toggleMenu) {
+                  return GestureDetector(
+                    onTap: toggleMenu,
+                    child: Icon(Icons.public_rounded, key: _studentPortalNavKey),
+                  );
+                },
+                items: [
+                  lgw.GlassMenuItem(
+                    title: 'Student Portal',
+                    icon: const Icon(Icons.school_rounded, color: Color(0xFF3B82F6), size: 18),
+                    onTap: () {
+                      pushIconLaunchRoute(
+                        context,
+                        originKey: _studentPortalNavKey,
+                        page: const PortalScreen(
+                          url: 'https://swl-sis.comsats.edu.pk/',
+                          title: 'COMSATS Student Portal',
+                          sessionScope: 'student',
+                        ),
+                      );
+                    },
+                  ),
+                  const lgw.GlassMenuDivider(),
+                  lgw.GlassMenuItem(
+                    title: 'Academics Hub',
+                    icon: const Icon(Icons.auto_stories_rounded, color: Color(0xFF8B5CF6), size: 18),
+                    onTap: () {
+                      pushIconLaunchRoute(
+                        context,
+                        originKey: _studentPortalNavKey,
+                        page: AcademicsHubScreen(brain: widget.brain),
+                      );
+                    },
+                  ),
+                ],
+              )
+            : null,
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
-            if (_bottomNavIndex == 0) {
-              _openPortal(originKey: _studentPortalNavKey);
-              return;
-            } else if (_bottomNavIndex == 2) {
+            if (_bottomNavIndex == 2) {
               _showAboutContextSheet(isDark);
               return;
             }
