@@ -161,26 +161,65 @@ class _IrisAppBootState extends State<IrisApp> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 8),
+            duration: const Duration(seconds: 14),
+            margin: const EdgeInsets.all(16),
             content: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withOpacity(0.95),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.amber.withOpacity(0.5)),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4)),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.amber.withOpacity(0.6), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.amber.withOpacity(0.2),
+                    blurRadius: 20,
+                    spreadRadius: 1,
+                  ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.bolt_rounded, color: Colors.amber, size: 20),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      '⚡ Over-the-air update installed! Restart app to apply.',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.2),
+                      shape: BoxShape.circle,
                     ),
+                    child: const Icon(Icons.bolt_rounded, color: Colors.amber, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '⚡ Over-The-Air Patch Installed!',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Restart IRIS to activate latest updates',
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      globalScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('RESTART', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                   ),
                 ],
               ),
@@ -2904,30 +2943,28 @@ class _DashboardState extends State<Dashboard>
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: GlassSurface(
+            settings: IrisGlass.settings(
+              ctx,
+              blur: 24.0,
+              ambientStrength: 0.75,
+              lightAngle: 0.15 * math.pi,
+              thickness: 16,
+              glassColor: isDark
+                  ? const Color(0xFF0F172A).withValues(alpha: 0.78)
+                  : Colors.white.withValues(alpha: 0.88),
+            ),
+            radius: 28,
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF0F172A).withOpacity(0.88)
-                    : Colors.white.withOpacity(0.92),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withOpacity(0.15)
-                      : const Color(0xFF6366F1).withOpacity(0.2),
-                  width: 1.5,
+                      ? Colors.white.withOpacity(0.18)
+                      : const Color(0xFF6366F1).withOpacity(0.22),
+                  width: 1.4,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.25),
-                    blurRadius: 36,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -2987,7 +3024,7 @@ class _DashboardState extends State<Dashboard>
                     icon: Icons.school_rounded,
                     iconGradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
                     title: 'Student Portal',
-                    subtitle: 'COMSATS Sahiwal SIS Portal',
+                    subtitle: 'COMSATS Sahiwal Student SIS Portal',
                     badgeText: 'SIS ONLINE',
                     badgeColor: const Color(0xFF10B981),
                     onTap: () {
@@ -3004,29 +3041,21 @@ class _DashboardState extends State<Dashboard>
                     },
                   ),
                   const SizedBox(height: 12),
-                  // Option 2: Academics Hub
+                  // Option 2: Academics Hub (Portal Sync, Attendance, Grades, Timetables)
                   _buildGlassPortalMenuItem(
                     ctx: ctx,
                     isDark: isDark,
                     icon: Icons.auto_stories_rounded,
                     iconGradient: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
                     title: 'Academics Hub',
-                    subtitle: 'Classes, Schedules & Department Timetables',
-                    badgeText: 'ACADEMICS',
+                    subtitle: 'Portal Sync, Attendance, Schedule & Grades',
+                    badgeText: 'HUB',
                     badgeColor: const Color(0xFF6366F1),
                     onTap: () {
                       Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DepartmentClassesScreen(
-                            memory: widget.memory,
-                            currentBatch: widget.batch,
-                            brain: widget.brain,
-                            onRoleChanged: widget.onRoleChanged,
-                          ),
-                        ),
-                      );
+                      setState(() {
+                        _bottomNavIndex = 3;
+                      });
                     },
                   ),
                 ],
