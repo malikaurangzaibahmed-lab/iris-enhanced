@@ -527,7 +527,20 @@ class _PortalScreenState extends SmartState<PortalScreen>
     final raw = prefs.getString(_lastActiveSessionKey);
     if (raw == null) return null;
     try {
-      return PortalSession.fromJson(jsonDecode(raw));
+      final session = PortalSession.fromJson(jsonDecode(raw));
+      if (session.url.toLowerCase().contains('login.aspx')) {
+        final fixedUrl = session.url.replaceAll(RegExp(r'Login\.aspx', caseSensitive: false), 'Login/Index');
+        final fixedSession = PortalSession(
+          host: session.host,
+          title: session.title,
+          url: fixedUrl,
+          createdAt: session.createdAt,
+          lastAccessedAt: session.lastAccessedAt,
+        );
+        await prefs.setString(_lastActiveSessionKey, jsonEncode(fixedSession.toJson()));
+        return fixedSession;
+      }
+      return session;
     } catch (_) {
       return null;
     }
@@ -3528,6 +3541,12 @@ class _PortalScreenState extends SmartState<PortalScreen>
         if (existingSession != null) {
           _currentSession = existingSession;
         }
+      }
+
+      if (launchUri.toString().toLowerCase().contains('login.aspx')) {
+        final sanitized = launchUri.toString().replaceAll(RegExp(r'Login\.aspx', caseSensitive: false), 'Login/Index');
+        launchUri = Uri.parse(sanitized);
+        _currentUrl = sanitized;
       }
 
       await _restoreSessionCookiesForUri(launchUri);
