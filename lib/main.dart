@@ -5725,7 +5725,7 @@ class _DashboardState extends State<Dashboard>
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 220),
               opacity: pillOpacity,
-              child: GlassMenu(
+              child: lgw.GlassMenu(
                 menuWidth: 200,
                 triggerBuilder: (context, toggleMenu) {
                   return GestureDetector(
@@ -5734,7 +5734,7 @@ class _DashboardState extends State<Dashboard>
                   );
                 },
                 items: [
-                  GlassMenuItem(
+                  lgw.GlassMenuItem(
                     title: 'Open Class Hub',
                     icon: const Icon(Icons.hub_rounded, size: 18),
                     onTap: () {
@@ -5760,7 +5760,7 @@ class _DashboardState extends State<Dashboard>
                       );
                     },
                   ),
-                  GlassMenuItem(
+                  lgw.GlassMenuItem(
                     title: 'Locate Classroom',
                     icon: const Icon(Icons.meeting_room_rounded, size: 18),
                     onTap: () {
@@ -5772,7 +5772,7 @@ class _DashboardState extends State<Dashboard>
                       );
                     },
                   ),
-                  GlassMenuItem(
+                  lgw.GlassMenuItem(
                     title: 'Locate Instructor',
                     icon: const Icon(Icons.person_search_rounded, size: 18),
                     onTap: () {
