@@ -2943,122 +2943,130 @@ class _DashboardState extends State<Dashboard>
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: GlassSurface(
-            settings: IrisGlass.settings(
-              ctx,
-              blur: 24.0,
-              ambientStrength: 0.75,
-              lightAngle: 0.15 * math.pi,
-              thickness: 16,
-              glassColor: isDark
-                  ? const Color(0xFF0F172A).withValues(alpha: 0.78)
-                  : Colors.white.withValues(alpha: 0.88),
-            ),
-            radius: 28,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.18)
-                      : const Color(0xFF6366F1).withOpacity(0.22),
-                  width: 1.4,
-                ),
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: LiquidGlass(
+              settings: LiquidGlassSettings(
+                blur: 24.0,
+                ambientStrength: 0.75,
+                lightAngle: 0.15 * math.pi,
+                glassColor: isDark
+                    ? const Color(0xFF0F172A).withValues(alpha: 0.78)
+                    : Colors.white.withValues(alpha: 0.88),
+                thickness: 16,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+              shape: LiquidRoundedSuperellipse(
+                borderRadius: const Radius.circular(28),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.18)
+                        : const Color(0xFF6366F1).withOpacity(0.22),
+                    width: 1.4,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                            ),
+                            shape: BoxShape.circle,
                           ),
-                          shape: BoxShape.circle,
+                          child: const Icon(Icons.hub_rounded, color: Colors.white, size: 22),
                         ),
-                        child: const Icon(Icons.hub_rounded, color: Colors.white, size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Portal & Academics',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Portal & Academics',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Select destination',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.white60 : Colors.black54,
+                              Text(
+                                'Select destination',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white60 : Colors.black54,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        icon: Icon(
-                          Icons.close_rounded,
-                          color: isDark ? Colors.white54 : Colors.black45,
-                          size: 20,
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: isDark ? Colors.white54 : Colors.black45,
+                            size: 20,
+                          ),
+                          visualDensity: VisualDensity.compact,
                         ),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  // Option 1: Student Portal
-                  _buildGlassPortalMenuItem(
-                    ctx: ctx,
-                    isDark: isDark,
-                    icon: Icons.school_rounded,
-                    iconGradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                    title: 'Student Portal',
-                    subtitle: 'COMSATS Sahiwal Student SIS Portal',
-                    badgeText: 'SIS ONLINE',
-                    badgeColor: const Color(0xFF10B981),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      pushIconLaunchRoute(
-                        context,
-                        originKey: originKey,
-                        page: const PortalScreen(
-                          url: 'https://swl-sis.comsats.edu.pk/',
-                          title: 'COMSATS Student Portal',
-                          sessionScope: 'student',
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  // Option 2: Academics Hub (Portal Sync, Attendance, Grades, Timetables)
-                  _buildGlassPortalMenuItem(
-                    ctx: ctx,
-                    isDark: isDark,
-                    icon: Icons.auto_stories_rounded,
-                    iconGradient: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                    title: 'Academics Hub',
-                    subtitle: 'Portal Sync, Attendance, Schedule & Grades',
-                    badgeText: 'HUB',
-                    badgeColor: const Color(0xFF6366F1),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      setState(() {
-                        _bottomNavIndex = 3;
-                      });
-                    },
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // Option 1: Student Portal
+                    _buildGlassPortalMenuItem(
+                      ctx: ctx,
+                      isDark: isDark,
+                      icon: Icons.school_rounded,
+                      iconGradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                      title: 'Student Portal',
+                      subtitle: 'COMSATS Sahiwal Student SIS Portal',
+                      badgeText: 'SIS ONLINE',
+                      badgeColor: const Color(0xFF10B981),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        pushIconLaunchRoute(
+                          context,
+                          originKey: originKey,
+                          page: const PortalScreen(
+                            url: 'https://swl-sis.comsats.edu.pk/',
+                            title: 'COMSATS Student Portal',
+                            sessionScope: 'student',
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    // Option 2: Academics Hub (AcademicsHubScreen with Portal Sync, Attendance, Grades & CGPA)
+                    _buildGlassPortalMenuItem(
+                      ctx: ctx,
+                      isDark: isDark,
+                      icon: Icons.auto_stories_rounded,
+                      iconGradient: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                      title: 'Academics Hub',
+                      subtitle: 'Portal Sync, Attendance, Grades & CGPA',
+                      badgeText: 'HUB',
+                      badgeColor: const Color(0xFF6366F1),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        pushIconLaunchRoute(
+                          context,
+                          originKey: originKey,
+                          page: AcademicsHubScreen(brain: widget.brain),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
