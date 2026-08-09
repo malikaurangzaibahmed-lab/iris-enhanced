@@ -5222,7 +5222,7 @@ class _DashboardState extends State<Dashboard>
                                     );
                                   },
                                   icon: Icon(
-                                    Icons.school_rounded,
+                                    Icons.auto_stories_rounded,
                                     size: 20,
                                     color: isDark ? Colors.white : IrisTokens.brand,
                                   ),
