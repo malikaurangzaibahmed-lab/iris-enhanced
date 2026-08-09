@@ -181,82 +181,85 @@ class _IrisAppBootState extends State<IrisApp> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: lgw.LiquidGlass(
-              settings: lgw.LiquidGlassSettings(
-                blur: 24.0,
-                ambientStrength: 0.8,
-                lightAngle: 0.15 * math.pi,
-                glassColor: isDark
-                    ? const Color(0xFF0F172A).withValues(alpha: 0.88)
-                    : Colors.white.withValues(alpha: 0.92),
-                thickness: 18,
-              ),
-              shape: const lgw.LiquidRoundedSuperellipse(
-                borderRadius: Radius.circular(28),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: Colors.amber.withValues(alpha: isDark ? 0.4 : 0.6),
-                    width: 1.5,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: GlassSurface(
+                settings: IrisGlass.settings(
+                  context,
+                  blur: 24.0,
+                  ambientStrength: 0.8,
+                  lightAngle: 0.15 * math.pi,
+                  thickness: 18.0,
+                  glassColor: IrisGlass.adaptiveGlassColor(
+                    context,
+                    darkAlpha: 0.88,
+                    lightAlpha: 0.92,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.amber.withValues(alpha: 0.18),
-                      blurRadius: 30,
-                      spreadRadius: 2,
-                    ),
-                  ],
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.amber,
-                            Colors.orange.shade700,
+                radius: 28,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: isDark ? 0.4 : 0.6),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.withValues(alpha: 0.18),
+                        blurRadius: 30,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.amber,
+                              Colors.orange.shade700,
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.withValues(alpha: 0.4),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.amber.withValues(alpha: 0.4),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        child: const Icon(
+                          Icons.bolt_rounded,
+                          color: Colors.white,
+                          size: 32,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.bolt_rounded,
-                        color: Colors.white,
-                        size: 32,
+                      const SizedBox(height: 18),
+                      Text(
+                        'Update Ready!',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Update Ready!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        letterSpacing: -0.5,
+                      const SizedBox(height: 8),
+                      Text(
+                        'An over-the-air update has been installed. Restart IRIS to apply performance enhancements and new features.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'An over-the-air update has been installed. Restart IRIS to apply performance enhancements and new features.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: isDark ? Colors.white70 : Colors.black60,
-                      ),
-                    ),
                     const SizedBox(height: 24),
                     Row(
                       children: [
