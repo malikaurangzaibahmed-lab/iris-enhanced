@@ -154,21 +154,24 @@ class _IrisAppBootState extends State<IrisApp> {
       if (status == UpdateStatus.outdated) {
         await _shorebirdUpdater.update();
         if (mounted) {
-          showIrisFrostedSnackBar(
-            context,
-            content: const Row(
-              children: [
-                Icon(Icons.bolt_rounded, color: Colors.amber, size: 18),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '⚡ Over-the-air update installed! Restart app to apply.',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            showIrisFrostedSnackBar(
+              context,
+              content: const Row(
+                children: [
+                  Icon(Icons.bolt_rounded, color: Colors.amber, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '⚡ Over-the-air update installed! Restart app to apply.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
+                ],
+              ),
+            );
+          });
         }
       }
     } catch (e) {
