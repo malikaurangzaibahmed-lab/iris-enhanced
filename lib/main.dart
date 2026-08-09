@@ -4,8 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
   hide NotificationVisibility;
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
@@ -2948,8 +2947,8 @@ class _DashboardState extends State<Dashboard>
             backgroundColor: Colors.transparent,
             elevation: 0,
             insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: LiquidGlass(
-              settings: LiquidGlassSettings(
+            child: lgw.LiquidGlass(
+              settings: lgw.LiquidGlassSettings(
                 blur: 24.0,
                 ambientStrength: 0.75,
                 lightAngle: 0.15 * math.pi,
@@ -2958,7 +2957,7 @@ class _DashboardState extends State<Dashboard>
                     : Colors.white.withValues(alpha: 0.88),
                 thickness: 16,
               ),
-              shape: const LiquidRoundedSuperellipse(
+              shape: const lgw.LiquidRoundedSuperellipse(
                 borderRadius: Radius.circular(28),
               ),
               child: Container(
