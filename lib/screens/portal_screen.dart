@@ -3409,6 +3409,11 @@ class _PortalScreenState extends SmartState<PortalScreen>
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (request) async {
+            if (request.url.toLowerCase().contains('login.aspx')) {
+              final fixedUrl = request.url.replaceAll(RegExp(r'Login\.aspx', caseSensitive: false), 'Login/Index');
+              Future.microtask(() => _controller.loadRequest(Uri.parse(fixedUrl)));
+              return NavigationDecision.prevent;
+            }
             final uri = Uri.tryParse(request.url);
             if (uri != null) {
               await _restoreSessionCookiesForUri(uri);
@@ -3431,6 +3436,11 @@ class _PortalScreenState extends SmartState<PortalScreen>
           },
           onPageStarted: (url) {
             if (!mounted) return;
+            if (url.toLowerCase().contains('login.aspx')) {
+              final fixedUrl = url.replaceAll(RegExp(r'Login\.aspx', caseSensitive: false), 'Login/Index');
+              _controller.loadRequest(Uri.parse(fixedUrl));
+              return;
+            }
             if (_looksDownloadableUrl(url)) {
               _downloadFile(url);
               _controller.goBack().catchError((_) {});
@@ -3448,6 +3458,11 @@ class _PortalScreenState extends SmartState<PortalScreen>
           },
           onPageFinished: (url) async {
             if (!mounted) return;
+            if (url.toLowerCase().contains('login.aspx')) {
+              final fixedUrl = url.replaceAll(RegExp(r'Login\.aspx', caseSensitive: false), 'Login/Index');
+              _controller.loadRequest(Uri.parse(fixedUrl));
+              return;
+            }
             if (_looksDownloadableUrl(url)) {
               _downloadFile(url);
               if (await _controller.canGoBack()) {
