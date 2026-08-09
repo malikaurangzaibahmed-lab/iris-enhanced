@@ -2895,13 +2895,262 @@ class _DashboardState extends State<Dashboard>
     if (!mounted) return;
     IrisHaptics.actionMedium();
 
-    await pushIconLaunchRoute(
-      context,
-      originKey: originKey,
-      page: const PortalScreen(
-        url: 'https://swl-sis.comsats.edu.pk/',
-        title: 'COMSATS Student Portal',
-        sessionScope: 'student',
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 32),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF0F172A).withOpacity(0.88)
+                  : Colors.white.withOpacity(0.94),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.14)
+                    : const Color(0xFF6366F1).withOpacity(0.18),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 32,
+                  offset: const Offset(0, -6),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.hub_rounded, color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAlignment.start,
+                      children: [
+                        Text(
+                          'Portal & Academics Hub',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        Text(
+                          'Select destination',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white60 : Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Student Portal Card
+                _buildGlassPortalMenuItem(
+                  ctx: ctx,
+                  isDark: isDark,
+                  icon: Icons.school_rounded,
+                  iconGradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                  title: 'Student Portal',
+                  subtitle: 'COMSATS Sahiwal Student SIS Portal',
+                  badgeText: 'SIS ONLINE',
+                  badgeColor: const Color(0xFF10B981),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    pushIconLaunchRoute(
+                      context,
+                      originKey: originKey,
+                      page: const PortalScreen(
+                        url: 'https://swl-sis.comsats.edu.pk/',
+                        title: 'COMSATS Student Portal',
+                        sessionScope: 'student',
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Academics Hub Card
+                _buildGlassPortalMenuItem(
+                  ctx: ctx,
+                  isDark: isDark,
+                  icon: Icons.auto_stories_rounded,
+                  iconGradient: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                  title: 'Academics Hub',
+                  subtitle: 'Classes, Department Schedules & Timetables',
+                  badgeText: 'ACADEMICS',
+                  badgeColor: const Color(0xFF6366F1),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DepartmentClassesScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Faculty Portal Card
+                _buildGlassPortalMenuItem(
+                  ctx: ctx,
+                  isDark: isDark,
+                  icon: Icons.badge_rounded,
+                  iconGradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+                  title: 'Faculty Portal',
+                  subtitle: 'COMSATS Faculty Information System',
+                  badgeText: 'FACULTY',
+                  badgeColor: const Color(0xFFF59E0B),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    pushIconLaunchRoute(
+                      context,
+                      originKey: originKey,
+                      page: const PortalScreen(
+                        url:
+                            'https://faculty.comsats.edu.pk/Home/login?returnUrl=https://faculty.comsats.edu.pk/',
+                        title: 'COMSATS Faculty Portal',
+                        sessionScope: 'faculty',
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGlassPortalMenuItem({
+    required BuildContext ctx,
+    required bool isDark,
+    required IconData icon,
+    required List<Color> iconGradient,
+    required String title,
+    required String subtitle,
+    required String badgeText,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF1E293B).withOpacity(0.6)
+                : const Color(0xFFF1F5F9).withOpacity(0.8),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.08)
+                  : const Color(0xFFCBD5E1).withOpacity(0.5),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: iconGradient),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: iconGradient.first.withOpacity(0.35),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: badgeColor.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: badgeColor.withOpacity(0.4)),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: badgeColor,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white60 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? Colors.white38 : Colors.black38,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
