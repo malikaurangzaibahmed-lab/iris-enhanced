@@ -270,7 +270,7 @@ class _IrisAppBootState extends State<IrisApp> {
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                side: Border.all(
+                                side: BorderSide(
                                   color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
                                 ),
                               ),
