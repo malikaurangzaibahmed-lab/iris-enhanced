@@ -4237,16 +4237,7 @@ class _DashboardState extends State<Dashboard>
         onSearchToggle: (active) {
           if (active) {
             if (_bottomNavIndex == 0) {
-              pushIconLaunchRoute(
-                context,
-                originKey: _studentPortalNavKey,
-                page: const PortalScreen(
-                  url: 'https://swl-sis.comsats.edu.pk/',
-                  title: 'COMSATS Student Portal',
-                  sessionScope: 'student',
-                  showBackButton: true,
-                ),
-              );
+              _openPortal(originKey: _studentPortalNavKey);
               return;
             } else if (_bottomNavIndex == 2) {
               _showAboutContextSheet(isDark);
