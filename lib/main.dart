@@ -136,6 +136,8 @@ class IrisApp extends StatefulWidget {
   State<IrisApp> createState() => _IrisAppBootState();
 }
 
+final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class _IrisAppBootState extends State<IrisApp> {
   late final Future<UniversityMemory> _memoryFuture;
   final _shorebirdUpdater = ShorebirdUpdater();
@@ -153,26 +155,37 @@ class _IrisAppBootState extends State<IrisApp> {
       final status = await _shorebirdUpdater.checkForUpdate();
       if (status == UpdateStatus.outdated) {
         await _shorebirdUpdater.update();
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            showIrisFrostedSnackBar(
-              context,
-              content: const Row(
+        globalScaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 8),
+            content: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B).withOpacity(0.95),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4)),
+                ],
+              ),
+              child: const Row(
                 children: [
-                  Icon(Icons.bolt_rounded, color: Colors.amber, size: 18),
-                  SizedBox(width: 8),
+                  Icon(Icons.bolt_rounded, color: Colors.amber, size: 20),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       '⚡ Over-the-air update installed! Restart app to apply.',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ),
                 ],
               ),
-            );
-          });
-        }
+            ),
+          ),
+        );
       }
     } catch (e) {
       debugPrint('Shorebird patch check: $e');
@@ -188,6 +201,7 @@ class _IrisAppBootState extends State<IrisApp> {
           return _IrisApp(memory: snapshot.data!);
         }
         return MaterialApp(
+          scaffoldMessengerKey: globalScaffoldMessengerKey,
           debugShowCheckedModeBanner: false,
           theme: IrisTheme.light(),
           darkTheme: IrisTheme.dark(),
@@ -353,6 +367,7 @@ class _IrisAppState extends State<_IrisApp> {
                 : (useMinimal ? buildMinimalTheme(brightness: Brightness.dark) : IrisTheme.dark());
 
             return MaterialApp(
+              scaffoldMessengerKey: globalScaffoldMessengerKey,
               debugShowCheckedModeBanner: false,
               themeMode: _themeMode,
               theme: theme,
