@@ -28,6 +28,7 @@ import 'core/app_signals.dart';
 import 'core/theme_signals.dart';
 import 'core/vital_theme.dart';
 import 'core/vital_motion.dart';
+import 'widgets/glass_container_transform.dart';
 import 'screens/portal_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/academics_hub_screen.dart';
@@ -3703,150 +3704,207 @@ class _DashboardState extends State<Dashboard>
     }
     final formattedTime = RemoteConfigService.formatTimestamp(dateTime);
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withValues(alpha: isDark ? 0.12 : 0.06),
-            blurRadius: 20,
-            spreadRadius: 1,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: GlassSurface(
-          settings: IrisGlass.settings(
-            context,
-            blur: 24,
-            ambientStrength: 0.85,
-            lightAngle: 0.15 * math.pi,
-            thickness: 18,
-            glassColor: isDark 
-                ? accentColor.withValues(alpha: 0.08)
-                : Colors.white.withValues(alpha: 0.90),
-          ),
-          radius: 20,
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: accentColor.withValues(alpha: isDark ? 0.35 : 0.25),
-                width: 1.5,
+    final noticeKey = GlobalKey();
+    return GestureDetector(
+      key: noticeKey,
+      onTap: () {
+        IrisHaptics.selectionClick();
+        pushGlassContainerMorphRoute(
+          context,
+          originKey: noticeKey,
+          page: Scaffold(
+            backgroundColor: isDark ? const Color(0xFF090D16) : const Color(0xFFF8FAFC),
+            appBar: AppBar(
+              title: const Text('Campus Notice Details', style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.campaign_rounded, size: 16, color: accentColor),
+                          const SizedBox(width: 6),
+                          Text(
+                            'REAL-TIME BROADCAST',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: accentColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      message,
+                      style: IrisTextStyles.headline(context).copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Broadcasted: ${formattedTime.toUpperCase()}',
+                      style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black54),
+                    ),
+                  ],
+                ),
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _PulsingRadarBadge(
-                  icon: Icons.campaign_rounded,
-                  color: accentColor,
-                  isDark: isDark,
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: isDark ? 0.12 : 0.06),
+              blurRadius: 20,
+              spreadRadius: 1,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: GlassSurface(
+            settings: IrisGlass.settings(
+              context,
+              blur: 24,
+              ambientStrength: 0.85,
+              lightAngle: 0.15 * math.pi,
+              thickness: 18,
+              glassColor: isDark 
+                  ? accentColor.withValues(alpha: 0.08)
+                  : Colors.white.withValues(alpha: 0.90),
+            ),
+            radius: 20,
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: accentColor.withValues(alpha: isDark ? 0.35 : 0.25),
+                  width: 1.5,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'CAMPUS NOTICEBOARD',
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.5,
-                                color: isDark ? Colors.amber[200] : const Color(0xFFB45309),
-                              ),
-                            ),
-                          ),
-                          if (hasDismissedBanner)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.visibility_off_rounded,
-                                    size: 10,
-                                    color: (isDark ? Colors.white54 : Colors.black54),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'BANNER DISMISSED',
-                                    style: TextStyle(
-                                      fontSize: 7.5,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
-                                      color: (isDark ? Colors.white54 : Colors.black54),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        message,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          height: 1.45,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.wifi_tethering_rounded,
-                                size: 12,
-                                color: isDark ? Colors.white54 : Colors.black54,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'REAL-TIME BROADCAST',
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _PulsingRadarBadge(
+                    icon: Icons.campaign_rounded,
+                    color: accentColor,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'CAMPUS NOTICEBOARD',
                                 style: TextStyle(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                  color: isDark ? Colors.white54 : Colors.black54,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.5,
+                                  color: isDark ? Colors.amber[200] : const Color(0xFFB45309),
                                 ),
                               ),
-                            ],
-                          ),
-                          Text(
-                            'BROADCASTED: ${formattedTime.toUpperCase()}',
-                            style: TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                              color: isDark ? Colors.amber[200]!.withValues(alpha: 0.8) : const Color(0xFFD97706),
                             ),
+                            if (hasDismissedBanner)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.visibility_off_rounded,
+                                      size: 10,
+                                      color: (isDark ? Colors.white54 : Colors.black54),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'BANNER DISMISSED',
+                                      style: TextStyle(
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                        color: (isDark ? Colors.white54 : Colors.black54),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          message,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            height: 1.45,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.wifi_tethering_rounded,
+                                  size: 12,
+                                  color: isDark ? Colors.white54 : Colors.black54,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'REAL-TIME BROADCAST',
+                                  style: TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                    color: isDark ? Colors.white54 : Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'BROADCASTED: ${formattedTime.toUpperCase()}',
+                              style: TextStyle(
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                                color: isDark ? Colors.amber[200]!.withValues(alpha: 0.8) : const Color(0xFFD97706),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -4290,7 +4348,7 @@ class _DashboardState extends State<Dashboard>
                     title: 'Student Portal',
                     icon: const Icon(Icons.school_rounded, color: Color(0xFF3B82F6), size: 18),
                     onTap: () {
-                      pushIconLaunchRoute(
+                      pushGlassContainerMorphRoute(
                         context,
                         originKey: _studentPortalNavKey,
                         page: const PortalScreen(
@@ -4306,7 +4364,7 @@ class _DashboardState extends State<Dashboard>
                     title: 'Academics Hub',
                     icon: const Icon(Icons.auto_stories_rounded, color: Color(0xFF8B5CF6), size: 18),
                     onTap: () {
-                      pushIconLaunchRoute(
+                      pushGlassContainerMorphRoute(
                         context,
                         originKey: _studentPortalNavKey,
                         page: AcademicsHubScreen(brain: widget.brain),
