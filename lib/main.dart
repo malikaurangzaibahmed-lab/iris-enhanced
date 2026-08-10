@@ -172,156 +172,198 @@ class _IrisAppBootState extends State<IrisApp> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.55),
+      barrierColor: Colors.black.withValues(alpha: 0.65),
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: Dialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: GlassSurface(
-                settings: IrisGlass.settings(
-                  context,
-                  blur: 24.0,
-                  ambientStrength: 0.8,
-                  lightAngle: 0.15 * math.pi,
-                  thickness: 18.0,
-                  glassColor: IrisGlass.adaptiveGlassColor(
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 380),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: IrisTokens.brand.withValues(alpha: isDark ? 0.25 : 0.15),
+                    blurRadius: 40,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: GlassSurface(
+                  settings: IrisGlass.settings(
                     context,
-                    darkAlpha: 0.88,
-                    lightAlpha: 0.92,
-                  ),
-                ),
-                radius: 28,
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: Colors.amber.withValues(alpha: isDark ? 0.4 : 0.6),
-                      width: 1.5,
+                    blur: 28.0,
+                    ambientStrength: 0.85,
+                    lightAngle: 0.15 * math.pi,
+                    thickness: 22.0,
+                    glassColor: IrisGlass.adaptiveGlassColor(
+                      context,
+                      darkAlpha: 0.90,
+                      lightAlpha: 0.95,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.amber.withValues(alpha: 0.18),
-                        blurRadius: 30,
-                        spreadRadius: 2,
-                      ),
-                    ],
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.amber,
-                              Colors.orange.shade700,
+                  radius: 32,
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: IrisTokens.brand.withValues(alpha: isDark ? 0.45 : 0.35),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Hero Icon Badge with Gradient Glow
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [IrisTokens.brand, IrisTokens.purple],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: IrisTokens.brand.withValues(alpha: 0.45),
+                                blurRadius: 24,
+                                offset: const Offset(0, 6),
+                              ),
                             ],
                           ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.amber.withValues(alpha: 0.4),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
+                          child: const Icon(
+                            Icons.system_update_rounded,
+                            color: Colors.white,
+                            size: 36,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Pill Tag
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: IrisTokens.brand.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: IrisTokens.brand.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF10B981),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'OVER-THE-AIR PATCH READY',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                  color: IrisTokens.brand,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          'Update Installed!',
+                          style: IrisTextStyles.headline(context).copyWith(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'A fresh update with visual enhancements and performance speedups is ready to apply.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            height: 1.45,
+                            fontWeight: FontWeight.w500,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.65),
+                          ),
+                        ),
+                        const SizedBox(height: 26),
+                        // Action Buttons
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  IrisHaptics.actionHeavy();
+                                  SystemNavigator.pop();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: IrisTokens.brand,
+                                  foregroundColor: Colors.white,
+                                  elevation: 6,
+                                  shadowColor: IrisTokens.brand.withValues(alpha: 0.4),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.restart_alt_rounded, size: 20, color: Colors.white),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'RESTART APP NOW',
+                                      style: TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 13),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Dismiss & Restart Later',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.bolt_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        'Update Ready!',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'An over-the-air update has been installed. Restart IRIS to apply performance enhancements and new features.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  side: BorderSide(
-                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                'LATER',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white60 : Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                IrisHaptics.actionHeavy();
-                                SystemNavigator.pop();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amber,
-                                foregroundColor: Colors.black,
-                                elevation: 4,
-                                shadowColor: Colors.amber.withValues(alpha: 0.4),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.restart_alt_rounded, size: 18, color: Colors.black),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'RESTART',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -4460,7 +4502,7 @@ class _DashboardState extends State<Dashboard>
                 },
                 items: [
                   lgw.GlassMenuItem(
-                    title: 'Student Portal',
+                    title: '🎓  Student Portal',
                     icon: const Icon(Icons.school_rounded, color: Color(0xFF3B82F6), size: 18),
                     onTap: () {
                       pushIconLaunchRoute(
@@ -4476,7 +4518,7 @@ class _DashboardState extends State<Dashboard>
                   ),
                   const lgw.GlassMenuDivider(),
                   lgw.GlassMenuItem(
-                    title: 'Academics Hub',
+                    title: '📚  Academics Hub',
                     icon: const Icon(Icons.auto_stories_rounded, color: Color(0xFF8B5CF6), size: 18),
                     onTap: () {
                       pushIconLaunchRoute(
@@ -4492,7 +4534,10 @@ class _DashboardState extends State<Dashboard>
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
-            if (_bottomNavIndex == 2) {
+            if (_bottomNavIndex == 0) {
+              _openPortal(originKey: _studentPortalNavKey);
+              return;
+            } else if (_bottomNavIndex == 2) {
               _showAboutContextSheet(isDark);
               return;
             }
