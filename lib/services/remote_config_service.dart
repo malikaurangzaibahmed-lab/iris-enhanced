@@ -9,8 +9,8 @@ import '../services/ui_feedback.dart';
 /// Establishes real-time listeners with Firebase Firestore to toggle academic modes,
 /// sync OTA timetable schedules, and notify users about system update APKs.
 class RemoteConfigService {
-  static const int CURRENT_VERSION_CODE = 3;
-  static const String CURRENT_VERSION_NAME = '1.0.2';
+  static const int CURRENT_VERSION_CODE = 4;
+  static const String CURRENT_VERSION_NAME = '1.0.3';
 
   static final ValueNotifier<String> activeAcademicPeriod = ValueNotifier<String>('classes');
   static final ValueNotifier<Map<String, dynamic>?> latestApkUpdate = ValueNotifier<Map<String, dynamic>?>(null);
@@ -20,6 +20,16 @@ class RemoteConfigService {
   static final ValueNotifier<List<dynamic>> midtermExams = ValueNotifier<List<dynamic>>([]);
   static final ValueNotifier<List<dynamic>> finalExams = ValueNotifier<List<dynamic>>([]);
 
+
+  /// Dismisses an admin update banner for a specific version/keyword tag
+  static Future<void> dismissAdminUpdateBanner(String versionOrKeyword) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (versionOrKeyword.isNotEmpty) {
+      await prefs.setBool('dismissed_admin_update_$versionOrKeyword', true);
+      await prefs.setString('dismissed_admin_update_tag', versionOrKeyword);
+    }
+    latestApkUpdate.value = null;
+  }
 
   /// Helper to format raw timestamps/DateTimes safely in a custom, premium aesthetic
   static String formatTimestamp(DateTime? dateTime) {
@@ -180,7 +190,12 @@ class RemoteConfigService {
       }
       if (updateData != null) {
         final showUpdate = updateData['show_update_card'] as bool? ?? true;
-        if (showUpdate) {
+        final vName = updateData['version_name']?.toString() ?? '';
+        final dismissedTag = prefs.getString('dismissed_admin_update_tag') ?? '';
+        final isDismissed = (vName.isNotEmpty && (prefs.getBool('dismissed_admin_update_$vName') ?? false)) ||
+            (dismissedTag.isNotEmpty && vName.isNotEmpty && (dismissedTag == vName || dismissedTag.contains(vName) || vName.contains(dismissedTag)));
+
+        if (showUpdate && !isDismissed) {
           latestApkUpdate.value = updateData;
         } else {
           latestApkUpdate.value = null;

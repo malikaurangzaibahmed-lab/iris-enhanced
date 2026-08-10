@@ -4483,6 +4483,18 @@ class _DashboardState extends State<Dashboard>
                             ],
                           ),
                         ),
+                        IconButton(
+                          onPressed: () {
+                            IrisHaptics.selectionClick();
+                            RemoteConfigService.dismissAdminUpdateBanner(vName);
+                          },
+                          icon: Icon(
+                            Icons.close_rounded,
+                            size: 18,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                          ),
+                          tooltip: 'Dismiss update',
+                        ),
                       ],
                     ),
                     if (notes.isNotEmpty) ...[
@@ -4510,6 +4522,7 @@ class _DashboardState extends State<Dashboard>
                       ),
                       onPressed: () {
                         IrisHaptics.actionHeavy();
+                        RemoteConfigService.dismissAdminUpdateBanner(vName);
                         AppUpdateService.showUpdateDialog(context, updateInfo: update);
                       },
                       icon: const Icon(Icons.download_rounded, size: 16),
