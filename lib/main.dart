@@ -4502,7 +4502,7 @@ class _DashboardState extends State<Dashboard>
                 },
                 items: [
                   lgw.GlassMenuItem(
-                    title: '🎓  Student Portal',
+                    title: 'Student Portal',
                     icon: const Icon(Icons.school_rounded, color: Color(0xFF3B82F6), size: 18),
                     onTap: () {
                       pushIconLaunchRoute(
@@ -4518,7 +4518,7 @@ class _DashboardState extends State<Dashboard>
                   ),
                   const lgw.GlassMenuDivider(),
                   lgw.GlassMenuItem(
-                    title: '📚  Academics Hub',
+                    title: 'Academics Hub',
                     icon: const Icon(Icons.auto_stories_rounded, color: Color(0xFF8B5CF6), size: 18),
                     onTap: () {
                       pushIconLaunchRoute(
@@ -4534,10 +4534,7 @@ class _DashboardState extends State<Dashboard>
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
-            if (_bottomNavIndex == 0) {
-              _openPortal(originKey: _studentPortalNavKey);
-              return;
-            } else if (_bottomNavIndex == 2) {
+            if (_bottomNavIndex == 2) {
               _showAboutContextSheet(isDark);
               return;
             }
