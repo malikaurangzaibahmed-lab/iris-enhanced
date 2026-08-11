@@ -21,7 +21,7 @@ class IrisMotion {
   static const Curve spring = Cubic(0.175, 0.885, 0.32, 1.15); // Tighter physical snap
 }
 
-/// A premium route transition that mimics the "Icon Launch" feel of modern OSes.
+/// A premium route transition that morphs origin container bounds into full screen with modern OS container morphing physics.
 Future<T?> pushIconLaunchRoute<T>(
   BuildContext context, {
   required Widget page,
@@ -32,44 +32,100 @@ Future<T?> pushIconLaunchRoute<T>(
 }) {
   return Navigator.of(context).push<T>(
     PageRouteBuilder(
+      opaque: false,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
       pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionDuration: transitionDuration ?? IrisMotion.normal,
+      transitionDuration: transitionDuration ?? const Duration(milliseconds: 460),
       reverseTransitionDuration:
-          reverseTransitionDuration ?? const Duration(milliseconds: 280),
+          reverseTransitionDuration ?? const Duration(milliseconds: 380),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final curve = CurvedAnimation(
-          parent: animation,
-          curve: IrisMotion.emphasized,
-          reverseCurve: Curves.easeInQuint, // Faster exit
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenSize = MediaQuery.of(context).size;
+        final fullScreenRect = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
+
+        Rect startRect = Rect.fromCenter(
+          center: Offset(screenSize.width / 2, screenSize.height / 2),
+          width: screenSize.width * 0.45,
+          height: 100,
         );
 
-        Alignment alignment = Alignment.center;
         if (originKey != null && originKey.currentContext != null) {
           final renderBox = originKey.currentContext!.findRenderObject() as RenderBox?;
-          if (renderBox != null) {
-            final position = renderBox.localToGlobal(Offset.zero);
-            final size = renderBox.size;
-            final screenSize = MediaQuery.of(context).size;
-            if (screenSize.width > 0 && screenSize.height > 0) {
-              final xFraction = (position.dx + size.width / 2) / screenSize.width;
-              final yFraction = (position.dy + size.height / 2) / screenSize.height;
-              alignment = Alignment(
-                (xFraction * 2) - 1,
-                (yFraction * 2) - 1,
-              );
-            }
+          if (renderBox != null && renderBox.hasSize) {
+            final pos = renderBox.localToGlobal(Offset.zero);
+            startRect = pos & renderBox.size;
           }
         }
 
-        return FadeTransition(
-          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-            CurvedAnimation(parent: animation, curve: const Cubic(0.1, 0.0, 0.1, 1.0)),
-          ),
-          child: ScaleTransition(
-            alignment: alignment,
-            scale: Tween<double>(begin: lightweight ? 0.95 : 0.05, end: 1.0).animate(curve),
-            child: child,
-          ),
+        final curve = CurvedAnimation(
+          parent: animation,
+          curve: const Cubic(0.16, 1.0, 0.30, 1.0),
+          reverseCurve: Curves.easeInCubic,
+        );
+
+        final currentRect = Rect.lerp(startRect, fullScreenRect, curve.value) ?? fullScreenRect;
+        final currentRadius = lerpDouble(24.0, 0.0, curve.value) ?? 0.0;
+        final scrimOpacity = (curve.value * 0.40).clamp(0.0, 0.40);
+        final innerContentScale = lerpDouble(0.94, 1.0, curve.value) ?? 1.0;
+        final edgeSpecularGlow = ((1.0 - (curve.value - 0.5).abs() * 2.0) * 0.40).clamp(0.0, 0.40);
+        final endOpacity = ((curve.value - 0.12) / 0.88).clamp(0.0, 1.0);
+
+        final glow = isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6);
+
+        return Stack(
+          children: [
+            // Backdrop Scrim Isolation with Dynamic Blur
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: lerpDouble(0.0, 10.0, curve.value) ?? 0.0,
+                  sigmaY: lerpDouble(0.0, 10.0, curve.value) ?? 0.0,
+                ),
+                child: Container(
+                  color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
+                ),
+              ),
+            ),
+
+            // Morphing Glass Container with Specular Highlight
+            Positioned.fromRect(
+              rect: currentRect,
+              child: PhysicalModel(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(currentRadius),
+                elevation: lerpDouble(8.0, 0.0, curve.value) ?? 0.0,
+                shadowColor: glow.withValues(alpha: 0.30),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(currentRadius),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(currentRadius),
+                      border: Border.all(
+                        color: glow.withValues(alpha: edgeSpecularGlow),
+                        width: lerpDouble(2.0, 0.0, curve.value) ?? 0.0,
+                      ),
+                    ),
+                    child: Transform.scale(
+                      scale: innerContentScale,
+                      alignment: Alignment.center,
+                      child: OverflowBox(
+                        minWidth: screenSize.width,
+                        maxWidth: screenSize.width,
+                        minHeight: screenSize.height,
+                        maxHeight: screenSize.height,
+                        alignment: Alignment.topLeft,
+                        child: Opacity(
+                          opacity: endOpacity,
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     ),

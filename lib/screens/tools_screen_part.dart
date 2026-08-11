@@ -497,97 +497,99 @@ class ToolsScreenState extends State<ToolsScreen> {
     IrisHaptics.actionMedium();
     switch (id) {
       case 'cgpa_calculator':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CgpaCalculatorScreen()),
+        pushGlassContainerMorphRoute(
+          context,
+          page: const CgpaCalculatorScreen(),
+          accentColor: const Color(0xFF10B981),
         );
         return;
       case 'teacher_locator':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => TeacherLocatorScreen(
-              brain: widget.brain,
-              memory: widget.memory,
-              currentBatch: widget.batch,
-              onRoleChanged: widget.onRoleChanged,
-            ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: TeacherLocatorScreen(
+            brain: widget.brain,
+            memory: widget.memory,
+            currentBatch: widget.batch,
+            onRoleChanged: widget.onRoleChanged,
           ),
+          accentColor: const Color(0xFF3B82F6),
         );
         return;
       case 'browse_classes':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => DepartmentClassesScreen(
-              memory: widget.memory,
-              currentBatch: widget.batch,
-              brain: widget.brain,
-              onRoleChanged: widget.onRoleChanged,
-              showDock: false,
-              showBackButton: true,
-            ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: DepartmentClassesScreen(
+            memory: widget.memory,
+            currentBatch: widget.batch,
+            brain: widget.brain,
+            onRoleChanged: widget.onRoleChanged,
+            showDock: false,
+            showBackButton: true,
           ),
+          accentColor: const Color(0xFF8B5CF6),
         );
         return;
       case 'teacher_directory':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => FacultyDirectoryScreen(
-              brain: widget.brain,
-              onRoleChanged: widget.onRoleChanged,
-              memory: widget.memory,
-              currentBatch: widget.batch,
-            ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: FacultyDirectoryScreen(
+            brain: widget.brain,
+            onRoleChanged: widget.onRoleChanged,
+            memory: widget.memory,
+            currentBatch: widget.batch,
           ),
+          accentColor: const Color(0xFFEC4899),
         );
         return;
       case 'makeup_scheduler':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MakeupLectureScheduler(
-              memory: widget.memory,
-              brain: widget.brain,
-              batch: widget.batch,
-              onAddMakeupClass: widget.onAddMakeupClass ?? (_) async {},
-              onRemoveMakeupClass: widget.onRemoveMakeupClass,
-              onRoleChanged: widget.onRoleChanged,
-              showDock: false,
-              showBackButton: true,
-            ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: MakeupLectureScheduler(
+            memory: widget.memory,
+            brain: widget.brain,
+            batch: widget.batch,
+            onAddMakeupClass: widget.onAddMakeupClass ?? (_) async {},
+            onRemoveMakeupClass: widget.onRemoveMakeupClass,
+            onRoleChanged: widget.onRoleChanged,
+            showDock: false,
+            showBackButton: true,
           ),
+          accentColor: const Color(0xFFF59E0B),
         );
         return;
       case 'transport_schedule':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _TransportScheduleScreen(),
-          ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: const _TransportScheduleScreen(),
+          accentColor: const Color(0xFF06B6D4),
         );
         return;
       case 'library_schedule':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const _LibraryScheduleScreen(),
-          ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: const _LibraryScheduleScreen(),
+          accentColor: const Color(0xFF6366F1),
         );
         return;
       case 'semester_schedule':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => _SemesterScheduleScreen(batch: widget.batch),
-          ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: _SemesterScheduleScreen(batch: widget.batch),
+          accentColor: const Color(0xFF84CC16),
         );
         return;
       case 'find_rooms':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => RoomFinderScreen(memory: widget.memory, brain: widget.brain),
-          ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: RoomFinderScreen(memory: widget.memory, brain: widget.brain),
+          accentColor: const Color(0xFF14B8A6),
         );
         return;
       case 'doc_workspace':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const DocumentWorkspaceScreen(),
-          ),
+        pushGlassContainerMorphRoute(
+          context,
+          page: const DocumentWorkspaceScreen(),
+          accentColor: const Color(0xFFF43F5E),
         );
         return;
       default:
