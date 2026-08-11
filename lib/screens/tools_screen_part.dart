@@ -32,6 +32,7 @@ class ToolsScreenState extends State<ToolsScreen> {
   String _activeCategory = 'All';
   late String _searchQuery;
   late final TextEditingController _searchController;
+  final Map<String, GlobalKey> _toolCardKeys = {};
 
   final List<String> _categories = ['All', 'Utilities', 'People', 'Planning'];
 
@@ -218,16 +219,18 @@ class ToolsScreenState extends State<ToolsScreen> {
     };
 
     final targetTool = _getUniversalTools().firstWhere((t) => t.id == recommendedId, orElse: () => _getUniversalTools().first);
+    final recKey = _toolCardKeys.putIfAbsent('rec_${targetTool.id}', () => GlobalKey());
 
     return DirectoryAnimationWidget(
       child: GlassCard(
+        key: recKey,
         padding: const EdgeInsets.all(22),
         borderRadius: 28,
         glow: true,
         shimmer: true,
         accentColor: targetTool.color,
         backgroundColor: targetTool.color.withValues(alpha: isDark ? 0.12 : 0.06),
-        onTap: () => _handleToolTap(context, targetTool.id, department),
+        onTap: () => _handleToolTap(context, targetTool.id, department, originKey: recKey),
         child: Row(
           children: [
             Expanded(
@@ -408,14 +411,17 @@ class ToolsScreenState extends State<ToolsScreen> {
       _ => null,
     };
 
+    final cardKey = _toolCardKeys.putIfAbsent(item.id, () => GlobalKey());
+
     return GlassCard(
+      key: cardKey,
       padding: const EdgeInsets.all(16),
       borderRadius: 24,
       glow: isRecommended,
       shimmer: isRecommended,
       accentColor: item.color,
       backgroundColor: item.color.withValues(alpha: isDark ? 0.08 : 0.04),
-      onTap: () => _handleToolTap(context, item.id, department),
+      onTap: () => _handleToolTap(context, item.id, department, originKey: cardKey),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -493,12 +499,13 @@ class ToolsScreenState extends State<ToolsScreen> {
     );
   }
 
-  void _handleToolTap(BuildContext context, String id, String department) {
+  void _handleToolTap(BuildContext context, String id, String department, {GlobalKey? originKey}) {
     IrisHaptics.actionMedium();
     switch (id) {
       case 'cgpa_calculator':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: const CgpaCalculatorScreen(),
           accentColor: const Color(0xFF10B981),
         );
@@ -506,6 +513,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'teacher_locator':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: TeacherLocatorScreen(
             brain: widget.brain,
             memory: widget.memory,
@@ -518,6 +526,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'browse_classes':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: DepartmentClassesScreen(
             memory: widget.memory,
             currentBatch: widget.batch,
@@ -532,6 +541,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'teacher_directory':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: FacultyDirectoryScreen(
             brain: widget.brain,
             onRoleChanged: widget.onRoleChanged,
@@ -544,6 +554,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'makeup_scheduler':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: MakeupLectureScheduler(
             memory: widget.memory,
             brain: widget.brain,
@@ -560,6 +571,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'transport_schedule':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: const _TransportScheduleScreen(),
           accentColor: const Color(0xFF06B6D4),
         );
@@ -567,6 +579,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'library_schedule':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: const _LibraryScheduleScreen(),
           accentColor: const Color(0xFF6366F1),
         );
@@ -574,6 +587,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'semester_schedule':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: _SemesterScheduleScreen(batch: widget.batch),
           accentColor: const Color(0xFF84CC16),
         );
@@ -581,6 +595,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'find_rooms':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: RoomFinderScreen(memory: widget.memory, brain: widget.brain),
           accentColor: const Color(0xFF14B8A6),
         );
@@ -588,6 +603,7 @@ class ToolsScreenState extends State<ToolsScreen> {
       case 'doc_workspace':
         pushGlassContainerMorphRoute(
           context,
+          originKey: originKey,
           page: const DocumentWorkspaceScreen(),
           accentColor: const Color(0xFFF43F5E),
         );
