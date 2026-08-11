@@ -10,7 +10,6 @@ import '../core/vital_theme.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
-import 'teacher_locator_screen.dart';
 import 'students_week_screen.dart';
 
 class FacultyDirectoryScreen extends StatefulWidget {
@@ -62,7 +61,9 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     super.initState();
     _searchController = TextEditingController(text: widget.initialTeacherQuery ?? '');
     _query = widget.initialTeacherQuery ?? '';
-    unawaited(_loadFaculty());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_loadFaculty());
+    });
   }
 
   @override
@@ -85,13 +86,13 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     final helpdeskList = List<FacultyProfile>.from(payload.items);
     final Set<String> existingNames = helpdeskList.map((e) => e.name.toLowerCase().trim()).toSet();
 
-    // Smart Union: Merge PDF Timetable teachers missing from Helpdesk snapshot
+    // Fast O(1) Smart Union: Merge PDF Timetable teachers missing from Helpdesk snapshot
     if (widget.brain != null) {
       for (final teacherName in widget.brain!.allTeachers()) {
         final cleanName = teacherName.trim();
         if (cleanName.isEmpty || cleanName == 'Unknown') continue;
         final lower = cleanName.toLowerCase();
-        if (!existingNames.any((e) => e.contains(lower) || lower.contains(e))) {
+        if (!existingNames.contains(lower)) {
           helpdeskList.add(FacultyProfile(
             id: 'pdf_${cleanName.hashCode}',
             name: cleanName,
@@ -219,28 +220,24 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     );
   }
 
-  Future<void> _openTeacherLocator(FacultyProfile item) async {
-    if (widget.brain == null) {
-      showIrisFrostedSnackBar(
-        context,
-        dedupeKey: 'faculty_locator_brain_missing',
-        content: const Text('Teacher locator is unavailable right now.'),
-      );
+  void _openTeacherLocator(FacultyProfile item) {
+    if (widget.isSelectionMode) {
+      if (widget.onTeacherSelected != null) {
+        widget.onTeacherSelected!(item.name);
+      }
+      Navigator.maybePop(context);
       return;
     }
 
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => TeacherLocatorScreen(
-          brain: widget.brain!,
-          onRoleChanged: widget.onRoleChanged,
-          onBatchChanged: widget.onBatchChanged,
-          memory: widget.memory,
-          currentBatch: widget.currentBatch,
-          initialTeacherQuery: item.name,
-          autoSearchInitial: true,
-          showDock: false,
-        ),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _FacultyDetailSheet(
+        profile: item,
+        brain: widget.brain,
+        onLaunchEmail: () => _launchEmail(item.email),
+        onLaunchPhone: () => _launchPhone(item.contact),
       ),
     );
   }
@@ -767,6 +764,383 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FacultyDetailSheet extends StatefulWidget {
+  final FacultyProfile profile;
+  final OmniBrain? brain;
+  final VoidCallback onLaunchEmail;
+  final VoidCallback onLaunchPhone;
+
+  const _FacultyDetailSheet({
+    required this.profile,
+    required this.brain,
+    required this.onLaunchEmail,
+    required this.onLaunchPhone,
+  });
+
+  @override
+  State<_FacultyDetailSheet> createState() => _FacultyDetailSheetState();
+}
+
+class _FacultyDetailSheetState extends State<_FacultyDetailSheet> {
+  int _selectedDay = DateTime.now().weekday; // 1: Mon .. 5: Fri
+
+  @override
+  void initState() {
+    super.initState();
+    if (_selectedDay < 1 || _selectedDay > 5) {
+      _selectedDay = 1;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : Colors.black87;
+    final textSecondary = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6);
+    final item = widget.profile;
+
+    final TeacherLocatorResult? result = widget.brain != null
+        ? widget.brain!.locateTeacher(item.name, DateTime.now())
+        : null;
+
+    final daySessions = result != null
+        ? (result.weeklySchedule[_selectedDay] ?? [])
+        : <TeacherScheduleEntry>[];
+
+    final days = [
+      {'idx': 1, 'name': 'Mon'},
+      {'idx': 2, 'name': 'Tue'},
+      {'idx': 3, 'name': 'Wed'},
+      {'idx': 4, 'name': 'Thu'},
+      {'idx': 5, 'name': 'Fri'},
+    ];
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4.5,
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                children: [
+                  IrisComponents.facultyAvatar(
+                    imageUrl: item.image.isEmpty ? null : item.image,
+                    gender: item.gender,
+                    name: item.name,
+                    radius: 30,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.department.isEmpty ? 'Faculty Member' : item.department,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_rounded, size: 13, color: IrisTokens.purple),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                item.location.isEmpty ? 'COMSATS Campus' : item.location,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Contact Action Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onLaunchEmail,
+                      icon: const Icon(Icons.mail_outline_rounded, size: 16),
+                      label: const Text('Email'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: IrisTokens.brand,
+                        side: BorderSide(color: IrisTokens.brand.withValues(alpha: 0.3)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onLaunchPhone,
+                      icon: const Icon(Icons.phone_outlined, size: 16),
+                      label: const Text('Call Office'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: IrisTokens.success,
+                        side: BorderSide(color: IrisTokens.success.withValues(alpha: 0.3)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            // Day selector header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'WEEKLY SCHEDULE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      color: textSecondary,
+                    ),
+                  ),
+                  if (result?.liveSession != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: IrisTokens.success.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: IrisTokens.success.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: IrisTokens.success,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'LIVE IN CLASS',
+                            style: const TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: IrisTokens.success,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Weekday Selector Chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: days.map((d) {
+                  final idx = d['idx'] as int;
+                  final name = d['name'] as String;
+                  final isSelected = _selectedDay == idx;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(name),
+                      selected: isSelected,
+                      onSelected: (_) {
+                        IrisSfx.pillTap();
+                        setState(() => _selectedDay = idx);
+                      },
+                      selectedColor: IrisTokens.brand,
+                      backgroundColor: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.03),
+                      labelStyle: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : Colors.black87),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: isSelected
+                              ? IrisTokens.brand
+                              : (isDark ? Colors.white10 : Colors.black12),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 14),
+            // Schedule List
+            Expanded(
+              child: daySessions.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          'No scheduled lectures for this day.',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                          ),
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: daySessions.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, idx) {
+                        final s = daySessions[idx];
+                        final isLive = s.isLive;
+                        return Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isLive
+                                ? IrisTokens.success.withValues(alpha: isDark ? 0.12 : 0.08)
+                                : (isDark
+                                    ? Colors.white.withValues(alpha: 0.04)
+                                    : Colors.black.withValues(alpha: 0.02)),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isLive
+                                  ? IrisTokens.success.withValues(alpha: 0.4)
+                                  : (isDark ? Colors.white10 : Colors.black12),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: isLive ? IrisTokens.success : IrisTokens.brand,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      s.subject,
+                                      style: TextStyle(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '${s.startTime} - ${s.endTime}  •  ${s.room}  •  ${s.batch}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isLive)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: IrisTokens.success,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'LIVE',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

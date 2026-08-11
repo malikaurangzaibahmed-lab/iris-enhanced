@@ -1,11 +1,6 @@
 import 'dart:ui';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import 'package:iris/core/glass.dart';
-import 'package:iris/core/theme_signals.dart';
-import 'package:iris/core/animations.dart';
-import 'package:iris/services/ui_feedback.dart';
+import '../services/ui_feedback.dart';
 
 /// Ultra-Premium Liquid Glass Container Transform Route.
 /// Mimics iOS 18 / Android 15 OS-level container morphing with specular edge glow,
@@ -80,17 +75,18 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
             return Stack(
               children: [
                 // 1. Backdrop Scrim & Blur Isolation
-                Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: lerpDouble(0.0, 10.0, curve.value) ?? 0.0,
-                      sigmaY: lerpDouble(0.0, 10.0, curve.value) ?? 0.0,
-                    ),
-                    child: Container(
-                      color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
+                if (scrimOpacity > 0.01)
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: (curve.value * 2.0).clamp(0.0, 1.0),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+                        child: Container(
+                          color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
+                        ),
+                      ),
                     ),
                   ),
-                ),
 
                 // 2. Morphing Specular Glass Container
                 Positioned.fromRect(
@@ -102,29 +98,20 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                     shadowColor: glow.withValues(alpha: 0.30),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(currentRadius),
-                      child: GlassSurface(
-                        settings: IrisGlass.settings(
-                          context,
-                          blur: lerpDouble(18.0, 0.0, curve.value) ?? 0.0,
-                          ambientStrength: 0.85,
-                          lightAngle: 0.15 * math.pi,
-                          thickness: lerpDouble(18.0, 0.0, curve.value) ?? 0.0,
-                          glassColor: isDark 
-                              ? Colors.black.withValues(alpha: lerpDouble(0.65, 1.0, curve.value) ?? 1.0)
-                              : Colors.white.withValues(alpha: lerpDouble(0.85, 1.0, curve.value) ?? 1.0),
-                        ),
-                        radius: currentRadius,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(currentRadius),
-                            border: Border.all(
-                              color: glow.withValues(alpha: edgeSpecularGlow),
-                              width: lerpDouble(2.0, 0.0, curve.value) ?? 0.0,
-                            ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Color.lerp(const Color(0xFF0F172A), const Color(0xFF030712), curve.value)
+                              : Color.lerp(const Color(0xFFF1F5F9), const Color(0xFFF8FAFC), curve.value),
+                          borderRadius: BorderRadius.circular(currentRadius),
+                          border: Border.all(
+                            color: glow.withValues(alpha: edgeSpecularGlow),
+                            width: lerpDouble(2.0, 0.0, curve.value) ?? 0.0,
                           ),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
+                        ),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
                               // Origin Card Preview (Fades Out)
                               if (originWidget != null && startOpacity > 0.01)
                                 Opacity(
