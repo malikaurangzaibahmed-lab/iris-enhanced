@@ -8,6 +8,7 @@ import '../core/vital_theme.dart';
 import '../services/ui_feedback.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../widgets/glass_card.dart';
+import 'faculty_directory_screen.dart';
 
 // ==========================================================================
 // ROLE SELECTOR CANVAS PARTICLES
@@ -934,6 +935,57 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
     return Column(
       children: [
+        // Directory Browse Quick Button
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () {
+              IrisSfx.pillTap();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FacultyDirectoryScreen(
+                    isSelectionMode: true,
+                    onTeacherSelected: (name) {
+                      setState(() {
+                        _selectedTeacher = name;
+                        _name = name;
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: IrisTokens.blue.withValues(alpha: isDark ? 0.12 : 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: IrisTokens.blue.withValues(alpha: isDark ? 0.25 : 0.18),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.badge_rounded, color: IrisTokens.blue, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Browse Full Faculty Directory & Profiles',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: IrisTokens.blue,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_ios_rounded, color: IrisTokens.blue, size: 12),
+                ],
+              ),
+            ),
+          ),
+        ),
         // Teacher search glows input
         Container(
           decoration: BoxDecoration(

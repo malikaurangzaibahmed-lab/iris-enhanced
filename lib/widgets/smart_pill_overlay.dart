@@ -67,11 +67,13 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
       if (payload['dismiss'] == true) {
         _hide();
       } else {
+        final durationMs = payload['durationMs'] as int?;
         _show(
-          payload['title'], 
-          payload['body'], 
-          payload['isUrgent'],
+          payload['title'] ?? '', 
+          payload['body'] ?? '', 
+          payload['isUrgent'] == true,
           isPersistent: payload['isPersistent'] == true,
+          duration: durationMs != null ? Duration(milliseconds: durationMs) : null,
         );
       }
     });
@@ -100,7 +102,13 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
     }
   }
 
-  void _show(String title, String body, bool isUrgent, {bool isPersistent = false}) {
+  void _show(
+    String title, 
+    String body, 
+    bool isUrgent, {
+    bool isPersistent = false,
+    Duration? duration,
+  }) {
     setState(() {
       _title = title;
       _body = body;
@@ -114,7 +122,8 @@ class _SmartPillOverlayState extends State<SmartPillOverlay> with TickerProvider
     
     _hideTimer?.cancel();
     if (!isPersistent) {
-      _hideTimer = Timer(const Duration(seconds: 6), () {
+      final hold = duration ?? const Duration(seconds: 4);
+      _hideTimer = Timer(hold, () {
         _hide();
       });
     }

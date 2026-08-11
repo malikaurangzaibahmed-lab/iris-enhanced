@@ -1,12 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import '../core/theme_signals.dart';
 import '../core/tokens.dart';
-import 'dart:math' as math;
+import 'system_broadcast_service.dart';
 
 /// UI Sound Feedback - Playing tones for natural interactions
 class IrisSfx {
@@ -333,34 +330,7 @@ class IrisHaptics {
 }
 
 final Map<String, int> _irisSnackLastShownMs = <String, int>{};
-OverlayEntry? _irisPillOverlayEntry;
-Timer? _irisPillExpandTimer;
-Timer? _irisPillContentTimer;
-Timer? _irisPillCollapseTimer;
-Timer? _irisPillDotTimer;
-Timer? _irisPillDotPulseTimer;
-Timer? _irisPillFadeTimer;
-Timer? _irisPillDisposeTimer;
 
-void _clearIrisPillOverlay() {
-  _irisPillExpandTimer?.cancel();
-  _irisPillContentTimer?.cancel();
-  _irisPillCollapseTimer?.cancel();
-  _irisPillDotTimer?.cancel();
-  _irisPillDotPulseTimer?.cancel();
-  _irisPillFadeTimer?.cancel();
-  _irisPillDisposeTimer?.cancel();
-  _irisPillExpandTimer = null;
-  _irisPillContentTimer = null;
-  _irisPillCollapseTimer = null;
-  _irisPillDotTimer = null;
-  _irisPillDotPulseTimer = null;
-  _irisPillFadeTimer = null;
-  _irisPillDisposeTimer = null;
-
-  _irisPillOverlayEntry?.remove();
-  _irisPillOverlayEntry = null;
-}
 
 String _extractIrisSnackText(Widget widget) {
   if (widget is Text) {
@@ -424,251 +394,12 @@ void _showIrisTopPill(
   SnackBarAction? action,
   bool clearExisting = true,
 }) {
-  final overlay = Overlay.maybeOf(context, rootOverlay: true);
-  if (overlay == null) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-      _showIrisTopPill(
-        context,
-        text: text,
-        duration: duration,
-        tint: tint,
-        action: action,
-        clearExisting: clearExisting,
-      );
-    });
-    return;
-  }
-
-  if (clearExisting) {
-    _clearIrisPillOverlay();
-  }
-
-  final tone = tint ?? Colors.white;
-
-  bool expanded = false;
-  bool contentVisible = false;
-  bool collapsing = false;
-  bool dotMode = false;
-  bool dotPulse = false;
-  bool visible = true;
-
-  late final OverlayEntry entry;
-  entry = OverlayEntry(
-    builder: (overlayContext) {
-      final media = MediaQuery.of(overlayContext);
-      final isDark = Theme.of(overlayContext).brightness == Brightness.dark;
-      final availableWidth = media.size.width - 24;
-      final targetWidth = math
-          .min(
-            346.0,
-            math.max(152.0, 66.0 + (text.length * 6.0)),
-          )
-          .clamp(108.0, availableWidth);
-
-      final width = dotMode ? 10.0 : (collapsing ? 44.0 : (expanded ? targetWidth.toDouble() : 30.0));
-      final height = dotMode ? 10.0 : 40.0;
-      final scale = dotMode ? (dotPulse ? 1.08 : 0.88) : (expanded ? 1.0 : 0.86);
-      final cornerRadius = dotMode ? 999.0 : (collapsing ? 16.0 : 24.0);
-
-      return Positioned(
-        top: media.padding.top + 6,
-        left: 12,
-        right: 12,
-        child: IgnorePointer(
-          ignoring: dotMode,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeInOutCubic,
-            opacity: visible ? 1 : 0,
-            child: AnimatedSlide(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeInOutCubic,
-              offset: visible ? Offset.zero : const Offset(0, -0.18),
-              child: Center(
-                child: GestureDetector(
-                  onTap: action != null
-                      ? () {
-                          IrisSfx.pillTap();
-                          action.onPressed();
-                        }
-                      : null,
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.fastOutSlowIn,
-                    scale: scale,
-                    child: GlassSurface(
-                      settings: LiquidGlassSettings(
-                        blur: 15.0,
-                        ambientStrength: 0.70,
-                        lightAngle: 0.15 * math.pi,
-                        glassColor: isDark
-                            ? const Color(0xFF030712).withValues(alpha: 0.6)
-                            : const Color(0xFFF9FAFB).withValues(alpha: 0.82),
-                        thickness: 12,
-                      ),
-                      radius: cornerRadius,
-                      child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.fastOutSlowIn,
-                          width: width,
-                          height: height,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(cornerRadius),
-                            border: Border.all(
-                              color: tone.withValues(alpha: dotMode ? 0.0 : 0.28),
-                              width: 1.2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: (isDark ? Colors.black : tone).withValues(
-                                    alpha: isDark ? 0.44 : 0.12,
-                                  ),
-                                  blurRadius: 16,
-                                  spreadRadius: -4,
-                                  offset: const Offset(0, 6),
-                                ),
-                            ],
-                          ),
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 160),
-                            switchInCurve: Curves.easeOut,
-                            switchOutCurve: Curves.easeIn,
-                            child: dotMode
-                                ? const SizedBox.shrink(key: ValueKey('dot'))
-                                : AnimatedOpacity(
-                                    key: const ValueKey('pill'),
-                                    duration: const Duration(milliseconds: 180),
-                                    curve: Curves.easeOutCubic,
-                                    opacity:
-                                        (contentVisible && !collapsing) ? 1 : 0,
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 9,
-                                          height: 9,
-                                          decoration: BoxDecoration(
-                                            color: tone.withValues(alpha: 0.92),
-                                            shape: BoxShape.circle,
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color:
-                                                    tone.withValues(alpha: 0.55),
-                                                blurRadius: 8,
-                                                spreadRadius: -1,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            text,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: isDark ? Colors.white : Colors.black87,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 0.18,
-                                              decoration: TextDecoration.none,
-                                            ),
-                                          ),
-                                        ),
-                                        if (action != null)
-                                          Container(
-                                            margin:
-                                                const EdgeInsets.only(left: 8),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: isDark
-                                                  ? Colors.white.withValues(alpha: 0.12)
-                                                  : IrisTokens.brand.withValues(alpha: 0.08),
-                                              borderRadius:
-                                                  BorderRadius.circular(999),
-                                              border: Border.all(
-                                                color: isDark
-                                                    ? Colors.white.withValues(alpha: 0.18)
-                                                    : IrisTokens.brand.withValues(alpha: 0.24),
-                                                width: 0.8,
-                                              ),
-                                            ),
-                                            child: Text(
-                                              action.label,
-                                              style: TextStyle(
-                                                color: isDark ? Colors.white : IrisTokens.brand,
-                                                fontSize: 10.5,
-                                                fontWeight: FontWeight.w800,
-                                                letterSpacing: 0.14,
-                                                decoration: TextDecoration.none,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      );
-    },
+  SystemBroadcastService().triggerLocalOverride(
+    text,
+    '',
+    isUrgent: tint == IrisTokens.error,
+    duration: duration,
   );
-
-  _irisPillOverlayEntry = entry;
-  overlay.insert(entry);
-
-  void mark() {
-    _irisPillOverlayEntry?.markNeedsBuild();
-  }
-
-  _irisPillExpandTimer = Timer(const Duration(milliseconds: 16), () {
-    expanded = true;
-    mark();
-  });
-
-  _irisPillContentTimer = Timer(const Duration(milliseconds: 120), () {
-    contentVisible = true;
-    mark();
-  });
-
-  final adaptiveHoldMs = (900 + (text.length * 22)).clamp(1200, 3400);
-  final holdMs = math
-      .min(duration.inMilliseconds, adaptiveHoldMs)
-      .clamp(1100, 3400)
-      .toInt();
-  _irisPillCollapseTimer = Timer(Duration(milliseconds: holdMs), () {
-    collapsing = true;
-    contentVisible = false;
-    mark();
-  });
-
-  _irisPillDotTimer = Timer(Duration(milliseconds: holdMs + 220), () {
-    dotMode = true;
-    mark();
-  });
-
-  _irisPillDotPulseTimer = Timer(Duration(milliseconds: holdMs + 280), () {
-    dotPulse = true;
-    mark();
-  });
-
-  _irisPillFadeTimer = Timer(Duration(milliseconds: holdMs + 340), () {
-    visible = false;
-    mark();
-  });
-
-  _irisPillDisposeTimer = Timer(Duration(milliseconds: holdMs + 460), () {
-    if (_irisPillOverlayEntry == entry) {
-      _clearIrisPillOverlay();
-    }
-  });
 }
 
 void showIrisFrostedSnackBar(

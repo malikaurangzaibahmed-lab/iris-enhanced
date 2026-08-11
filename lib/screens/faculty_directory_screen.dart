@@ -15,17 +15,23 @@ import 'students_week_screen.dart';
 
 class FacultyDirectoryScreen extends StatefulWidget {
   final OmniBrain? brain;
+  final ValueChanged<String>? onTeacherSelected;
   final ValueChanged<String>? onRoleChanged;
   final ValueChanged<String>? onBatchChanged;
   final UniversityMemory? memory;
   final String? currentBatch;
+  final String? initialTeacherQuery;
+  final bool isSelectionMode;
 
   const FacultyDirectoryScreen({
     this.brain,
+    this.onTeacherSelected,
     this.onRoleChanged,
     this.onBatchChanged,
     this.memory,
     this.currentBatch,
+    this.initialTeacherQuery,
+    this.isSelectionMode = false,
     super.key,
   });
 
@@ -54,7 +60,8 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController();
+    _searchController = TextEditingController(text: widget.initialTeacherQuery ?? '');
+    _query = widget.initialTeacherQuery ?? '';
     unawaited(_loadFaculty());
   }
 
@@ -75,8 +82,32 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     final payload = await _service.fetchLiveFirstWithFallbackPayload();
     if (!mounted) return;
 
-    final list = List<FacultyProfile>.from(payload.items);
-    if (list.isEmpty) {
+    final helpdeskList = List<FacultyProfile>.from(payload.items);
+    final Set<String> existingNames = helpdeskList.map((e) => e.name.toLowerCase().trim()).toSet();
+
+    // Smart Union: Merge PDF Timetable teachers missing from Helpdesk snapshot
+    if (widget.brain != null) {
+      for (final teacherName in widget.brain!.allTeachers()) {
+        final cleanName = teacherName.trim();
+        if (cleanName.isEmpty || cleanName == 'Unknown') continue;
+        final lower = cleanName.toLowerCase();
+        if (!existingNames.any((e) => e.contains(lower) || lower.contains(e))) {
+          helpdeskList.add(FacultyProfile(
+            id: 'pdf_${cleanName.hashCode}',
+            name: cleanName,
+            gender: 'N/A',
+            department: 'Academic Faculty',
+            location: 'COMSATS Campus',
+            contact: 'Campus Office',
+            email: '',
+            image: '',
+          ));
+          existingNames.add(lower);
+        }
+      }
+    }
+
+    if (helpdeskList.isEmpty) {
       setState(() {
         _all = const [];
         _filtered = const [];
@@ -86,9 +117,9 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
       });
       return;
     }
-    list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    helpdeskList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     setState(() {
-      _all = list;
+      _all = helpdeskList;
       _loading = false;
       _source = payload.source;
     });

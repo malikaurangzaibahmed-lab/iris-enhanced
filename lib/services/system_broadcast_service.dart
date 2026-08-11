@@ -36,13 +36,21 @@ class SystemBroadcastService {
   }
 
   /// Manually trigger a UI banner (Useful if an admin publishes a local change)
-  void triggerLocalOverride(String title, String body, {bool isUrgent = false, bool isPersistent = false, bool dismiss = false}) {
+  void triggerLocalOverride(
+    String title, 
+    String body, {
+    bool isUrgent = false, 
+    bool isPersistent = false, 
+    bool dismiss = false,
+    Duration? duration,
+  }) {
     _broadcastController.add({
       'title': title,
       'body': body,
       'isUrgent': isUrgent,
       'isPersistent': isPersistent,
       'dismiss': dismiss,
+      'durationMs': duration?.inMilliseconds,
     });
   }
 

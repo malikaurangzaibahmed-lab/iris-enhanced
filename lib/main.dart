@@ -159,14 +159,26 @@ class _IrisAppBootState extends State<IrisApp> {
       final status = await _shorebirdUpdater.checkForUpdate();
       if (status == UpdateStatus.outdated) {
         await _shorebirdUpdater.update();
-        final context = globalScaffoldMessengerKey.currentContext;
-        if (context != null) {
-          _showUpdateDialog(context);
-        }
+        _promptForRestartWhenReady();
       }
     } catch (e) {
       debugPrint('Shorebird patch check: $e');
     }
+  }
+
+  void _promptForRestartWhenReady() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      int retries = 0;
+      while (retries < 15) {
+        final context = globalScaffoldMessengerKey.currentContext;
+        if (context != null && context.mounted) {
+          _showUpdateDialog(context);
+          break;
+        }
+        await Future.delayed(const Duration(milliseconds: 400));
+        retries++;
+      }
+    });
   }
 
   void _showUpdateDialog(BuildContext context) {
@@ -3067,11 +3079,128 @@ class _DashboardState extends State<Dashboard>
         progressPercentage: progressPercent,
         subject: insight.subject,
         room: insight.room,
-        startTime: insight.startTime,
       );
     } catch (e) {
       debugPrint('⚠️ Widget update failed: $e');
     }
+  }
+
+  void _showPortalGlassMenu(BuildContext context) {
+    IrisHaptics.actionMedium();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black26,
+      builder: (ctx) {
+        return Stack(
+          children: [
+            Positioned(
+              bottom: 90,
+              left: 24,
+              child: Material(
+                color: Colors.transparent,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: GlassSurface(
+                    settings: IrisGlass.settings(
+                      context,
+                      blur: 24,
+                      ambientStrength: 0.85,
+                      lightAngle: 0.15 * math.pi,
+                      thickness: 18,
+                      glassColor: IrisGlass.adaptiveGlassColor(context, darkAlpha: 0.88, lightAlpha: 0.92),
+                    ),
+                    radius: 28,
+                    child: Container(
+                      width: 230,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.14),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              pushGlassContainerMorphRoute(
+                                context,
+                                originKey: _studentPortalNavKey,
+                                page: const PortalScreen(
+                                  url: 'https://swl-sis.comsats.edu.pk/',
+                                  title: 'COMSATS Student Portal',
+                                  sessionScope: 'student',
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.school_rounded, color: Color(0xFF3B82F6), size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Student Portal',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13.5,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Divider(height: 1, color: (isDark ? Colors.white12 : Colors.black12)),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              pushGlassContainerMorphRoute(
+                                context,
+                                originKey: _studentPortalNavKey,
+                                page: AcademicsHubScreen(brain: widget.brain),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.auto_stories_rounded, color: Color(0xFF8B5CF6), size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Academics Hub',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13.5,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
 
@@ -4377,7 +4506,10 @@ class _DashboardState extends State<Dashboard>
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
-            if (_bottomNavIndex == 2) {
+            if (_bottomNavIndex == 0) {
+              _showPortalGlassMenu(context);
+              return;
+            } else if (_bottomNavIndex == 2) {
               _showAboutContextSheet(isDark);
               return;
             }
