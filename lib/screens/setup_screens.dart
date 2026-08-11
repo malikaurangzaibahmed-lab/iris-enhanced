@@ -172,6 +172,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   // Wizard state variables
   int _currentStep = 0; // 0: Role, 1: Name, 2: Setup (Batch/Teacher), 3: Brain Sync
   String? _role; // 'student' or 'faculty'
+  String? _selectedRoleMorph;
+  final GlobalKey _studentCardKey = GlobalKey();
+  final GlobalKey _facultyCardKey = GlobalKey();
   String _name = '';
   final TextEditingController _nameController = TextEditingController();
 
@@ -483,26 +486,42 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             child: Column(
               children: [
                 _buildRoleCardRow(
+                  key: _studentCardKey,
                   title: 'Student Profile',
                   subtitle: 'Timetables, batch trackers, dynamic alerts',
                   icon: Icons.school_rounded,
                   color: IrisTokens.brand,
+                  isSelected: _selectedRoleMorph == 'student',
                   onTap: (globalPos) {
+                    setState(() => _selectedRoleMorph = 'student');
                     _role = 'student';
                     _triggerAttraction(globalPos);
-                    Future.delayed(const Duration(milliseconds: 400), _nextStep);
+                    Future.delayed(const Duration(milliseconds: 320), () {
+                      if (mounted) {
+                        setState(() => _selectedRoleMorph = null);
+                        _nextStep();
+                      }
+                    });
                   },
                 ),
                 Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
                 _buildRoleCardRow(
+                  key: _facultyCardKey,
                   title: 'Faculty Profile',
                   subtitle: 'Teaching schedules, room finder resources',
                   icon: Icons.badge_rounded,
                   color: IrisTokens.blue,
+                  isSelected: _selectedRoleMorph == 'faculty',
                   onTap: (globalPos) {
+                    setState(() => _selectedRoleMorph = 'faculty');
                     _role = 'faculty';
                     _triggerAttraction(globalPos);
-                    Future.delayed(const Duration(milliseconds: 400), _nextStep);
+                    Future.delayed(const Duration(milliseconds: 320), () {
+                      if (mounted) {
+                        setState(() => _selectedRoleMorph = null);
+                        _nextStep();
+                      }
+                    });
                   },
                 ),
               ],
@@ -515,31 +534,54 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   }
 
   Widget _buildRoleCardRow({
+    Key? key,
     required String title,
     required String subtitle,
     required IconData icon,
     required Color color,
+    required bool isSelected,
     required ValueChanged<Offset> onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
+      key: key,
       onTapDown: (details) {
         IrisHaptics.actionHeavy();
         onTap(details.globalPosition);
       },
-      child: Container(
-        color: Colors.transparent,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 280),
+        curve: const Cubic(0.05, 0.90, 0.10, 1.0),
+        transform: isSelected ? (Matrix4.identity()..scale(1.03)) : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: isDark ? 0.22 : 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+          border: isSelected 
+              ? Border.all(color: color, width: 2.0)
+              : Border.all(color: Colors.transparent, width: 0.0),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.40),
+                    blurRadius: 16,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Row(
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
+                color: isSelected ? color : color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withValues(alpha: 0.25), width: 1.2),
+                border: Border.all(color: color.withValues(alpha: isSelected ? 0.8 : 0.25), width: 1.2),
               ),
-              child: Icon(icon, color: color, size: 28),
+              child: Icon(icon, color: isSelected ? Colors.white : color, size: 28),
             ),
             const SizedBox(width: 20),
             Expanded(
