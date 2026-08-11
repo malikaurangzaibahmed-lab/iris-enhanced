@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../core/tokens.dart';
 import '../core/models.dart';
 import '../core/omni_brain.dart';
@@ -10,6 +11,7 @@ import '../core/vital_theme.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
+import '../widgets/glass_container_transform.dart';
 import 'students_week_screen.dart';
 
 class FacultyDirectoryScreen extends StatefulWidget {
@@ -48,6 +50,7 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
   List<FacultyProfile> _all = const [];
   List<FacultyProfile> _filtered = const [];
   final Map<String, TeacherLocatorResult> _teacherInsightCache = {};
+  final Map<String, GlobalKey> _cardKeys = {};
   bool _loading = true;
   String _error = '';
   String _query = '';
@@ -62,11 +65,9 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     _searchController = TextEditingController(text: widget.initialTeacherQuery ?? '');
     _query = widget.initialTeacherQuery ?? '';
 
-    // Defer heavy data loading and list construction until AFTER the 380ms container morph transition completes.
-    // This prevents main thread CPU blocking and guarantees 60-120 FPS butter-smooth opening morph physics.
-    Future.delayed(const Duration(milliseconds: 320), () {
-      if (mounted) _loadFaculty();
-    });
+    // Start fetching & parsing faculty data immediately on route creation.
+    // Memory/asset cache loads in ~5ms so the directory is fully populated with ZERO delay when container morphing completes.
+    _loadFaculty();
   }
 
   @override
@@ -223,7 +224,7 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     );
   }
 
-  void _openTeacherLocator(FacultyProfile item) {
+  void _openTeacherLocator(FacultyProfile item, {GlobalKey? originKey}) {
     if (widget.isSelectionMode) {
       if (widget.onTeacherSelected != null) {
         widget.onTeacherSelected!(item.name);
@@ -232,11 +233,10 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
       return;
     }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _FacultyDetailSheet(
+    pushGlassContainerMorphRoute(
+      context,
+      originKey: originKey,
+      page: FacultyDetailScreen(
         profile: item,
         brain: widget.brain,
         onLaunchEmail: () => _launchEmail(item.email),
@@ -391,11 +391,13 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     }
 
     final smartColor = statusColor();
+    final cardKey = _cardKeys.putIfAbsent(item.id, () => GlobalKey());
 
     return InkWell(
       borderRadius: BorderRadius.circular(18),
-      onTap: () => _openTeacherLocator(item),
+      onTap: () => _openTeacherLocator(item, originKey: cardKey),
       child: GlassCard(
+        key: cardKey,
         enableOverlay: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -767,6 +769,640 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class FacultyDetailScreen extends StatefulWidget {
+  final FacultyProfile profile;
+  final OmniBrain? brain;
+  final VoidCallback onLaunchEmail;
+  final VoidCallback onLaunchPhone;
+
+  const FacultyDetailScreen({
+    super.key,
+    required this.profile,
+    required this.brain,
+    required this.onLaunchEmail,
+    required this.onLaunchPhone,
+  });
+
+  @override
+  State<FacultyDetailScreen> createState() => _FacultyDetailScreenState();
+}
+
+class _FacultyDetailScreenState extends State<FacultyDetailScreen> {
+  int _selectedDay = DateTime.now().weekday; // 1: Mon .. 5: Fri
+  int _viewSegmentIndex = 0; // 0 = Daily Timeline, 1 = Weekly Matrix
+
+  @override
+  void initState() {
+    super.initState();
+    if (_selectedDay < 1 || _selectedDay > 5) {
+      _selectedDay = 1;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : Colors.black87;
+    final textSecondary = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6);
+    final item = widget.profile;
+
+    final TeacherLocatorResult? result = widget.brain != null
+        ? widget.brain!.locateTeacher(item.name, DateTime.now())
+        : null;
+
+    final daySessions = result != null
+        ? (result.weeklySchedule[_selectedDay] ?? [])
+        : <TeacherScheduleEntry>[];
+
+    final days = [
+      {'idx': 1, 'name': 'Mon', 'fullName': 'Monday'},
+      {'idx': 2, 'name': 'Tue', 'fullName': 'Tuesday'},
+      {'idx': 3, 'name': 'Wed', 'fullName': 'Wednesday'},
+      {'idx': 4, 'name': 'Thu', 'fullName': 'Thursday'},
+      {'idx': 5, 'name': 'Fri', 'fullName': 'Friday'},
+    ];
+
+    int totalWeeklySessions = 0;
+    if (result != null) {
+      for (final list in result.weeklySchedule.values) {
+        totalWeeklySessions += list.length;
+      }
+    }
+
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF070D1B) : const Color(0xFFF1F5F9),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Liquid Glass Top Navigation Bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      IrisHaptics.actionMedium();
+                      Navigator.of(context).pop();
+                    },
+                    icon: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: textPrimary,
+                      size: 20,
+                    ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.05),
+                      padding: const EdgeInsets.all(10),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Faculty Profile & Schedule',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                          ),
+                        ),
+                        Text(
+                          item.department.isEmpty ? 'COMSATS Faculty Member' : item.department,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Hero Specular Glass Card
+                    GlassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              IrisComponents.facultyAvatar(
+                                imageUrl: item.image.isEmpty ? null : item.image,
+                                gender: item.gender,
+                                name: item.name,
+                                radius: 36,
+                                isDark: isDark,
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
+                                        color: textPrimary,
+                                        letterSpacing: -0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      item.department.isEmpty ? 'Academic Faculty' : item.department,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on_rounded,
+                                          size: 13,
+                                          color: IrisTokens.purple,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            item.location.isEmpty ? 'COMSATS Campus' : item.location,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: textSecondary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          // Quick Contact Action Bar
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: widget.onLaunchEmail,
+                                  icon: const Icon(Icons.mail_outline_rounded, size: 16),
+                                  label: const Text('Email Faculty'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: IrisTokens.brand,
+                                    side: BorderSide(
+                                      color: IrisTokens.brand.withValues(alpha: 0.35),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: widget.onLaunchPhone,
+                                  icon: const Icon(Icons.phone_outlined, size: 16),
+                                  label: const Text('Call Office'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: IrisTokens.success,
+                                    side: BorderSide(
+                                      color: IrisTokens.success.withValues(alpha: 0.35),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (result != null && result.liveSession != null) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: IrisTokens.success.withValues(alpha: isDark ? 0.15 : 0.08),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: IrisTokens.success.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: IrisTokens.success,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'LIVE IN SESSION NOW',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                            color: IrisTokens.success,
+                                            letterSpacing: 0.6,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${result.liveSession!.subject} • Room ${result.liveSession!.room} (${result.liveSession!.batch})',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // View Segmented Control (lgw.GlassSegmentedControl)
+                    lgw.GlassSegmentedControl(
+                      selectedIndex: _viewSegmentIndex,
+                      onSegmentSelected: (index) {
+                        IrisSfx.pillTap();
+                        setState(() => _viewSegmentIndex = index);
+                      },
+                      segments: [
+                        'Daily Timeline',
+                        'Week Matrix ($totalWeeklySessions)',
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    if (_viewSegmentIndex == 0) ...[
+                      // Day Choice Chips (Mon - Fri)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: days.map((d) {
+                            final idx = d['idx'] as int;
+                            final name = d['name'] as String;
+                            final count = result?.weeklySchedule[idx]?.length ?? 0;
+                            final isSelected = _selectedDay == idx;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(name),
+                                    const SizedBox(width: 5),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.white.withValues(alpha: 0.25)
+                                            : (isDark ? Colors.white12 : Colors.black12),
+                                        borderRadius: BorderRadius.circular(99),
+                                      ),
+                                      child: Text(
+                                        '$count',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                          color: isSelected ? Colors.white : textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                selected: isSelected,
+                                onSelected: (_) {
+                                  IrisSfx.pillTap();
+                                  setState(() => _selectedDay = idx);
+                                },
+                                selectedColor: IrisTokens.brand,
+                                backgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.03),
+                                labelStyle: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected ? Colors.white : textPrimary,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? IrisTokens.brand
+                                        : (isDark ? Colors.white10 : Colors.black12),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Day Schedule Cards
+                      if (daySessions.isEmpty)
+                        GlassCard(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.event_available_rounded,
+                                    size: 40,
+                                    color: textSecondary.withValues(alpha: 0.35),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    'No lectures scheduled for this day.',
+                                    style: TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        ...daySessions.map((s) {
+                          final isLive = s.isLive;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: GlassCard(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 4.5,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: isLive ? IrisTokens.success : IrisTokens.brand,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          s.subject,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                            color: textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.schedule_rounded,
+                                              size: 13,
+                                              color: isLive ? IrisTokens.success : IrisTokens.brand,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${s.startTime} - ${s.endTime}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: isLive ? IrisTokens.success : IrisTokens.brand,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Icon(
+                                              Icons.meeting_room_rounded,
+                                              size: 13,
+                                              color: textSecondary,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              s.room,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: textSecondary,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                s.batch,
+                                                style: TextStyle(
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: textSecondary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isLive)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: IrisTokens.success,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Text(
+                                        'LIVE',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 0.6,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                    ] else ...[
+                      // Full Week Matrix Bento View
+                      ...days.map((d) {
+                        final dayIdx = d['idx'] as int;
+                        final dayFullName = d['fullName'] as String;
+                        final sessions = result?.weeklySchedule[dayIdx] ?? [];
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      dayFullName.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.1,
+                                        color: IrisTokens.brand,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: IrisTokens.brand.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${sessions.length} Lecture${sessions.length == 1 ? '' : 's'}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: IrisTokens.brand,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                if (sessions.isEmpty)
+                                  Text(
+                                    'No classes scheduled',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontStyle: FontStyle.italic,
+                                      color: textSecondary.withValues(alpha: 0.6),
+                                    ),
+                                  )
+                                else
+                                  ...sessions.map((s) {
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: s.isLive
+                                            ? IrisTokens.success.withValues(alpha: 0.12)
+                                            : (isDark ? Colors.black26 : Colors.white),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: s.isLive
+                                              ? IrisTokens.success.withValues(alpha: 0.35)
+                                              : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.05)),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  s.subject,
+                                                  style: TextStyle(
+                                                    fontSize: 13.5,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: textPrimary,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  '${s.startTime} - ${s.endTime}  •  ${s.room}  •  ${s.batch}',
+                                                  style: TextStyle(
+                                                    fontSize: 11.5,
+                                                    color: textSecondary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (s.isLive)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: IrisTokens.success,
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: const Text(
+                                                'LIVE',
+                                                style: TextStyle(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -4468,8 +4468,12 @@ class _DashboardState extends State<Dashboard>
                 ),
                 triggerBuilder: (context, toggleMenu) {
                   return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: toggleMenu,
-                    child: Icon(Icons.public_rounded, key: _studentPortalNavKey),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(Icons.public_rounded, key: _studentPortalNavKey),
+                    ),
                   );
                 },
                 items: [
@@ -4506,10 +4510,7 @@ class _DashboardState extends State<Dashboard>
         searchIconColor: isDark ? Colors.white70 : Colors.black87,
         onSearchToggle: (active) {
           if (active) {
-            if (_bottomNavIndex == 0) {
-              _showPortalGlassMenu(context);
-              return;
-            } else if (_bottomNavIndex == 2) {
+            if (_bottomNavIndex == 2) {
               _showAboutContextSheet(isDark);
               return;
             }
