@@ -149,11 +149,10 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                       ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
-        );
+                ],
+              );
+            },
+          );
 }
 
 /// Global helper function to launch True Specular Container Morphing

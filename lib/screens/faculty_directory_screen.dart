@@ -788,6 +788,7 @@ class _FacultyDetailSheet extends StatefulWidget {
 
 class _FacultyDetailSheetState extends State<_FacultyDetailSheet> {
   int _selectedDay = DateTime.now().weekday; // 1: Mon .. 5: Fri
+  bool _showFullWeeklyMatrix = false; // Toggle between Day View & Full Week Matrix
 
   @override
   void initState() {
@@ -813,25 +814,33 @@ class _FacultyDetailSheetState extends State<_FacultyDetailSheet> {
         : <TeacherScheduleEntry>[];
 
     final days = [
-      {'idx': 1, 'name': 'Mon'},
-      {'idx': 2, 'name': 'Tue'},
-      {'idx': 3, 'name': 'Wed'},
-      {'idx': 4, 'name': 'Thu'},
-      {'idx': 5, 'name': 'Fri'},
+      {'idx': 1, 'name': 'Mon', 'fullName': 'Monday'},
+      {'idx': 2, 'name': 'Tue', 'fullName': 'Tuesday'},
+      {'idx': 3, 'name': 'Wed', 'fullName': 'Wednesday'},
+      {'idx': 4, 'name': 'Thu', 'fullName': 'Thursday'},
+      {'idx': 5, 'name': 'Fri', 'fullName': 'Friday'},
     ];
+
+    // Calculate total weekly sessions
+    int totalWeeklySessions = 0;
+    if (result != null) {
+      for (final list in result.weeklySchedule.values) {
+        totalWeeklySessions += list.length;
+      }
+    }
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+        color: isDark ? const Color(0xFF0B132B) : const Color(0xFFF8FAFC),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
         ],
       ),
@@ -840,27 +849,29 @@ class _FacultyDetailSheetState extends State<_FacultyDetailSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Drag handle
+            // Drag Handle
             Center(
               child: Container(
                 margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4.5,
+                width: 44,
+                height: 5,
                 decoration: BoxDecoration(
                   color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
             ),
+
+            // Profile Header Card
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
                 children: [
                   IrisComponents.facultyAvatar(
                     imageUrl: item.image.isEmpty ? null : item.image,
                     gender: item.gender,
                     name: item.name,
-                    radius: 30,
+                    radius: 32,
                     isDark: isDark,
                   ),
                   const SizedBox(width: 14),
@@ -871,21 +882,22 @@ class _FacultyDetailSheetState extends State<_FacultyDetailSheet> {
                         Text(
                           item.name,
                           style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 17.5,
+                            fontWeight: FontWeight.w900,
                             color: textPrimary,
+                            letterSpacing: -0.2,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
-                          item.department.isEmpty ? 'Faculty Member' : item.department,
+                          item.department.isEmpty ? 'COMSATS Faculty Member' : item.department,
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
                             color: textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Row(
                           children: [
                             const Icon(Icons.location_on_rounded, size: 13, color: IrisTokens.purple),
@@ -910,25 +922,26 @@ class _FacultyDetailSheetState extends State<_FacultyDetailSheet> {
                 ],
               ),
             ),
-            // Contact Action Bar
+
+            // Quick Contact Action Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: widget.onLaunchEmail,
                       icon: const Icon(Icons.mail_outline_rounded, size: 16),
-                      label: const Text('Email'),
+                      label: const Text('Email Faculty'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: IrisTokens.brand,
-                        side: BorderSide(color: IrisTokens.brand.withValues(alpha: 0.3)),
+                        side: BorderSide(color: IrisTokens.brand.withValues(alpha: 0.35)),
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: widget.onLaunchPhone,
@@ -936,209 +949,486 @@ class _FacultyDetailSheetState extends State<_FacultyDetailSheet> {
                       label: const Text('Call Office'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: IrisTokens.success,
-                        side: BorderSide(color: IrisTokens.success.withValues(alpha: 0.3)),
+                        side: BorderSide(color: IrisTokens.success.withValues(alpha: 0.35)),
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 12),
-            // Day selector header
+
+            // Mode Selector Bar (Day View vs Full Week Matrix)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'WEEKLY SCHEDULE',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      color: textSecondary,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _showFullWeeklyMatrix ? 'FULL WEEKLY MATRIX' : 'DAY-WISE TIMETABLE',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                          color: textSecondary,
+                        ),
+                      ),
+                      Text(
+                        '$totalWeeklySessions lectures scheduled this week',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: textSecondary.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Segmented Mode Switcher
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? Colors.white10 : Colors.black12,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            IrisSfx.pillTap();
+                            setState(() => _showFullWeeklyMatrix = false);
+                          },
+                          borderRadius: BorderRadius.circular(11),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: !_showFullWeeklyMatrix ? IrisTokens.brand : Colors.transparent,
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_view_day_rounded,
+                                  size: 13,
+                                  color: !_showFullWeeklyMatrix ? Colors.white : textSecondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Daily',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: !_showFullWeeklyMatrix ? Colors.white : textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            IrisSfx.pillTap();
+                            setState(() => _showFullWeeklyMatrix = true);
+                          },
+                          borderRadius: BorderRadius.circular(11),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _showFullWeeklyMatrix ? IrisTokens.brand : Colors.transparent,
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.grid_view_rounded,
+                                  size: 13,
+                                  color: _showFullWeeklyMatrix ? Colors.white : textSecondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Week Matrix',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: _showFullWeeklyMatrix ? Colors.white : textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  if (result?.liveSession != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: IrisTokens.success.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: IrisTokens.success.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: IrisTokens.success,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'LIVE IN CLASS',
-                            style: const TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                              color: IrisTokens.success,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            // Weekday Selector Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: days.map((d) {
-                  final idx = d['idx'] as int;
-                  final name = d['name'] as String;
-                  final isSelected = _selectedDay == idx;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(name),
-                      selected: isSelected,
-                      onSelected: (_) {
-                        IrisSfx.pillTap();
-                        setState(() => _selectedDay = idx);
-                      },
-                      selectedColor: IrisTokens.brand,
-                      backgroundColor: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.03),
-                      labelStyle: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.white70 : Colors.black87),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: isSelected
-                              ? IrisTokens.brand
-                              : (isDark ? Colors.white10 : Colors.black12),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 14),
-            // Schedule List
-            Expanded(
-              child: daySessions.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          'No scheduled lectures for this day.',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w500,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: daySessions.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, idx) {
-                        final s = daySessions[idx];
-                        final isLive = s.isLive;
-                        return Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: isLive
-                                ? IrisTokens.success.withValues(alpha: isDark ? 0.12 : 0.08)
-                                : (isDark
-                                    ? Colors.white.withValues(alpha: 0.04)
-                                    : Colors.black.withValues(alpha: 0.02)),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isLive
-                                  ? IrisTokens.success.withValues(alpha: 0.4)
-                                  : (isDark ? Colors.white10 : Colors.black12),
+
+            const SizedBox(height: 12),
+
+            // Content Body: Day View OR Full Week Matrix
+            if (!_showFullWeeklyMatrix) ...[
+              // Day Selector Chips (Mon - Fri)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: days.map((d) {
+                    final idx = d['idx'] as int;
+                    final name = d['name'] as String;
+                    final count = result?.weeklySchedule[idx]?.length ?? 0;
+                    final isSelected = _selectedDay == idx;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(name),
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.white.withValues(alpha: 0.25)
+                                    : (isDark ? Colors.white12 : Colors.black12),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: Text(
+                                '$count',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: isSelected ? Colors.white : textSecondary,
+                                ),
+                              ),
                             ),
+                          ],
+                        ),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          IrisSfx.pillTap();
+                          setState(() => _selectedDay = idx);
+                        },
+                        selectedColor: IrisTokens.brand,
+                        backgroundColor: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        labelStyle: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: isSelected ? Colors.white : textPrimary,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(
+                            color: isSelected
+                                ? IrisTokens.brand
+                                : (isDark ? Colors.white10 : Colors.black12),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 4,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: isLive ? IrisTokens.success : IrisTokens.brand,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // Day Schedule Timeline Cards
+              Expanded(
+                child: daySessions.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.event_available_rounded,
+                              size: 44,
+                              color: textSecondary.withValues(alpha: 0.3),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'No scheduled lectures for this day.',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: textSecondary,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      s.subject,
-                                      style: TextStyle(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      '${s.startTime} - ${s.endTime}  •  ${s.room}  •  ${s.batch}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: daySessions.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (context, idx) {
+                          final s = daySessions[idx];
+                          final isLive = s.isLive;
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isLive
+                                  ? IrisTokens.success.withValues(alpha: isDark ? 0.14 : 0.08)
+                                  : (isDark
+                                      ? Colors.white.withValues(alpha: 0.04)
+                                      : Colors.black.withValues(alpha: 0.02)),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isLive
+                                    ? IrisTokens.success.withValues(alpha: 0.45)
+                                    : (isDark ? Colors.white10 : Colors.black12),
+                                width: isLive ? 1.5 : 1.0,
                               ),
-                              if (isLive)
+                            ),
+                            child: Row(
+                              children: [
+                                // Left Accent Pillar
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  width: 4.5,
+                                  height: 44,
                                   decoration: BoxDecoration(
-                                    color: IrisTokens.success,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'LIVE',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: 0.5,
-                                    ),
+                                    color: isLive ? IrisTokens.success : IrisTokens.brand,
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
                                 ),
+                                const SizedBox(width: 14),
+                                // Subject Info & Room Tags
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        s.subject,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.schedule_rounded,
+                                            size: 13,
+                                            color: isLive ? IrisTokens.success : IrisTokens.brand,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${s.startTime} - ${s.endTime}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: isLive ? IrisTokens.success : IrisTokens.brand,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Icon(
+                                            Icons.meeting_room_rounded,
+                                            size: 13,
+                                            color: textSecondary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            s.room,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: textSecondary,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              s.batch,
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: textSecondary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isLive)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: IrisTokens.success,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text(
+                                      'LIVE NOW',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        letterSpacing: 0.6,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ] else ...[
+              // Full Weekly Overview Matrix View (Mon - Fri Bento Stack)
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: days.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 14),
+                  itemBuilder: (context, idx) {
+                    final d = days[idx];
+                    final dayIdx = d['idx'] as int;
+                    final dayFullName = d['fullName'] as String;
+                    final sessions = result?.weeklySchedule[dayIdx] ?? [];
+
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.black.withValues(alpha: 0.02),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? Colors.white10 : Colors.black12,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                dayFullName.toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.1,
+                                  color: IrisTokens.brand,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: IrisTokens.brand.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${sessions.length} Lecture${sessions.length == 1 ? '' : 's'}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: IrisTokens.brand,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                        );
-                      },
-                    ),
-            ),
+                          const SizedBox(height: 10),
+                          if (sessions.isEmpty)
+                            Text(
+                              'No classes scheduled',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontStyle: FontStyle.italic,
+                                color: textSecondary.withValues(alpha: 0.6),
+                              ),
+                            )
+                          else
+                            ...sessions.map((s) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: s.isLive
+                                      ? IrisTokens.success.withValues(alpha: 0.12)
+                                      : (isDark ? Colors.black26 : Colors.white),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: s.isLive
+                                        ? IrisTokens.success.withValues(alpha: 0.35)
+                                        : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.05)),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            s.subject,
+                                            style: TextStyle(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: textPrimary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${s.startTime} - ${s.endTime}  •  ${s.room}  •  ${s.batch}',
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              color: textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (s.isLive)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: IrisTokens.success,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          'LIVE',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ],
         ),
       ),
