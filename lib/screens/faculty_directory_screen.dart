@@ -14,6 +14,21 @@ import '../services/helpdesk_faculty_service.dart';
 import '../widgets/glass_container_transform.dart';
 import 'students_week_screen.dart';
 
+String resolveFacultyImageUrl(String raw) {
+  final image = raw.trim();
+  if (image.isEmpty) return '';
+  if (image.contains('uploads/')) {
+    final filename = image.split('/').last;
+    return 'assets/faculty_images/$filename';
+  }
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return image;
+  }
+  const backendBase = 'https://cui-helpdesk-backend.onrender.com';
+  if (image.startsWith('/')) return '$backendBase$image';
+  return '$backendBase/$image';
+}
+
 class FacultyDirectoryScreen extends StatefulWidget {
   final OmniBrain? brain;
   final ValueChanged<String>? onTeacherSelected;
@@ -41,8 +56,6 @@ class FacultyDirectoryScreen extends StatefulWidget {
 }
 
 class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
-  static const String _backendBase = 'https://cui-helpdesk-backend.onrender.com';
-
   final HelpdeskFacultyService _service = HelpdeskFacultyService();
   late final TextEditingController _searchController;
   Timer? _searchDebounce;
@@ -65,9 +78,11 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     _searchController = TextEditingController(text: widget.initialTeacherQuery ?? '');
     _query = widget.initialTeacherQuery ?? '';
 
-    // Start fetching & parsing faculty data immediately on route creation.
-    // Memory/asset cache loads in ~5ms so the directory is fully populated with ZERO delay when container morphing completes.
-    _loadFaculty();
+    // Defer populating full 150-item ListView past the 280ms container morph transition.
+    // Memory/asset cache fetches instantly in microtasks, while GPU container morphing runs smoothly at 60-120 FPS.
+    Future.delayed(const Duration(milliseconds: 280), () {
+      if (mounted) _loadFaculty();
+    });
   }
 
   @override
@@ -145,17 +160,7 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
   }
 
   String _resolveImageUrl(String raw) {
-    final image = raw.trim();
-    if (image.isEmpty) return '';
-    if (image.contains('uploads/')) {
-      final filename = image.split('/').last;
-      return 'assets/faculty_images/$filename';
-    }
-    if (image.startsWith('http://') || image.startsWith('https://')) {
-      return image;
-    }
-    if (image.startsWith('/')) return '$_backendBase$image';
-    return '$_backendBase/$image';
+    return resolveFacultyImageUrl(raw);
   }
 
   String _blockFromLocation(String location) {
@@ -393,13 +398,14 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     final smartColor = statusColor();
     final cardKey = _cardKeys.putIfAbsent(item.id, () => GlobalKey());
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: () => _openTeacherLocator(item, originKey: cardKey),
-      child: GlassCard(
-        key: cardKey,
-        enableOverlay: false,
-        child: Column(
+    return RepaintBoundary(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => _openTeacherLocator(item, originKey: cardKey),
+        child: GlassCard(
+          key: cardKey,
+          enableOverlay: false,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -545,8 +551,9 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -906,7 +913,7 @@ class _FacultyDetailScreenState extends State<FacultyDetailScreen> {
                           Row(
                             children: [
                               IrisComponents.facultyAvatar(
-                                imageUrl: item.image.isEmpty ? null : item.image,
+                                imageUrl: resolveFacultyImageUrl(item.image).isEmpty ? null : resolveFacultyImageUrl(item.image),
                                 gender: item.gender,
                                 name: item.name,
                                 radius: 36,

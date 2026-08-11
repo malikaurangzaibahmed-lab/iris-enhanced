@@ -2025,14 +2025,14 @@ class _IrisGlassSwitchState extends State<IrisGlassSwitch> with SingleTickerProv
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(100),
               color: Color.lerp(
-                (isDark ? Colors.white : Colors.black).withOpacity(0.06),
-                activeCol.withOpacity(0.18),
+                (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                activeCol.withValues(alpha: 0.18),
                 val,
               ),
               border: Border.all(
                 color: Color.lerp(
-                  (isDark ? Colors.white : Colors.black).withOpacity(0.12),
-                  activeCol.withOpacity(0.4),
+                  (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
+                  activeCol.withValues(alpha: 0.4),
                   val,
                 )!,
                 width: 1.0,
@@ -2055,8 +2055,8 @@ class _IrisGlassSwitchState extends State<IrisGlassSwitch> with SingleTickerProv
                       boxShadow: [
                         BoxShadow(
                           color: Color.lerp(
-                            Colors.black.withOpacity(0.1),
-                            activeCol.withOpacity(0.3),
+                            Colors.black.withValues(alpha: 0.1),
+                            activeCol.withValues(alpha: 0.3),
                             val,
                           )!,
                           blurRadius: 4,
