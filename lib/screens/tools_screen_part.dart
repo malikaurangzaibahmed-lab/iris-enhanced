@@ -76,20 +76,12 @@ class ToolsScreenState extends State<ToolsScreen> {
         description: 'Compute GPA and CGPA quickly',
       ),
       _ToolItem(
-        id: 'teacher_locator',
-        title: 'Teacher Locator',
-        subtitle: 'Live teacher status and weekly schedule',
+        id: 'faculty_directory',
+        title: 'Faculty Directory & Locator',
+        subtitle: 'Live status, office hours, & timetables',
         icon: Icons.person_search_rounded,
         color: IrisTokens.purple,
-        description: 'Locate a teacher instantly with smart matching',
-      ),
-      _ToolItem(
-        id: 'teacher_directory',
-        title: 'Teacher Directory',
-        subtitle: 'Contact info and office hours',
-        icon: Icons.person_rounded,
-        color: IrisTokens.purple,
-        description: 'Search all teachers by name and department',
+        description: 'Search all faculty profiles, office locations, and live timetables',
       ),
       _ToolItem(
         id: 'browse_classes',
@@ -510,17 +502,19 @@ class ToolsScreenState extends State<ToolsScreen> {
           accentColor: const Color(0xFF10B981),
         );
         return;
+      case 'faculty_directory':
       case 'teacher_locator':
+      case 'teacher_directory':
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
-          page: TeacherLocatorScreen(
+          page: FacultyDirectoryScreen(
             brain: widget.brain,
+            onRoleChanged: widget.onRoleChanged,
             memory: widget.memory,
             currentBatch: widget.batch,
-            onRoleChanged: widget.onRoleChanged,
           ),
-          accentColor: const Color(0xFF3B82F6),
+          accentColor: const Color(0xFF8B5CF6),
         );
         return;
       case 'browse_classes':
@@ -536,19 +530,6 @@ class ToolsScreenState extends State<ToolsScreen> {
             showBackButton: true,
           ),
           accentColor: const Color(0xFF8B5CF6),
-        );
-        return;
-      case 'teacher_directory':
-        pushGlassContainerMorphRoute(
-          context,
-          originKey: originKey,
-          page: FacultyDirectoryScreen(
-            brain: widget.brain,
-            onRoleChanged: widget.onRoleChanged,
-            memory: widget.memory,
-            currentBatch: widget.batch,
-          ),
-          accentColor: const Color(0xFFEC4899),
         );
         return;
       case 'makeup_scheduler':
