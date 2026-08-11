@@ -61,8 +61,11 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     super.initState();
     _searchController = TextEditingController(text: widget.initialTeacherQuery ?? '');
     _query = widget.initialTeacherQuery ?? '';
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_loadFaculty());
+
+    // Defer heavy data loading and list construction until AFTER the 380ms container morph transition completes.
+    // This prevents main thread CPU blocking and guarantees 60-120 FPS butter-smooth opening morph physics.
+    Future.delayed(const Duration(milliseconds: 320), () {
+      if (mounted) _loadFaculty();
     });
   }
 

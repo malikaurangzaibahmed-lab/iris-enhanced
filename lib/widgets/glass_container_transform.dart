@@ -36,19 +36,22 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
             final screenSize = MediaQuery.of(context).size;
             final fullScreenRect = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
 
-            // Compute exact origin start rect
-            Rect startRect = initialBounds ??
-                Rect.fromCenter(
+            // Compute exact origin start rect once and lock it to prevent layout shifts
+            Rect startRect = initialBounds ?? Rect.zero;
+            if (startRect == Rect.zero) {
+              if (originKey != null && originKey.currentContext != null) {
+                final renderBox = originKey.currentContext!.findRenderObject() as RenderBox?;
+                if (renderBox != null && renderBox.hasSize) {
+                  final pos = renderBox.localToGlobal(Offset.zero);
+                  startRect = pos & renderBox.size;
+                }
+              }
+              if (startRect == Rect.zero) {
+                startRect = Rect.fromCenter(
                   center: Offset(screenSize.width / 2, screenSize.height / 2),
                   width: screenSize.width * 0.45,
                   height: 100,
                 );
-
-            if (originKey != null && originKey.currentContext != null) {
-              final renderBox = originKey.currentContext!.findRenderObject() as RenderBox?;
-              if (renderBox != null && renderBox.hasSize) {
-                final pos = renderBox.localToGlobal(Offset.zero);
-                startRect = pos & renderBox.size;
               }
             }
 
@@ -166,12 +169,22 @@ Future<T?> pushGlassContainerMorphRoute<T>(
   Color? accentColor,
 }) {
   IrisHaptics.actionMedium();
+
+  Rect? bounds = initialBounds;
+  if (bounds == null && originKey != null && originKey.currentContext != null) {
+    final renderBox = originKey.currentContext!.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      final pos = renderBox.localToGlobal(Offset.zero);
+      bounds = pos & renderBox.size;
+    }
+  }
+
   return Navigator.of(context).push<T>(
     GlassContainerTransformRoute<T>(
       destinationPage: page,
       originWidget: originWidget,
       originKey: originKey,
-      initialBounds: initialBounds,
+      initialBounds: bounds,
       originRadius: originRadius,
       accentColor: accentColor,
     ),
