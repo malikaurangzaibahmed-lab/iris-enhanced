@@ -36,10 +36,14 @@ Future<T?> pushIconLaunchRoute<T>(
       barrierDismissible: false,
       barrierColor: Colors.transparent,
       pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionDuration: transitionDuration ?? const Duration(milliseconds: 460),
+      transitionDuration: transitionDuration ?? const Duration(milliseconds: 380),
       reverseTransitionDuration:
-          reverseTransitionDuration ?? const Duration(milliseconds: 380),
+          reverseTransitionDuration ?? const Duration(milliseconds: 300),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        if (animation.isCompleted) {
+          return child;
+        }
+
         final isDark = Theme.of(context).brightness == Brightness.dark;
         final screenSize = MediaQuery.of(context).size;
         final fullScreenRect = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
@@ -60,8 +64,8 @@ Future<T?> pushIconLaunchRoute<T>(
 
         final curve = CurvedAnimation(
           parent: animation,
-          curve: const Cubic(0.16, 1.0, 0.30, 1.0),
-          reverseCurve: Curves.easeInCubic,
+          curve: const Cubic(0.05, 0.90, 0.10, 1.0),
+          reverseCurve: const Cubic(0.30, 0.0, 0.80, 0.15),
         );
 
         final currentRect = Rect.lerp(startRect, fullScreenRect, curve.value) ?? fullScreenRect;
