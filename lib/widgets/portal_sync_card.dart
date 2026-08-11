@@ -9,6 +9,8 @@ import '../core/theme_signals.dart';
 import '../core/vital_theme.dart';
 import 'glass_card.dart';
 import 'vital_card.dart';
+import 'glass_container_transform.dart';
+import '../services/ui_feedback.dart';
 
 class PortalSyncCard extends StatefulWidget {
   final bool isDark;
@@ -66,15 +68,19 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
     }
   }
 
+  final GlobalKey _cardKey = GlobalKey();
+
   void _openPortal() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const PortalScreen(
-          url: 'https://swl-sis.comsats.edu.pk/',
-          title: 'COMSATS Student Portal',
-          sessionScope: 'student',
-        ),
+    IrisHaptics.actionMedium();
+    pushGlassContainerMorphRoute(
+      context,
+      originKey: _cardKey,
+      page: const PortalScreen(
+        url: 'https://swl-sis.comsats.edu.pk/',
+        title: 'COMSATS Student Portal',
+        sessionScope: 'student',
       ),
+      accentColor: const Color(0xFF3B82F6),
     );
   }
 
@@ -98,6 +104,7 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
             child: GestureDetector(
+              key: _cardKey,
               onTap: _openPortal,
               child: VitalCard(
                 backgroundColor: isFailed ? VitalTokens.orange.withValues(alpha: widget.isDark ? 0.15 : 0.08) : null,
@@ -199,6 +206,7 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: GestureDetector(
+            key: _cardKey,
             onTap: _openPortal,
             child: GlassCard(
               child: Column(
