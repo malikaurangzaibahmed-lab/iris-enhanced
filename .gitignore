@@ -68,6 +68,7 @@ ios/Flutter/Flutter.podspec
 *~
 *.bak
 *.old
+*.zip
 
 # Exclude large assets if needed
 # assets/reference pics/
