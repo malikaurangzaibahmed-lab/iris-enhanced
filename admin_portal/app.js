@@ -69,12 +69,12 @@ function setupAuthListeners() {
       if (user) {
         logTerminal(`Authenticated admin session verified: ${user.email}`, "success");
         if (overlay) overlay.style.display = 'none';
-        initFirestoreFeedbackStream();
+        initFirestoreSubscriptions();
       } else {
         const localSession = localStorage.getItem('iris_admin_authenticated');
         if (localSession === 'true') {
           if (overlay) overlay.style.display = 'none';
-          initFirestoreFeedbackStream();
+          initFirestoreSubscriptions();
         } else {
           logTerminal("Authentication required. Please enter admin credentials.", "info");
           if (overlay) overlay.style.display = 'flex';
@@ -85,10 +85,124 @@ function setupAuthListeners() {
     const localSession = localStorage.getItem('iris_admin_authenticated');
     if (localSession === 'true' && overlay) {
       overlay.style.display = 'none';
+      initFirestoreSubscriptions();
     } else if (overlay) {
       overlay.style.display = 'flex';
     }
   }
+}
+
+// Subscribe to all Live Firestore State Collections & Documents
+function initFirestoreSubscriptions() {
+  if (!db) return;
+  initFirestoreGlobalConfig();
+  initFirestoreAppUpdateConfig();
+  initFirestoreNoticesStream();
+  initFirestoreTimetableStream();
+  initFirestoreFeedbackStream();
+}
+
+function initFirestoreGlobalConfig() {
+  if (!db) return;
+  try {
+    db.collection('config').doc('global').onSnapshot(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.academic_period) {
+          setAcademicModeUI(data.academic_period);
+          logTerminal(`Live Firestore: Academic period synced to [${data.academic_period.toUpperCase()}]`, "info");
+        }
+      }
+    }, err => console.warn("Global config listener error:", err));
+  } catch (e) {}
+}
+
+function setAcademicModeUI(mode) {
+  const ribbonSegments = document.querySelectorAll('#academic-ribbon .ribbon-segment');
+  ribbonSegments.forEach(seg => {
+    seg.classList.toggle('active', seg.getAttribute('data-period') === mode);
+  });
+
+  const titles = {
+    classes: "REGULAR CLASSES MODE ACTIVE",
+    midterm: "MIDTERM EXAM PERIOD ACTIVE",
+    finals: "FINAL EXAM PERIOD ACTIVE",
+    sports: "SPORTS WEEK PERIOD ACTIVE"
+  };
+
+  const texts = {
+    classes: "Standard curriculum timetables, active period countdowns, and room locator indexing enabled.",
+    midterm: "Midterm exam date sheets take priority on student home screens and widgets.",
+    finals: "Final exam schedule view active with seating room indicators.",
+    sports: "Sports week notices and schedule highlighted across mobile noticeboards."
+  };
+
+  const titleEl = document.getElementById('mode-desc-title');
+  const textEl = document.getElementById('mode-desc-text');
+  if (titleEl) titleEl.innerText = titles[mode] || titles.classes;
+  if (textEl) textEl.innerText = texts[mode] || texts.classes;
+
+  // Update Emulator Preview
+  const emModeBadge = document.getElementById('emulator-mode-badge');
+  const emModeTitle = document.getElementById('emulator-mode-title');
+  if (emModeBadge) emModeBadge.innerText = `${mode.toUpperCase()} MODE`;
+  if (emModeTitle) emModeTitle.innerText = titles[mode];
+}
+
+function initFirestoreAppUpdateConfig() {
+  if (!db) return;
+  try {
+    db.collection('config').doc('app_update').onSnapshot(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.version_name) document.getElementById('apk-version-name').value = data.version_name;
+        if (data.version_code) document.getElementById('apk-version-code').value = data.version_code;
+        if (data.release_notes) document.getElementById('apk-notes').value = data.release_notes;
+        if (data.apk_url) document.getElementById('apk-url-input').value = data.apk_url;
+        if (typeof data.show_update_banner === 'boolean') {
+          document.getElementById('apk-switch-visible').checked = data.show_update_banner;
+        }
+        logTerminal("Live Firestore: Remote OTA release config synchronized.", "info");
+      }
+    }, err => console.warn("App update config listener error:", err));
+  } catch (e) {}
+}
+
+function initFirestoreNoticesStream() {
+  if (!db) return;
+  try {
+    db.collection('notices').orderBy('created_at', 'desc').limit(1).onSnapshot(snapshot => {
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        const data = doc.data();
+        const emTitle = document.getElementById('emulator-notice-title');
+        const emBody = document.getElementById('emulator-notice-body');
+        if (emTitle) emTitle.innerText = (data.title || 'CAMPUS NOTICEBOARD').toUpperCase();
+        if (emBody) emBody.innerText = data.body || 'No active emergency notices';
+        logTerminal(`Live Firestore: Synced notice [${data.title}]`, "info");
+      }
+    }, err => console.warn("Notices stream error:", err));
+  } catch (e) {}
+}
+
+function initFirestoreTimetableStream() {
+  if (!db) return;
+  try {
+    db.collection('timetables').doc('seed').onSnapshot(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.sessions && Array.isArray(data.sessions)) {
+          realTimetable = data.sessions;
+          buildFacultyFromTimetable();
+          updatePlatformStats();
+          updateActiveClassCard();
+          renderTimetable();
+          renderFaculty();
+          logTerminal(`Live Firestore: Synced ${realTimetable.length.toLocaleString()} timetable sessions.`, "success");
+        }
+      }
+    }, err => console.warn("Timetable stream error:", err));
+  } catch (e) {}
 }
 
 function handleLoginSubmit(event) {
@@ -244,8 +358,8 @@ function buildFacultyFromTimetable() {
         name: item.teacher,
         dept: item.department || "Academic Faculty",
         designation: "Faculty Instructor",
-        room: item.room || "Campus Room",
-        email: `${item.teacher.toLowerCase().replace(/[^a-z]/g, '')}@comsats.edu.pk`
+        room: item.room && item.room !== "N/A" ? item.room : "Campus Venue",
+        email: item.email || item.teacher_email || "Official Department Faculty"
       });
     }
   });
