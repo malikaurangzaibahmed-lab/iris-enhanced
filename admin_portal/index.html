@@ -3,537 +3,900 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IRIS // Administrative Control Console & Telemetry Hub</title>
+  <title>Nexsync // Control Center Console</title>
   
-  <!-- Meta & Favicon -->
-  <meta name="description" content="IRIS Enterprise Administrator Control Center. Daily Timetable Seeder, Exam Excel Converter, OTA Release Manager, Alert Broadcast Engine, and Feedback Telemetry Viewer.">
-  <meta name="theme-color" content="#070a12">
-  <link rel="icon" type="image/png" href="favicon.png">
-
-  <!-- Google Fonts -->
+  <!-- Google Fonts for High-Fidelity UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4.0.0">
+  <!-- Sleek Tech Stylesheet -->
+  <link rel="stylesheet" href="styles.css?v=1.3.0">
 </head>
 <body>
 
-  <!-- Liquid Background Glow Blobs -->
-  <div class="liquid-bg-container">
+  <!-- DYNAMIC LIQUID GLASS BACKGROUND -->
+  <div class="liquid-background-container">
     <div class="liquid-blob blob-1"></div>
     <div class="liquid-blob blob-2"></div>
+    <div class="liquid-blob blob-3"></div>
+    <div class="liquid-blob blob-4"></div>
   </div>
 
-  <!-- SECURITY ACCESS GATEWAY / AUTH OVERLAY -->
+  <div id="svg-filters-container" style="position: absolute; width: 0; height: 0; pointer-events: none; overflow: hidden;"></div>
+
+  <!-- TECH LOADER -->
+  <div id="initial-loader" class="loader-overlay">
+    <div class="loader-content">
+      <div class="tech-glow-sphere"></div>
+      <div class="system-svg-loader">
+        <svg viewBox="0 0 50 50">
+          <circle cx="25" cy="25" r="20"></circle>
+        </svg>
+      </div>
+      <div class="loader-title">NEXSYNC // CONTROL CENTER</div>
+      <div class="loader-subtitle">initializing administrative console...</div>
+      <div class="loader-bar"><div class="bar-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- SECURITY ACCESS GATEWAY -->
   <div id="auth-overlay" class="glass-overlay" style="display: none;">
-    <div class="glass-card auth-card" style="width: 100%; max-width: 420px; margin: auto; text-align: center;">
-      <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--brand-cyan), var(--brand-blue)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 0 24px rgba(0, 229, 255, 0.4);">
-        <i class="fa-solid fa-shield-halved" style="font-size: 24px; color: #050811;"></i>
+    <div class="tech-card auth-card">
+      <button id="btn-auth-config" class="btn-close" style="position: absolute; right: 24px; top: 24px;" title="Configure Telemetry Link"><i class="fa-solid fa-sliders"></i></button>
+      
+      <div class="tech-logo-badge">
+        <i class="fa-solid fa-circle-nodes logo-icon"></i>
       </div>
-      <h2 style="font-family: var(--font-display); font-weight: 800; font-size: 22px; margin-bottom: 4px;">IRIS Control Console</h2>
-      <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px;">Administrator authentication required</p>
-
-      <form id="auth-form" onsubmit="handleLoginSubmit(event)">
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label">Access Email</label>
-          <input type="email" id="auth-email" class="form-input" placeholder="Enter Admin Access Email" required>
-        </div>
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label">Security Access Key</label>
-          <input type="password" id="auth-pass" class="form-input" placeholder="Enter Security Access Key" required>
-        </div>
-        <button type="submit" class="btn-glass btn-brand" style="width: 100%; padding: 14px; margin-top: 8px;">
-          <i class="fa-solid fa-key"></i> Authenticate Console
+      <h2>Nexsync Control Console</h2>
+      <p class="subtitle">secure administrator authentication required</p>
+      
+      <div class="connection-beacon" id="auth-connection-beacon">
+        <span class="beacon-dot"></span>
+        <span id="connection-beacon-text">Telemetry secure link active</span>
+      </div>
+      
+      <div class="input-group">
+        <i class="fa-solid fa-user-shield input-icon"></i>
+        <input type="email" id="auth-email" placeholder="Access Profile Email" required autocomplete="email">
+      </div>
+      <div class="input-group">
+        <i class="fa-solid fa-key input-icon"></i>
+        <input type="password" id="auth-pass" placeholder="Security Access Key" required autocomplete="current-password">
+        <button type="button" id="btn-toggle-password" class="password-toggle-btn" title="Toggle visibility">
+          <i class="fa-solid fa-eye"></i>
         </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- CONFIGURATION MODAL -->
-  <div id="config-modal" class="glass-overlay" style="display: none;">
-    <div class="glass-card" style="width: 100%; max-width: 520px; margin: auto;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="font-size: 18px; font-weight: 800;"><i class="fa-solid fa-sliders" style="color: var(--brand-cyan);"></i> Firestore Configuration</h3>
-        <button class="btn-glass" onclick="closeConfigModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">Enter your custom Firebase project configuration JSON to link live database telemetry.</p>
-      <div class="form-group">
-        <textarea id="firebase-config-json" class="form-textarea" rows="8" style="font-family: var(--font-mono); font-size: 12px;"></textarea>
-      </div>
-      <button class="btn-glass btn-brand" style="width: 100%;" onclick="saveFirebaseConfig()">
-        <i class="fa-solid fa-floppy-disk"></i> Save & Reconnect Engine
+      
+      <button id="btn-login" class="btn btn-primary btn-full">
+        <span>Verify Access Portal</span>
+        <i class="fa-solid fa-shield-halved"></i>
       </button>
+      
+      <div id="auth-error" class="error-msg"></div>
     </div>
   </div>
 
-  <div id="app-wrapper">
-
-    <!-- Top Navigation Bar -->
-    <header class="navbar">
-      <a href="#dashboard" class="nav-brand" onclick="switchPage('dashboard')">
-        <img src="iris_logo.png" alt="IRIS Logo" class="brand-icon-img">
-        <span class="brand-title">IRIS // ADMIN</span>
-        <span class="brand-tag">v1.0.3</span>
-      </a>
-
-      <nav class="nav-links">
-        <button id="tab-dashboard" class="nav-tab active" onclick="switchPage('dashboard')">
-          <i class="fa-solid fa-gauge-high"></i> Console
-        </button>
-        <button id="tab-timetable" class="nav-tab" onclick="switchPage('timetable')">
-          <i class="fa-solid fa-calendar-days"></i> Timetables
-        </button>
-        <button id="tab-exams" class="nav-tab" onclick="switchPage('exams')">
-          <i class="fa-solid fa-file-excel"></i> Exam Converter
-        </button>
-        <button id="tab-broadcast" class="nav-tab" onclick="switchPage('broadcast')">
-          <i class="fa-solid fa-bullhorn"></i> Alert Studio
-        </button>
-        <button id="tab-directory" class="nav-tab" onclick="switchPage('directory')">
-          <i class="fa-solid fa-address-book"></i> Faculty
-        </button>
-        <button id="tab-feedback" class="nav-tab" onclick="switchPage('feedback')">
-          <i class="fa-solid fa-comments"></i> User Feedback
-        </button>
-        <button id="tab-releases" class="nav-tab" onclick="switchPage('releases')">
-          <i class="fa-solid fa-rocket"></i> OTA Releases
-        </button>
-      </nav>
-
+  <!-- SYSTEM WORKSPACE -->
+  <div id="dashboard-container" class="app-layout" style="display: none;">
+    <!-- FLOATING MAIN NAVBAR -->
+    <header class="system-header-nav">
+      <div class="brand">
+        <i class="fa-solid fa-circle-nodes brand-icon"></i>
+        <span class="brand-name">nexsync // control center</span>
+        <span class="badge">
+          <span class="status-dot pulsing-active"></span>
+          <span>SYSTEM CONNECTED</span>
+        </span>
+        <span class="badge" style="background: rgba(0,0,0,0.02);" id="latency-badge">
+          <i class="fa-solid fa-wifi" style="margin-right: 4px; color: var(--accent-indigo);"></i> <span id="latency-val" style="font-family: var(--font-mono); font-size: 9px;">8ms</span>
+        </span>
+      </div>
+      
       <div class="nav-actions">
-        <span class="badge-status badge-live">SYSTEM ONLINE</span>
-        <button class="btn-glass" onclick="openConfigModal()" title="Database Config">
+        <button id="btn-theme-toggle" class="btn btn-icon" title="Toggle Light/Dark Theme">
+          <i class="fa-solid fa-sun"></i>
+        </button>
+        <button id="btn-show-config" class="btn btn-icon" title="System Configuration">
           <i class="fa-solid fa-sliders"></i>
         </button>
-        <button class="btn-glass" onclick="refreshAllData()">
-          <i class="fa-solid fa-rotate-right"></i> Sync
-        </button>
+        <div class="user-profile">
+          <div id="user-monogram" class="monogram">OP</div>
+          <button id="btn-logout" class="btn btn-logout" title="Disconnect Session Link">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- ====================================================================
-         PAGE 1: DASHBOARD & TELEMETRY CONSOLE
-         ==================================================================== -->
-    <main id="page-dashboard" class="page-section active">
-      <div class="section-banner">
-        <div>
-          <h1 class="banner-title">Administrative Dashboard</h1>
-          <p class="banner-subtitle">Real-time system telemetry, active academic mode swapper, and interactive student device emulator.</p>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 340px; gap: 24px;">
+    <!-- ASYMMETRIC 3-COLUMN WORKSPACE -->
+    <main class="dashboard-grid">
+      
+      <!-- COLUMN 1: REMOTE SYSTEMS & MODE SWAPPERS (Narrow) -->
+      <section class="grid-col narrow-col">
         
-        <!-- Left Side: Controls & Telemetry -->
-        <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- CARD 1: TERM SCHEDULER HUB -->
+        <div class="tech-card">
+          <div class="card-header">
+            <i class="fa-solid fa-calendar-days icon-accent"></i>
+            <h3>Term Scheduler</h3>
+          </div>
+          <p class="card-desc">Select active semester configurations. Changes propagate live to mobile client noticeboards.</p>
           
-          <!-- Term Scheduler & Academic Mode Swapper -->
-          <div class="glass-card">
-            <span class="form-label" style="margin-bottom: 14px; display: block;"><i class="fa-solid fa-calendar-days"></i> Term Scheduler & Mode Swapper</span>
-            <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">Select active term mode. Changes propagate live across all connected mobile client instances via Firestore.</p>
-
-            <div class="ribbon-switcher" id="academic-ribbon">
-              <div class="ribbon-segment active" data-period="classes" onclick="setAcademicMode('classes')"><i class="fa-solid fa-graduation-cap"></i> CLASSES</div>
-              <div class="ribbon-segment" data-period="midterm" onclick="setAcademicMode('midterm')"><i class="fa-solid fa-pen-ruler"></i> MIDS</div>
-              <div class="ribbon-segment" data-period="finals" onclick="setAcademicMode('finals')"><i class="fa-solid fa-award"></i> FINALS</div>
-              <div class="ribbon-segment" data-period="sports" onclick="setAcademicMode('sports')"><i class="fa-solid fa-volleyball"></i> SPORTS</div>
-            </div>
-
-            <div style="background: rgba(0, 229, 255, 0.08); padding: 14px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.2);">
-              <div style="font-size: 11px; font-weight: 800; color: var(--brand-cyan); text-transform: uppercase; margin-bottom: 4px;" id="mode-desc-title">REGULAR CLASSES MODE ACTIVE</div>
-              <div style="font-size: 12.5px; color: var(--text-muted);" id="mode-desc-text">Standard curriculum timetables, active period countdowns, and room locator indexing enabled.</div>
-            </div>
+          <!-- Segmented Switcher -->
+          <div class="ribbon-switcher" id="academic-ribbon">
+            <div class="ribbon-segment active" data-period="classes"><i class="fa-solid fa-graduation-cap"></i> CLASSES</div>
+            <div class="ribbon-segment" data-period="midterms"><i class="fa-solid fa-pen-clip"></i> MIDS</div>
+            <div class="ribbon-segment" data-period="finals"><i class="fa-solid fa-award"></i> FINALS</div>
+            <div class="ribbon-segment" data-period="sports_week"><i class="fa-solid fa-volleyball"></i> SPORTS</div>
           </div>
-
-          <!-- Active Class Telemetry Card -->
-          <div class="glass-card">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-              <span class="form-label"><i class="fa-solid fa-clock"></i> Active Class Telemetry</span>
-              <span class="badge-status badge-live">LIVE CLOCK</span>
-            </div>
-            <h2 id="live-subject-name" style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Loading...</h2>
-            <p id="live-teacher-name" style="color: var(--brand-cyan); font-weight: 600; margin-bottom: 14px; font-size: 13px;">--</p>
-            <div style="background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass);">
-              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-muted);">
-                <span>Schedule Interval</span>
-                <span id="live-time-range" style="font-family: var(--font-mono); color: var(--brand-cyan);">--</span>
-              </div>
-            </div>
+          
+          <div class="active-descriptor-deck" id="active-period-desc">
+            Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.
           </div>
-
-          <!-- Platform Telemetry Overview -->
-          <div class="glass-card">
-            <span class="form-label" style="margin-bottom: 14px; display: block;"><i class="fa-solid fa-chart-pie"></i> System Health & Metrics</span>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-              <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
-                <div id="stat-sessions" style="font-size: 22px; font-weight: 900; color: var(--brand-cyan);">0</div>
-                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Timetable Sessions</div>
-              </div>
-              <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
-                <div id="stat-faculty" style="font-size: 22px; font-weight: 900; color: var(--brand-purple);">0</div>
-                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Faculty Members</div>
-              </div>
-              <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
-                <div id="stat-feedback" style="font-size: 22px; font-weight: 900; color: var(--brand-emerald);">0</div>
-                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">User Feedbacks</div>
-              </div>
-              <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
-                <div style="font-size: 22px; font-weight: 900; color: var(--brand-amber);">v1.0.3</div>
-                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Build Release</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Activity Terminal Log -->
-          <div class="glass-card">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-              <span class="form-label"><i class="fa-solid fa-terminal"></i> Console Activity Log Terminal</span>
-              <button class="btn-glass" style="padding: 4px 10px; font-size: 10px;" onclick="clearTerminalLogs()"><i class="fa-solid fa-trash-can"></i> Clear</button>
-            </div>
-            <div id="terminal-output" style="background: #03050a; padding: 14px; border-radius: 12px; font-family: var(--font-mono); font-size: 11.5px; height: 140px; overflow-y: auto; color: var(--brand-cyan); border: 1px solid var(--border-glass);">
-              <!-- Log entries -->
-            </div>
-          </div>
-
         </div>
 
-        <!-- Right Side: Interactive Mobile Phone Emulator Simulator -->
-        <div>
-          <div class="glass-card" style="padding: 20px; text-align: center;">
-            <span class="form-label" style="margin-bottom: 14px; display: block;"><i class="fa-solid fa-mobile-screen-button"></i> Live Mobile Student Emulator</span>
+        <!-- CARD 2: RELEASE PATCH CENTER -->
+        <div class="tech-card">
+          <div class="card-header">
+            <i class="fa-solid fa-mobile-screen icon-accent"></i>
+            <h3>OTA Software Releases</h3>
+          </div>
+          <p class="card-desc">Distribute OTA build releases. Connected client devices will receive automatic updates.</p>
+          
+          <div class="input-row">
+            <div class="input-group">
+              <input type="text" id="apk-version-name" placeholder="Ver String" value="1.2.0">
+            </div>
+            <div class="input-group">
+              <input type="number" id="apk-version-code" placeholder="Build" value="3">
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <textarea id="apk-notes" placeholder="Release patch changelogs..." style="min-height: 48px;"></textarea>
+          </div>
+          <div class="input-group">
+            <input type="text" id="apk-url-input" placeholder="CDN Repository URL (Bypasses storage)">
+          </div>
+          
+          <button type="button" id="btn-pull-github" class="btn btn-secondary btn-full" style="margin-bottom: 16px; font-size: 11px; padding: 10px 16px;">
+            <i class="fa-brands fa-github"></i> Autofill from Latest GitHub Release
+          </button>
+
+          <!-- App update visibility toggle -->
+          <div class="broadcast-flex-row" style="margin-top: 8px; margin-bottom: 16px;">
+            <span class="broadcast-status-label">
+              <i class="fa-solid fa-eye" style="color: var(--accent-indigo); font-size: 13px;"></i>
+              <span>DISPLAY UPDATE BANNER</span>
+            </span>
+            <label class="industrial-toggle">
+              <input type="checkbox" id="apk-switch-visible" checked>
+              <span class="industrial-slider"></span>
+            </label>
+          </div>
+
+          <div class="dropzone-industrial" id="apk-dropzone">
+            <input type="file" id="file-apk" accept=".apk" style="display: none;">
+            <i class="fa-solid fa-cloud-arrow-up drag-icon"></i>
+            <p>DRAG STAGED APK FILE HERE OR <span class="browse-link">BROWSE</span></p>
+            <p class="file-info" id="apk-file-info"></p>
+          </div>
+          
+          <div class="progress-container" id="upload-progress-container" style="display: none;">
+            <div style="flex-grow: 1; height: 3px; background: rgba(0,0,0,0.05); overflow: hidden; border-radius: 99px;">
+              <div id="upload-progress-fill" style="width: 0%; height: 100%; background: var(--accent-indigo); border-radius: 99px;"></div>
+            </div>
+            <span id="upload-progress-pct" style="font-family: var(--font-mono); font-size: 9px; color: var(--accent-indigo);">0%</span>
+          </div>
+
+          <button id="btn-deploy-apk" class="btn btn-secondary btn-full" disabled>
+            <span>Stage Binary Deploy</span>
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+
+        <!-- CARD: HEALTH & TELEMETRY -->
+        <div class="tech-card">
+          <div class="card-header">
+            <i class="fa-solid fa-chart-line icon-accent"></i>
+            <h3>System Health & Telemetry</h3>
+          </div>
+          <p class="card-desc">Monitor real-time network latency, database traffic loads, and service health metrics.</p>
+          
+          <!-- Animated SVG chart -->
+          <div class="telemetry-chart-container">
+            <svg class="telemetry-chart-svg" viewBox="0 0 300 80" id="telemetry-svg">
+              <defs>
+                <linearGradient id="chart-gradient-indigo" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent-indigo)" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="var(--accent-indigo)" stop-opacity="0.0"/>
+                </linearGradient>
+                <linearGradient id="chart-gradient-cyan" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent-cyan)" stop-opacity="0.2"/>
+                  <stop offset="100%" stop-color="var(--accent-cyan)" stop-opacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <!-- Grid lines -->
+              <line x1="0" y1="20" x2="300" y2="20" class="chart-grid-line"/>
+              <line x1="0" y1="40" x2="300" y2="40" class="chart-grid-line"/>
+              <line x1="0" y1="60" x2="300" y2="60" class="chart-grid-line"/>
+              
+              <!-- Latency Area & Path -->
+              <path id="chart-latency-area" class="chart-path-latency-area" d=""/>
+              <path id="chart-latency-path" class="chart-path-latency" d=""/>
+              
+              <!-- Ops Area & Path -->
+              <path id="chart-ops-area" class="chart-path-area" d=""/>
+              <path id="chart-ops-path" class="chart-path-line" d=""/>
+              
+              <!-- Live dots -->
+              <circle id="chart-ops-dot" class="chart-dot" cx="-10" cy="-10"/>
+            </svg>
+          </div>
+          
+          <!-- Telemetry Sync Status Row -->
+          <div class="telemetry-sparkline-container" style="margin-top: 14px;">
+            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Network Telemetry System Status</span>
+            <div class="telemetry-status-row">
+              <span class="status-indicator-dot green"></span>
+              <div class="status-info">
+                <span class="status-title">DATABASE SYNCHRONIZATION OPERATIONAL</span>
+                <span class="status-subtitle">REAL-TIME DATA STREAM INTEGRITY SECURED</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
+            <div class="telemetry-box">
+              <span>PROJECT ID</span>
+              <strong id="telemetry-nodes">--</strong>
+            </div>
+            <div class="telemetry-box" style="border-color: rgba(79, 70, 229, 0.25);">
+              <span>DATABASE OPS</span>
+              <strong id="telemetry-ops" style="color: var(--accent-indigo);">0 writes</strong>
+            </div>
+            <div class="telemetry-box">
+              <span>STREAM HEALTH</span>
+              <strong id="telemetry-health">OPTIMAL</strong>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- COLUMN 2: TIMETABLE DATABASE LEDGER (Wide - Center Stage) -->
+      <section class="grid-col wide-col">
+        
+        <!-- WORKSPACE SEEDER TABS -->
+        <div class="workspace-tabs" style="display: flex; gap: 8px; margin-bottom: 4px; background: #e2e8f0; padding: 4px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+          <button class="tab-btn active" data-workspace-tab="classes" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: #ffffff; color: var(--accent-indigo); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <i class="fa-solid fa-calendar-days"></i> Daily Timetables
+          </button>
+          <button class="tab-btn" data-workspace-tab="exams" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
+            <i class="fa-solid fa-pen-clip"></i> Exam Schedules
+          </button>
+        </div>
+
+        <!-- TIMETABLE WORKSPACE TAB (CLASSES) -->
+        <div id="workspace-tab-classes" class="workspace-tab-pane active-pane">
+          <!-- CARD: TIMETABLE DATABASE SEEDER -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-database icon-accent"></i>
+              <h3>Timetable Database Seeder</h3>
+            </div>
+            <p class="card-desc">Import and stage academic daily class timetables. Drag and drop daily class schedule PDFs or JSON files directly to preview and deploy them.</p>
             
-            <div class="phone-mockup-container">
-              <div class="phone-screen">
-                <!-- Status bar -->
-                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7); margin-bottom: 12px;">
-                  <span>09:41</span>
-                  <div style="display: flex; gap: 4px;">
-                    <i class="fa-solid fa-wifi"></i>
-                    <i class="fa-solid fa-battery-full"></i>
+            <div class="timetable-ledger-deck">
+              <div class="dropzone-industrial" id="timetable-dropzone">
+                <input type="file" id="file-timetable" accept=".json,.pdf" style="display: none;" multiple>
+                <i class="fa-solid fa-file-pdf drag-icon" style="color: var(--accent-indigo);"></i>
+                <p>DRAG TIMETABLE PDF(s) OR JSON FILE OR <span class="browse-link">BROWSE</span></p>
+                <p class="file-info" id="timetable-file-info"></p>
+              </div>
+              
+              <!-- Staged Files list -->
+              <div id="staged-files-container" style="display: none; margin-bottom: 20px; background: rgba(0,0,0,0.015); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+                <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Timetable Files</span>
+                <ul id="staged-files-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                  <!-- dynamically populated staged files -->
+                </ul>
+                <button type="button" id="btn-clear-staged-files" class="btn btn-logout" style="margin-top: 10px; font-size: 9px; padding: 6px 12px; height: auto; text-transform: uppercase; font-family: var(--font-mono); font-weight: bold; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); color: var(--accent-rose);">
+                  <i class="fa-solid fa-trash-can" style="margin-right: 4px;"></i> Clear All Staged Files
+                </button>
+              </div>
+              
+              <!-- Airport Departures inspected table -->
+              <div id="timetable-analytics" class="analytics-sheet" style="display: none; margin-bottom: 20px;">
+                <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Database Departures</span>
+                
+                <div class="departure-ledger-container">
+                  <table class="departure-ledger-table" id="timetable-preview-table">
+                    <thead>
+                      <tr>
+                        <th>Class ID</th>
+                        <th>Subject Title</th>
+                        <th>Interval time</th>
+                        <th>Instructor</th>
+                      </tr>
+                    </thead>
+                    <tbody id="timetable-preview-body">
+                      <!-- dynamic rows -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Telemetry indicators -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
+                  <div class="telemetry-box">
+                    <span>Sessions</span>
+                    <strong id="stat-sessions">0</strong>
                   </div>
-                </div>
-
-                <!-- Live Noticeboard Card -->
-                <div style="background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 12px; margin-bottom: 12px; text-align: left;">
-                  <div style="display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; color: var(--brand-cyan); margin-bottom: 4px;">
-                    <i class="fa-solid fa-bullhorn"></i> <span id="emulator-notice-title">CAMPUS NOTICEBOARD</span>
+                  <div class="telemetry-box" style="border-color: rgba(79, 70, 229, 0.25);">
+                    <span>Courses</span>
+                    <strong id="stat-courses" style="color: var(--accent-indigo);">0</strong>
                   </div>
-                  <p id="emulator-notice-body" style="font-size: 11px; color: var(--text-main); margin: 0; line-height: 1.4;">All Quiet on Campus • No active emergency notices</p>
-                </div>
-
-                <!-- Academic Mode Indicator -->
-                <div style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 14px; padding: 12px; margin-bottom: 12px; text-align: left;">
-                  <div style="font-size: 10px; font-weight: 800; color: #d8b4fe; margin-bottom: 2px;" id="emulator-mode-badge"><i class="fa-solid fa-graduation-cap"></i> CLASSES MODE</div>
-                  <div style="font-size: 12px; font-weight: 800; color: #fff;" id="emulator-mode-title">CLASSES IN SESSION</div>
-                </div>
-
-                <!-- Today's Schedule Feed (Dynamic Real Data) -->
-                <div style="text-align: left;">
-                  <div style="font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;">Today's Schedule</div>
-                  <div id="emulator-schedule-feed">
-                    <!-- Rendered dynamically from real timetable -->
+                  <div class="telemetry-box">
+                    <span>Labs</span>
+                    <strong id="stat-labs">0</strong>
                   </div>
                 </div>
               </div>
+              
+              <button id="btn-deploy-timetable" class="btn btn-secondary btn-full" disabled>
+                <span>Commit Timetable Seed</span>
+                <i class="fa-solid fa-arrows-spin"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- CARD: TIMETABLE DATABASE ROLLBACK LEDGER -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-clock-rotate-left icon-accent"></i>
+              <h3>Rollback & History Ledger</h3>
+            </div>
+            <p class="card-desc">Review and redeploy historical timetable seeds. Restore active systems to safe previous states.</p>
+            
+            <div class="departure-ledger-container" style="max-height: 180px;">
+              <table class="departure-ledger-table">
+                <thead>
+                  <tr>
+                    <th>Version ID</th>
+                    <th>Staged Timestamp</th>
+                    <th>Total Classes</th>
+                    <th>Control Action</th>
+                  </tr>
+                </thead>
+                <tbody id="rollback-ledger-body">
+                  <!-- dynamic ledger rows will build here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CARD: LIVE CLASS TIMETABLE INSPECTOR -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-satellite-dish icon-accent"></i>
+              <h3>Live Timetable Inspector</h3>
+            </div>
+            <p class="card-desc">Inspect and search active daily classes currently synchronized on the live database.</p>
+            
+            <div class="inspector-controls" style="display: flex; gap: 12px; margin-bottom: 16px;">
+              <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                <i class="fa-solid fa-magnifying-glass input-icon" style="top: 21px;"></i>
+                <input type="text" id="inspector-classes-search" placeholder="Search by batch, subject, room, or teacher..." style="padding-left: 42px; height: 42px;">
+              </div>
+              <button id="btn-refresh-inspector-classes" class="btn btn-secondary" style="padding: 10px 16px; height: 42px;" title="Reload from Firestore">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+              <button id="btn-wipe-classes" class="btn btn-logout" style="padding: 10px 16px; font-size: 11px; white-space: nowrap; height: 42px;" title="Clear Active Class Timetable from Database">
+                <i class="fa-solid fa-trash-can"></i> WIPE LIVE
+              </button>
+            </div>
+            
+            <div class="departure-ledger-container" style="max-height: 250px;">
+              <table class="departure-ledger-table">
+                <thead>
+                  <tr>
+                    <th>Batch</th>
+                    <th>Day</th>
+                    <th>Time Slot</th>
+                    <th>Subject</th>
+                    <th>Instructor</th>
+                    <th>Venue</th>
+                  </tr>
+                </thead>
+                <tbody id="inspector-classes-body">
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No timetable loaded. Click refresh to query database.</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-      </div>
-    </main>
-
-    <!-- ====================================================================
-         PAGE 2: DAILY TIMETABLE & PDF SEEDER
-         ==================================================================== -->
-    <main id="page-timetable" class="page-section">
-      <div class="section-banner">
-        <div>
-          <h1 class="banner-title">Daily Timetable Seeder & Ledger</h1>
-          <p class="banner-subtitle">Stage PDF/JSON timetable files, inspect departure ledgers, and query active database sessions.</p>
-        </div>
-      </div>
-
-      <div class="glass-card" style="margin-bottom: 24px;">
-        <span class="form-label" style="margin-bottom: 12px; display: block;"><i class="fa-solid fa-file-pdf"></i> Timetable PDF & JSON Uploader</span>
-        <div class="dropzone-industrial" id="timetable-dropzone" onclick="document.getElementById('file-timetable').click()">
-          <input type="file" id="file-timetable" accept=".json,.pdf" style="display: none;" multiple onchange="handleTimetableFilesSelect(event)">
-          <i class="fa-solid fa-cloud-arrow-up drag-icon"></i>
-          <p>DRAG TIMETABLE PDF(s) OR JSON FILE HERE OR <span class="browse-link">BROWSE</span></p>
-          <p id="timetable-file-info" style="font-size: 12px; color: var(--brand-cyan); margin-top: 6px;"></p>
-        </div>
-
-        <div style="display: flex; gap: 12px;">
-          <button class="btn-glass btn-brand" style="flex: 1;" onclick="commitStagedTimetable()">
-            <i class="fa-solid fa-database"></i> Commit Seed to Database
-          </button>
-          <button class="btn-glass btn-danger" onclick="wipeLiveTimetable()">
-            <i class="fa-solid fa-trash-can"></i> Wipe Live Database
-          </button>
-        </div>
-      </div>
-
-      <!-- Timetable Live Explorer Table -->
-      <div class="glass-card">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <h3 style="font-size: 18px; font-weight: 800;"><i class="fa-solid fa-list-check" style="color: var(--brand-cyan);"></i> Live Timetable Sessions Ledger</h3>
-          <input type="text" id="timetable-search" class="form-input" placeholder="Search batch, subject, room, teacher..." style="width: 280px;" onkeyup="filterTimetable()">
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;" id="day-picker-container">
-          <button class="btn-glass day-btn active" onclick="selectDay('Monday')">Monday</button>
-          <button class="btn-glass day-btn" onclick="selectDay('Tuesday')">Tuesday</button>
-          <button class="btn-glass day-btn" onclick="selectDay('Wednesday')">Wednesday</button>
-          <button class="btn-glass day-btn" onclick="selectDay('Thursday')">Thursday</button>
-          <button class="btn-glass day-btn" onclick="selectDay('Friday')">Friday</button>
-        </div>
-
-        <div style="overflow-x: auto;">
-          <table class="ledger-table">
-            <thead>
-              <tr>
-                <th>Batch</th>
-                <th>Time Slot</th>
-                <th>Subject Name</th>
-                <th>Instructor</th>
-                <th>Venue</th>
-              </tr>
-            </thead>
-            <tbody id="timetable-tbody">
-              <!-- Rendered dynamically -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-
-    <!-- ====================================================================
-         PAGE 3: EXAM DATE SHEET EXCEL CONVERTER
-         ==================================================================== -->
-    <main id="page-exams" class="page-section">
-      <div class="section-banner">
-        <div>
-          <h1 class="banner-title">Date Sheet Excel (.xlsx) Converter</h1>
-          <p class="banner-subtitle">Parse and stage CUI Excel date sheets directly to Midterm and Final exam database collections.</p>
-        </div>
-      </div>
-
-      <div class="glass-card" style="margin-bottom: 24px;">
-        <span class="form-label" style="margin-bottom: 12px; display: block;"><i class="fa-solid fa-file-excel" style="color: var(--brand-emerald);"></i> Date Sheet Excel Uploader</span>
-        <div class="dropzone-industrial" id="exams-dropzone" style="border-color: rgba(16, 185, 129, 0.3);" onclick="document.getElementById('file-exams').click()">
-          <input type="file" id="file-exams" accept=".xlsx" style="display: none;" onchange="handleExcelFileSelect(event)">
-          <i class="fa-solid fa-file-excel drag-icon" style="color: var(--brand-emerald);"></i>
-          <p>DRAG DATE SHEET EXCEL (.xlsx) FILE HERE OR <span class="browse-link" style="color: var(--brand-emerald);">BROWSE</span></p>
-          <p id="exams-file-info" style="font-size: 12px; color: var(--brand-emerald); margin-top: 6px;"></p>
-        </div>
-
-        <div style="display: flex; gap: 12px;">
-          <button class="btn-glass btn-brand" style="flex: 1;" onclick="commitExams('midterm')">
-            <i class="fa-solid fa-pen-ruler"></i> Commit Midterm Exams
-          </button>
-          <button class="btn-glass btn-brand" style="flex: 1; background: linear-gradient(135deg, var(--brand-purple), var(--brand-violet)); color: #fff;" onclick="commitExams('finals')">
-            <i class="fa-solid fa-award"></i> Commit Final Exams
-          </button>
-          <button class="btn-glass btn-danger" onclick="wipeExams()">
-            <i class="fa-solid fa-trash-can"></i> Wipe Exam DB
-          </button>
-        </div>
-      </div>
-
-      <!-- Staged Exam Preview Table -->
-      <div class="glass-card">
-        <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 16px;"><i class="fa-solid fa-table-list" style="color: var(--brand-emerald);"></i> Staged Exam Schedule Preview</h3>
-        <div style="overflow-x: auto;">
-          <table class="ledger-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Time Slot</th>
-                <th>Batch</th>
-                <th>Subject</th>
-                <th>Venue / Room</th>
-              </tr>
-            </thead>
-            <tbody id="exams-preview-tbody">
-              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No Excel date sheet staged yet. Drag & drop an .xlsx file above.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-
-    <!-- ====================================================================
-         PAGE 4: ALERT NOTIFICATION STUDIO & BROADCAST
-         ==================================================================== -->
-    <main id="page-broadcast" class="page-section">
-      <div class="section-banner">
-        <div>
-          <h1 class="banner-title">Alert Notification Studio & Broadcast</h1>
-          <p class="banner-subtitle">Broadcast emergency notices or timetable updates directly to active mobile student dashboards.</p>
-        </div>
-      </div>
-
-      <div class="glass-card" style="max-width: 720px; margin: 0 auto;">
-        <span class="form-label" style="margin-bottom: 14px; display: block;"><i class="fa-solid fa-bullhorn"></i> Emergency Broadcast Dispatcher</span>
-        
-        <!-- Preset Announcement Chips -->
-        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
-          <button class="btn-glass" style="font-size: 11px; padding: 6px 12px;" onclick="useBroadcastPreset('🏆 Sports Week starts tomorrow! Check out schedule in Hub.')">🏆 Sports Hub</button>
-          <button class="btn-glass" style="font-size: 11px; padding: 6px 12px;" onclick="useBroadcastPreset('📚 Midterm exam date sheets have been finalized. Check app.')">📚 Exams Final</button>
-          <button class="btn-glass" style="font-size: 11px; padding: 6px 12px;" onclick="useBroadcastPreset('🛠️ Campus operations suspended tomorrow due to maintenance.')">🛠️ Suspend Ops</button>
-          <button class="btn-glass" style="font-size: 11px; padding: 6px 12px;" onclick="useBroadcastPreset('🎓 Academic records audit complete. Midterm results live!')">🎓 Results Live</button>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Notice Title</label>
-          <input type="text" id="broadcast-title" class="form-input" placeholder="e.g. Schedule Revision Notice" onkeyup="updateEmulatorNotice()">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Category</label>
-          <select id="broadcast-category" class="form-select">
-            <option value="IMPORTANT">IMPORTANT NOTICE</option>
-            <option value="EXAM">EXAM ANNOUNCEMENT</option>
-            <option value="SPORTS">SPORTS GALA</option>
-            <option value="HOLIDAY">CAMPUS CLOSURE</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Broadcast Body Message</label>
-          <textarea id="broadcast-body" class="form-textarea" rows="4" placeholder="Type notification statement here..." onkeyup="updateEmulatorNotice()"></textarea>
-        </div>
-
-        <button class="btn-glass btn-brand" style="width: 100%; padding: 14px;" onclick="sendBroadcastNotice()">
-          <i class="fa-solid fa-broadcast-tower"></i> Broadcast Emergency Notice Live
-        </button>
-      </div>
-    </main>
-
-    <!-- ====================================================================
-         PAGE 5: FACULTY DIRECTORY
-         ==================================================================== -->
-    <main id="page-directory" class="page-section">
-      <div class="section-banner">
-        <div>
-          <h1 class="banner-title">Campus Faculty Directory</h1>
-          <p class="banner-subtitle">Inspect department instructors, room locations, and contact records generated live from timetable data.</p>
-        </div>
-        <input type="text" id="faculty-search" class="form-input" placeholder="Search teacher name, department..." style="width: 280px;" onkeyup="filterFaculty()">
-      </div>
-
-      <div class="glass-grid" id="faculty-grid">
-        <!-- Rendered dynamically -->
-      </div>
-    </main>
-
-    <!-- ====================================================================
-         PAGE 6: ADMIN USER FEEDBACK TELEMETRY HUB
-         ==================================================================== -->
-    <main id="page-feedback" class="page-section">
-      <div class="section-banner">
-        <div>
-          <h1 class="banner-title">Admin Feedback & Telemetry Hub</h1>
-          <p class="banner-subtitle">Inspect real-time student and faculty feedback, bug reports, and auto-captured hardware telemetry.</p>
-        </div>
-        <div style="display: flex; gap: 12px;">
-          <input type="text" id="feedback-search" class="form-input" placeholder="Search feedback, roll no, device..." style="width: 280px;" onkeyup="filterFeedbackFeed()">
-          <select id="feedback-role-filter" class="form-select" style="width: 160px;" onchange="filterFeedbackFeed()">
-            <option value="ALL">All Roles</option>
-            <option value="Faculty">Faculty Only</option>
-            <option value="Student">Students Only</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="glass-card">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-          <h3 style="font-size: 18px; font-weight: 800;"><i class="fa-solid fa-comments" style="color: var(--brand-purple);"></i> Real-Time Mobile Feedback Stream</h3>
-          <span class="badge-status badge-live" id="feedback-count-badge">LIVE FIRESTORE STREAM</span>
-        </div>
-        <div id="feedback-feed-container">
-          <!-- Rendered dynamically from Firestore stream -->
-        </div>
-      </div>
-    </main>
-
-    <!-- ====================================================================
-         PAGE 7: OTA RELEASES & APK MANAGER
-         ==================================================================== -->
-    <main id="page-releases" class="page-section">
-      <div class="section-banner">
-        <div>
-          <h1 class="banner-title">OTA Software Build Manager</h1>
-          <p class="banner-subtitle">Distribute mobile APK build releases, update banners, and Remote Config patches.</p>
-        </div>
-      </div>
-
-      <div class="glass-card" style="max-width: 680px; margin: 0 auto;">
-        <span class="form-label" style="margin-bottom: 14px; display: block;"><i class="fa-solid fa-mobile-screen"></i> OTA Software Build Deployment</span>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-          <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label">Version String</label>
-            <input type="text" id="apk-version-name" class="form-input" value="1.0.3">
+        <!-- EXAM SCHEDULE WORKSPACE TAB (MIDS & FINALS) -->
+        <div id="workspace-tab-exams" class="workspace-tab-pane" style="display: none;">
+          <!-- CARD: DATE SHEET EXCEL-TO-JSON CONVERTER -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-file-excel icon-accent" style="color: #10b981;"></i>
+              <h3>Date Sheet Excel Converter</h3>
+            </div>
+            <p class="card-desc">Convert and upload Midterm/Final term date sheets. Drag & drop CUI Excel sheets to parse them instantly to JSON.</p>
+            
+            <div class="timetable-ledger-deck">
+              <div class="dropzone-industrial" id="exams-dropzone" style="border-color: rgba(16, 185, 129, 0.2);">
+                <input type="file" id="file-exams" accept=".xlsx" style="display: none;">
+                <i class="fa-solid fa-file-excel drag-icon" style="color: #10b981;"></i>
+                <p>DRAG DATE SHEET EXCEL (.xlsx) OR <span class="browse-link" style="color: #10b981;">BROWSE</span></p>
+                <p class="file-info" id="exams-file-info"></p>
+              </div>
+              
+              <!-- Preview and Action section -->
+              <div id="exams-analytics" class="analytics-sheet" style="display: none; margin-top: 20px; margin-bottom: 20px;">
+                <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Date Sheet Preview</span>
+                
+                <div class="departure-ledger-container" style="max-height: 250px;">
+                  <table class="departure-ledger-table" id="exams-preview-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Room</th>
+                        <th>Batch</th>
+                        <th>Subject</th>
+                      </tr>
+                    </thead>
+                    <tbody id="exams-preview-body">
+                      <!-- dynamic rows -->
+                    </tbody>
+                  </table>
+                </div>
+                
+                <!-- Stat blocks -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 16px;">
+                  <div class="telemetry-box" style="border-color: rgba(16, 185, 129, 0.25);">
+                    <span>Total Exam Slots</span>
+                    <strong id="exams-stat-total" style="color: #10b981;">0</strong>
+                  </div>
+                  <div class="telemetry-box">
+                    <span>Unique Batches</span>
+                    <strong id="exams-stat-batches">0</strong>
+                  </div>
+                  <div class="telemetry-box">
+                    <span>Unique Subjects</span>
+                    <strong id="exams-stat-subjects">0</strong>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="display: flex; gap: 12px; margin-top: 16px;">
+                <button id="btn-deploy-midterms" class="btn btn-secondary btn-full" disabled style="border-color: rgba(245, 158, 11, 0.4); color: #d97706; flex: 1;">
+                  <span>Commit Midterms</span>
+                  <i class="fa-solid fa-pen-clip"></i>
+                </button>
+                <button id="btn-deploy-finals" class="btn btn-secondary btn-full" disabled style="border-color: rgba(244, 63, 94, 0.4); color: #f43f5e; flex: 1;">
+                  <span>Commit Finals</span>
+                  <i class="fa-solid fa-award"></i>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label">Version Code</label>
-            <input type="number" id="apk-version-code" class="form-input" value="4">
+
+          <!-- CARD: LIVE EXAM SCHEDULE INSPECTOR -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-network-wired icon-accent" style="color: #f43f5e;"></i>
+              <h3>Live Exam Schedule Inspector</h3>
+            </div>
+            <p class="card-desc">Inspect, search, and clear active midterm or final exam entries currently synchronized on the live database.</p>
+            
+            <div class="inspector-controls" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+              <div style="display: flex; gap: 12px; width: 100%;">
+                <div class="ribbon-switcher" id="inspector-exam-period-switcher" style="flex: 1; margin-bottom: 0;">
+                  <div class="ribbon-segment active" data-inspector-period="midterms" style="padding: 8px 2px;"><i class="fa-solid fa-pen-clip"></i> MIDTERMS</div>
+                  <div class="ribbon-segment" data-inspector-period="finals" style="padding: 8px 2px;"><i class="fa-solid fa-award"></i> FINALS</div>
+                </div>
+                <button id="btn-refresh-inspector-exams" class="btn btn-secondary" style="padding: 10px 16px;" title="Reload from Firestore">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+              </div>
+              
+              <div style="display: flex; gap: 12px; width: 100%;">
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                  <i class="fa-solid fa-magnifying-glass input-icon" style="top: 21px;"></i>
+                  <input type="text" id="inspector-exams-search" placeholder="Search by batch, subject, room, or date..." style="padding-left: 42px; height: 42px;">
+                </div>
+                <button id="btn-wipe-exams" class="btn btn-logout" style="padding: 10px 16px; font-size: 11px; white-space: nowrap; height: 42px;" title="Clear Active Period Exams from Database">
+                  <i class="fa-solid fa-trash-can"></i> WIPE LIVE
+                </button>
+              </div>
+            </div>
+            
+            <div class="departure-ledger-container" style="max-height: 250px;">
+              <table class="departure-ledger-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Time Slot</th>
+                    <th>Room</th>
+                    <th>Batch</th>
+                    <th>Subject</th>
+                  </tr>
+                </thead>
+                <tbody id="inspector-exams-body">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No exams loaded. Click refresh to query database.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Release Patch Notes</label>
-          <textarea id="apk-notes" class="form-textarea" rows="3" placeholder="Enter changelog notes..."></textarea>
+      </section>
+
+      <!-- COLUMN 3: BROADCAST TRANSCEIVER & SYSTEMS ACTIVITY TERMINAL (Medium) -->
+      <section class="grid-col medium-col">
+        
+        <!-- CARD 3: BROADCAST STUDIO -->
+        <div class="tech-card">
+          <div class="card-header">
+            <i class="fa-solid fa-tower-broadcast icon-accent"></i>
+            <h3>Alert Notification Studio</h3>
+          </div>
+          <p class="card-desc">Dispatch real-time announcements directly to active student device dashboards.</p>
+          
+          <!-- Explicit industrial power toggle slide switch -->
+          <div class="broadcast-flex-row">
+            <span class="broadcast-status-label">
+              <i class="fa-solid fa-bullhorn" style="color: var(--accent-indigo); font-size: 13px;"></i>
+              <span>TRANSMIT LIVE SIGNALS</span>
+            </span>
+            <label class="industrial-toggle">
+              <input type="checkbox" id="broadcast-switch-visible">
+              <span class="industrial-slider"></span>
+            </label>
+          </div>
+
+
+
+          <!-- Quick presetting channel badges -->
+          <div class="presets-row">
+            <span class="preset-chip" data-preset="Sports Week starts tomorrow! Check out the details in the Hub. 🏆">🏆 Sports Hub</span>
+            <span class="preset-chip" data-preset="Exam schedules have been finalized. Please check your personalized timetables. 📚">📚 Exams Final</span>
+            <span class="preset-chip" data-preset="Campus operations will be temporarily suspended tomorrow due to scheduled maintenance. 🛠️">🛠️ Suspend Ops</span>
+            <span class="preset-chip" data-preset="Academic records audit is complete. Midterm results are now live in portal. 🎓">🎓 Results Live</span>
+          </div>
+
+          <div class="input-wrapper">
+            <div class="textarea-container">
+              <textarea id="broadcast-message" placeholder="Type notification alert statement here..." maxlength="150" style="min-height: 72px; resize: none;"></textarea>
+            </div>
+            <div class="char-counter-panel">
+              <span>ALERT DISPATCH CONTROLLER</span>
+              <div>
+                <span id="broadcast-char-count">0</span> / 150 LIMIT
+              </div>
+            </div>
+          </div>
+
+          <!-- HIGH-FIDELITY MOBILE DEVICE EMULATOR -->
+          <div style="margin-top: 20px; margin-bottom: 20px;">
+            <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 10px; text-align: center;">Interactive Student Emulator</span>
+            <div class="phone-frame-wrapper">
+              <!-- Status bar -->
+              <div class="mock-status-bar">
+                <span class="mock-time">09:41</span>
+                <div class="mock-icons">
+                  <i class="fa-solid fa-signal"></i>
+                  <i class="fa-solid fa-wifi"></i>
+                  <i class="fa-solid fa-battery-three-quarters"></i>
+                </div>
+              </div>
+              <!-- Dynamic Island -->
+              <div class="mock-dynamic-island"></div>
+              
+              <!-- Viewport containing tab screens -->
+              <div class="emulator-viewport" id="emulator-viewport">
+                <div class="emulator-screen-grid"></div>
+                
+                <!-- SCREEN 1: NOTICE / HOME SCREEN (ACTIVE BY DEFAULT) -->
+                <div class="emulator-screen active-screen" id="emulator-screen-home">
+                  <!-- Live notice board card -->
+                  <div class="mock-notice-card active-notice" id="mock-notice-card">
+                    <div class="notice-icon-badge" id="mock-notice-icon-badge">
+                      <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div class="notice-content">
+                      <div class="notice-title-row">
+                        <span id="mock-notice-title">CAMPUS NOTICEBOARD</span>
+                        <span class="live-tag" id="mock-notice-live-tag">LIVE</span>
+                      </div>
+                      <p id="mock-notice-body">All Quiet on Campus • No active broadcasts right now</p>
+                      <div class="notice-footer">
+                        <span>REAL-TIME NOTICE</span>
+                        <span id="mock-notice-time">NEVER</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Active period header template mockup -->
+                  <div class="emulator-mode-card theme-classes" id="mock-period-card">
+                    <div class="mode-badge-indicator" id="mock-period-badge">
+                      <i class="fa-solid fa-graduation-cap"></i> CLASSES MODE
+                    </div>
+                    <div class="mode-headline">
+                      <h4 id="mock-period-title">CLASSES IN SESSION</h4>
+                      <span id="mock-period-subtitle">Regular academic lecturing track</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Today's Schedule feed preview -->
+                  <div class="mock-feed-group">
+                    <div class="mock-feed-title">Today's Class Schedule</div>
+                    <div id="mock-feed-schedule-container" style="display: flex; flex-direction: column; gap: 8px;">
+                      <div class="mock-feed-item">
+                        <div class="mock-feed-left">
+                          <strong>CS-311 Compiler Construction</strong>
+                          <span>Dr. Aurangzaib Malik</span>
+                        </div>
+                        <div class="mock-feed-right">
+                          <span class="badge-room">CLab-3</span>
+                          <span class="badge-time">08:30 AM</span>
+                        </div>
+                      </div>
+                      <div class="mock-feed-item">
+                        <div class="mock-feed-left">
+                          <strong>EE-214 Digital Logic Design</strong>
+                          <span>Engr. Sana Ali</span>
+                        </div>
+                        <div class="mock-feed-right">
+                          <span class="badge-room">Lab-1</span>
+                          <span class="badge-time">10:00 AM</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- SCREEN 2: DAILY TIMETABLE SCREEN -->
+                <div class="emulator-screen" id="emulator-screen-timetable">
+                  <div class="timetable-list-container">
+                    <div class="timetable-list-header">
+                      <i class="fa-solid fa-calendar-week" style="margin-right: 6px; color: var(--accent-indigo);"></i> Daily Timetable List
+                    </div>
+                    <div id="mock-timetable-list" style="display: flex; flex-direction: column; gap: 8px;">
+                      <div style="text-align: center; color: var(--text-muted); font-size: 10px; padding: 20px;">No daily timetables seeded. Upload a timetable to preview.</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- SCREEN 3: EXAMS SCREEN -->
+                <div class="emulator-screen" id="emulator-screen-exams">
+                  <div class="timetable-list-container">
+                    <div class="timetable-list-header" id="mock-exams-list-header">
+                      <i class="fa-solid fa-file-pen" style="margin-right: 6px; color: #f43f5e;"></i> Midterm Exam Schedules
+                    </div>
+                    
+                    <!-- Exam Countdown widget -->
+                    <div class="exams-countdown-container">
+                      <div class="exams-countdown-clock">
+                        <span>Time Remaining to Exams</span>
+                        <div class="exams-countdown-time" id="mock-exams-countdown">04d 18h 32m</div>
+                      </div>
+                    </div>
+                    
+                    <div id="mock-exams-list" style="display: flex; flex-direction: column; gap: 8px;">
+                      <div style="text-align: center; color: var(--text-muted); font-size: 10px; padding: 20px;">No exam datesheets seeded. Upload an excel sheet to preview.</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- SCREEN 4: ONBOARDING SCREEN -->
+                <div class="emulator-screen" id="emulator-screen-onboarding" style="height: 100%;">
+                  <div class="onboarding-screen-view">
+                    <div class="parallax-slide-deck" id="parallax-slide-deck">
+                      <!-- Background Layer -->
+                      <div class="parallax-layer parallax-bg-layer" data-depth="0.2">
+                        <svg viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(99, 102, 241, 0.15)" stroke-width="0.5" stroke-dasharray="2,2"/>
+                          <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(6, 182, 212, 0.12)" stroke-width="0.3" stroke-dasharray="4,4"/>
+                        </svg>
+                      </div>
+                      <!-- Frame/Screenshot Layer -->
+                      <div class="parallax-layer parallax-frame-layer" data-depth="0.6">
+                        <div class="mock-device-screenshot" id="mock-onboarding-screenshot">
+                          <div class="mock-screen-content">
+                            <div style="display: flex; justify-content: space-between; font-size: 6px; color: var(--text-muted);">
+                              <span>IRIS CLIENT</span>
+                              <span>100% SECURE</span>
+                            </div>
+                            <div style="margin: auto; text-align: center;">
+                              <i class="fa-solid fa-shield-halved" style="font-size: 24px; color: var(--accent-indigo); margin-bottom: 6px; filter: drop-shadow(0 0 4px var(--accent-indigo));"></i>
+                              <div style="font-size: 8px; color: #ffffff; font-weight: bold; font-family: var(--font-display);">Nexsync Sync</div>
+                            </div>
+                            <div style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 99px;">
+                              <div style="width: 70%; height: 100%; background: var(--accent-indigo); border-radius: 99px;"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Floating Badge Layer -->
+                      <div class="parallax-layer parallax-float-layer" data-depth="1.2" id="mock-onboarding-pill">
+                        <div class="mock-floating-pill">Iris Companion</div>
+                      </div>
+                    </div>
+                    
+                    <div class="onboarding-info-panel">
+                      <h5 id="mock-onboarding-title">Secure Synchronization</h5>
+                      <p id="mock-onboarding-desc">Your daily academic lectures, timetables, and notification noticeboard synced to local cache.</p>
+                      <div class="onboarding-indicators">
+                        <span class="onboarding-dot active" data-slide="0"></span>
+                        <span class="onboarding-dot" data-slide="1"></span>
+                        <span class="onboarding-dot" data-slide="2"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+              <!-- Tab Nav Bar -->
+              <div class="emulator-tab-nav">
+                <button class="emulator-tab-btn active" data-mock-tab="home">
+                  <i class="fa-solid fa-house"></i>
+                  <span>Home</span>
+                </button>
+                <button class="emulator-tab-btn" data-mock-tab="timetable">
+                  <i class="fa-solid fa-calendar-days"></i>
+                  <span>Timetable</span>
+                </button>
+                <button class="emulator-tab-btn" data-mock-tab="exams">
+                  <i class="fa-solid fa-file-signature"></i>
+                  <span>Exams</span>
+                </button>
+                <button class="emulator-tab-btn" data-mock-tab="onboarding">
+                  <i class="fa-solid fa-compass"></i>
+                  <span>Explore</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <button id="btn-broadcast-push" class="btn btn-led-transmitter btn-full" disabled>
+            <span>Transmit Notification Alert</span>
+          </button>
+          
+          <!-- Hidden compatible widgets for backend scripts -->
+          <input type="checkbox" id="broadcast-switch" style="display:none;">
+          <span id="broadcasting-badge" style="display:none;"></span>
+          <svg style="display:none;"><circle id="char-ring-fill"></circle></svg>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Direct APK Download URL</label>
-          <input type="text" id="apk-url-input" class="form-input" placeholder="https://github.com/.../app-release.apk">
+        <!-- CARD: LIVE ADMIN FEEDBACK & TELEMETRY HUB -->
+        <div class="tech-card" style="margin-bottom: 20px;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-comments icon-accent"></i>
+              <h3>Mobile Feedback & Telemetry</h3>
+            </div>
+            <span id="feedback-count-badge" style="padding: 2px 8px; background: rgba(99, 102, 241, 0.15); border-radius: 6px; font-size: 9.5px; font-weight: 800; color: var(--accent-indigo);">0 SUBMISSIONS</span>
+          </div>
+          <p class="card-desc">Inspect real-time telemetry and user feedback submitted from connected mobile app devices.</p>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input type="text" id="feedback-search" placeholder="Search feedback..." oninput="filterFeedbackFeed()" style="flex: 1; height: 36px; font-size: 12px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0 10px; color: var(--text-title);">
+            <select id="feedback-role-filter" onchange="filterFeedbackFeed()" style="height: 36px; font-size: 11px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0 8px; color: var(--text-title);">
+              <option value="ALL">All Roles</option>
+              <option value="Student">Students</option>
+              <option value="Faculty">Faculty</option>
+            </select>
+          </div>
+
+          <div id="feedback-feed-container" style="max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+            <div style="padding: 24px 10px; text-align: center; color: var(--text-muted);">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--accent-indigo); margin-bottom: 8px; display: block;"></i>
+              <div style="font-size: 12px;">Listening for live mobile telemetry...</div>
+            </div>
+          </div>
         </div>
 
-        <button type="button" class="btn-glass" style="width: 100%; margin-bottom: 14px;" onclick="autofillGithubRelease()">
-          <i class="fa-brands fa-github"></i> Autofill from Latest GitHub Release
-        </button>
+        <!-- ACTIVITY CONSOLE TERMINAL -->
+        <div class="console-structural-deck">
+          <div class="console-header-bar">
+            <span>systems activity console</span>
+            
+            <div class="console-actions-panel">
+              <div class="terminal-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="terminal-search" placeholder="Query patterns...">
+              </div>
+              
+              <select id="terminal-filter" class="terminal-dropdown">
+                <option value="all">Severity: All</option>
+                <option value="success">Severity: Success</option>
+                <option value="warning">Severity: Warnings</option>
+                <option value="error">Severity: Errors</option>
+              </select>
 
-        <!-- Display Update Banner Switch -->
-        <div class="toggle-row">
-          <span style="font-size: 12.5px; font-weight: 700; color: var(--text-main);">
-            <i class="fa-solid fa-eye" style="color: var(--brand-cyan); margin-right: 6px;"></i> DISPLAY UPDATE BANNER IN APP
-          </span>
-          <label class="industrial-toggle">
-            <input type="checkbox" id="apk-switch-visible" checked>
-            <span class="industrial-slider"></span>
-          </label>
+              <button id="btn-download-logs" class="btn btn-secondary btn-small" title="Export logs" style="padding: 6px 10px;">
+                <i class="fa-solid fa-download"></i>
+              </button>
+              <button id="btn-clear-terminal" class="btn btn-text btn-small" style="font-family: var(--font-mono); font-size: 9px; font-weight: 600;">WIPE</button>
+            </div>
+          </div>
+          
+          <div class="console-terminal-view">
+            <div class="terminal-output" id="terminal-output">
+              <!-- Telemetry lines -->
+            </div>
+          </div>
         </div>
 
-        <button class="btn-glass btn-brand" style="width: 100%; padding: 14px;" onclick="deployOTAPatch()">
-          <i class="fa-solid fa-paper-plane"></i> Deploy Remote Config Update
-        </button>
-      </div>
+      </section>
     </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div>© 2026 IRIS System Architecture • Administrative Control Center</div>
-      <div style="display: flex; gap: 16px;">
-        <a href="#feedback" onclick="switchPage('feedback')" style="color: var(--text-muted); text-decoration: none;">Feedback Telemetry</a>
-        <a href="#releases" onclick="switchPage('releases')" style="color: var(--text-muted); text-decoration: none;">OTA Releases</a>
-      </div>
-    </footer>
-
   </div>
 
-  <!-- External JS Libraries for Excel parsing & PDF parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- FIREBASE CONFIG MODAL -->
+  <div id="config-modal" class="modal-overlay" style="display: none;">
+    <div class="tech-card modal-card">
+      <div class="modal-header">
+        <h3>System Connection Parameters</h3>
+        <button id="btn-close-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="modal-desc">Define your configuration parameters below to synchronize this terminal with Firestore.</p>
+      
+      <div class="input-wrapper" style="margin-bottom: 20px;">
+        <textarea id="firebase-config-json" placeholder='{
+  "apiKey": "AIzaSyAA...",
+  "projectId": "iris-138ef"
+}' style="min-height: 120px; font-family: var(--font-mono); font-size: 11.5px;"></textarea>
+        
+        <!-- Validation Diagnostics Console -->
+        <div id="config-validation-log" class="validation-logs-console" style="display: none;"></div>
+      </div>
+      
+      <div class="modal-actions">
+        <button id="btn-save-config" class="btn btn-primary btn-full">Save & Re-handshake Credentials</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- Firebase Web SDK Integration -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="app.js?v=4.0.0"></script>
+  <!-- SESSION TIMEOUT WARNING -->
+  <div id="timeout-modal" class="modal-overlay" style="display: none;">
+    <div class="tech-card modal-card" style="text-align: center; max-width: 380px; padding: 40px 30px;">
+      <i class="fa-solid fa-hourglass-start" style="font-size: 32px; color: var(--accent-amber); margin-bottom: 20px;"></i>
+      <h3>Authentication Expiring</h3>
+      <p class="modal-desc">Your secure administrative session is about to expire due to inactivity. Remaining time: <strong id="timeout-countdown" style="font-family: var(--font-mono); color: var(--accent-amber);">60</strong> seconds.</p>
+      <div class="modal-actions" style="justify-content: center; width: 100%;">
+        <button id="btn-extend-session" class="btn btn-primary btn-full">Hold Security Link Open</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- FIREBASE CLIENT CDNS -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+  <!-- PDF.js Library for client-side PDF Parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+  </script>
+
+  <!-- SheetJS Library for client-side Excel Parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Console Script -->
+  <script src="app.js?v=1.3.1"></script>
 </body>
 </html>

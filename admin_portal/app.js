@@ -1,8 +1,8 @@
 /* ==========================================================================
-   IRIS ENTERPRISE ADMIN PORTAL - COMPLETE CONTROLLER & FIRESTORE ENGINE
+   NEXSYNC ENTERPRISE CONTROL SPACE - 21ST.DEV OBSIDIAN CONTROLLER
+   Orchestrating high-fidelity micro-interactions and bulletproof sync telemetry.
    ========================================================================== */
 
-// Default Firebase Configuration
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyAAXqXhWVQs3yFiMyftafA4og8yN0LHHHE",
   authDomain: "iris-138ef.firebaseapp.com",
@@ -10,923 +10,3464 @@ const DEFAULT_FIREBASE_CONFIG = {
   storageBucket: "iris-138ef.firebasestorage.app",
 };
 
-let app = null;
-let auth = null;
-let db = null;
+let app, auth, db, storage;
 let isConnected = false;
 let logHistory = [];
 
-// Dynamic Data Stores (Zero Dummy Data)
-let realTimetable = [];
-let stagedTimetable = [];
-let realFaculty = [];
-let stagedExams = [];
-let communityFeedbacks = [];
+// DOM Bindings
+const authOverlay = document.getElementById('auth-overlay');
+const dashboardContainer = document.getElementById('dashboard-container');
+const emailInput = document.getElementById('auth-email');
+const passInput = document.getElementById('auth-pass');
+const loginBtn = document.getElementById('btn-login');
+const logoutBtn = document.getElementById('btn-logout');
+const authError = document.getElementById('auth-error');
+const userMonogram = document.getElementById('user-monogram');
+const btnTogglePassword = document.getElementById('btn-toggle-password');
+const authConnectionBeacon = document.getElementById('auth-connection-beacon');
+const beaconText = document.getElementById('connection-beacon-text');
 
-let selectedDay = "Monday";
+// System Switchers
+const ribbonSegments = document.querySelectorAll('.ribbon-segment');
+const activePeriodDesc = document.getElementById('active-period-desc');
 
-// Initialization Engine
+// Systems Logs terminal elements
+const terminalOutput = document.getElementById('terminal-output');
+const clearTerminalBtn = document.getElementById('btn-clear-terminal');
+const searchTerminalInput = document.getElementById('terminal-search');
+const filterTerminalSelect = document.getElementById('terminal-filter');
+const downloadLogsBtn = document.getElementById('btn-download-logs');
+
+// Uploader Dropzones
+const timetableDropzone = document.getElementById('timetable-dropzone');
+const timetableFileInput = document.getElementById('file-timetable');
+const timetableFileInfo = document.getElementById('timetable-file-info');
+const deployTimetableBtn = document.getElementById('btn-deploy-timetable');
+
+const apkDropzone = document.getElementById('apk-dropzone');
+const apkFileInput = document.getElementById('file-apk');
+const apkFileInfo = document.getElementById('apk-file-info');
+const apkVersionName = document.getElementById('apk-version-name');
+const apkVersionCode = document.getElementById('apk-version-code');
+const apkNotes = document.getElementById('apk-notes');
+const deployApkBtn = document.getElementById('btn-deploy-apk');
+const apkSwitchVisible = document.getElementById('apk-switch-visible');
+const apkUrlInput = document.getElementById('apk-url-input');
+const uploadProgressContainer = document.getElementById('upload-progress-container');
+const uploadProgressFill = document.getElementById('upload-progress-fill');
+const uploadProgressPct = document.getElementById('upload-progress-pct');
+
+const configModal = document.getElementById('config-modal');
+const showConfigBtn = document.getElementById('btn-show-config');
+const closeModalBtn = document.getElementById('btn-close-modal');
+const saveConfigBtn = document.getElementById('btn-save-config');
+const configJsonArea = document.getElementById('firebase-config-json');
+
+// Announcement Transceiver Elements
+const broadcastSwitchVisible = document.getElementById('broadcast-switch-visible');
+const broadcastMessage = document.getElementById('broadcast-message');
+const btnBroadcastPush = document.getElementById('btn-broadcast-push');
+const broadcastCharCount = document.getElementById('broadcast-char-count');
+const presetChips = document.querySelectorAll('.preset-chip');
+
+// Hidden compat bounds for workspace scripts
+const broadcastSwitch = document.getElementById('broadcast-switch');
+const broadcastingBadge = document.getElementById('broadcasting-badge');
+const charRingFill = document.getElementById('char-ring-fill');
+
+// Inactivity Session Timeouts
+const timeoutModal = document.getElementById('timeout-modal');
+const timeoutCountdown = document.getElementById('timeout-countdown');
+const extendSessionBtn = document.getElementById('btn-extend-session');
+
+// departures timetable analytics
+const timetableAnalytics = document.getElementById('timetable-analytics');
+const timetablePreviewBody = document.getElementById('timetable-preview-body');
+const statSessions = document.getElementById('stat-sessions');
+const statCourses = document.getElementById('stat-courses');
+const statLabs = document.getElementById('stat-labs');
+
+// Date Sheet Excel Converter Bindings
+const examsDropzone = document.getElementById('exams-dropzone');
+const examsFileInput = document.getElementById('file-exams');
+const examsFileInfo = document.getElementById('exams-file-info');
+const btnDeployMidterms = document.getElementById('btn-deploy-midterms');
+const btnDeployFinals = document.getElementById('btn-deploy-finals');
+const examsPreviewBody = document.getElementById('exams-preview-body');
+const examsStatTotal = document.getElementById('exams-stat-total');
+const examsStatBatches = document.getElementById('exams-stat-batches');
+const examsStatSubjects = document.getElementById('exams-stat-subjects');
+const examsAnalytics = document.getElementById('exams-analytics');
+
+// Upload Buffers
+let selectedTimetableFile = null;
+let stagedTimetableFiles = [];
+let selectedApkFile = null;
+let parsedExams = [];
+let stagedTimetablePayload = null;
+
+// Initialize Interface Scripts
 document.addEventListener('DOMContentLoaded', () => {
-  initFirebase();
-  setupAuthListeners();
+  setupTerminalControls();
+  
+  // Set up 2.5s maximum safety fallback timeout to fade the loader no matter what
+  setTimeout(() => {
+    const loader = document.getElementById('initial-loader');
+    if (loader && loader.style.display !== 'none') {
+      logTerminal('Handshake latency exceeded. Activating fallback credentials gateway.', 'warning');
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 500);
+      
+      // Force gateway display if state is not resolved
+      if (!auth || !auth.currentUser) {
+        authOverlay.style.display = 'flex';
+        dashboardContainer.style.display = 'none';
+      }
+    }
+  }, 2500);
+
+  // Direct config sliders button from the login vault gate
+  const btnAuthConfig = document.getElementById('btn-auth-config');
+  if (btnAuthConfig) {
+    btnAuthConfig.addEventListener('click', () => {
+      configModal.style.display = 'flex';
+    });
+  }
+
+  try {
+    loadFirebaseConfig();
+    setupAuthListeners();
+  } catch (err) {
+    console.error("Initialization Error:", err);
+    logTerminal(`Initialization error: ${err.message}`, 'error');
+  }
+
+  setupThemeToggle();
   setupDragAndDrop();
-  handleHashNavigation();
-  loadRealTimetableData();
-  logTerminal("IRIS Administrative Console Engine initialized.", "info");
+  setupUIHandlers();
+  setup3DTiltEffects();
+  startLatencySimulator();
+  startTelemetryECG();
+  setupGlassShaderEffects();
+  
+  if (apkUrlInput) {
+    apkUrlInput.addEventListener('input', () => {
+      if (apkUrlInput.value.trim() !== '') {
+        deployApkBtn.disabled = false;
+      } else if (!selectedApkFile) {
+        deployApkBtn.disabled = true;
+      }
+    });
+  }
+
+  const pullGithubBtn = document.getElementById('btn-pull-github');
+  if (pullGithubBtn) {
+    pullGithubBtn.addEventListener('click', async () => {
+      logTerminal('Contacting GitHub API for latest release payload...', 'info');
+      pullGithubBtn.disabled = true;
+      const originalText = pullGithubBtn.innerHTML;
+      pullGithubBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> FETCHING RELEASE...';
+      
+      try {
+        const response = await fetch(`https://api.github.com/repos/malikaurangzaibahmed-lab/iris-enhanced/releases/latest`);
+        if (!response.ok) {
+          throw new Error(`HTTP Error ${response.status}: Repository may be private or not found.`);
+        }
+        
+        const release = await response.json();
+        const tagName = release.tag_name || "";
+        const versionName = tagName.replace(/^v/i, "");
+        
+        let apkUrl = "";
+        if (release.assets && release.assets.length > 0) {
+          const targetAsset = release.assets.find(a => a.name.includes("arm64-v8a")) || 
+                              release.assets.find(a => a.name.endsWith(".apk"));
+          if (targetAsset) {
+            apkUrl = targetAsset.browser_download_url;
+          }
+        }
+        
+        if (apkVersionName) apkVersionName.value = versionName;
+        if (apkNotes) apkNotes.value = release.body || "";
+        if (apkUrlInput) {
+          apkUrlInput.value = apkUrl;
+          deployApkBtn.disabled = false;
+        }
+        
+        logTerminal(`Autofill success: Pulled version <strong>${versionName}</strong> from GitHub.`, 'success');
+        showMossToast(`Fetched release ${tagName} successfully!`, "success");
+      } catch (err) {
+        logTerminal(`GitHub fetch failed: ${err.message}`, 'error');
+        showMossToast(err.message, "error");
+      } finally {
+        pullGithubBtn.disabled = false;
+        pullGithubBtn.innerHTML = originalText;
+      }
+    });
+  }
+
+  // WORKSPACE SEEDER TABS TOGGLER
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabPanes = document.querySelectorAll('.workspace-tab-pane');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text-muted)';
+        b.style.boxShadow = 'none';
+      });
+      btn.classList.add('active');
+      btn.style.background = '#ffffff';
+      btn.style.color = 'var(--accent-indigo)';
+      btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+      
+      const targetTab = btn.dataset.workspaceTab;
+      tabPanes.forEach(pane => {
+        if (pane.id === `workspace-tab-${targetTab}`) {
+          pane.style.display = 'block';
+        } else {
+          pane.style.display = 'none';
+        }
+      });
+      logTerminal(`Workspace switch: Staging <strong>${targetTab.toUpperCase()}</strong> workspace interface.`, 'info');
+      
+      // Auto-load live data when switching tabs
+      if (targetTab === 'classes') {
+        refreshLiveClassesInspector();
+      } else if (targetTab === 'exams') {
+        refreshLiveExamsInspector();
+      }
+    });
+  });
+
+  // Live Inspector Search Listeners
+  const classesSearch = document.getElementById('inspector-classes-search');
+  if (classesSearch) {
+    classesSearch.addEventListener('input', renderLiveClassesInspector);
+  }
+  const examsSearch = document.getElementById('inspector-exams-search');
+  if (examsSearch) {
+    examsSearch.addEventListener('input', renderLiveExamsInspector);
+  }
+
+  // Refresh and Wipe Button Bindings
+  const btnRefreshClasses = document.getElementById('btn-refresh-inspector-classes');
+  if (btnRefreshClasses) {
+    btnRefreshClasses.addEventListener('click', refreshLiveClassesInspector);
+  }
+  const btnRefreshExams = document.getElementById('btn-refresh-inspector-exams');
+  if (btnRefreshExams) {
+    btnRefreshExams.addEventListener('click', refreshLiveExamsInspector);
+  }
+  const btnWipeExams = document.getElementById('btn-wipe-exams');
+  if (btnWipeExams) {
+    btnWipeExams.addEventListener('click', wipeLiveExams);
+  }
+  const btnWipeClasses = document.getElementById('btn-wipe-classes');
+  if (btnWipeClasses) {
+    btnWipeClasses.addEventListener('click', wipeLiveClasses);
+  }
+  const btnClearStagedFiles = document.getElementById('btn-clear-staged-files');
+  if (btnClearStagedFiles) {
+    btnClearStagedFiles.addEventListener('click', () => {
+      stagedTimetableFiles = [];
+      recomputeStagedTimetables();
+      logTerminal('Purged all staged daily class timetable files.', 'info');
+    });
+  }
+
+  // Inspector Exams Mids/Finals Period switcher
+  const inspectorExamSegments = document.querySelectorAll('#inspector-exam-period-switcher .ribbon-segment');
+  inspectorExamSegments.forEach(seg => {
+    seg.addEventListener('click', () => {
+      inspectorExamSegments.forEach(s => s.classList.remove('active'));
+      seg.classList.add('active');
+      activeInspectorExamPeriod = seg.dataset.inspectorPeriod;
+      logTerminal(`Live Inspector switched: Viewing active <strong>${activeInspectorExamPeriod.toUpperCase()}</strong>.`, 'info');
+    });
+  });
+  
+  // Mobile Mockup tab switching
+  const mockTabs = document.querySelectorAll('.emulator-tab-btn');
+  const mockScreens = document.querySelectorAll('.emulator-screen');
+  
+  mockTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      mockTabs.forEach(t => t.classList.remove('active'));
+      mockScreens.forEach(s => s.classList.remove('active-screen'));
+      
+      tab.classList.add('active');
+      const targetScreenId = `emulator-screen-${tab.dataset.mockTab}`;
+      const targetScreen = document.getElementById(targetScreenId);
+      if (targetScreen) {
+        targetScreen.classList.add('active-screen');
+      }
+      logTerminal(`Mockup switched view to: <strong>${tab.dataset.mockTab.toUpperCase()}</strong>`, 'info');
+    });
+  });
+
+  const onboardingDots = document.querySelectorAll('.onboarding-dot');
+  const onboardingSlides = [
+    {
+      title: "Secure Synchronization",
+      desc: "Your daily academic lectures, timetables, and notification noticeboard synced to local cache.",
+      badge: "Iris Companion",
+      color: "var(--accent-indigo)"
+    },
+    {
+      title: "Real-time Telemetry",
+      desc: "Instant live broadcast indicators, updates alerts, and offline caching overrides.",
+      badge: "ECG Telemetry",
+      color: "var(--accent-cyan)"
+    },
+    {
+      title: "Fluid Glass Design",
+      desc: "Premium obsidian dark themes, animated weather headers, and nature physics sliders.",
+      badge: "Obsidian Liquid",
+      color: "var(--accent-rose)"
+    }
+  ];
+  
+  let currentSlide = 0;
+  
+  const switchOnboardingSlide = (index) => {
+    onboardingDots.forEach((dot, idx) => {
+      dot.className = idx === index ? 'onboarding-dot active' : 'onboarding-dot';
+    });
+    
+    const slide = onboardingSlides[index];
+    const mockTitle = document.getElementById('mock-onboarding-title');
+    const mockDesc = document.getElementById('mock-onboarding-desc');
+    const mockPill = document.getElementById('mock-onboarding-pill');
+    
+    if (mockTitle) mockTitle.innerText = slide.title;
+    if (mockDesc) mockDesc.innerText = slide.desc;
+    if (mockPill) {
+      mockPill.innerHTML = `<div class="mock-floating-pill" style="background: ${slide.color}; box-shadow: 0 8px 20px ${slide.color}50;">${slide.badge}</div>`;
+    }
+  };
+  
+  onboardingDots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      currentSlide = parseInt(dot.dataset.slide);
+      switchOnboardingSlide(currentSlide);
+    });
+  });
+  
+  // Auto slide onboarding every 4s
+  setInterval(() => {
+    const onboardingScreen = document.getElementById('emulator-screen-onboarding');
+    if (onboardingScreen && onboardingScreen.classList.contains('active-screen')) {
+      currentSlide = (currentSlide + 1) % onboardingSlides.length;
+      switchOnboardingSlide(currentSlide);
+    }
+  }, 4000);
 });
 
-// Firebase Initialization
-function initFirebase() {
-  try {
-    let config = DEFAULT_FIREBASE_CONFIG;
-    const stored = localStorage.getItem('iris_firebase_config');
-    if (stored) {
-      try { config = JSON.parse(stored); } catch (e) {}
-    }
+// ==========================================================================
+// SYSTEMS TELEMETRY CONSOLE LOGS
+// ==========================================================================
 
-    if (typeof firebase !== 'undefined') {
-      if (!firebase.apps.length) {
-        app = firebase.initializeApp(config);
-      } else {
-        app = firebase.app();
-      }
-      auth = firebase.auth();
-      db = firebase.firestore();
-      isConnected = true;
-      console.log("⚡ Firebase initialized successfully.");
-      logTerminal("Firebase Firestore connection established.", "success");
-    }
-  } catch (e) {
-    console.warn("Firebase Init Fallback:", e);
-    logTerminal("Running in offline console preview mode.", "warning");
-  }
-}
-
-// Security Authentication Gateway
-function setupAuthListeners() {
-  const overlay = document.getElementById('auth-overlay');
-  
-  if (auth) {
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        logTerminal(`Authenticated admin session verified: ${user.email}`, "success");
-        if (overlay) overlay.style.display = 'none';
-        initFirestoreSubscriptions();
-      } else {
-        const localSession = localStorage.getItem('iris_admin_authenticated');
-        if (localSession === 'true') {
-          if (overlay) overlay.style.display = 'none';
-          initFirestoreSubscriptions();
-        } else {
-          logTerminal("Authentication required. Please enter admin credentials.", "info");
-          if (overlay) overlay.style.display = 'flex';
-        }
-      }
-    });
-  } else {
-    const localSession = localStorage.getItem('iris_admin_authenticated');
-    if (localSession === 'true' && overlay) {
-      overlay.style.display = 'none';
-      initFirestoreSubscriptions();
-    } else if (overlay) {
-      overlay.style.display = 'flex';
-    }
-  }
-}
-
-// Subscribe to all Live Firestore State Collections & Documents
-function initFirestoreSubscriptions() {
-  if (!db) return;
-  initFirestoreGlobalConfig();
-  initFirestoreAppUpdateConfig();
-  initFirestoreNoticesStream();
-  initFirestoreTimetableStream();
-  initFirestoreFeedbackStream();
-}
-
-function initFirestoreGlobalConfig() {
-  if (!db) return;
-  try {
-    db.collection('config').doc('global').onSnapshot(doc => {
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.academic_period) {
-          setAcademicModeUI(data.academic_period);
-          logTerminal(`Live Firestore: Academic period synced to [${data.academic_period.toUpperCase()}]`, "info");
-        }
-      }
-    }, err => console.warn("Global config listener error:", err));
-  } catch (e) {}
-}
-
-function setAcademicModeUI(mode) {
-  const ribbonSegments = document.querySelectorAll('#academic-ribbon .ribbon-segment');
-  ribbonSegments.forEach(seg => {
-    seg.classList.toggle('active', seg.getAttribute('data-period') === mode);
-  });
-
-  const titles = {
-    classes: "REGULAR CLASSES MODE ACTIVE",
-    midterm: "MIDTERM EXAM PERIOD ACTIVE",
-    finals: "FINAL EXAM PERIOD ACTIVE",
-    sports: "SPORTS WEEK PERIOD ACTIVE",
-    sports_week: "SPORTS WEEK PERIOD ACTIVE"
-  };
-
-  const texts = {
-    classes: "Standard curriculum timetables, active period countdowns, and room locator indexing enabled.",
-    midterm: "Midterm exam date sheets take priority on student home screens and widgets.",
-    finals: "Final exam schedule view active with seating room indicators.",
-    sports: "Sports week notices and schedule highlighted across mobile noticeboards.",
-    sports_week: "Sports week notices and schedule highlighted across mobile noticeboards."
-  };
-
-  const titleEl = document.getElementById('mode-desc-title');
-  const textEl = document.getElementById('mode-desc-text');
-  if (titleEl) titleEl.innerText = titles[mode] || titles.classes;
-  if (textEl) textEl.innerText = texts[mode] || texts.classes;
-
-  // Update Emulator Preview
-  const emModeBadge = document.getElementById('emulator-mode-badge');
-  const emModeTitle = document.getElementById('emulator-mode-title');
-  if (emModeBadge) emModeBadge.innerText = `${mode.toUpperCase()} MODE`;
-  if (emModeTitle) emModeTitle.innerText = titles[mode];
-}
-
-function initFirestoreAppUpdateConfig() {
-  if (!db) return;
-  try {
-    db.collection('config').doc('app_update').onSnapshot(doc => {
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.version_name) document.getElementById('apk-version-name').value = data.version_name;
-        if (data.version_code) document.getElementById('apk-version-code').value = data.version_code;
-        if (data.release_notes) document.getElementById('apk-notes').value = data.release_notes;
-        if (data.apk_url) document.getElementById('apk-url-input').value = data.apk_url;
-        if (typeof data.show_update_banner === 'boolean') {
-          document.getElementById('apk-switch-visible').checked = data.show_update_banner;
-        }
-        logTerminal("Live Firestore: Remote OTA release config synchronized.", "info");
-      }
-    }, err => console.warn("App update config listener error:", err));
-  } catch (e) {}
-}
-
-function initFirestoreNoticesStream() {
-  if (!db) return;
-  try {
-    db.collection('notices').orderBy('created_at', 'desc').limit(1).onSnapshot(snapshot => {
-      if (!snapshot.empty) {
-        const doc = snapshot.docs[0];
-        const data = doc.data();
-        const emTitle = document.getElementById('emulator-notice-title');
-        const emBody = document.getElementById('emulator-notice-body');
-        if (emTitle) emTitle.innerText = (data.title || 'CAMPUS NOTICEBOARD').toUpperCase();
-        if (emBody) emBody.innerText = data.body || 'No active emergency notices';
-        logTerminal(`Live Firestore: Synced notice [${data.title}]`, "info");
-      }
-    }, err => console.warn("Notices stream error:", err));
-  } catch (e) {}
-}
-
-function initFirestoreTimetableStream() {
-  if (!db) return;
-  try {
-    db.collection('timetables').doc('seed').onSnapshot(doc => {
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.sessions && Array.isArray(data.sessions)) {
-          realTimetable = data.sessions;
-          buildFacultyFromTimetable();
-          updatePlatformStats();
-          updateActiveClassCard();
-          renderTimetable();
-          renderFaculty();
-          logTerminal(`Live Firestore: Synced ${realTimetable.length.toLocaleString()} timetable sessions.`, "success");
-        }
-      }
-    }, err => console.warn("Timetable stream error:", err));
-  } catch (e) {}
-}
-
-function handleLoginSubmit(event) {
-  event.preventDefault();
-  const email = document.getElementById('auth-email').value.trim();
-  const pass = document.getElementById('auth-pass').value.trim();
-
-  if (!email || !pass) return;
-
-  logTerminal(`Attempting authentication for [${email}]...`, "info");
-
-  if (auth) {
-    auth.signInWithEmailAndPassword(email, pass).then(() => {
-      localStorage.setItem('iris_admin_authenticated', 'true');
-      document.getElementById('auth-overlay').style.display = 'none';
-      logTerminal("Login successful! Control console unlocked.", "success");
-      initFirestoreSubscriptions();
-    }).catch(err => {
-      if (email.includes('admin') || pass.length >= 4) {
-        localStorage.setItem('iris_admin_authenticated', 'true');
-        document.getElementById('auth-overlay').style.display = 'none';
-        logTerminal(`Authenticated access granted: ${email}`, "success");
-        initFirestoreSubscriptions();
-      } else {
-        alert("Authentication failed: " + err.message);
-        logTerminal("Authentication failed: " + err.message, "error");
-      }
-    });
-  } else {
-    localStorage.setItem('iris_admin_authenticated', 'true');
-    document.getElementById('auth-overlay').style.display = 'none';
-    logTerminal(`Authenticated access granted locally: ${email}`, "success");
-    initFirestoreSubscriptions();
-  }
-}
-
-function logoutAdmin() {
-  if (auth) auth.signOut();
-  localStorage.removeItem('iris_admin_authenticated');
-  const overlay = document.getElementById('auth-overlay');
-  if (overlay) overlay.style.display = 'flex';
-  logTerminal("Session disconnected.", "warning");
-}
-
-// Drag and Drop Uploader Setup
-function setupDragAndDrop() {
-  const timetableZone = document.getElementById('timetable-dropzone');
-  if (timetableZone) {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      timetableZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
-    });
-    ['dragenter', 'dragover'].forEach(eventName => {
-      timetableZone.addEventListener(eventName, () => timetableZone.classList.add('dragover'), false);
-    });
-    ['dragleave', 'drop'].forEach(eventName => {
-      timetableZone.addEventListener(eventName, () => timetableZone.classList.remove('dragover'), false);
-    });
-    timetableZone.addEventListener('drop', e => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files && files.length > 0) {
-        handleTimetableFilesSelect({ target: { files: files } });
-      }
-    }, false);
-  }
-
-  const examsZone = document.getElementById('exams-dropzone');
-  if (examsZone) {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      examsZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
-    });
-    ['dragenter', 'dragover'].forEach(eventName => {
-      examsZone.addEventListener(eventName, () => examsZone.classList.add('dragover'), false);
-    });
-    ['dragleave', 'drop'].forEach(eventName => {
-      examsZone.addEventListener(eventName, () => examsZone.classList.remove('dragover'), false);
-    });
-    examsZone.addEventListener('drop', e => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files && files.length > 0) {
-        handleExcelFileSelect({ target: { files: files } });
-      }
-    }, false);
-  }
-}
-
-// Config Modal Manager
-function openConfigModal() {
-  const modal = document.getElementById('config-modal');
-  const textarea = document.getElementById('firebase-config-json');
-  if (modal) modal.style.display = 'flex';
-  if (textarea) textarea.value = JSON.stringify(DEFAULT_FIREBASE_CONFIG, null, 2);
-}
-
-function closeConfigModal() {
-  const modal = document.getElementById('config-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function saveFirebaseConfig() {
-  const textarea = document.getElementById('firebase-config-json');
-  if (!textarea) return;
-  try {
-    const parsed = JSON.parse(textarea.value);
-    localStorage.setItem('iris_firebase_config', JSON.stringify(parsed));
-    closeConfigModal();
-    alert("✅ Configuration saved! Page will reload to initialize custom Firebase link.");
-    location.reload();
-  } catch (e) {
-    alert("⚠️ Invalid JSON format: " + e.message);
-  }
-}
-
-// Single Page Application Router
-function switchPage(pageId) {
-  document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-
-  const targetPage = document.getElementById(`page-${pageId}`);
-  const targetTab = document.getElementById(`tab-${pageId}`);
-
-  if (targetPage) targetPage.classList.add('active');
-  if (targetTab) targetTab.classList.add('active');
-
-  window.location.hash = pageId;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  logTerminal(`Navigated to page: [${pageId.toUpperCase()}]`, "info");
-}
-
-function handleHashNavigation() {
-  const hash = window.location.hash.replace('#', '');
-  if (['dashboard', 'timetable', 'exams', 'broadcast', 'directory', 'feedback', 'releases'].includes(hash)) {
-    switchPage(hash);
-  }
-}
-
-// Terminal Activity Log Engine
 function logTerminal(message, type = 'info') {
-  const output = document.getElementById('terminal-output');
-  if (!output) return;
-
-  const now = new Date();
-  const timeStr = now.toTimeString().split(' ')[0];
-  const colors = {
-    info: 'var(--brand-cyan)',
-    success: 'var(--brand-emerald)',
-    warning: 'var(--brand-amber)',
-    error: 'var(--brand-rose)'
-  };
-
-  logHistory.push({ time: timeStr, message, type, rawText: `[${timeStr}] [${type.toUpperCase()}] ${message}` });
-
-  const line = document.createElement('div');
-  line.style.marginBottom = '4px';
-  line.innerHTML = `<span style="color: var(--text-dim);">[${timeStr}]</span> <span style="color: ${colors[type] || colors.info}; font-weight: 700;">[${type.toUpperCase()}]</span> ${message}`;
-
-  output.appendChild(line);
-  output.scrollTop = output.scrollHeight;
+  const time = new Date().toLocaleTimeString();
+  const rawText = `[${time}] > ${message.replace(/<[^>]*>/g, '')}`;
+  
+  logHistory.push({ time, message, type, rawText });
+  renderTerminalLogs();
 }
 
-function clearTerminalLogs() {
-  const output = document.getElementById('terminal-output');
-  if (output) output.innerHTML = '';
-  logHistory = [];
-}
-
-function downloadTerminalLogs() {
-  if (logHistory.length === 0) {
-    alert("Console log terminal is empty.");
-    return;
-  }
-
-  let text = `# IRIS Admin System Diagnostics Log\nExported: ${new Date().toLocaleString()}\n\n`;
-  logHistory.forEach(l => {
-    text += `${l.rawText}\n`;
+function renderTerminalLogs() {
+  if (!terminalOutput) return;
+  terminalOutput.innerHTML = '';
+  
+  const searchVal = searchTerminalInput ? searchTerminalInput.value.toLowerCase().trim() : '';
+  const filterVal = filterTerminalSelect ? filterTerminalSelect.value : 'all';
+  
+  const filtered = logHistory.filter(log => {
+    if (filterVal !== 'all' && log.type !== filterVal) return false;
+    if (searchVal && !log.rawText.toLowerCase().includes(searchVal)) return false;
+    return true;
   });
-
-  const blob = new Blob([text], { type: 'text/markdown' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `iris_system_logs_${Date.now()}.md`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-// Data Sync Engine
-async function refreshAllData() {
-  logTerminal("Synchronizing timetable dataset and live Firestore feedback...", "info");
-  await loadRealTimetableData();
-  if (db) initFirestoreSubscriptions();
-  alert("✅ Data sync complete: Timetable dataset and live Firestore feedback refreshed!");
-}
-
-// Fetch Real Timetable & Build Real Faculty Roster Dynamically
-async function loadRealTimetableData() {
-  try {
-    const res = await fetch('timetable_seed.json');
-    if (res.ok) {
-      realTimetable = await res.json();
-      buildFacultyFromTimetable();
-      updatePlatformStats();
-      updateActiveClassCard();
-      renderTimetable();
-      renderFaculty();
-      logTerminal(`Loaded ${realTimetable.length.toLocaleString()} real campus timetable sessions.`, "success");
-    }
-  } catch (e) {
-    console.warn("Could not load timetable_seed.json:", e);
-  }
-}
-
-function buildFacultyFromTimetable() {
-  const teacherMap = new Map();
-  realTimetable.forEach(item => {
-    if (item.teacher && item.teacher !== "N/A" && !teacherMap.has(item.teacher)) {
-      teacherMap.set(item.teacher, {
-        name: item.teacher,
-        dept: item.department || "Academic Faculty",
-        designation: "Faculty Instructor",
-        room: item.room && item.room !== "N/A" ? item.room : "Campus Venue",
-        email: item.email || item.teacher_email || "Official Department Faculty"
-      });
-    }
+  
+  filtered.forEach(log => {
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = `<span class="log-time-indicator">[${log.time}]</span><span class="log-txt-core log-${log.type}">${log.message}</span>`;
+    terminalOutput.appendChild(line);
   });
-  realFaculty = Array.from(teacherMap.values());
+  
+  setupTerminalScroll();
 }
 
-function updatePlatformStats() {
-  const statSessions = document.getElementById('stat-sessions');
-  const statFaculty = document.getElementById('stat-faculty');
-  const statFeedback = document.getElementById('stat-feedback');
-
-  if (statSessions) statSessions.innerText = realTimetable.length > 0 ? realTimetable.length.toLocaleString() : "0";
-  if (statFaculty) statFaculty.innerText = realFaculty.length > 0 ? `${realFaculty.length}+` : "0";
-  if (statFeedback) statFeedback.innerText = communityFeedbacks.length.toString();
-}
-
-function updateActiveClassCard() {
-  const now = new Date();
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const currentDayStr = days[now.getDay()];
-
-  const todaySessions = realTimetable.filter(item => item.day === currentDayStr);
-  const activeSession = todaySessions[0] || realTimetable[0];
-
-  const nameEl = document.getElementById('live-subject-name');
-  const teacherEl = document.getElementById('live-teacher-name');
-  const rangeEl = document.getElementById('live-time-range');
-
-  if (activeSession) {
-    if (nameEl) nameEl.innerText = activeSession.subject || "No Active Class";
-    if (teacherEl) teacherEl.innerText = `${activeSession.batch || ''} • ${activeSession.teacher || ''} • Room ${activeSession.room || ''}`;
-    if (rangeEl) rangeEl.innerText = `${activeSession.start || ''} - ${activeSession.end || ''}`;
-  }
-
-  // Update Mobile Student Emulator Feed with Real Today Sessions
-  const emFeed = document.getElementById('emulator-schedule-feed');
-  if (emFeed) {
-    const listToRender = (todaySessions.length > 0 ? todaySessions : realTimetable).slice(0, 3);
-    emFeed.innerHTML = listToRender.map(s => `
-      <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px; margin-bottom: 6px;">
-        <div style="font-weight: 800; font-size: 11.5px; color: var(--text-main);">${s.batch || ''} - ${s.subject || 'Class'}</div>
-        <div style="font-size: 10px; color: var(--brand-cyan);">${s.teacher || ''} • Room ${s.room || 'N/A'} (${s.start || ''})</div>
-      </div>
-    `).join('');
+function setupTerminalScroll() {
+  const view = document.querySelector('.console-terminal-view');
+  if (view) {
+    view.scrollTop = view.scrollHeight;
   }
 }
 
-// Academic Mode Switcher Engine
-function setAcademicMode(mode) {
-  const ribbonSegments = document.querySelectorAll('#academic-ribbon .ribbon-segment');
-  ribbonSegments.forEach(seg => {
-    seg.classList.toggle('active', seg.getAttribute('data-period') === mode);
-  });
-
-  const titles = {
-    classes: "REGULAR CLASSES MODE ACTIVE",
-    midterm: "MIDTERM EXAM PERIOD ACTIVE",
-    finals: "FINAL EXAM PERIOD ACTIVE",
-    sports: "SPORTS WEEK PERIOD ACTIVE",
-    sports_week: "SPORTS WEEK PERIOD ACTIVE"
-  };
-
-  const texts = {
-    classes: "Standard curriculum timetables, active period countdowns, and room locator indexing enabled.",
-    midterm: "Midterm exam date sheets take priority on student home screens and widgets.",
-    finals: "Final exam schedule view active with seating room indicators.",
-    sports: "Sports week notices and schedule highlighted across mobile noticeboards.",
-    sports_week: "Sports week notices and schedule highlighted across mobile noticeboards."
-  };
-
-  const titleEl = document.getElementById('mode-desc-title');
-  const textEl = document.getElementById('mode-desc-text');
-  if (titleEl) titleEl.innerText = titles[mode] || titles.classes;
-  if (textEl) textEl.innerText = texts[mode] || texts.classes;
-
-  // Update Emulator
-  const emModeBadge = document.getElementById('emulator-mode-badge');
-  const emModeTitle = document.getElementById('emulator-mode-title');
-  if (emModeBadge) emModeBadge.innerText = `${mode.toUpperCase()} MODE`;
-  if (emModeTitle) emModeTitle.innerText = titles[mode];
-
-  const targetPeriod = mode === 'sports' ? 'sports_week' : mode;
-
-  if (db) {
-    db.collection('config').doc('global').set({
-      academic_period: targetPeriod,
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).then(() => {
-      logTerminal(`Academic Period set to [${targetPeriod.toUpperCase()}] in Firestore config/global.`, "success");
-    }).catch(err => logTerminal("Firestore mode save: " + err.message, "error"));
+function setupTerminalControls() {
+  if (clearTerminalBtn) {
+    clearTerminalBtn.addEventListener('click', () => {
+      logHistory = [];
+      renderTerminalLogs();
+      logTerminal('Console records purged successfully.', 'info');
+    });
   }
-
-  alert(`Academic mode switched to [${targetPeriod.toUpperCase()}]. Broadcast sent to all mobile client devices!`);
-}
-
-// Timetable PDF & JSON Uploader
-function handleTimetableFilesSelect(event) {
-  const files = event.target.files;
-  if (!files || files.length === 0) return;
-
-  const infoEl = document.getElementById('timetable-file-info');
-  infoEl.innerText = `Selected ${files.length} file(s): ${Array.from(files).map(f => f.name).join(', ')}`;
-
-  const file = files[0];
-  if (file.name.endsWith('.json')) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        stagedTimetable = JSON.parse(e.target.result);
-        logTerminal(`Staged JSON file with ${stagedTimetable.length} timetable sessions.`, "success");
-        alert(`✅ Staged JSON file with ${stagedTimetable.length} timetable sessions.`);
-      } catch (err) {
-        alert("⚠️ Invalid JSON file format.");
+  
+  if (searchTerminalInput) {
+    searchTerminalInput.addEventListener('input', renderTerminalLogs);
+  }
+  
+  if (filterTerminalSelect) {
+    filterTerminalSelect.addEventListener('change', renderTerminalLogs);
+  }
+  
+  if (downloadLogsBtn) {
+    downloadLogsBtn.addEventListener('click', () => {
+      if (logHistory.length === 0) {
+        logTerminal('Console stream empty. Compile aborted.', 'warning');
+        return;
       }
-    };
-    reader.readAsText(file);
-  } else if (file.name.endsWith('.pdf')) {
-    logTerminal(`Staged PDF file [${file.name}] for parsing.`, "info");
-    alert(`📄 Staged PDF file [${file.name}]. Click 'Commit Seed' to parse and upload sessions to database.`);
+      
+      let md = `# Nexsync Biosphere Command Console - System Diagnostics Report\r\n\r\n`;
+      md += `## Administrative Session Details\r\n`;
+      md += `* **Exported Timestamp:** ${new Date().toLocaleString()}\r\n`;
+      md += `* **Connection Status:** ${isConnected ? "STREAM ACTIVE" : "OFFLINE"}\r\n`;
+      md += `* **Operational Period:** ${ribbonSegments ? Array.from(ribbonSegments).find(s => s.classList.contains('active'))?.dataset.period.toUpperCase() : "CLASSES"}\r\n`;
+      md += `* **Session Cache Key:** Fresh Active Handshake\r\n\r\n`;
+      
+      md += `## Core System Activity Log\r\n`;
+      md += `| Timestamp | Severity | Diagnostic Event Statement |\r\n`;
+      md += `| :--- | :--- | :--- |\r\n`;
+      
+      logHistory.forEach(log => {
+        const severity = log.type.toUpperCase();
+        const cleanText = log.message.replace(/<[^>]*>/g, '');
+        md += `| ${log.time} | \`${severity}\` | ${cleanText} |\r\n`;
+      });
+      
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `nexsync-diagnostics-report-${Date.now()}.md`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      logTerminal('Diagnostics record exported in Markdown table format.', 'success');
+    });
   }
 }
 
-function commitStagedTimetable() {
-  if (stagedTimetable.length > 0) {
-    realTimetable = stagedTimetable;
-    renderTimetable();
-    updatePlatformStats();
+// ==========================================================================
+// FIREBASE ENVIRONMENT HANDSHAKE
+// ==========================================================================
 
-    if (db) {
-      const nowTs = Math.floor(Date.now() / 1000);
-      const jsonStr = JSON.stringify(realTimetable);
-
-      db.collection('timetables').doc('seed').set({
-        sessions: realTimetable,
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      db.collection('config').doc('global').set({
-        active_timetable_json: jsonStr,
-        active_timetable_version: nowTs,
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true }).then(() => {
-        logTerminal(`Committed timetable seed (v${nowTs}) to Firestore config/global.`, "success");
-        alert("✅ Timetable seed committed to Firestore database!");
-      }).catch(err => alert("Firestore save error: " + err.message));
-    } else {
-      alert("✅ Staged timetable seed committed locally!");
+function loadFirebaseConfig() {
+  let savedConfig = localStorage.getItem('iris_admin_firebase_config');
+  let configToUse = DEFAULT_FIREBASE_CONFIG;
+  
+  if (savedConfig) {
+    try {
+      const parsed = JSON.parse(savedConfig);
+      if (parsed.apiKey) {
+        configToUse = parsed;
+        logTerminal('Custom administrative configs loaded from local cache.', 'info');
+      } else {
+        logTerminal('Incomplete cached parameters. Reverting to system defaults.', 'warning');
+        localStorage.removeItem('iris_admin_firebase_config');
+      }
+    } catch (e) {
+      logTerminal('Configuration file parse failed. Defaults staged.', 'warning');
     }
   } else {
-    alert("⚠️ Please select a valid JSON or PDF timetable file first.");
+    logTerminal('Telemetry channel linked to core database "iris-138ef".', 'info');
   }
+  
+  if (configJsonArea) {
+    configJsonArea.value = JSON.stringify(configToUse, null, 2);
+  }
+  initializeFirebase(configToUse);
 }
 
-function wipeLiveTimetable() {
-  if (confirm("Are you sure you want to WIPE the live class timetable database?")) {
-    realTimetable = [];
-    renderTimetable();
-    updatePlatformStats();
+function initializeFirebase(config) {
+  try {
+    if (typeof firebase === 'undefined') {
+      throw new Error('Firebase script libraries failed to load. CDN may be blocked or offline.');
+    }
 
-    if (db) {
-      db.collection('timetables').doc('seed').delete().then(() => {
-        logTerminal("Live timetable database wiped.", "warning");
-        alert("🗑️ Live timetable database wiped successfully.");
+    if (firebase.apps.length > 0) {
+      firebase.apps.forEach(app => app.delete());
+    }
+    
+    app = firebase.initializeApp(config);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    storage = firebase.storage();
+    
+    try {
+      db.enablePersistence().catch((err) => {
+        console.warn("Firestore offline persistence promise rejected:", err);
       });
-    } else {
-      alert("🗑️ Live timetable wiped locally.");
+    } catch (e) {
+      console.warn("Firestore offline persistence failed synchronously:", e);
+    }
+    
+    isConnected = true;
+    logTerminal('Credentials authenticated securely.', 'success');
+    
+    if (authConnectionBeacon) {
+      authConnectionBeacon.className = "connection-beacon";
+      beaconText.innerText = "Telemetry Secure Link Active";
+    }
+  } catch (e) {
+    isConnected = false;
+    logTerminal(`Credentials handshake failure: ${e.message}`, 'error');
+    console.error("Firebase Handshake ERROR:", e);
+    showAuthError(`System Error: ${e.message}. Rectify details inside sliders.`);
+    
+    if (authConnectionBeacon) {
+      authConnectionBeacon.className = "connection-beacon offline";
+      beaconText.innerText = "Telemetry Offline - Error";
     }
   }
 }
 
-// Timetable Inspector Renderer
-function selectDay(day) {
-  selectedDay = day;
-  document.querySelectorAll('#day-picker-container .day-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.innerText.trim() === day);
+// ==========================================================================
+// VAULT GATE SECURITY KEY ENTRY
+// ==========================================================================
+
+function setupAuthListeners() {
+  const loader = document.getElementById('initial-loader');
+  
+  const hideLoader = () => {
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 500);
+    }
+  };
+
+  if (!isConnected || !auth) {
+    hideLoader();
+    authOverlay.style.display = 'flex';
+    dashboardContainer.style.display = 'none';
+    logTerminal('Gateway offline. Ready for local configuration adjustments.', 'warning');
+    return;
+  }
+  
+  auth.onAuthStateChanged(user => {
+    hideLoader();
+    
+    if (user) {
+      logTerminal(`Vault session successfully mapped: <strong>${user.email}</strong>`, 'success');
+      showMossToast("Welcome back! Biosphere secure link active.", "success");
+      
+      if (user.email && userMonogram) {
+        userMonogram.innerText = user.email.substring(0, 2).toUpperCase();
+      }
+      
+      authOverlay.style.display = 'none';
+      dashboardContainer.style.display = 'flex';
+      
+      syncActivePeriodState();
+      loadTimetableHistory();
+      startNodesSimulator();
+    } else {
+      authOverlay.style.display = 'flex';
+      dashboardContainer.style.display = 'none';
+      logTerminal('Administrative sync session closed.', 'info');
+    }
   });
-  renderTimetable();
 }
 
-function renderTimetable() {
-  const tbody = document.getElementById('timetable-tbody');
-  if (!tbody) return;
+let failedAttempts = parseInt(localStorage.getItem('iris_admin_failed_attempts') || '0');
+let lockUntil = parseInt(localStorage.getItem('iris_admin_lock_until') || '0');
 
-  const searchVal = (document.getElementById('timetable-search')?.value || '').toLowerCase();
+loginBtn.addEventListener('click', async () => {
+  const email = emailInput.value.trim();
+  const pass = passInput.value;
+  
+  const now = Date.now();
+  if (now < lockUntil) {
+    const remainingSecs = Math.ceil((lockUntil - now) / 1000);
+    showAuthError(`Vault locked. Security lockout active for ${remainingSecs} seconds.`);
+    logTerminal(`Access Denied: Lockout actively running. Remaining: ${remainingSecs}s.`, 'error');
+    return;
+  }
+  
+  if (!email || !pass) {
+    showAuthError('Email and passkey credentials parameters required.');
+    return;
+  }
+  
+  if (!isConnected || !auth) {
+    showAuthError('Console gateway compilation error. Check backend connections.');
+    return;
+  }
+  
+  loginBtn.disabled = true;
+  loginBtn.querySelector('span').innerText = 'DECRYPTING LOCKOUT KEY...';
+  authError.style.display = 'none';
+  
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    failedAttempts = 0;
+    localStorage.setItem('iris_admin_failed_attempts', '0');
+  } catch (e) {
+    failedAttempts++;
+    localStorage.setItem('iris_admin_failed_attempts', failedAttempts.toString());
+    logTerminal(`Vault credential validation failed: ${e.message}`, 'error');
+    
+    if (failedAttempts >= 3) {
+      lockUntil = Date.now() + 45000; // 45 seconds lock
+      localStorage.setItem('iris_admin_lock_until', lockUntil.toString());
+      showAuthError(`Vault lock initialized. Access profile suspended for 45s.`);
+      logTerminal(`Brute Shield: Successive failures. Key gateway suspended.`, 'error');
+    } else {
+      showAuthError(`Validation Failed. (${failedAttempts}/3 Attempts)`);
+    }
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.querySelector('span').innerText = 'Verify Access Profile';
+  }
+});
 
-  const filtered = realTimetable.filter(item => {
-    const matchDay = !item.day || item.day === selectedDay;
-    const matchSearch = !searchVal ||
-      (item.batch && item.batch.toLowerCase().includes(searchVal)) ||
-      (item.subject && item.subject.toLowerCase().includes(searchVal)) ||
-      (item.teacher && item.teacher.toLowerCase().includes(searchVal)) ||
-      (item.room && item.room.toLowerCase().includes(searchVal));
-    return matchDay && matchSearch;
+logoutBtn.addEventListener('click', () => {
+  auth.signOut();
+});
+
+function showAuthError(msg) {
+  authError.innerText = msg;
+  authError.style.display = 'block';
+}
+
+if (btnTogglePassword && passInput) {
+  btnTogglePassword.addEventListener('click', () => {
+    const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passInput.setAttribute('type', type);
+    
+    const icon = btnTogglePassword.querySelector('i');
+    if (type === 'text') {
+      icon.className = 'fa-solid fa-eye-slash';
+      logTerminal('Vault passkey visibility enabled.', 'info');
+    } else {
+      icon.className = 'fa-solid fa-eye';
+      logTerminal('Vault passkey visibility disabled.', 'info');
+    }
   });
+}
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No sessions found for ${selectedDay}.</td></tr>`;
+// Config Sliders Configuration Modal Bindings
+showConfigBtn.addEventListener('click', () => {
+  configModal.style.display = 'flex';
+});
+
+closeModalBtn.addEventListener('click', () => {
+  configModal.style.display = 'none';
+});
+
+saveConfigBtn.addEventListener('click', () => {
+  const jsonStr = configJsonArea.value.trim();
+  const validated = sanitizeAndValidateFirebaseConfig(jsonStr);
+  if (!validated) {
+    showMossToast('Configuration error. See modal log entries.', 'error');
+    return;
+  }
+  
+  localStorage.setItem('iris_admin_firebase_config', JSON.stringify(validated));
+  configJsonArea.value = JSON.stringify(validated, null, 2);
+  
+  showMossToast('Saving parameters & re-connecting...', 'info');
+  setTimeout(() => {
+    configModal.style.display = 'none';
+    const logConsole = document.getElementById('config-validation-log');
+    if (logConsole) logConsole.style.display = 'none';
+    
+    initializeFirebase(validated);
+    setupAuthListeners();
+  }, 1000);
+});
+
+
+
+function syncActivePeriodState() {
+  if (!isConnected) return;
+  
+  logTerminal('Establishing real-time cloud database synchronization...', 'info');
+  initFirestoreFeedbackStream();
+  
+  db.collection('config').doc('global').onSnapshot(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      const currentPeriod = data.academic_period || 'classes';
+      
+      logTerminal(`Sync Telemetry: Operational period mode: <strong>${currentPeriod}</strong>`, 'success');
+      
+      // Update tactile Segmented Switcher state
+      ribbonSegments.forEach(seg => {
+        if (seg.dataset.period === currentPeriod) {
+          seg.classList.add('active');
+        } else {
+          seg.classList.remove('active');
+        }
+      });
+      
+      // Update switcher description copy
+      const descs = {
+        classes: 'Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.',
+        midterms: 'Midterm testing mode: interim assessments, mid-semester testing logs, and check schedules.',
+        finals: 'Final examination mode: core semester finals, grade evaluation compiles, and term closeout.',
+        sports_week: 'Athletic Sports Week: campus extracurricular activities, sports day schedules, and session breaks.'
+      };
+      if (activePeriodDesc) {
+        activePeriodDesc.innerText = descs[currentPeriod] || 'Lecture tracks active.';
+      }
+
+
+      // Update Mockup period card theme
+      const mockCard = document.getElementById('mock-period-card');
+      const mockBadge = document.getElementById('mock-period-badge');
+      const mockTitle = document.getElementById('mock-period-title');
+      const mockSubtitle = document.getElementById('mock-period-subtitle');
+      if (mockCard && mockBadge && mockTitle && mockSubtitle) {
+        mockCard.className = 'emulator-mode-card';
+        if (currentPeriod === 'classes') {
+          mockCard.classList.add('theme-classes');
+          mockBadge.innerHTML = '<i class="fa-solid fa-graduation-cap"></i> CLASSES MODE';
+          mockTitle.innerText = 'CLASSES IN SESSION';
+          mockSubtitle.innerText = 'Regular academic lecturing track';
+        } else if (currentPeriod === 'midterms') {
+          mockCard.classList.add('theme-midterms');
+          mockBadge.innerHTML = '<i class="fa-solid fa-pen-clip"></i> MIDTERMS MODE';
+          mockTitle.innerText = 'MIDTERMS ACTIVE';
+          mockSubtitle.innerText = 'Warm study session tracks';
+        } else if (currentPeriod === 'finals') {
+          mockCard.classList.add('theme-finals');
+          mockBadge.innerHTML = '<i class="fa-solid fa-award"></i> FINALS MODE';
+          mockTitle.innerText = 'FINALS ACTIVE';
+          mockSubtitle.innerText = 'Obsidian exam card theme';
+        } else if (currentPeriod === 'sports_week') {
+          mockCard.classList.add('theme-sports');
+          mockBadge.innerHTML = '<i class="fa-solid fa-volleyball"></i> SPORTS WEEK';
+          mockTitle.innerText = 'SPORTS WEEK IN SESSION';
+          mockSubtitle.innerText = 'Extracurricular activities & breaks';
+        }
+      }
+
+      // Render active timetable statistics dynamically from database
+      if (data.active_timetable_json) {
+        try {
+          const parsedTimetable = JSON.parse(data.active_timetable_json);
+          updateActiveTimetablePreview(parsedTimetable);
+        } catch (e) {
+          console.warn("Failed to parse active timetable json:", e);
+        }
+      }
+
+      // Dynamic pre-fill version code from database
+      if (data.latest_apk_update) {
+        const ota = data.latest_apk_update;
+        if (apkVersionName && (!apkVersionName.value || apkVersionName.value === '1.2.0')) {
+          apkVersionName.value = ota.version_name || '1.2.0';
+        }
+        if (apkVersionCode && (!apkVersionCode.value || apkVersionCode.value === '3')) {
+          apkVersionCode.value = (parseInt(ota.version_code) || 0) + 1;
+        }
+        if (apkSwitchVisible) {
+          apkSwitchVisible.checked = ota.show_update_card !== false;
+        }
+      }
+
+      // Announcement Transceiver synchronization
+      if (broadcastSwitchVisible && broadcastMessage) {
+        const isBroadcastOn = data.broadcast_enabled || false;
+        const broadcastMsg = data.broadcast_message || '';
+        
+        broadcastSwitchVisible.checked = isBroadcastOn;
+        if (document.activeElement !== broadcastMessage) {
+          broadcastMessage.value = broadcastMsg;
+          updateBroadcastCharCount(broadcastMsg.length);
+        }
+        
+        // Direct mockup Notice sync
+        const mockNoticeCard = document.getElementById('mock-notice-card');
+        const mockNoticeBody = document.getElementById('mock-notice-body');
+        const mockNoticeIcon = document.getElementById('mock-notice-icon-badge');
+        const mockNoticeLive = document.getElementById('mock-notice-live-tag');
+        const mockNoticeTime = document.getElementById('mock-notice-time');
+        if (mockNoticeCard && mockNoticeBody) {
+          mockNoticeBody.innerText = broadcastMsg || 'All Quiet on Campus • No active broadcasts right now';
+          if (isBroadcastOn && broadcastMsg) {
+            mockNoticeCard.className = 'mock-notice-card active-notice';
+            if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge';
+            if (mockNoticeLive) mockNoticeLive.style.display = 'inline-block';
+            if (mockNoticeTime) mockNoticeTime.innerText = formatMockTime(new Date());
+          } else {
+            mockNoticeCard.className = 'mock-notice-card notice-off';
+            if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge off';
+            if (mockNoticeLive) mockNoticeLive.style.display = 'none';
+            if (mockNoticeTime) mockNoticeTime.innerText = 'NEVER';
+          }
+        }
+        
+        btnBroadcastPush.disabled = false;
+        
+        // Synchronize hidden legacy elements for workspace compatibility
+        if (broadcastSwitch) broadcastSwitch.checked = isBroadcastOn;
+        if (broadcastingBadge) broadcastingBadge.style.display = isBroadcastOn ? 'inline-block' : 'none';
+        
+        // Toggle industrial LED button state
+        if (btnBroadcastPush) {
+          if (isBroadcastOn) {
+            btnBroadcastPush.classList.add('active-led');
+            btnBroadcastPush.querySelector('span').innerText = 'Announcements live (Click to broadcast update)';
+          } else {
+            btnBroadcastPush.classList.remove('active-led');
+            btnBroadcastPush.querySelector('span').innerText = 'Transmit Notification Alert';
+          }
+        }
+      }
+    } else {
+      logTerminal('Operational config document empty. Initializing defaults.', 'warning');
+      db.collection('config').doc('global').set({
+        academic_period: 'classes',
+        active_timetable_version: Date.now(),
+        latest_apk_update: {
+          version_name: '1.2.0',
+          version_code: 3,
+          apk_url: '',
+          release_notes: 'Production updates and optimization releases.',
+          released_at: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      });
+    }
+  }, err => {
+    logTerminal(`Database Sync Failure: ${err.message}`, 'error');
+  });
+}
+
+function updateActiveTimetablePreview(json) {
+  let sessions = [];
+  if (Array.isArray(json)) {
+    sessions = json;
+  } else if (json.sessions && Array.isArray(json.sessions)) {
+    sessions = json.sessions;
+  } else {
     return;
   }
 
-  tbody.innerHTML = filtered.slice(0, 100).map(item => `
-    <tr>
-      <td><span style="font-weight: 800; color: var(--brand-cyan);">${item.batch || 'N/A'}</span></td>
-      <td><span style="font-family: var(--font-mono); font-size: 12px;">${item.start || '--'} - ${item.end || '--'}</span></td>
-      <td><span style="font-weight: 700; color: var(--text-main);">${item.subject || 'Session'}</span></td>
-      <td><span style="color: var(--text-muted);">${item.teacher || 'N/A'}</span></td>
-      <td><span style="padding: 2px 8px; background: rgba(16, 185, 129, 0.12); border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--brand-emerald);">${item.room || 'N/A'}</span></td>
-    </tr>
-  `).join('');
+  const sessionCount = sessions.length;
+  const uniqueSubjects = new Set();
+  let labCount = 0;
+  
+  // Build departures visual ledger rows for active timetable
+  timetablePreviewBody.innerHTML = '';
+  const previewLimit = Math.min(5, sessions.length);
+  
+  for (let i = 0; i < previewLimit; i++) {
+    const s = sessions[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${s.class_name || s.section || 'CORE-GEN'}</td>
+      <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'}</td>
+      <td>${s.time || s.period || 'ON SCHEDULE'}</td>
+      <td style="color: var(--text-caption);">${s.teacher || s.instructor || 'STAFF'}</td>
+    `;
+    timetablePreviewBody.appendChild(tr);
+  }
+  
+  sessions.forEach(s => {
+    if (s.subject) {
+      const cleanSub = s.subject.replace(/\s*\(\d*\s*hrs?\)\s*/gi, '')
+                               .replace(/\s*\(\d*\s*hr\)\s*/gi, '')
+                               .replace(/\s*\(Lab\)\s*/gi, '')
+                               .trim();
+      uniqueSubjects.add(cleanSub);
+      
+      if (s.subject.toLowerCase().includes('lab') || (s.room && s.room.toLowerCase().includes('lab'))) {
+        labCount++;
+      }
+    }
+  });
+
+  if (statSessions) statSessions.innerText = sessionCount;
+  if (statCourses) statCourses.innerText = uniqueSubjects.size;
+  if (statLabs) statLabs.innerText = labCount;
+  if (timetableAnalytics) timetableAnalytics.style.display = 'block';
+  
+  // Sync device emulator timetable screen
+  updateEmulatorTimetables(sessions);
 }
 
-function filterTimetable() {
-  renderTimetable();
+// Ribbon Switch Snappy Selection Handler
+ribbonSegments.forEach(seg => {
+  seg.addEventListener('click', async () => {
+    // 1. Instantly respond client-side first for extreme snappiness
+    ribbonSegments.forEach(s => s.classList.remove('active'));
+    seg.classList.add('active');
+    
+    const targetPeriod = seg.dataset.period;
+    
+    // Update local text descriptions instantly
+    const descs = {
+      classes: 'Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.',
+      midterms: 'Midterm testing mode: interim assessments, mid-semester testing logs, and check schedules.',
+      finals: 'Final examination mode: core semester finals, grade evaluation compiles, and term closeout.',
+      sports_week: 'Athletic Sports Week: campus extracurricular activities, sports day schedules, and session breaks.'
+    };
+    if (activePeriodDesc) {
+      activePeriodDesc.innerText = descs[targetPeriod] || 'Lecture tracks active.';
+    }
+
+    logTerminal(`Snappy Action: Selecting operational period: <strong>${targetPeriod}</strong>`, 'info');
+    
+    if (!isConnected) {
+      logTerminal('Offline State: State updated locally but server sync is pending.', 'warning');
+      return;
+    }
+    
+    // 2. Fire the database update asynchronously in background
+    try {
+      await db.collection('config').doc('global').update({
+        academic_period: targetPeriod,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      incrementDatabaseOps();
+      logTerminal(`Database Sync complete: Operational period committed as <strong>${targetPeriod}</strong>.`, 'success');
+      showMossToast(`Academic Timeline set to ${targetPeriod.toUpperCase()}!`, "success");
+    } catch (e) {
+      logTerminal(`Database Sync Failed: ${e.message}`, 'error');
+      showMossToast(e.message, "error");
+    }
+  });
+});
+
+// ==========================================================================
+// GLOBAL ALERTS TRANSMITTER
+// ==========================================================================
+
+function formatMockTime(date) {
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  let hr = date.getHours();
+  const period = hr >= 12 ? 'PM' : 'AM';
+  hr = hr % 12;
+  hr = hr ? hr : 12;
+  const min = date.getMinutes().toString().padStart(2, '0');
+  return `${month} ${day}, ${hr}:${min} ${period}`;
 }
 
-// Date Sheet Excel Converter (.xlsx)
-function handleExcelFileSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  document.getElementById('exams-file-info').innerText = `Selected file: ${file.name}`;
-
-  if (typeof XLSX === 'undefined') {
-    alert("⚠️ XLSX library is loading... Please retry in a moment.");
-    return;
+function updateBroadcastCharCount(len) {
+  if (!broadcastCharCount) return;
+  broadcastCharCount.innerText = len;
+  
+  // Dynamic warning color state shifts
+  broadcastCharCount.className = '';
+  if (len <= 100) {
+    broadcastCharCount.classList.add('char-counter-normal');
+  } else if (len <= 135) {
+    broadcastCharCount.classList.add('char-counter-warning');
+  } else {
+    broadcastCharCount.classList.add('char-counter-danger');
   }
 
+  const mockNoticeCard = document.getElementById('mock-notice-card');
+  const mockNoticeBody = document.getElementById('mock-notice-body');
+  const mockNoticeTime = document.getElementById('mock-notice-time');
+  const mockNoticeIcon = document.getElementById('mock-notice-icon-badge');
+  const mockNoticeLive = document.getElementById('mock-notice-live-tag');
+  
+  if (mockNoticeBody && broadcastMessage) {
+    const rawVal = broadcastMessage.value.trim();
+    mockNoticeBody.innerText = rawVal || 'All Quiet on Campus • No active broadcasts right now';
+    
+    const isBroadcastEnabled = broadcastSwitchVisible ? broadcastSwitchVisible.checked : false;
+    
+    if (mockNoticeCard) {
+      if (isBroadcastEnabled && rawVal) {
+        mockNoticeCard.className = 'mock-notice-card active-notice';
+        if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge';
+        if (mockNoticeLive) mockNoticeLive.style.display = 'inline-block';
+      } else {
+        mockNoticeCard.className = 'mock-notice-card notice-off';
+        if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge off';
+        if (mockNoticeLive) mockNoticeLive.style.display = 'none';
+      }
+    }
+    
+    if (mockNoticeTime) {
+      if (rawVal) {
+        mockNoticeTime.innerText = formatMockTime(new Date());
+      } else {
+        mockNoticeTime.innerText = 'NEVER';
+      }
+    }
+  }
+  
+  if (btnBroadcastPush) {
+    btnBroadcastPush.disabled = false;
+  }
+}
+
+if (broadcastMessage) {
+  broadcastMessage.addEventListener('input', () => {
+    const len = broadcastMessage.value.length;
+    updateBroadcastCharCount(len);
+  });
+}
+
+// Preset chips triggers
+presetChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    const text = chip.dataset.preset;
+    if (broadcastMessage) {
+      broadcastMessage.value = text;
+      updateBroadcastCharCount(text.length);
+      logTerminal('Preset announcement copy staged in transceiver.', 'info');
+    }
+  });
+});
+
+// Explicit visible industrial slide toggle switch logic
+if (broadcastSwitchVisible) {
+  broadcastSwitchVisible.addEventListener('change', async () => {
+    if (!isConnected) return;
+    
+    const enabled = broadcastSwitchVisible.checked;
+    logTerminal(`Updating broadcast transmission link state: ${enabled ? 'ACTIVE' : 'STANDBY'}...`, 'info');
+    
+    try {
+      await db.collection('config').doc('global').update({
+        broadcast_enabled: enabled,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      incrementDatabaseOps();
+      logTerminal(`Server sync complete: Broadcast live stream set to ${enabled ? 'ON' : 'OFF'}.`, 'success');
+    } catch (e) {
+      logTerminal(`Failed to update broadcast switch: ${e.message}`, 'error');
+      // Revert UI on failure
+      broadcastSwitchVisible.checked = !enabled;
+    }
+  });
+}
+
+// Dedicated Dispatch Signal button (explicitly turns alert ON with textarea message)
+btnBroadcastPush.addEventListener('click', async () => {
+  if (!isConnected) return;
+  
+  const msg = broadcastMessage.value.trim();
+  logTerminal(`Preparing to dispatch broadcast signal packet...`, 'info');
+  
+  btnBroadcastPush.disabled = true;
+  btnBroadcastPush.querySelector('span').innerText = 'TRANSMITTING EMISSION WAVE...';
+  
+  try {
+    await db.collection('config').doc('global').update({
+      broadcast_message: msg,
+      broadcast_enabled: true, // Always force enable ON upon explicit dispatch
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    incrementDatabaseOps();
+    
+    // Sync visible switch UI
+    if (broadcastSwitchVisible) broadcastSwitchVisible.checked = true;
+    
+    logTerminal(`Dispatch success: Broadcast alert is now LIVE with message.`, 'success');
+    showMossToast("Global notice dispatched live to student devices!", "success");
+  } catch (e) {
+    logTerminal(`Broadcast transmission failed: ${e.message}`, 'error');
+    showMossToast(e.message, "error");
+  } finally {
+    btnBroadcastPush.disabled = false;
+    btnBroadcastPush.querySelector('span').innerText = 'Transmit Notification Alert';
+  }
+});
+
+// ==========================================================================
+// TIMETABLE DEPLOYMENT ENGINE (AIRPORT DEPARTURES LEDGER)
+// ==========================================================================
+
+// ==========================================================================
+// TIMETABLE DEPLOYMENT ENGINE (AIRPORT DEPARTURES LEDGER)
+// ==========================================================================
+
+const BATCH_RE = /\b[A-Z]{2}\d{2}-[A-Z0-9]+/i;
+
+const GRID_COLUMNS = [
+  { name: "Batch", minX: 0, maxX: 100 },
+  { name: "Slot 1", minX: 100, maxX: 204 },
+  { name: "Slot 2", minX: 204, maxX: 319 },
+  { name: "Slot 3", minX: 319, maxX: 434 },
+  { name: "Slot 4", minX: 434, maxX: 549 },
+  { name: "Slot 5", minX: 549, maxX: 664 },
+  { name: "Slot 6", minX: 664, maxX: 780 }
+];
+
+const DEPT_CODES = new Set(["CS", "SE", "MS", "EE", "ME", "CVE", "BBA", "MBA", "MT", "VS", "HUM", "CE", "BI"]);
+const TEACHER_TITLE_RE = /\b(Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam)\b/i;
+const CAPACITY_RE = /\s*\(\d+\)\s*/g;
+
+const SUBJECT_KEYWORDS = new Set([
+  "programming", "engineering", "structures", "systems", "calculus",
+  "algebra", "physics", "chemistry", "communication", "technology",
+  "network", "database", "security", "intelligence", "learning",
+  "design", "architecture", "development", "operating", "digital",
+  "web", "mobile", "software", "compiler", "automata", "quran",
+  "marketing", "management", "psychology", "commerce", "civics",
+  "lab", "fundamentals", "advanced", "introduction", "applied",
+  "quantum", "machine", "formal", "methods", "data", "mining",
+  "patterns", "interaction", "resource", "functional", "english",
+  "pre-calculus", "engagement", "community", "probability",
+  "statistics", "analysis", "computing", "science", "theory",
+  "information", "numerical", "discrete", "linear", "islamic",
+  "studies", "professional", "ethics", "technical", "writing",
+  "computer", "organization", "graphics", "visualization",
+  "parallel", "distributed", "artificial", "deep"
+]);
+
+const ROOM_PATTERNS = [
+  /\bPhysics\s+Lab\b/i,
+  /\bNetworking\s+Lab\b/i,
+  /\bDLD\s+Lab\b/i,
+  /\bBio\s+Lab\b/i,
+  /\bFP\s+Lab\b/i,
+  /\bFA\s+Lab\b/i,
+  /\bDigital\s+Lab\b/i,
+  /\bElectric\s+Machines\s+Lab\b/i,
+  /\bMechanical\s+Vibrations\s+Lab\b/i,
+  /\bIC\s+Engines\s+Lab\b/i,
+  /\bHMT\s+Lab\b/i,
+  /\bThermodynamics\s+Lab\b/i,
+  /\bThermo\s+Lab\b/i,
+  /\bFluid\s+Mechanics\s+Lab\b/i,
+  /\bPower\s+Lab\b/i,
+  /\bC\s*&\s*E\s+Lab\b/i,
+  /\bD\s*Block\s+Seminar\s+Room\b/i,
+  /\bMOM\s*Lab\b/i,
+  /\bEFM\s*Lab\b/i,
+  /\bMechanical\s+Lab\b/i,
+  /\bElectronics\s+Lab\b/i,
+  /\bHardware\s+Lab\b/i,
+  /\bCircuit\s+Lab\b/i,
+  /\bSoftware\s+Lab\b/i,
+  /\bComputer\s+Lab\b/i,
+  /\bCLab-?\d*\b/i,
+  /\b[A-Z]\d+(?:\.\d)?\b/i
+];
+
+function stripCapacity(text) {
+  return text.replace(CAPACITY_RE, "").trim();
+}
+
+function isTeacherLine(line) {
+  if (TEACHER_TITLE_RE.test(line)) return true;
+  let words = line.split(/\s+/);
+  if (words.length >= 2) {
+    let first = words[0].replace(/\.$/, "").toUpperCase();
+    if (DEPT_CODES.has(first)) {
+      let rest = words.slice(1).join(" ");
+      if (!looksLikeSubject(rest) && !matchRoom(rest)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function cleanTeacherName(raw) {
+  let cleaned = stripCapacity(raw).trim();
+  let words = cleaned.split(/\s+/);
+  if (words.length >= 2) {
+    let first = words[0].replace(/\.$/, "").toUpperCase();
+    if (DEPT_CODES.has(first)) {
+      cleaned = words.slice(1).join(" ");
+    }
+  }
+  
+  let subjectCode = "";
+  words = cleaned.split(/\s+/);
+  if (words.length >= 3) {
+    let lastWord = words[words.length - 1].trim();
+    if (/^[A-Z]{2,4}$/.test(lastWord) && !DEPT_CODES.has(lastWord)) {
+      subjectCode = lastWord;
+      cleaned = words.slice(0, -1).join(" ");
+    }
+  }
+  
+  return { name: cleaned.trim(), subjectCode };
+}
+
+function looksLikeSubject(text) {
+  let lower = text.toLowerCase();
+  for (let kw of SUBJECT_KEYWORDS) {
+    if (lower.includes(kw)) return true;
+  }
+  return false;
+}
+
+function matchRoom(text) {
+  let stripped = stripCapacity(text);
+  for (let pat of ROOM_PATTERNS) {
+    let m = stripped.match(pat);
+    if (m) return m[0];
+  }
+  return null;
+}
+
+function cleanRoomFromText(text) {
+  let cleaned = text;
+  for (let pat of ROOM_PATTERNS) {
+    cleaned = cleaned.replace(pat, "");
+  }
+  return stripCapacity(cleaned).trim();
+}
+
+function cleanSubject(text) {
+  let cleaned = cleanRoomFromText(text);
+  cleaned = cleaned.replace(/\s{2,}/g, " ").trim();
+  return cleaned;
+}
+
+function isNameContinuation(line) {
+  let words = line.split(/\s+/);
+  if (words.length === 0) return false;
+  
+  if (words.length >= 2 && words[0].endsWith('.')) {
+    if (words[0].length <= 6 && words[1].length <= 6) {
+      return false;
+    }
+  }
+  
+  if (words.length >= 2) {
+    if (words.some(w => w.length > 5)) return false;
+    if (line.length > 12) return false;
+  }
+  
+  if (/^[A-Z]+\.\s+[A-Z]/i.test(line)) return false;
+  
+  if (words.length === 1 && words[0].length >= 2 && words[0].length <= 4 && words[0] === words[0].toUpperCase() && !DEPT_CODES.has(words[0])) {
+    return false;
+  }
+  
+  if (words.length === 1) {
+    let word = words[0];
+    if (word.length > 6 && /^[A-Z][a-z]+$/.test(word)) {
+      let vowels = (word.toLowerCase().match(/[aeiou]/g) || []).length;
+      if (vowels >= 2) return false;
+    }
+  }
+  
+  for (let w of words) {
+    if (!/^[A-Z]/.test(w)) return false;
+    if (!/^[A-Z][a-z]*\.?$/.test(w)) return false;
+  }
+  
+  if (looksLikeSubject(line)) return false;
+  if (matchRoom(line)) return false;
+  
+  return true;
+}
+
+function parseBatch(text) {
+  if (!text) return null;
+  let cleaned = text.replace(/\(.*?\)/g, "").trim().replace(/\s+/g, "");
+  let parts = cleaned.split("-");
+  if (parts.length >= 2) {
+    let program = parts[1];
+    return {
+      batch: cleaned,
+      department: program
+    };
+  }
+  return {
+    batch: cleaned,
+    department: "Unknown"
+  };
+}
+
+function parseClassCell(cellText) {
+  if (!cellText) return null;
+  let flat = cellText.replace(/\n/g, " ").trim();
+  if (!flat || /Break|kaerB/i.test(flat)) return null;
+
+  let lines = cellText.split("\n").map(l => l.trim()).filter(l => l);
+  if (lines.length === 0) return null;
+
+  let teacher = "Unknown";
+  let room = "TBD";
+  let subject = "";
+  
+  let teacherIdx = -1;
+  let teacherContIdx = -1;
+  let roomIdx = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (isTeacherLine(lines[i])) {
+      let cleanedTeacher = cleanTeacherName(lines[i]);
+      teacher = cleanedTeacher.name;
+      teacherIdx = i;
+      
+      if (i + 1 < lines.length) {
+        let nextLine = lines[i + 1];
+        if (isNameContinuation(nextLine)) {
+          teacher = teacher + " " + nextLine;
+          teacherContIdx = i + 1;
+        }
+      }
+      break;
+    }
+  }
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (i === teacherIdx || i === teacherContIdx) continue;
+    let line = lines[i];
+    let stripped = stripCapacity(line);
+    let roomMatch = matchRoom(stripped);
+    if (roomMatch) {
+      let ratio = roomMatch.length / Math.max(stripped.length, 1);
+      if (ratio > 0.35) {
+        room = roomMatch;
+        roomIdx = i;
+        break;
+      }
+    }
+  }
+
+  let subjectParts = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (i === teacherIdx || i === teacherContIdx) continue;
+    let cleaned = stripCapacity(lines[i]);
+    if (i === roomIdx) {
+      cleaned = cleanRoomFromText(cleaned);
+    }
+    if (cleaned) {
+      subjectParts.push(cleaned);
+    }
+  }
+
+  subject = subjectParts.join(" ") || "Unknown";
+  subject = cleanSubject(subject);
+
+  if (!subject || subject.trim() === '') return null;
+
+  return { subject, teacher, room };
+}
+
+async function parseTimetablePdf(arrayBuffer) {
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let allSessions = [];
+  let currentDay = "Monday";
+  
+  for (let pNum = 1; pNum <= pdf.numPages; pNum++) {
+    const page = await pdf.getPage(pNum);
+    const textContent = await page.getTextContent();
+    const items = textContent.items;
+    
+    // 1. Detect Day
+    let pageDay = null;
+    for (let item of items) {
+      let str = item.str.trim();
+      let dayMatch = str.match(/\b(Mon|Monday|Tue|Tues|Tuesday|Wed|Wednesday|Thu|Thur|Thurs|Thursday|Fri|Friday|Sat|Saturday|Sun|Sunday)\b/i);
+      if (dayMatch) {
+        let rawDay = dayMatch[1].toLowerCase();
+        const DAY_MAP = {
+          mon: "Monday", monday: "Monday",
+          tue: "Tuesday", tues: "Tuesday", tuesday: "Tuesday",
+          wed: "Wednesday", wednesday: "Wednesday",
+          thu: "Thursday", thur: "Thursday", thurs: "Thursday", thursday: "Thursday",
+          fri: "Friday", friday: "Friday",
+          sat: "Saturday", saturday: "Saturday",
+          sun: "Sunday", sunday: "Sunday"
+        };
+        pageDay = DAY_MAP[rawDay];
+        break;
+      }
+    }
+    if (pageDay) {
+      currentDay = pageDay;
+    }
+    
+    // 2. Identify time headers
+    let timeWords = [];
+    for (let item of items) {
+      if (/\b\d{1,2}:\d{2}\b/.test(item.str)) {
+        timeWords.push(item);
+      }
+    }
+    let timeLines = {};
+    for (let tw of timeWords) {
+      let roundedY = Math.round(tw.transform[5] / 5) * 5;
+      if (!timeLines[roundedY]) timeLines[roundedY] = [];
+      timeLines[roundedY].push(tw);
+    }
+    let headerY = -1;
+    let maxCount = 0;
+    for (let yVal in timeLines) {
+      if (timeLines[yVal].length > maxCount) {
+        maxCount = timeLines[yVal].length;
+        headerY = parseFloat(yVal);
+      }
+    }
+    
+    let slotTimes = Array(7).fill(null).map(() => ({ start: "00:00", end: "00:00", isBreak: false }));
+    const DEFAULT_TIMES = [
+      { start: "00:00", end: "00:00", isBreak: false },
+      { start: "08:00", end: "09:00", isBreak: false },
+      { start: "09:00", end: "10:00", isBreak: false },
+      { start: "10:00", end: "11:00", isBreak: false },
+      { start: "11:00", end: "12:00", isBreak: false },
+      { start: "12:00", end: "01:00", isBreak: true },
+      { start: "01:00", end: "02:00", isBreak: false }
+    ];
+    for (let c = 0; c < 7; c++) {
+      slotTimes[c] = { ...DEFAULT_TIMES[c] };
+    }
+    
+    if (headerY !== -1) {
+      let headerItems = items.filter(item => Math.abs(item.transform[5] - headerY) <= 8 && item.str.trim() !== '');
+      for (let c = 1; c < 7; c++) {
+        let col = GRID_COLUMNS[c];
+        let colItems = headerItems.filter(item => {
+          let centerX = item.transform[4] + (item.width || 0) / 2;
+          return centerX >= col.minX && centerX < col.maxX;
+        });
+        colItems.sort((a, b) => a.transform[4] - b.transform[4]);
+        let text = colItems.map(item => item.str).join(" ").trim();
+        if (text) {
+          if (/break|kaerb/i.test(text)) {
+            slotTimes[c].isBreak = true;
+          } else {
+            let m = text.match(/(\d{1,2})[:.]?(\d{2})\s*-\s*(\d{1,2})[:.]?(\d{2})/);
+            if (m) {
+              slotTimes[c].start = `${m[1].padStart(2, '0')}:${m[2]}`;
+              slotTimes[c].end = `${m[3].padStart(2, '0')}:${m[4]}`;
+            }
+          }
+        }
+      }
+    }
+    
+    // 3. Cluster batch rows
+    let col0Groups = {};
+    for (let item of items) {
+      let x = item.transform[4];
+      let y = item.transform[5];
+      if (x < 100 && item.str.trim() !== '') {
+        let roundedY = Math.round(y / 5) * 5;
+        if (!col0Groups[roundedY]) col0Groups[roundedY] = [];
+        col0Groups[roundedY].push(item);
+      }
+    }
+    
+    let rowStarts = [];
+    for (let roundedY in col0Groups) {
+      let groupItems = col0Groups[roundedY];
+      groupItems.sort((a, b) => a.transform[4] - b.transform[4]);
+      let text = groupItems.map(item => item.str).join("").trim();
+      if (BATCH_RE.test(text)) {
+        rowStarts.push({ text: text, y: parseFloat(roundedY) });
+      }
+    }
+    rowStarts.sort((a, b) => b.y - a.y);
+    
+    if (rowStarts.length === 0) continue;
+    
+    // 4. Construct cells
+    let reconstructedRows = [];
+    for (let i = 0; i < rowStarts.length; i++) {
+      reconstructedRows.push({
+        batch: rowStarts[i].text,
+        cells: Array(7).fill(""),
+        cellItems: Array(7).fill(null).map(() => [])
+      });
+    }
+    
+    for (let item of items) {
+      let str = item.str.trim();
+      if (str === '') continue;
+      
+      let x = item.transform[4];
+      let y = item.transform[5];
+      
+      if (y > rowStarts[0].y + 15) continue;
+      
+      let targetRowIdx = -1;
+      for (let i = 0; i < rowStarts.length; i++) {
+        let startY = rowStarts[i].y + 12;
+        let endY = i + 1 < rowStarts.length ? rowStarts[i+1].y + 12 : -9999;
+        if (y <= startY && y > endY) {
+          targetRowIdx = i;
+          break;
+        }
+      }
+      if (targetRowIdx === -1) continue;
+      
+      let targetColIdx = -1;
+      let centerX = x + (item.width || 0) / 2;
+      for (let colIdx = 0; colIdx < GRID_COLUMNS.length; colIdx++) {
+        let col = GRID_COLUMNS[colIdx];
+        if (centerX >= col.minX && centerX < col.maxX) {
+          targetColIdx = colIdx;
+          break;
+        }
+      }
+      if (targetColIdx !== -1) {
+        reconstructedRows[targetRowIdx].cellItems[targetColIdx].push(item);
+      }
+    }
+    
+    // Reconstruct strings
+    for (let row of reconstructedRows) {
+      for (let c = 0; c < 7; c++) {
+        let cellItems = row.cellItems[c];
+        if (cellItems.length === 0) continue;
+        let lines = {};
+        for (let item of cellItems) {
+          let roundedY = Math.round(item.transform[5] / 3) * 3;
+          if (!lines[roundedY]) lines[roundedY] = [];
+          lines[roundedY].push(item);
+        }
+        let sortedY = Object.keys(lines).map(Number).sort((a, b) => b - a);
+        let lineTexts = [];
+        for (let yVal of sortedY) {
+          let lineItems = lines[yVal];
+          lineItems.sort((a, b) => a.transform[4] - b.transform[4]);
+          lineTexts.push(lineItems.map(item => item.str).join(" ").trim());
+        }
+        row.cells[c] = lineTexts.join("\n");
+      }
+    }
+    
+    // 5. Parse cell content and merge consecutive columns (for lab slots)
+    for (let row of reconstructedRows) {
+      let batchInfo = parseBatch(row.batch);
+      if (!batchInfo) continue;
+      
+      let c = 1;
+      while (c <= 6) {
+        let cellText = row.cells[c];
+        if (!cellText || cellText.trim() === '') {
+          c++;
+          continue;
+        }
+        
+        if (slotTimes[c].isBreak || /break|kaerb/i.test(cellText)) {
+          c++;
+          continue;
+        }
+        
+        let parsed = parseClassCell(cellText);
+        if (!parsed) {
+          c++;
+          continue;
+        }
+        
+        let startTime = slotTimes[c].start;
+        let endTime = slotTimes[c].end;
+        
+        let j = c + 1;
+        while (j <= 6) {
+          if (!row.cells[j] || row.cells[j].trim() === '') {
+            if (slotTimes[j].isBreak) {
+              break;
+            }
+            endTime = slotTimes[j].end;
+            j++;
+          } else {
+            break;
+          }
+        }
+        
+        // Handle "(1 hr)" marker - adjust end time to be exactly 1 hour from start
+        if (/(1\s*hr)/i.test(parsed.subject)) {
+          let [sh, sm] = startTime.split(':').map(Number);
+          let eh = sh + 1;
+          let em = sm;
+          endTime = `${eh.toString().padStart(2, '0')}:${em.toString().padStart(2, '0')}`;
+        }
+        
+        allSessions.push({
+          department: batchInfo.department,
+          batch: batchInfo.batch,
+          day: currentDay,
+          start: startTime,
+          end: endTime,
+          subject: parsed.subject,
+          teacher: parsed.teacher,
+          room: parsed.room
+        });
+        
+        c = j;
+      }
+    }
+  }
+  return allSessions;
+}
+
+function updateTimetablePreview(sessions) {
+  const sessionCount = sessions.length;
+  const uniqueSubjects = new Set();
+  let labCount = 0;
+  
+  timetablePreviewBody.innerHTML = '';
+  const previewLimit = Math.min(10, sessions.length);
+  
+  for (let i = 0; i < previewLimit; i++) {
+    const s = sessions[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${s.batch || 'CORE-GEN'}</td>
+      <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'}</td>
+      <td>${s.day} // ${s.start} - ${s.end}</td>
+      <td style="color: var(--text-caption);">${s.teacher || 'STAFF'}</td>
+    `;
+    timetablePreviewBody.appendChild(tr);
+  }
+  
+  sessions.forEach(s => {
+    if (s.subject) {
+      const cleanSub = s.subject.replace(/\s*\(\d*\s*hrs?\)\s*/gi, '')
+                               .replace(/\s*\(\d*\s*hr\)\s*/gi, '')
+                               .replace(/\s*\(Lab\)\s*/gi, '')
+                               .trim();
+      uniqueSubjects.add(cleanSub);
+      
+      if (s.subject.toLowerCase().includes('lab') || (s.room && s.room.toLowerCase().includes('lab'))) {
+        labCount++;
+      }
+    }
+  });
+
+  statSessions.innerText = sessionCount;
+  statCourses.innerText = uniqueSubjects.size;
+  statLabs.innerText = labCount;
+  timetableAnalytics.style.display = 'block';
+}
+
+function setupDragAndDrop() {
+  // Timetable JSON/PDF (supports multiple)
+  setupDropzone(timetableDropzone, timetableFileInput, async (files) => {
+    await handleTimetableFilesSelect(files);
+  });
+  
+  // Android APK OTA split drops (single file)
+  setupDropzone(apkDropzone, apkFileInput, (files) => {
+    if (files.length > 0) {
+      selectedApkFile = files[0];
+      apkFileInfo.innerText = `OTA split APK: ${files[0].name} (${(files[0].size / 1024 / 1024).toFixed(2)} MB)`;
+      apkFileInfo.style.display = 'block';
+      deployApkBtn.disabled = false;
+      logTerminal(`Staged Android OTA package: <strong>${files[0].name}</strong>`, 'info');
+    }
+  });
+
+  // Excel Date Sheets (single file)
+  setupDropzone(examsDropzone, examsFileInput, (files) => {
+    if (files.length > 0) {
+      handleExamsFileSelect(files[0]);
+    }
+  });
+}
+
+function setupDropzone(dropzone, input, onFilesSelect) {
+  if (!dropzone || !input) return;
+  dropzone.addEventListener('click', () => input.click());
+  
+  input.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      onFilesSelect(Array.from(e.target.files));
+    }
+  });
+  
+  ['dragenter', 'dragover'].forEach(name => {
+    dropzone.addEventListener(name, (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag-active');
+    }, false);
+  });
+  
+  ['dragleave', 'drop'].forEach(name => {
+    dropzone.addEventListener(name, (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-active');
+    }, false);
+  });
+  
+  dropzone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    if (dt.files.length > 0) {
+      onFilesSelect(Array.from(dt.files));
+    }
+  }, false);
+}
+
+async function handleTimetableFilesSelect(files) {
+  logTerminal(`Staging ${files.length} daily timetable file(s)...`, 'info');
+  
+  for (let file of files) {
+    if (stagedTimetableFiles.some(f => f.name === file.name && f.size === file.size)) {
+      logTerminal(`File <strong>${file.name}</strong> is already staged. Skipping.`, 'warning');
+      continue;
+    }
+    
+    if (file.name.toLowerCase().endsWith('.pdf')) {
+      logTerminal(`Processing Timetable PDF file: <strong>${file.name}</strong>...`, 'info');
+      showMossToast(`Parsing PDF Timetable: ${file.name}...`, "info");
+      deployTimetableBtn.disabled = true;
+      deployTimetableBtn.querySelector('span').innerText = 'PARSING PDF...';
+      
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const sessions = await parseTimetablePdf(arrayBuffer);
+        
+        if (sessions.length === 0) {
+          throw new Error("No classes could be parsed from the PDF. Check template/coordinates.");
+        }
+        
+        stagedTimetableFiles.push({
+          name: file.name,
+          size: file.size,
+          sessions: sessions
+        });
+        
+        logTerminal(`Parsed ${sessions.length} sessions from <strong>${file.name}</strong> successfully!`, 'success');
+        showMossToast(`Extracted ${sessions.length} classes from ${file.name}!`, "success");
+      } catch (err) {
+        logTerminal(`PDF Parse Error for ${file.name}: ${err.message}`, 'error');
+        showMossToast(`PDF Parse Error for ${file.name}: ${err.message}`, "error");
+      }
+    } else if (file.name.toLowerCase().endsWith('.json')) {
+      logTerminal(`Processing Timetable JSON file: <strong>${file.name}</strong>...`, 'info');
+      try {
+        const jsonText = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = (err) => reject(err);
+          reader.readAsText(file);
+        });
+        
+        const json = JSON.parse(jsonText);
+        let sessions = Array.isArray(json) ? json : (json.sessions || []);
+        
+        if (sessions.length === 0) {
+          throw new Error("JSON file has no sessions.");
+        }
+        
+        stagedTimetableFiles.push({
+          name: file.name,
+          size: file.size,
+          sessions: sessions
+        });
+        
+        logTerminal(`Parsed ${sessions.length} sessions from JSON <strong>${file.name}</strong>.`, 'success');
+        showMossToast(`Loaded ${sessions.length} classes from ${file.name}!`, "success");
+      } catch (err) {
+        logTerminal(`JSON Parse Error for ${file.name}: ${err.message}`, 'error');
+        showMossToast(`JSON Parse Error for ${file.name}: ${err.message}`, "error");
+      }
+    } else {
+      logTerminal(`Unsupported file format for <strong>${file.name}</strong>. Only .pdf and .json are supported.`, 'warning');
+      showMossToast(`Unsupported format: ${file.name}`, "warning");
+    }
+  }
+  
+  recomputeStagedTimetables();
+}
+
+function recomputeStagedTimetables() {
+  const container = document.getElementById('staged-files-container');
+  const list = document.getElementById('staged-files-list');
+  if (!container || !list) return;
+  
+  list.innerHTML = '';
+  stagedTimetablePayload = [];
+  
+  if (stagedTimetableFiles.length === 0) {
+    container.style.display = 'none';
+    timetableFileInfo.style.display = 'none';
+    timetableAnalytics.style.display = 'none';
+    deployTimetableBtn.disabled = true;
+    deployTimetableBtn.querySelector('span').innerText = 'Commit Timetable Seed';
+    return;
+  }
+  
+  container.style.display = 'block';
+  timetableFileInfo.style.display = 'none';
+  
+  stagedTimetableFiles.forEach((file, index) => {
+    stagedTimetablePayload.push(...file.sessions);
+    
+    const li = document.createElement('li');
+    li.style.display = 'flex';
+    li.style.justifyContent = 'space-between';
+    li.style.alignItems = 'center';
+    li.style.padding = '8px 12px';
+    li.style.background = 'white';
+    li.style.border = '1px solid var(--border-subtle)';
+    li.style.borderRadius = '6px';
+    li.style.fontSize = '11px';
+    
+    li.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid ${file.name.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf' : 'fa-file-code'}" style="color: var(--accent-indigo);"></i>
+        <div>
+          <strong style="color: var(--text-title);">${file.name}</strong>
+          <span style="color: var(--text-muted); font-size: 9.5px; margin-left: 6px;">(${(file.size / 1024).toFixed(1)} KB)</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="badge" style="background: rgba(79, 70, 229, 0.08); color: var(--accent-indigo); font-weight: bold; border: 1px solid rgba(79, 70, 229, 0.15);">${file.sessions.length} sessions</span>
+        <button type="button" class="btn-remove-staged" onclick="removeStagedTimetableFile(${index})" style="background: transparent; border: none; color: var(--accent-rose); cursor: pointer; padding: 4px;" title="Remove file"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+  
+  updateTimetablePreview(stagedTimetablePayload);
+  deployTimetableBtn.disabled = false;
+  deployTimetableBtn.querySelector('span').innerText = `Commit Timetable Seed (${stagedTimetablePayload.length} sessions)`;
+}
+
+window.removeStagedTimetableFile = function(index) {
+  const removed = stagedTimetableFiles.splice(index, 1)[0];
+  logTerminal(`Removed staged file: <strong>${removed.name}</strong>`, 'info');
+  recomputeStagedTimetables();
+};
+
+deployTimetableBtn.addEventListener('click', async () => {
+  if (!isConnected || !stagedTimetablePayload || stagedTimetablePayload.length === 0) {
+    logTerminal('No valid timetable payload staged for deployment.', 'warning');
+    return;
+  }
+  
+  logTerminal('Initiating timetable ledger deployment sequence...', 'info');
+  deployTimetableBtn.disabled = true;
+  
+  try {
+    const versionId = `SEED_${new Date().toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`;
+    const timeStr = new Date().toISOString();
+    const classesCount = stagedTimetablePayload.length;
+    const payload = JSON.stringify(stagedTimetablePayload);
+
+    await db.collection('config').doc('global').update({
+      active_timetable_version: Date.now(),
+      active_timetable_url: "", 
+      active_timetable_json: payload,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    incrementDatabaseOps();
+
+    await db.collection('timetable_history').doc(versionId).set({
+      id: versionId,
+      time: timeStr,
+      classes: classesCount,
+      json: payload
+    });
+    incrementDatabaseOps();
+    
+    await loadTimetableHistory();
+    
+    logTerminal(`Database Sync Complete: Timetable ledger (${classesCount} classes) synchronized globally.`, 'success');
+    showMossToast("Timetable seed committed and deployed!", "success");
+    
+    // Reset state
+    stagedTimetableFiles = [];
+    stagedTimetablePayload = [];
+    recomputeStagedTimetables();
+    
+    refreshLiveClassesInspector();
+  } catch (e) {
+    logTerminal(`Deployment failed: ${e.message}`, 'error');
+    showMossToast(e.message, "error");
+    deployTimetableBtn.disabled = false;
+  }
+});
+
+// ==========================================================================
+// ANDROID OTA SPLITS & CDN CENTER
+// ==========================================================================
+
+deployApkBtn.addEventListener('click', async () => {
+  const vName = apkVersionName.value.trim();
+  const vCode = parseInt(apkVersionCode.value);
+  const notes = apkNotes.value.trim();
+  const pastedUrl = apkUrlInput ? apkUrlInput.value.trim() : '';
+  
+  if (!vName || isNaN(vCode)) {
+    alert('Invalid version criteria parameters.');
+    return;
+  }
+  
+  if (!selectedApkFile && !pastedUrl) {
+    alert('Select APK files or paste direct download CDN repositories.');
+    return;
+  }
+  
+  logTerminal(`Staging application split OTA release: v${vName} (Build #${vCode})...`, 'info');
+  deployApkBtn.disabled = true;
+  
+  try {
+    // External CDN mapping uploader (bypasses Cloud Storage limits)
+    if (pastedUrl) {
+      logTerminal('Staging update package mapping direct external CDN link...', 'info');
+      
+      await db.collection('config').doc('global').update({
+        latest_apk_update: {
+          version_name: vName,
+          version_code: vCode,
+          apk_url: pastedUrl,
+          release_notes: notes || 'Production system optimization patches.',
+          released_at: firebase.firestore.FieldValue.serverTimestamp(),
+          show_update_card: true
+        }
+      });
+      incrementDatabaseOps();
+      
+      logTerminal(`Staging Complete: Released v${vName} (${vCode}) via CDN URL. Auto-prompts active.`, 'success');
+      showMossToast(`Android OTA Split v${vName} staged successfully!`, "success");
+      
+      if (apkUrlInput) apkUrlInput.value = '';
+      apkNotes.value = '';
+      deployApkBtn.disabled = true;
+      return;
+    }
+    
+    // Cloud storage uploader (If storage is active and paid)
+    if (!storage) {
+      throw new Error('Local storage service offline. stage packages via external CDN repository instead.');
+    }
+    
+    uploadProgressContainer.style.display = 'flex';
+    const filename = `nexsync-v${vName}-release.apk`;
+    const storageRef = storage.ref().child(`updates/${filename}`);
+    
+    const uploadTask = storageRef.put(selectedApkFile);
+    
+    let lastLoggedPct = -1;
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        uploadProgressFill.style.width = `${pct}%`;
+        uploadProgressPct.innerText = `${pct}%`;
+        
+        // Log every 5% progression step
+        const step = Math.floor(pct / 5) * 5;
+        if (step > lastLoggedPct) {
+          logTerminal(`Uploading APK binaries: ${pct}% complete... (${(snapshot.bytesTransferred / 1024 / 1024).toFixed(1)}MB / ${(snapshot.totalBytes / 1024 / 1024).toFixed(1)}MB)`, 'info');
+          lastLoggedPct = step;
+        }
+      }, 
+      (err) => {
+        logTerminal(`Binary upload error occurred: ${err.message}`, 'error');
+        deployApkBtn.disabled = false;
+        uploadProgressContainer.style.display = 'none';
+      }, 
+      async () => {
+        const downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
+        logTerminal(`APK Binary stored securely. Path: updates/${filename}`, 'success');
+        
+        await db.collection('config').doc('global').update({
+          latest_apk_update: {
+            version_name: vName,
+            version_code: vCode,
+            apk_url: downloadUrl,
+            release_notes: notes || 'Production system optimization patches.',
+            released_at: firebase.firestore.FieldValue.serverTimestamp(),
+            show_update_card: true
+          }
+        });
+        incrementDatabaseOps();
+        
+        logTerminal(`Staging Complete: Binary v${vName} deployed. Clients notified.`, 'success');
+        
+        selectedApkFile = null;
+        apkFileInfo.style.display = 'none';
+        apkFileInput.value = '';
+        apkNotes.value = '';
+        deployApkBtn.disabled = true;
+        uploadProgressContainer.style.display = 'none';
+      }
+    );
+  } catch (e) {
+    logTerminal(`OTA staging deployment failure: ${e.message}`, 'error');
+    deployApkBtn.disabled = false;
+    if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
+  }
+});
+// App update visibility toggle listener
+if (apkSwitchVisible) {
+  apkSwitchVisible.addEventListener('change', async () => {
+    if (!isConnected) return;
+    
+    const enabled = apkSwitchVisible.checked;
+    logTerminal(`Updating app update card visibility: ${enabled ? 'VISIBLE' : 'HIDDEN'}...`, 'info');
+    
+    try {
+      const doc = await db.collection('config').doc('global').get();
+      if (doc.exists) {
+        const data = doc.data();
+        const currentUpdate = data.latest_apk_update || {};
+        currentUpdate.show_update_card = enabled;
+        
+        await db.collection('config').doc('global').update({
+          latest_apk_update: currentUpdate,
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        incrementDatabaseOps();
+        logTerminal(`Server sync complete: App update card set to ${enabled ? 'VISIBLE' : 'HIDDEN'}.`, 'success');
+        showMossToast(`App Update Banner is now ${enabled ? 'VISIBLE' : 'HIDDEN'} on client screens!`, "success");
+      }
+    } catch (e) {
+      logTerminal(`Failed to update visibility toggle: ${e.message}`, 'error');
+      showMossToast(e.message, "error");
+      apkSwitchVisible.checked = !enabled;
+    }
+  });
+}
+
+// ==========================================================================
+// SESSION TIMEOUTS & HARDWARE BEACONS
+// ==========================================================================
+
+function setupUIHandlers() {
+  let lastActivityTime = Date.now();
+  let countdownVal = 60;
+  let countdownInterval = null;
+  let isWarningShown = false;
+
+  function resetActivityTimer() {
+    if (isWarningShown) return;
+    lastActivityTime = Date.now();
+  }
+
+  ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => {
+    document.addEventListener(evt, resetActivityTimer, true);
+  });
+
+  setInterval(() => {
+    if (!auth || !auth.currentUser) {
+      if (isWarningShown) hideTimeoutModal();
+      return;
+    }
+
+    const now = Date.now();
+    const idleTime = now - lastActivityTime;
+
+    // 15 minutes of inactivity warning countdown
+    if (idleTime > 15 * 60 * 1000 && !isWarningShown) {
+      showTimeoutModal();
+    }
+  }, 1000);
+
+  function showTimeoutModal() {
+    isWarningShown = true;
+    timeoutModal.style.display = 'flex';
+    countdownVal = 60;
+    timeoutCountdown.innerText = countdownVal;
+    logTerminal('Security Alert: Key entry session verification required.', 'warning');
+
+    countdownInterval = setInterval(() => {
+      countdownVal--;
+      timeoutCountdown.innerText = countdownVal;
+      if (countdownVal <= 0) {
+        clearInterval(countdownInterval);
+        logTerminal('Security Protocol: Vault gate locked due to inactivity.', 'error');
+        auth.signOut();
+        hideTimeoutModal();
+      }
+    }, 1000);
+  }
+
+  function hideTimeoutModal() {
+    isWarningShown = false;
+    timeoutModal.style.display = 'none';
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+  }
+
+  if (extendSessionBtn) {
+    extendSessionBtn.addEventListener('click', () => {
+      hideTimeoutModal();
+      lastActivityTime = Date.now();
+      logTerminal('Security session hold accepted.', 'success');
+    });
+  }
+
+  // Key press listener overrides inside credentials forms
+  [emailInput, passInput].forEach(input => {
+    if (input) {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          loginBtn.click();
+        }
+      });
+    }
+  });
+}
+
+// Real active core ping latency tracker (measures actual Firestore document read speed)
+function startLatencySimulator() {
+  const valEl = document.getElementById('latency-val');
+  
+  // Measure latency immediately
+  setTimeout(triggerPing, 1000);
+  
+  async function triggerPing() {
+    if (isConnected && db) {
+      const startTime = Date.now();
+      try {
+        await db.collection('config').doc('global').get();
+        const latency = Date.now() - startTime;
+        if (valEl) valEl.innerText = `${latency}ms`;
+        if (telemetryHealth) telemetryHealth.innerText = 'OPTIMAL';
+      } catch (err) {
+        console.warn("Latency query error:", err);
+        if (valEl) valEl.innerText = '--';
+        if (telemetryHealth) telemetryHealth.innerText = 'DEGRADED';
+      }
+    } else {
+      if (valEl) valEl.innerText = 'offline';
+    }
+  }
+
+  setInterval(triggerPing, 10000); // Trigger every 10 seconds to keep read counts reasonable
+}
+
+// ==========================================================================
+// IRIDIUM 3D PERSPECTIVE TILT ENGINES & TOAST SYSTEM
+// ==========================================================================
+
+function setup3DTiltEffects() {
+  // Disabled for maximum 60FPS UI performance
+}
+
+function showMossToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  toast.className = 'moss-toast';
+  
+  let iconClass = 'fa-circle-check';
+  if (type === 'error') iconClass = 'fa-circle-exclamation';
+  if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+  if (type === 'info') iconClass = 'fa-circle-info';
+  
+  toast.innerHTML = `
+    <i class="fa-solid ${iconClass} moss-toast-icon"></i>
+    <div class="moss-toast-content">${message}</div>
+    <button class="moss-toast-close"><i class="fa-solid fa-xmark"></i></button>
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('visible');
+  }, 50);
+  
+  const closeBtn = toast.querySelector('.moss-toast-close');
+  const dismiss = () => {
+    toast.classList.remove('visible');
+    setTimeout(() => {
+      toast.remove();
+    }, 500);
+  };
+  
+  if (closeBtn) closeBtn.addEventListener('click', dismiss);
+  setTimeout(dismiss, 4000);
+}
+
+// ==========================================================================
+// ADDITIONAL REFINEMENTS & HIGH-FIDELITY TELEMETRY SERVICES
+// ==========================================================================
+
+let timetableHistory = [];
+const rollbackLedgerBody = document.getElementById('rollback-ledger-body');
+const telemetryNodes = document.getElementById('telemetry-nodes');
+const telemetryOps = document.getElementById('telemetry-ops');
+const telemetryHealth = document.getElementById('telemetry-health');
+let activeVersionId = '';
+let databaseWriteOps = 0;
+
+function incrementDatabaseOps() {
+  databaseWriteOps++;
+  if (telemetryOps) {
+    telemetryOps.innerText = `${databaseWriteOps} writes`;
+  }
+}
+
+function startNodesSimulator() {
+  if (telemetryNodes) {
+    if (db && db.app && db.app.options) {
+      telemetryNodes.innerText = db.app.options.projectId || "iris-138ef";
+    } else {
+      telemetryNodes.innerText = "iris-138ef";
+    }
+  }
+}
+
+async function loadTimetableHistory() {
+  if (!isConnected || !db) {
+    // Read from localStorage if offline
+    const cached = localStorage.getItem('iris_timetable_history');
+    if (cached) {
+      try {
+        timetableHistory = JSON.parse(cached);
+      } catch (e) {
+        timetableHistory = [];
+      }
+    }
+    renderRollbackLedger();
+    return;
+  }
+  
+  try {
+    logTerminal('Fetching historical timetable seeds from Firestore ledger...', 'info');
+    const snapshot = await db.collection('timetable_history').orderBy('time', 'desc').limit(6).get();
+    
+    timetableHistory = [];
+    snapshot.forEach(doc => {
+      timetableHistory.push(doc.data());
+    });
+    
+    // Fallback: If database has no history records yet, populate with a record representing the current active configuration
+    if (timetableHistory.length === 0) {
+      logTerminal('History ledger empty. Creating initial seed record...', 'warning');
+      const globalDoc = await db.collection('config').doc('global').get();
+      if (globalDoc.exists) {
+        const data = globalDoc.data();
+        const activeVer = data.active_timetable_version || Date.now();
+        const activeJson = data.active_timetable_json || '[]';
+        let parsed = [];
+        try { parsed = JSON.parse(activeJson); } catch(e) {}
+        
+        const initialSeed = {
+          id: `SEED_${new Date(activeVer).toISOString().replace(/[-:T]/g, '_').substring(0, 15)}`,
+          time: new Date(activeVer).toISOString(),
+          classes: Array.isArray(parsed) ? parsed.length : (parsed.sessions ? parsed.sessions.length : 0),
+          json: activeJson
+        };
+        
+        await db.collection('timetable_history').doc(initialSeed.id).set(initialSeed);
+        incrementDatabaseOps();
+        timetableHistory.push(initialSeed);
+      }
+    }
+    
+    localStorage.setItem('iris_timetable_history', JSON.stringify(timetableHistory));
+    activeVersionId = localStorage.getItem('iris_active_timetable_id') || (timetableHistory[0] ? timetableHistory[0].id : '');
+    renderRollbackLedger();
+  } catch (err) {
+    logTerminal(`Error fetching history from Firestore: ${err.message}`, 'warning');
+    // Fallback to localStorage on query failure
+    const cached = localStorage.getItem('iris_timetable_history');
+    if (cached) {
+      try { timetableHistory = JSON.parse(cached); } catch (e) {}
+    }
+    renderRollbackLedger();
+  }
+}
+
+function renderRollbackLedger() {
+  if (!rollbackLedgerBody) return;
+  rollbackLedgerBody.innerHTML = '';
+  
+  timetableHistory.forEach(version => {
+    const tr = document.createElement('tr');
+    const isActive = version.id === activeVersionId;
+    if (isActive) tr.className = 'active-row';
+    
+    const formattedTime = new Date(version.time).toLocaleString();
+    
+    tr.innerHTML = `
+      <td>${version.id}</td>
+      <td>${formattedTime}</td>
+      <td style="font-family: var(--font-mono);">${version.classes} classes</td>
+      <td>
+        ${isActive ? `<span style="font-size: 8px; color: var(--accent-indigo); font-weight: 700; letter-spacing: 0.5px;">[ ACTIVE ]</span>` : `<button class="btn-revert" onclick="revertTimetableVersion('${version.id}')">Revert</button>`}
+      </td>
+    `;
+    rollbackLedgerBody.appendChild(tr);
+  });
+}
+
+window.revertTimetableVersion = async function(id) {
+  const version = timetableHistory.find(v => v.id === id);
+  if (!version) return;
+  
+  logTerminal(`Reverting operational database to historical seed <strong>${id}</strong>...`, 'warning');
+  showMossToast(`Reverting to database version ${id}...`, "info");
+  
+  try {
+    if (isConnected && db) {
+      await db.collection('config').doc('global').update({
+        active_timetable_version: Date.now(),
+        active_timetable_url: "",
+        active_timetable_json: version.json,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      incrementDatabaseOps();
+    }
+    
+    activeVersionId = id;
+    localStorage.setItem('iris_active_timetable_id', id);
+    renderRollbackLedger();
+    
+    logTerminal(`Rollback complete: Restored version <strong>${id}</strong> with ${version.classes} classes active.`, 'success');
+    showMossToast(`Database successfully reverted to ${id}!`, "success");
+  } catch (err) {
+    logTerminal(`Rollback failed: ${err.message}`, 'error');
+    showMossToast(`Rollback failure: ${err.message}`, "error");
+  }
+}
+
+// ==========================================================================
+// DATE SHEET EXCEL PARSER AND DEPLOYMENT CORE
+// ==========================================================================
+
+function handleExamsFileSelect(file) {
+  parsedExams = [];
+  examsFileInfo.innerText = `Parsing: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  examsFileInfo.style.display = 'block';
+  btnDeployMidterms.disabled = true;
+  btnDeployFinals.disabled = true;
+  logTerminal(`Staged Excel Date Sheet: <strong>${file.name}</strong>`, 'info');
+  
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
+      const workbook = XLSX.read(data, { type: 'array', cellDates: false, cellNF: true, cellText: true });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-      stagedExams = [];
-      for (let i = 1; i < json.length; i++) {
-        const row = json[i];
-        if (row && row.length >= 4) {
-          stagedExams.push({
-            date: row[0] || 'TBA',
-            time: row[1] || 'TBA',
-            batch: row[2] || 'All Batches',
-            subject: row[3] || 'Course Exam',
-            room: row[4] || 'Hall A'
-          });
+      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
+      
+      if (rows.length < 4) {
+        throw new Error("Excel sheet contains too few rows. Header row 3 expected.");
+      }
+      
+      // Header is on Row 3 (index 2)
+      const headerRow = rows[2] || [];
+      const rooms = [];
+      for (let c = 2; c < headerRow.length; c++) {
+        const val = headerRow[c];
+        if (val !== undefined && val !== null) {
+          rooms.push({ colIdx: c, name: String(val).trim() });
         }
       }
-
-      renderExamsPreview();
-      logTerminal(`Parsed Excel sheet. Staged ${stagedExams.length} exam entries.`, "success");
-      alert(`✅ Excel parsed! Staged ${stagedExams.length} exam slots.`);
+      
+      if (rooms.length === 0) {
+        throw new Error("No exam rooms/venues detected on row 3.");
+      }
+      
+      logTerminal(`Detected ${rooms.length} exam rooms/venues in header.`, 'info');
+      
+      let r = 3; // Row 4 (index 3)
+      let currentDate = null;
+      let currentTime = null;
+      
+      while (r < rows.length) {
+        const row = rows[r] || [];
+        const nextRow = rows[r + 1] || [];
+        
+        const rowDate = row[0];
+        const rowTime = row[1];
+        
+        const rowDateStr = (rowDate !== undefined && rowDate !== null) ? String(rowDate).trim() : "";
+        const rowTimeStr = (rowTime !== undefined && rowTime !== null) ? String(rowTime).trim() : "";
+        
+        // Skip header/subheader rows
+        if (rowDateStr.toLowerCase() === "date" || rowTimeStr.toLowerCase() === "time") {
+          r += 1;
+          continue;
+        }
+        
+        // Skip empty rows
+        if (!rowTimeStr) {
+          r += 1;
+          continue;
+        }
+        
+        if (rowDateStr) {
+          currentDate = rowDateStr;
+        }
+        currentTime = rowTimeStr;
+        
+        for (const room of rooms) {
+          const batchCell = row[room.colIdx];
+          const subjectCell = nextRow[room.colIdx];
+          
+          if (batchCell !== undefined && batchCell !== null && 
+              subjectCell !== undefined && subjectCell !== null) {
+            const batchStr = String(batchCell).trim();
+            const subjectStr = String(subjectCell).trim();
+            
+            if (batchStr === "" || subjectStr === "") {
+              continue;
+            }
+            
+            if (batchStr.toLowerCase() === "date" || batchStr.toLowerCase() === "time" || 
+                subjectStr.toLowerCase() === "date" || subjectStr.toLowerCase() === "time") {
+              continue;
+            }
+            if (batchStr === room.name) {
+              continue;
+            }
+            if (rooms.some(rm => rm.name === batchStr)) {
+              continue;
+            }
+            
+            const batches = splitCombinedCell(batchStr);
+            const subjects = splitCombinedCell(subjectStr);
+            
+            const maxLen = Math.max(batches.length, subjects.length);
+            for (let idx = 0; idx < maxLen; idx++) {
+              const b = idx < batches.length ? batches[idx] : batches[batches.length - 1];
+              const s = idx < subjects.length ? subjects[idx] : subjects[subjects.length - 1];
+              
+              parsedExams.push({
+                date: currentDate || "Unknown Date",
+                time: currentTime,
+                room: room.name,
+                batch: b,
+                subject: s
+              });
+            }
+          }
+        }
+        r += 2;
+      }
+      
+      if (parsedExams.length === 0) {
+        throw new Error("No exam entries extracted. Check format of sheet.");
+      }
+      
+      logTerminal(`Successfully extracted ${parsedExams.length} individual exam slots.`, 'success');
+      
+      // Compile stats
+      const uniqueBatches = new Set();
+      const uniqueSubjects = new Set();
+      
+      // Render preview
+      examsPreviewBody.innerHTML = '';
+      const previewLimit = Math.min(10, parsedExams.length);
+      for (let i = 0; i < previewLimit; i++) {
+        const ex = parsedExams[i];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${ex.date}</td>
+          <td>${ex.time}</td>
+          <td>${ex.room}</td>
+          <td style="font-weight: 600; color: var(--accent-indigo);">${ex.batch}</td>
+          <td style="color: var(--text-title);">${ex.subject}</td>
+        `;
+        examsPreviewBody.appendChild(tr);
+      }
+      
+      parsedExams.forEach(ex => {
+        uniqueBatches.add(ex.batch);
+        uniqueSubjects.add(ex.subject);
+      });
+      
+      examsStatTotal.innerText = parsedExams.length;
+      examsStatBatches.innerText = uniqueBatches.size;
+      examsStatSubjects.innerText = uniqueSubjects.size;
+      examsAnalytics.style.display = 'block';
+      
+      btnDeployMidterms.disabled = false;
+      btnDeployFinals.disabled = false;
+      
+      // Update emulator datesheet preview
+      updateEmulatorExams(parsedExams);
+      
     } catch (err) {
-      alert("⚠️ Error parsing Excel date sheet: " + err.message);
+      logTerminal(`Excel Date Sheet Parsing Failed: ${err.message}`, 'error');
+      examsAnalytics.style.display = 'none';
+      btnDeployMidterms.disabled = true;
+      btnDeployFinals.disabled = true;
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
-function renderExamsPreview() {
-  const tbody = document.getElementById('exams-preview-tbody');
-  if (!tbody) return;
-
-  if (stagedExams.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No Excel date sheet staged yet. Drag & drop an .xlsx file above.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = stagedExams.slice(0, 50).map(ex => `
-    <tr>
-      <td><span style="font-weight: 700; color: var(--brand-amber);">${ex.date}</span></td>
-      <td><span style="font-family: var(--font-mono); font-size: 12px;">${ex.time}</span></td>
-      <td><span style="font-weight: 800; color: var(--brand-cyan);">${ex.batch}</span></td>
-      <td><span style="font-weight: 700; color: var(--text-main);">${ex.subject}</span></td>
-      <td><span style="padding: 2px 8px; background: rgba(168, 85, 247, 0.15); border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--brand-purple);">${ex.room}</span></td>
-    </tr>
-  `).join('');
-}
-
-function commitExams(termType) {
-  if (stagedExams.length === 0) {
-    alert("⚠️ Please upload and parse an Excel (.xlsx) date sheet first.");
-    return;
-  }
-
-  if (db) {
-    db.collection('exams').doc(termType).set({
-      slots: stagedExams,
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      logTerminal(`Committed ${stagedExams.length} ${termType.toUpperCase()} exam slots to Firestore.`, "success");
-      alert(`✅ Staged ${stagedExams.length} ${termType.toUpperCase()} exam slots committed to Firestore!`);
-    }).catch(err => alert("Firestore save error: " + err.message));
-  } else {
-    alert(`✅ Staged ${stagedExams.length} ${termType.toUpperCase()} exam slots committed locally!`);
-  }
-}
-
-function wipeExams() {
-  if (confirm("Are you sure you want to wipe live exam date sheets from the database?")) {
-    stagedExams = [];
-    renderExamsPreview();
-    if (db) {
-      db.collection('exams').doc('midterm').delete();
-      db.collection('exams').doc('finals').delete();
+function splitCombinedCell(val) {
+  if (!val) return [];
+  
+  val = val.trim().replace(/-+$/, '');
+  const parts = val.split(/-(?=FA\d{2}|SP\d{2})/i);
+  
+  const result = [];
+  for (const part of parts) {
+    const trimmedPart = part.trim();
+    const match = trimmedPart.match(/^((?:FA|SP)\d{2}-[A-Z0-9]+)(?:-([A-Z0-9,\s/&]+))?$/i);
+    if (match) {
+      const base = match[1];
+      const suffix = match[2];
+      if (suffix) {
+        const sections = suffix.split(/[,/&]/).map(s => s.trim()).filter(s => s);
+        if (sections.every(s => s.length <= 3)) {
+          for (const s of sections) {
+            result.push(`${base}-${s}`);
+          }
+        } else {
+          result.push(trimmedPart);
+        }
+      } else {
+        result.push(base);
+      }
+    } else {
+      const altParts = trimmedPart.split(/[,/]/).map(p => p.trim()).filter(p => p);
+      result.push(...altParts);
     }
-    logTerminal("Live exam date sheets wiped.", "warning");
-    alert("🗑️ Exam date sheets wiped successfully.");
   }
+  
+  return result.map(r => r.trim().replace(/-+$/, '')).filter(r => r);
 }
 
-// Alert Notification Studio & Broadcast Engine
-function useBroadcastPreset(text) {
-  const bodyEl = document.getElementById('broadcast-body');
-  if (bodyEl) {
-    bodyEl.value = text;
-    updateEmulatorNotice();
-  }
-}
-
-function updateEmulatorNotice() {
-  const title = document.getElementById('broadcast-title')?.value.trim() || 'CAMPUS NOTICEBOARD';
-  const body = document.getElementById('broadcast-body')?.value.trim() || 'All Quiet on Campus • No active emergency notices';
-
-  const emTitle = document.getElementById('emulator-notice-title');
-  const emBody = document.getElementById('emulator-notice-body');
-  if (emTitle) emTitle.innerText = title.toUpperCase();
-  if (emBody) emBody.innerText = body;
-}
-
-function sendBroadcastNotice() {
-  const title = document.getElementById('broadcast-title').value.trim();
-  const category = document.getElementById('broadcast-category').value;
-  const body = document.getElementById('broadcast-body').value.trim();
-
-  if (!title || !body) {
-    alert("⚠️ Please enter a notice title and broadcast body text.");
-    return;
-  }
-
-  if (db) {
-    db.collection('notices').add({
-      title: title,
-      category: category,
-      body: body,
-      created_at: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    db.collection('config').doc('global').set({
-      broadcast_enabled: true,
-      broadcast_message: `${title}: ${body}`,
-      broadcast_announcement: {
-        title: title,
-        category: category,
-        body: body,
-        show_broadcast: true,
-        created_at: firebase.firestore.FieldValue.serverTimestamp()
-      },
+btnDeployMidterms.addEventListener('click', async () => {
+  if (!isConnected || parsedExams.length === 0) return;
+  btnDeployMidterms.disabled = true;
+  btnDeployFinals.disabled = true;
+  logTerminal('Deploying parsed Midterm Date Sheet to cloud Firestore...', 'info');
+  
+  try {
+    const payload = JSON.stringify(parsedExams);
+    await db.collection('config').doc('global').update({
+      active_midterm_json: payload,
+      active_midterm_version: Date.now(),
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).then(() => {
-      logTerminal(`Emergency Notice [${title}] broadcasted live to Firestore config/global.`, "success");
-      alert(`📢 Emergency Notice [${title}] broadcasted live to all mobile client noticeboards!`);
-      document.getElementById('broadcast-title').value = '';
-      document.getElementById('broadcast-body').value = '';
-      updateEmulatorNotice();
-    }).catch(err => alert("Firestore broadcast error: " + err.message));
-  } else {
-    logTerminal(`Emergency Notice [${title}] broadcasted locally.`, "success");
-    alert(`📢 Emergency Notice [${title}] broadcasted locally!`);
+    });
+    incrementDatabaseOps();
+    logTerminal(`Cloud update complete: Midterm Date Sheet live with ${parsedExams.length} entries.`, 'success');
+    showMossToast("Midterm Date Sheet successfully committed!", "success");
+    
+    // Clear state
+    parsedExams = [];
+    examsFileInfo.style.display = 'none';
+    examsFileInput.value = '';
+    examsAnalytics.style.display = 'none';
+  } catch (err) {
+    logTerminal(`Failed to deploy Midterm Date Sheet: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+    btnDeployMidterms.disabled = false;
+    btnDeployFinals.disabled = false;
   }
-}
+});
 
-function clearBroadcastNotice() {
-  if (db) {
-    db.collection('config').doc('global').set({
-      broadcast_enabled: false,
-      broadcast_message: '',
+btnDeployFinals.addEventListener('click', async () => {
+  if (!isConnected || parsedExams.length === 0) return;
+  btnDeployMidterms.disabled = true;
+  btnDeployFinals.disabled = true;
+  logTerminal('Deploying parsed Final Term Date Sheet to cloud Firestore...', 'info');
+  
+  try {
+    const payload = JSON.stringify(parsedExams);
+    await db.collection('config').doc('global').update({
+      active_finals_json: payload,
+      active_finals_version: Date.now(),
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).then(() => {
-      logTerminal("Broadcast notice disabled on all mobile client screens.", "warning");
-      alert("🔇 Live broadcast disabled across mobile clients.");
+    });
+    incrementDatabaseOps();
+    logTerminal(`Cloud update complete: Final Term Date Sheet live with ${parsedExams.length} entries.`, 'success');
+    showMossToast("Final Term Date Sheet successfully committed!", "success");
+    
+    // Clear state
+    parsedExams = [];
+    examsFileInfo.style.display = 'none';
+    examsFileInput.value = '';
+    examsAnalytics.style.display = 'none';
+  } catch (err) {
+    logTerminal(`Failed to deploy Final Term Date Sheet: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+    btnDeployMidterms.disabled = false;
+    btnDeployFinals.disabled = false;
+  }
+});
+
+let telemetryHistoryPoints = [];
+const maxTelemetryPoints = 15;
+
+function initTelemetryChart() {
+  for (let i = 0; i < maxTelemetryPoints; i++) {
+    telemetryHistoryPoints.push({
+      ops: 0,
+      latency: Math.floor(Math.random() * 15) + 5
     });
   }
+  
+  // Start drawing loop
+  setInterval(tickTelemetryChart, 1500);
 }
 
-// Faculty Directory Renderer
-function renderFaculty() {
-  const grid = document.getElementById('faculty-grid');
-  if (!grid) return;
-
-  const searchVal = (document.getElementById('faculty-search')?.value || '').toLowerCase();
-
-  const filtered = realFaculty.filter(f => {
-    return !searchVal ||
-      (f.name && f.name.toLowerCase().includes(searchVal)) ||
-      (f.dept && f.dept.toLowerCase().includes(searchVal)) ||
-      (f.room && f.room.toLowerCase().includes(searchVal));
+function tickTelemetryChart() {
+  const svg = document.getElementById('telemetry-svg');
+  if (!svg) return;
+  
+  const currentOps = databaseWriteOps;
+  const newOpsVal = currentOps * 2 + Math.floor(Math.random() * 2);
+  const newLatencyVal = Math.floor(Math.random() * 12) + (isConnected ? 6 : 99);
+  
+  telemetryHistoryPoints.shift();
+  telemetryHistoryPoints.push({
+    ops: newOpsVal,
+    latency: newLatencyVal
   });
+  
+  const width = 300;
+  const height = 80;
+  const pointsCount = telemetryHistoryPoints.length;
+  const dx = width / (pointsCount - 1);
+  
+  let opsPathD = '';
+  let opsAreaD = `M 0 ${height} `;
+  let latencyPathD = '';
+  let latencyAreaD = `M 0 ${height} `;
+  
+  const maxOps = Math.max(...telemetryHistoryPoints.map(p => p.ops), 10);
+  const maxLat = Math.max(...telemetryHistoryPoints.map(p => p.latency), 30);
+  
+  telemetryHistoryPoints.forEach((pt, idx) => {
+    const x = idx * dx;
+    const yOps = height - 10 - ((pt.ops / maxOps) * 50);
+    const yLat = height - 10 - ((pt.latency / maxLat) * 45);
+    
+    if (idx === 0) {
+      opsPathD += `M ${x} ${yOps} `;
+      opsAreaD += `L ${x} ${yOps} `;
+      latencyPathD += `M ${x} ${yLat} `;
+      latencyAreaD += `L ${x} ${yLat} `;
+    } else {
+      opsPathD += `L ${x} ${yOps} `;
+      opsAreaD += `L ${x} ${yOps} `;
+      latencyPathD += `L ${x} ${yLat} `;
+      latencyAreaD += `L ${x} ${yLat} `;
+    }
+  });
+  
+  opsAreaD += `L ${width} ${height} Z`;
+  latencyAreaD += `L ${width} ${height} Z`;
+  
+  const opsPathEl = document.getElementById('chart-ops-path');
+  const opsAreaEl = document.getElementById('chart-ops-area');
+  const latPathEl = document.getElementById('chart-latency-path');
+  const latAreaEl = document.getElementById('chart-latency-area');
+  const opsDotEl = document.getElementById('chart-ops-dot');
+  
+  if (opsPathEl) opsPathEl.setAttribute('d', opsPathD);
+  if (opsAreaEl) opsAreaEl.setAttribute('d', opsAreaD);
+  if (latPathEl) latPathEl.setAttribute('d', latencyPathD);
+  if (latAreaEl) latAreaEl.setAttribute('d', latencyAreaD);
+  
+  if (opsDotEl && telemetryHistoryPoints.length > 0) {
+    const finalIdx = telemetryHistoryPoints.length - 1;
+    const finalOps = telemetryHistoryPoints[finalIdx].ops;
+    const finalX = finalIdx * dx;
+    const finalY = height - 10 - ((finalOps / maxOps) * 50);
+    opsDotEl.setAttribute('cx', finalX);
+    opsDotEl.setAttribute('cy', finalY);
+  }
+}
 
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No faculty members found.</div>`;
+function updateEmulatorTimetables(sessions) {
+  const mockList = document.getElementById('mock-timetable-list');
+  const mockHomeList = document.getElementById('mock-feed-schedule-container');
+  if (!mockList) return;
+  
+  if (!sessions || sessions.length === 0) {
+    mockList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 10px; padding: 20px;">No daily timetables seeded. Upload a timetable to preview.</div>`;
+    if (mockHomeList) {
+      mockHomeList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 9px; padding: 10px;">All schedule tracks clean.</div>`;
+    }
     return;
   }
-
-  grid.innerHTML = filtered.map(f => {
-    const initials = f.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    return `
-      <div class="glass-card">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--brand-violet), var(--brand-cyan)); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 16px;">
-            ${initials}
-          </div>
-          <div>
-            <div style="font-weight: 800; font-size: 16px; color: var(--text-main);">${f.name}</div>
-            <div style="font-size: 11px; color: var(--brand-cyan); font-weight: 700;">${f.designation}</div>
-          </div>
-        </div>
-        <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px;">
-          <i class="fa-solid fa-building-user" style="width: 16px; color: var(--brand-purple);"></i> ${f.dept}
-        </div>
-        <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 8px;">
-          <i class="fa-solid fa-door-open" style="width: 16px; color: var(--brand-emerald);"></i> ${f.room}
-        </div>
-        <div style="font-size: 12px; color: var(--brand-cyan); font-family: var(--font-mono);">
-          <i class="fa-solid fa-envelope"></i> ${f.email}
-        </div>
+  
+  mockList.innerHTML = '';
+  sessions.slice(0, 15).forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'mock-feed-item';
+    
+    const subject = s.subject || 'Lecture';
+    const time = s.start && s.end ? `${s.start} - ${s.end}` : (s.time || s.period || 'ON SCHEDULE');
+    const teacher = s.teacher || s.instructor || 'STAFF';
+    const venue = s.room || 'TBD';
+    
+    item.innerHTML = `
+      <div class="mock-feed-left">
+        <strong>${subject}</strong>
+        <span>${teacher}</span>
+      </div>
+      <div class="mock-feed-right">
+        <span class="badge-room">${venue}</span>
+        <span class="badge-time">${time}</span>
       </div>
     `;
-  }).join('');
+    mockList.appendChild(item);
+  });
+  
+  if (mockHomeList) {
+    mockHomeList.innerHTML = '';
+    const limit = Math.min(2, sessions.length);
+    for (let i = 0; i < limit; i++) {
+      const s = sessions[i];
+      const item = document.createElement('div');
+      item.className = 'mock-feed-item';
+      
+      const subject = s.subject || 'Lecture';
+      const teacher = s.teacher || s.instructor || 'STAFF';
+      const venue = s.room || 'TBD';
+      const time = s.start || s.time || '08:30';
+      
+      item.innerHTML = `
+        <div class="mock-feed-left">
+          <strong>${subject}</strong>
+          <span>${teacher}</span>
+        </div>
+        <div class="mock-feed-right">
+          <span class="badge-room">${venue}</span>
+          <span class="badge-time">${time}</span>
+        </div>
+      `;
+      mockHomeList.appendChild(item);
+    }
+  }
 }
 
-function filterFaculty() {
-  renderFaculty();
-}
-
-// OTA Release Software Manager
-function autofillGithubRelease() {
-  fetch('https://api.github.com/repos/malikaurangzaibahmed-lab/iris-enhanced/releases/latest')
-    .then(res => res.json())
-    .then(data => {
-      if (data.tag_name) {
-        document.getElementById('apk-version-name').value = data.tag_name.replace('v', '');
-        document.getElementById('apk-notes').value = data.body || 'Latest release build with liquid glass widgets.';
-        if (data.assets && data.assets.length > 0) {
-          document.getElementById('apk-url-input').value = data.assets[0].browser_download_url;
-        }
-        logTerminal(`Autofilled release build [${data.tag_name}] from GitHub.`, "success");
-        alert(`✅ Pre-filled release [${data.tag_name}] from GitHub!`);
-      }
-    })
-    .catch(err => alert("Could not fetch latest release from GitHub API: " + err.message));
-}
-
-function deployOTAPatch() {
-  const verName = document.getElementById('apk-version-name').value.trim();
-  const verCode = document.getElementById('apk-version-code').value.trim();
-  const notes = document.getElementById('apk-notes').value.trim();
-  const url = document.getElementById('apk-url-input').value.trim();
-  const showBanner = document.getElementById('apk-switch-visible').checked;
-
-  if (!verName || !url) {
-    alert("⚠️ Please enter a Version Name and APK Download URL.");
+function updateEmulatorExams(exams) {
+  const mockList = document.getElementById('mock-exams-list');
+  if (!mockList) return;
+  
+  if (!exams || exams.length === 0) {
+    mockList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 10px; padding: 20px;">No exam datesheets seeded. Upload an excel sheet to preview.</div>`;
     return;
   }
-
-  const releasePayload = {
-    version_name: verName,
-    version_code: parseInt(verCode) || 4,
-    release_notes: notes,
-    apk_url: url,
-    show_update_banner: showBanner,
-    updated_at: new Date()
-  };
-
-  if (db) {
-    db.collection('config').doc('app_update').set(releasePayload, { merge: true });
-    db.collection('config').doc('global').set({
-      latest_apk_update: {
-        version_name: verName,
-        version_code: parseInt(verCode) || 4,
-        release_notes: notes,
-        apk_url: url,
-        show_update_card: showBanner,
-        download_url: url
-      },
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).then(() => {
-      logTerminal(`OTA Release payload [${verName}] published to Firestore global config.`, "success");
-      alert("🚀 OTA Release Config published to Firestore! Connected mobile apps will display update prompts.");
-    }).catch(err => alert("Firestore save error: " + err.message));
-  } else {
-    logTerminal(`OTA Release payload [${verName}] staged locally.`, "info");
-    alert("🚀 OTA Release Config staged locally!");
+  
+  mockList.innerHTML = '';
+  const limit = Math.min(10, exams.length);
+  for (let i = 0; i < limit; i++) {
+    const ex = exams[i];
+    const item = document.createElement('div');
+    item.className = 'mock-feed-item';
+    item.innerHTML = `
+      <div class="mock-feed-left">
+        <strong>${ex.subject}</strong>
+        <span>${ex.batch}</span>
+      </div>
+      <div class="mock-feed-right">
+        <span class="badge-room" style="background: rgba(244, 63, 94, 0.08); border-color: rgba(244, 63, 94, 0.2); color: #f43f5e;">${ex.room}</span>
+        <span class="badge-time" style="font-size: 7px; white-space: nowrap;">${ex.date} | ${ex.time}</span>
+      </div>
+    `;
+    mockList.appendChild(item);
   }
 }
 
-// Admin User Feedback & Telemetry Stream Engine
+function setup3DTiltEffects() {
+  // 3D tilt effects disabled for clean, stable layout
+}
+
+function sanitizeAndValidateFirebaseConfig(jsonStr) {
+  const logConsole = document.getElementById('config-validation-log');
+  if (logConsole) {
+    logConsole.innerHTML = '';
+    logConsole.style.display = 'block';
+  }
+  
+  const addLog = (message, type = 'info') => {
+    if (logConsole) {
+      const line = document.createElement('div');
+      line.className = `val-log-line val-log-${type}`;
+      line.innerText = `> [${type.toUpperCase()}] ${message}`;
+      logConsole.appendChild(line);
+      logConsole.scrollTop = logConsole.scrollHeight;
+    }
+  };
+  
+  addLog('Initializing sanitization checks...', 'info');
+  
+  let cleaned = jsonStr.trim();
+  
+  // 1. Fix single quotes to double quotes
+  if (cleaned.includes("'")) {
+    cleaned = cleaned.replace(/'/g, '"');
+    addLog('Single quotes converted to double quotes.', 'warning');
+  }
+  
+  // 2. Quote unquoted keys (e.g. { apiKey: ... } -> { "apiKey": ... })
+  const unquotedKeyRegex = /([{,]\s*)([a-zA-Z0-9_]+)\s*:/g;
+  if (unquotedKeyRegex.test(cleaned)) {
+    cleaned = cleaned.replace(unquotedKeyRegex, '$1"$2":');
+    addLog('Added quotes to unquoted object keys.', 'warning');
+  }
+  
+  // 3. Strip trailing commas
+  const trailingCommaRegex = /,\s*([}\]])/g;
+  if (trailingCommaRegex.test(cleaned)) {
+    cleaned = cleaned.replace(trailingCommaRegex, '$1');
+    addLog('Stripped trailing commas.', 'warning');
+  }
+  
+  // 4. Wrap with curly braces if copy-pasted as raw properties without wrap
+  if (!cleaned.startsWith('{')) {
+    cleaned = '{' + cleaned + '}';
+    addLog('Wrapped properties with missing outer curly braces.', 'warning');
+  }
+  
+  let parsed = null;
+  try {
+    parsed = JSON.parse(cleaned);
+    addLog('JSON syntax verified successfully.', 'success');
+  } catch (e) {
+    addLog(`Syntax Error: ${e.message}`, 'error');
+    addLog('Parsing aborted. Check braces and comma placement.', 'error');
+    return null;
+  }
+  
+  // Validate required keys
+  const requiredKeys = ['apiKey', 'projectId', 'storageBucket'];
+  let missing = [];
+  requiredKeys.forEach(key => {
+    if (!parsed[key]) {
+      missing.push(key);
+    }
+  });
+  
+  if (missing.length > 0) {
+    addLog(`Missing required parameters: ${missing.join(', ')}`, 'error');
+    return null;
+  }
+  
+  // Verify format of specific keys
+  if (parsed.apiKey && !parsed.apiKey.startsWith('AIzaSy')) {
+    addLog('Warning: apiKey does not match standard Firebase API Key format.', 'warning');
+  }
+  if (parsed.projectId && !/^[a-z0-9-]+$/.test(parsed.projectId)) {
+    addLog('Warning: projectId contains non-standard characters.', 'warning');
+  }
+  
+  addLog('Connection configuration validation complete.', 'success');
+  return parsed;
+}
+
+function startTelemetryECG() {
+  initTelemetryChart();
+}
+
+let activeClassesData = [];
+let activeExamsData = [];
+let activeInspectorExamPeriod = 'midterms';
+
+async function refreshLiveClassesInspector() {
+  const tbody = document.getElementById('inspector-classes-body');
+  if (!tbody) return;
+  
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-indigo); padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Reading active timetable from live database...</td></tr>`;
+  
+  try {
+    if (!isConnected || !db) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Offline: Cannot query live database.</td></tr>`;
+      return;
+    }
+    const doc = await db.collection('config').doc('global').get();
+    if (doc.exists) {
+      const data = doc.data();
+      const jsonStr = data.active_timetable_json || '[]';
+      const parsed = JSON.parse(jsonStr);
+      activeClassesData = Array.isArray(parsed) ? parsed : (parsed.sessions || []);
+      renderLiveClassesInspector();
+      updateEmulatorTimetables(activeClassesData);
+    } else {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No active configuration found on Firestore.</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-rose); padding: 20px;">Error loading data: ${err.message}</td></tr>`;
+  }
+}
+
+function renderLiveClassesInspector() {
+  const tbody = document.getElementById('inspector-classes-body');
+  const searchInput = document.getElementById('inspector-classes-search');
+  if (!tbody) return;
+  
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  let filtered = activeClassesData;
+  
+  if (query) {
+    filtered = activeClassesData.filter(s => {
+      return (s.batch || '').toLowerCase().includes(query) ||
+             (s.class_name || '').toLowerCase().includes(query) ||
+             (s.section || '').toLowerCase().includes(query) ||
+             (s.subject || '').toLowerCase().includes(query) ||
+             (s.teacher || '').toLowerCase().includes(query) ||
+             (s.room || '').toLowerCase().includes(query) ||
+             (s.day || '').toLowerCase().includes(query);
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No classes matching search criteria.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  const renderLimit = Math.min(100, filtered.length);
+  for (let i = 0; i < renderLimit; i++) {
+    const s = filtered[i];
+    const tr = document.createElement('tr');
+    
+    const batchDisplay = s.batch || s.class_name || s.section || 'N/A';
+    const timeDisplay = s.start && s.end ? `${s.start} - ${s.end}` : (s.time || s.period || 'N/A');
+    
+    tr.innerHTML = `
+      <td style="font-weight: 600; color: var(--accent-indigo);">${batchDisplay}</td>
+      <td>${s.day}</td>
+      <td>${timeDisplay}</td>
+      <td style="color: var(--text-title); font-weight: 500;">${s.subject}</td>
+      <td>${s.teacher}</td>
+      <td style="font-family: var(--font-mono);">${s.room}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  
+  if (filtered.length > 100) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="6" style="text-align: center; font-style: italic; color: var(--text-muted); font-size: 9.5px; padding: 10px;">Truncated: displaying first 100 of ${filtered.length} active classes.</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+async function wipeLiveClasses() {
+  if (!isConnected || !db) return;
+  if (!confirm("WARNING: Are you sure you want to completely WIPE the active daily class timetable from the live database? This will clear the schedule for all student devices.")) {
+    return;
+  }
+  
+  logTerminal("Wiping live active daily class timetable...", "warning");
+  
+  try {
+    await db.collection('config').doc('global').update({
+      active_timetable_json: '[]',
+      active_timetable_version: Date.now(),
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    incrementDatabaseOps();
+    
+    logTerminal("Live Wipe Success: Cleared active daily class timetable database payload.", "success");
+    showMossToast("Wiped active daily class timetable!", "success");
+    
+    refreshLiveClassesInspector();
+  } catch (err) {
+    logTerminal(`Wipe failed: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+  }
+}
+
+async function refreshLiveExamsInspector() {
+  const tbody = document.getElementById('inspector-exams-body');
+  if (!tbody) return;
+  
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-rose); padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Reading ${activeInspectorExamPeriod.toUpperCase()} schedule from live database...</td></tr>`;
+  
+  try {
+    if (!isConnected || !db) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Offline: Cannot query live database.</td></tr>`;
+      return;
+    }
+    const doc = await db.collection('config').doc('global').get();
+    if (doc.exists) {
+      const data = doc.data();
+      let jsonStr = '[]';
+      if (activeInspectorExamPeriod === 'midterms') {
+        jsonStr = data.active_midterm_json || '[]';
+      } else {
+        jsonStr = data.active_finals_json || '[]';
+      }
+      const parsed = JSON.parse(jsonStr);
+      activeExamsData = Array.isArray(parsed) ? parsed : [];
+      renderLiveExamsInspector();
+      updateEmulatorExams(activeExamsData);
+    } else {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No active configuration found on Firestore.</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-rose); padding: 20px;">Error loading data: ${err.message}</td></tr>`;
+  }
+}
+
+function renderLiveExamsInspector() {
+  const tbody = document.getElementById('inspector-exams-body');
+  const searchInput = document.getElementById('inspector-exams-search');
+  if (!tbody) return;
+  
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  let filtered = activeExamsData;
+  
+  if (query) {
+    filtered = activeExamsData.filter(ex => {
+      return (ex.batch || '').toLowerCase().includes(query) ||
+             (ex.subject || '').toLowerCase().includes(query) ||
+             (ex.room || '').toLowerCase().includes(query) ||
+             (ex.date || '').toLowerCase().includes(query) ||
+             (ex.time || '').toLowerCase().includes(query);
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No exams matching search criteria.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  const renderLimit = Math.min(100, filtered.length);
+  for (let i = 0; i < renderLimit; i++) {
+    const ex = filtered[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${ex.date}</td>
+      <td>${ex.time}</td>
+      <td style="font-family: var(--font-mono); font-weight: 500;">${ex.room}</td>
+      <td style="font-weight: 600; color: var(--accent-indigo);">${ex.batch}</td>
+      <td style="color: var(--text-title);">${ex.subject}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  
+  if (filtered.length > 100) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="5" style="text-align: center; font-style: italic; color: var(--text-muted); font-size: 9.5px; padding: 10px;">Truncated: displaying first 100 of ${filtered.length} active exams.</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+async function wipeLiveExams() {
+  if (!isConnected || !db) return;
+  if (!confirm(`WARNING: Are you sure you want to completely WIPE all active ${activeInspectorExamPeriod.toUpperCase()} exams from the live database? This will remove all schedules on student devices.`)) {
+    return;
+  }
+  
+  logTerminal(`Wiping live active ${activeInspectorExamPeriod} schedules...`, 'warning');
+  
+  try {
+    let updateObj = {};
+    if (activeInspectorExamPeriod === 'midterms') {
+      updateObj.active_midterm_json = '[]';
+      updateObj.active_midterm_version = Date.now();
+    } else {
+      updateObj.active_finals_json = '[]';
+      updateObj.active_finals_version = Date.now();
+    }
+    updateObj.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+    
+    await db.collection('config').doc('global').update(updateObj);
+    incrementDatabaseOps();
+    
+    logTerminal(`Live Wipe Success: Cleared active ${activeInspectorExamPeriod} exams schedule database payload.`, 'success');
+    showMossToast(`Wiped ${activeInspectorExamPeriod.toUpperCase()} schedule!`, "success");
+    
+    refreshLiveExamsInspector();
+  } catch (err) {
+    logTerminal(`Wipe failed: ${err.message}`, 'error');
+    showMossToast(err.message, "error");
+  }
+}
+
+function setupGlassShaderEffects() {
+  // 1. Animate background SVG turbulence seed (if turbulence filter is defined)
+  const turbulence = document.querySelector('#liquid-refraction feTurbulence');
+  if (turbulence) {
+    let seed = 1;
+    setInterval(() => {
+      seed = (seed + 1) % 1000;
+      turbulence.setAttribute('seed', seed);
+    }, 120);
+  }
+
+  // 2. Initialize offscreen displacement maps for all cards
+  const cards = document.querySelectorAll('.tech-card, .modal-card');
+  const filtersContainer = document.getElementById('svg-filters-container');
+  if (!filtersContainer) return;
+
+  let glassCounter = 0;
+
+  cards.forEach(card => {
+    const glassId = ++glassCounter;
+    card.dataset.glassId = glassId;
+
+    // Create offscreen canvas for SDF displacement calculation (hidden from DOM)
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = 64;
+    offscreenCanvas.height = 64;
+    card.glassCanvas = offscreenCanvas;
+    card.glassCtx = offscreenCanvas.getContext('2d');
+
+    // Generate unique SVG filter ID for chromatic dispersion
+    const filterId = `liquid-glass-filter-${glassId}`;
+    const mapId = `liquid-glass-map-${glassId}`;
+    
+    const svgNS = "http://www.w3.org/2000/svg";
+    const filter = document.createElementNS(svgNS, "filter");
+    filter.setAttribute("id", filterId);
+    filter.setAttribute("filterUnits", "userSpaceOnUse");
+    filter.setAttribute("color-interpolation-filters", "sRGB");
+    filter.setAttribute("x", "0");
+    filter.setAttribute("y", "0");
+    
+    const feImage = document.createElementNS(svgNS, "feImage");
+    feImage.setAttribute("id", mapId);
+    feImage.setAttribute("result", "map");
+    feImage.setAttribute("x", "0");
+    feImage.setAttribute("y", "0");
+    
+    // Chromatic dispersion channel maps (Red/Green/Blue split)
+    const feDispR = document.createElementNS(svgNS, "feDisplacementMap");
+    feDispR.setAttribute("in", "SourceGraphic");
+    feDispR.setAttribute("in2", "map");
+    feDispR.setAttribute("scale", "35"); // Red bends more
+    feDispR.setAttribute("xChannelSelector", "R");
+    feDispR.setAttribute("yChannelSelector", "G");
+    feDispR.setAttribute("result", "redDisp");
+
+    const feDispG = document.createElementNS(svgNS, "feDisplacementMap");
+    feDispG.setAttribute("in", "SourceGraphic");
+    feDispG.setAttribute("in2", "map");
+    feDispG.setAttribute("scale", "25"); // Green normal
+    feDispG.setAttribute("xChannelSelector", "R");
+    feDispG.setAttribute("yChannelSelector", "G");
+    feDispG.setAttribute("result", "greenDisp");
+
+    const feDispB = document.createElementNS(svgNS, "feDisplacementMap");
+    feDispB.setAttribute("in", "SourceGraphic");
+    feDispB.setAttribute("in2", "map");
+    feDispB.setAttribute("scale", "15"); // Blue bends less
+    feDispB.setAttribute("xChannelSelector", "R");
+    feDispB.setAttribute("yChannelSelector", "G");
+    feDispB.setAttribute("result", "blueDisp");
+
+    // Isolate color channels
+    const feMatR = document.createElementNS(svgNS, "feColorMatrix");
+    feMatR.setAttribute("in", "redDisp");
+    feMatR.setAttribute("type", "matrix");
+    feMatR.setAttribute("values", "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0");
+    feMatR.setAttribute("result", "redOnly");
+
+    const feMatG = document.createElementNS(svgNS, "feColorMatrix");
+    feMatG.setAttribute("in", "greenDisp");
+    feMatG.setAttribute("type", "matrix");
+    feMatG.setAttribute("values", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0");
+    feMatG.setAttribute("result", "greenOnly");
+
+    const feMatB = document.createElementNS(svgNS, "feColorMatrix");
+    feMatB.setAttribute("in", "blueDisp");
+    feMatB.setAttribute("type", "matrix");
+    feMatB.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0");
+    feMatB.setAttribute("result", "blueOnly");
+
+    // Recombine channels back to full color screen space
+    const feBlend1 = document.createElementNS(svgNS, "feBlend");
+    feBlend1.setAttribute("in", "redOnly");
+    feBlend1.setAttribute("in2", "greenOnly");
+    feBlend1.setAttribute("mode", "screen");
+    feBlend1.setAttribute("result", "rg");
+
+    const feBlend2 = document.createElementNS(svgNS, "feBlend");
+    feBlend2.setAttribute("in", "rg");
+    feBlend2.setAttribute("in2", "blueOnly");
+    feBlend2.setAttribute("mode", "screen");
+    feBlend2.setAttribute("result", "rgb");
+
+    filter.appendChild(feImage);
+    filter.appendChild(feDispR);
+    filter.appendChild(feDispG);
+    filter.appendChild(feDispB);
+    filter.appendChild(feMatR);
+    filter.appendChild(feMatG);
+    filter.appendChild(feMatB);
+    filter.appendChild(feBlend1);
+    filter.appendChild(feBlend2);
+
+    filtersContainer.appendChild(filter);
+
+    card.feImage = feImage;
+    card.filterElement = filter;
+
+    // Apply inline backdrop filter linking to card-specific SVG
+    card.style.backdropFilter = `url(#${filterId}) blur(16px) saturate(1.1) brightness(1.05)`;
+    card.style.webkitBackdropFilter = `url(#${filterId}) blur(16px) saturate(1.1) brightness(1.05)`;
+
+    // Physics parameters
+    card.mouseActive = false;
+    card.mouseX = 0;
+    card.mouseY = 0;
+    card.targetX = 0;
+    card.targetY = 0;
+    card.warpX = 0;
+    card.warpY = 0;
+    card.vx = 0;
+    card.vy = 0;
+
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let lastTime = Date.now();
+
+    card.addEventListener('mouseenter', () => {
+      card.mouseActive = true;
+    });
+
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      card.mouseX = x;
+      card.mouseY = y;
+      
+      const now = Date.now();
+      const dt = Math.max(1, now - lastTime);
+      
+      // Calculate cursor velocity to drive physical fluid sloshing
+      const vxMouse = (x - lastMouseX) / dt;
+      const vyMouse = (y - lastMouseY) / dt;
+      
+      card.targetX = Math.max(-25, Math.min(25, vxMouse * 12));
+      card.targetY = Math.max(-25, Math.min(25, vyMouse * 12));
+      
+      lastMouseX = x;
+      lastMouseY = y;
+      lastTime = now;
+      
+      // Apply subtle dynamic perspective 3D tilt
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const tiltX = ((y - centerY) / centerY) * -4; 
+      const tiltY = ((x - centerX) / centerX) * 4; 
+      card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+
+      // Write CSS variables to feed the GPU touch glow
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.mouseActive = false;
+      card.targetX = 0;
+      card.targetY = 0;
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+    });
+  });
+
+  // Math models for refraction simulation
+  function circleMap(x) {
+    return 1.0 - Math.sqrt(Math.max(0.0, 1.0 - x * x));
+  }
+
+  function roundedRectSDF(x, y, w, h, r) {
+    const qx = Math.abs(x) - w + r;
+    const qy = Math.abs(y) - h + r;
+    return Math.min(Math.max(qx, qy), 0) + Math.sqrt(Math.max(qx, 0)**2 + Math.max(qy, 0)**2) - r;
+  }
+
+  function gradSdRoundedRect(x, y, w, h, r) {
+    const qx = Math.abs(x) - w + r;
+    const qy = Math.abs(y) - h + r;
+    if (qx >= 0 || qy >= 0) {
+      const mx = Math.max(qx, 0);
+      const my = Math.max(qy, 0);
+      const len = Math.sqrt(mx * mx + my * my);
+      return {
+        x: Math.sign(x) * (len > 0 ? mx / len : 0),
+        y: Math.sign(y) * (len > 0 ? my / len : 0)
+      };
+    } else {
+      const gradX = qy < qx ? 1 : 0;
+      return {
+        x: Math.sign(x) * gradX,
+        y: Math.sign(y) * (1 - gradX)
+      };
+    }
+  }
+
+  // Render & Physics Loop
+  function updatePhysicsAndRender() {
+    const spring = 0.08;
+    const damping = 0.82;
+    const resolution = 64;
+
+    cards.forEach(card => {
+      const width = card.offsetWidth;
+      const height = card.offsetHeight;
+
+      // Prevent DOMExceptions from hidden cards or zero-bounding elements
+      if (width <= 0 || height <= 0) return;
+
+      // Update SVG filter mapping on layout changes
+      if (card.lastWidth !== width || card.lastHeight !== height) {
+        card.lastWidth = width;
+        card.lastHeight = height;
+
+        card.filterElement.setAttribute('x', '0');
+        card.filterElement.setAttribute('y', '0');
+        card.filterElement.setAttribute('width', width.toString());
+        card.filterElement.setAttribute('height', height.toString());
+
+        card.feImage.setAttribute('width', width.toString());
+        card.feImage.setAttribute('height', height.toString());
+      }
+
+      // Spring sloshing logic
+      const ax = (card.targetX - card.warpX) * spring;
+      const ay = (card.targetY - card.warpY) * spring;
+      card.vx = (card.vx + ax) * damping;
+      card.vy = (card.vy + ay) * damping;
+      card.warpX += card.vx;
+      card.warpY += card.vy;
+
+      // Decay velocity
+      card.targetX *= 0.92;
+      card.targetY *= 0.92;
+
+      // CPU Guard: if elements settle, skip redraw frame to save energy (0% CPU idle)
+      const isMoving = Math.abs(card.vx) > 0.005 || Math.abs(card.vy) > 0.005;
+      if (!isMoving && !card.mouseActive && card.hasStaticRendered) {
+        return;
+      }
+
+      const ctx = card.glassCtx;
+      const w = resolution;
+      const h = resolution;
+      const imgData = ctx.createImageData(w, h);
+      const data = imgData.data;
+
+      const halfW = width / 2;
+      const halfH = height / 2;
+      const refractWidth = 24; // Lens boundary border width
+      const refractAmount = 15; // Max displacement shift in pixels
+
+      const wx = card.warpX * 0.15;
+      const wy = card.warpY * 0.15;
+
+      for (let y = 0; y < h; y++) {
+        const cardY = (y / (h - 1)) * height;
+        const cy = cardY - halfH;
+
+        for (let x = 0; x < w; x++) {
+          const cardX = (x / (w - 1)) * width;
+          const cx = cardX - halfW;
+
+          // Compute Signed Distance Field to find distance to card border
+          const sd = roundedRectSDF(cx, cy, halfW, halfH, 12);
+          
+          let dx = 0;
+          let dy = 0;
+
+          if (sd < 0) {
+            // Inside the card boundaries
+            if (sd > -refractWidth) {
+              // Map curved edge light bending refraction
+              const ratio = 1.0 - (-sd / refractWidth);
+              const d = circleMap(ratio) * refractAmount;
+
+              const grad = gradSdRoundedRect(cx, cy, halfW, halfH, 12);
+              const len = Math.sqrt(grad.x**2 + grad.y**2);
+              const nx = len > 0 ? grad.x / len : 0;
+              const ny = len > 0 ? grad.y / len : 0;
+
+              // Convex lens: bends background light inward
+              dx = -d * nx;
+              dy = -d * ny;
+            }
+
+            // Apply global sloshing shift behind card
+            dx += wx;
+            dy += wy;
+          }
+
+          // Encode coordinates to 8-bit color space relative to reference scale 25
+          const r = Math.max(0, Math.min(255, Math.round((dx / 25) * 128 + 128)));
+          const g = Math.max(0, Math.min(255, Math.round((dy / 25) * 128 + 128)));
+
+          const idx = (y * w + x) * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = 0;
+          data[idx + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Apply displacement texture data-URL to SVG feImage filter target using both standard and xlink:href
+      const dataUrl = card.glassCanvas.toDataURL();
+      card.feImage.setAttribute('href', dataUrl);
+      card.feImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
+
+      // Force Chrome/Safari repaint of the backdrop-filter by alternating tiny subpixel blur sizes
+      card.repaintToggle = !card.repaintToggle;
+      const blurVal = card.repaintToggle ? "16px" : "16.01px";
+      const filterStyle = `url(#liquid-glass-filter-${card.dataset.glassId}) blur(${blurVal}) saturate(1.1) brightness(1.05)`;
+      card.style.backdropFilter = filterStyle;
+      card.style.webkitBackdropFilter = filterStyle;
+
+      card.hasStaticRendered = true;
+    });
+
+    requestAnimationFrame(updatePhysicsAndRender);
+  }
+
+  // Launch loop
+  requestAnimationFrame(updatePhysicsAndRender);
+}
+
+// Seamless Light/Dark Theme Switcher Engine
+function setupThemeToggle() {
+  const btnThemeToggle = document.getElementById('btn-theme-toggle');
+  const savedTheme = localStorage.getItem('admin_portal_theme') || 'dark';
+  
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+
+  if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('admin_portal_theme', newTheme);
+      updateThemeIcon(newTheme);
+      logTerminal(`UI Theme toggled to ${newTheme.toUpperCase()} mode.`, 'info');
+    });
+  }
+}
+
+function updateThemeIcon(theme) {
+  const btnThemeToggle = document.getElementById('btn-theme-toggle');
+  if (btnThemeToggle) {
+    const icon = btnThemeToggle.querySelector('i');
+    if (icon) {
+      if (theme === 'light') {
+        icon.className = 'fa-solid fa-moon';
+      } else {
+        icon.className = 'fa-solid fa-sun';
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// ADMIN FEEDBACK & TELEMETRY STREAM ENGINE
+// ==========================================================================
+let communityFeedbacks = [];
+
 function initFirestoreFeedbackStream() {
   if (!db) return;
   try {
@@ -953,11 +3494,9 @@ function initFirestoreFeedbackStream() {
         });
       });
       renderFeedbackFeed();
-      updatePlatformStats();
-      logTerminal(`Received ${communityFeedbacks.length} feedback documents from Firestore stream.`, "info");
-    }, err => console.warn("Firestore snapshot listener:", err));
+    }, err => console.warn("Firestore feedback snapshot listener error:", err));
   } catch (e) {
-    console.warn("Could not start Firestore live listener:", e);
+    console.warn("Could not start feedback listener:", e);
   }
 }
 
@@ -986,34 +3525,34 @@ function renderFeedbackFeed() {
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
-        <i class="fa-solid fa-comments" style="font-size: 32px; color: var(--brand-cyan); margin-bottom: 12px; display: block; opacity: 0.5;"></i>
-        <div style="font-weight: 700; font-size: 14px; color: var(--text-main); margin-bottom: 4px;">No Submissions Match Filter</div>
-        <div style="font-size: 12px; color: var(--text-dim); max-width: 320px; margin: 0 auto;">User feedback submitted from the IRIS mobile app will appear here in real time.</div>
+      <div style="padding: 30px 10px; text-align: center; color: var(--text-muted);">
+        <i class="fa-solid fa-comments" style="font-size: 28px; color: var(--accent-cyan); margin-bottom: 8px; display: block; opacity: 0.5;"></i>
+        <div style="font-weight: 700; font-size: 13px; color: var(--text-title); margin-bottom: 4px;">No Submissions Match Filter</div>
+        <div style="font-size: 11px; color: var(--text-muted); max-width: 280px; margin: 0 auto;">User telemetry submitted from the IRIS mobile app will appear here in real time.</div>
       </div>
     `;
     return;
   }
 
   container.innerHTML = filtered.map(fb => `
-    <div class="feedback-feed-item" style="${fb.user_role === 'Faculty' ? 'border-color: rgba(168, 85, 247, 0.4); background: rgba(109, 40, 217, 0.1);' : ''}">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-weight: 800; color: var(--text-main); font-size: 15px;">${fb.name}</span>
+    <div style="padding: 10px 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; ${fb.user_role === 'Faculty' ? 'border-color: rgba(168, 85, 247, 0.4); background: rgba(109, 40, 217, 0.08);' : ''}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-weight: 800; color: var(--text-title); font-size: 13px;">${fb.name}</span>
           ${fb.user_role === 'Faculty' 
-            ? `<span style="padding: 2px 8px; background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 6px; font-size: 10px; font-weight: 800; color: #d8b4fe;"><i class="fa-solid fa-graduation-cap"></i> FACULTY</span>`
-            : `<span style="padding: 2px 8px; background: rgba(0, 229, 255, 0.12); border-radius: 6px; font-size: 10px; font-weight: 700; color: var(--brand-cyan);">STUDENT</span>`}
-          ${fb.roll_number && fb.roll_number !== 'N/A' ? `<span style="font-size: 11px; color: var(--brand-cyan); font-weight: 700;">(${fb.roll_number})</span>` : ''}
+            ? `<span style="padding: 2px 6px; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 4px; font-size: 9px; font-weight: 800; color: #d8b4fe;"><i class="fa-solid fa-graduation-cap"></i> FACULTY</span>`
+            : `<span style="padding: 2px 6px; background: rgba(6, 182, 212, 0.12); border-radius: 4px; font-size: 9px; font-weight: 700; color: var(--accent-cyan);">STUDENT</span>`}
+          ${fb.roll_number && fb.roll_number !== 'N/A' ? `<span style="font-size: 10px; color: var(--accent-cyan); font-weight: 700;">(${fb.roll_number})</span>` : ''}
         </div>
-        <span style="font-size: 11px; color: var(--text-dim); font-weight: 600;">${fb.date}</span>
+        <span style="font-size: 10px; color: var(--text-muted); font-weight: 600;">${fb.date}</span>
       </div>
-      <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px;">
-        <span style="padding: 2px 8px; background: rgba(0, 229, 255, 0.12); border-radius: 6px; font-size: 10px; font-weight: 700; color: var(--brand-cyan);">${fb.category}</span>
-        ${fb.batch && fb.batch !== 'N/A' ? `<span style="padding: 2px 8px; background: rgba(168, 85, 247, 0.12); border-radius: 6px; font-size: 10px; font-weight: 700; color: var(--brand-purple);">${fb.batch}</span>` : ''}
-        ${fb.device && fb.device !== 'N/A' ? `<span style="padding: 2px 8px; background: rgba(255, 255, 255, 0.06); border-radius: 6px; font-size: 10px; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-mobile-screen-button"></i> ${fb.device}</span>` : ''}
-        <span style="color: var(--brand-amber); font-size: 12px; margin-left: auto;">${'★'.repeat(fb.rating || 5)}</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 6px;">
+        <span style="padding: 2px 6px; background: rgba(99, 102, 241, 0.12); border-radius: 4px; font-size: 9px; font-weight: 700; color: var(--accent-indigo);">${fb.category}</span>
+        ${fb.batch && fb.batch !== 'N/A' ? `<span style="padding: 2px 6px; background: rgba(168, 85, 247, 0.12); border-radius: 4px; font-size: 9px; font-weight: 700; color: #c084fc;">${fb.batch}</span>` : ''}
+        ${fb.device && fb.device !== 'N/A' ? `<span style="padding: 2px 6px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; font-size: 9px; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-mobile-screen-button"></i> ${fb.device}</span>` : ''}
+        <span style="color: var(--accent-amber); font-size: 11px; margin-left: auto;">${'★'.repeat(fb.rating || 5)}</span>
       </div>
-      <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">${fb.comment}</p>
+      <p style="font-size: 12px; color: var(--text-body); line-height: 1.4; margin: 0;">${fb.comment}</p>
     </div>
   `).join('');
 }
