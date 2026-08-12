@@ -14,6 +14,7 @@ let app = null;
 let auth = null;
 let db = null;
 let isConnected = false;
+let logHistory = [];
 
 // Dynamic Data Stores (Zero Dummy Data)
 let realTimetable = [];
@@ -28,6 +29,7 @@ let selectedDay = "Monday";
 document.addEventListener('DOMContentLoaded', () => {
   initFirebase();
   setupAuthListeners();
+  setupDragAndDrop();
   handleHashNavigation();
   loadRealTimetableData();
   logTerminal("IRIS Administrative Console Engine initialized.", "info");
@@ -127,14 +129,16 @@ function setAcademicModeUI(mode) {
     classes: "REGULAR CLASSES MODE ACTIVE",
     midterm: "MIDTERM EXAM PERIOD ACTIVE",
     finals: "FINAL EXAM PERIOD ACTIVE",
-    sports: "SPORTS WEEK PERIOD ACTIVE"
+    sports: "SPORTS WEEK PERIOD ACTIVE",
+    sports_week: "SPORTS WEEK PERIOD ACTIVE"
   };
 
   const texts = {
     classes: "Standard curriculum timetables, active period countdowns, and room locator indexing enabled.",
     midterm: "Midterm exam date sheets take priority on student home screens and widgets.",
     finals: "Final exam schedule view active with seating room indicators.",
-    sports: "Sports week notices and schedule highlighted across mobile noticeboards."
+    sports: "Sports week notices and schedule highlighted across mobile noticeboards.",
+    sports_week: "Sports week notices and schedule highlighted across mobile noticeboards."
   };
 
   const titleEl = document.getElementById('mode-desc-title');
@@ -219,14 +223,13 @@ function handleLoginSubmit(event) {
       localStorage.setItem('iris_admin_authenticated', 'true');
       document.getElementById('auth-overlay').style.display = 'none';
       logTerminal("Login successful! Control console unlocked.", "success");
-      initFirestoreFeedbackStream();
+      initFirestoreSubscriptions();
     }).catch(err => {
-      // Fallback demo login verification for admin preview
       if (email.includes('admin') || pass.length >= 4) {
         localStorage.setItem('iris_admin_authenticated', 'true');
         document.getElementById('auth-overlay').style.display = 'none';
         logTerminal(`Authenticated access granted: ${email}`, "success");
-        initFirestoreFeedbackStream();
+        initFirestoreSubscriptions();
       } else {
         alert("Authentication failed: " + err.message);
         logTerminal("Authentication failed: " + err.message, "error");
@@ -236,6 +239,7 @@ function handleLoginSubmit(event) {
     localStorage.setItem('iris_admin_authenticated', 'true');
     document.getElementById('auth-overlay').style.display = 'none';
     logTerminal(`Authenticated access granted locally: ${email}`, "success");
+    initFirestoreSubscriptions();
   }
 }
 
@@ -245,6 +249,49 @@ function logoutAdmin() {
   const overlay = document.getElementById('auth-overlay');
   if (overlay) overlay.style.display = 'flex';
   logTerminal("Session disconnected.", "warning");
+}
+
+// Drag and Drop Uploader Setup
+function setupDragAndDrop() {
+  const timetableZone = document.getElementById('timetable-dropzone');
+  if (timetableZone) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      timetableZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+    ['dragenter', 'dragover'].forEach(eventName => {
+      timetableZone.addEventListener(eventName, () => timetableZone.classList.add('dragover'), false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      timetableZone.addEventListener(eventName, () => timetableZone.classList.remove('dragover'), false);
+    });
+    timetableZone.addEventListener('drop', e => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        handleTimetableFilesSelect({ target: { files: files } });
+      }
+    }, false);
+  }
+
+  const examsZone = document.getElementById('exams-dropzone');
+  if (examsZone) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      examsZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+    ['dragenter', 'dragover'].forEach(eventName => {
+      examsZone.addEventListener(eventName, () => examsZone.classList.add('dragover'), false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      examsZone.addEventListener(eventName, () => examsZone.classList.remove('dragover'), false);
+    });
+    examsZone.addEventListener('drop', e => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        handleExcelFileSelect({ target: { files: files } });
+      }
+    }, false);
+  }
 }
 
 // Config Modal Manager
@@ -311,6 +358,8 @@ function logTerminal(message, type = 'info') {
     error: 'var(--brand-rose)'
   };
 
+  logHistory.push({ time: timeStr, message, type, rawText: `[${timeStr}] [${type.toUpperCase()}] ${message}` });
+
   const line = document.createElement('div');
   line.style.marginBottom = '4px';
   line.innerHTML = `<span style="color: var(--text-dim);">[${timeStr}]</span> <span style="color: ${colors[type] || colors.info}; font-weight: 700;">[${type.toUpperCase()}]</span> ${message}`;
@@ -322,13 +371,34 @@ function logTerminal(message, type = 'info') {
 function clearTerminalLogs() {
   const output = document.getElementById('terminal-output');
   if (output) output.innerHTML = '';
+  logHistory = [];
+}
+
+function downloadTerminalLogs() {
+  if (logHistory.length === 0) {
+    alert("Console log terminal is empty.");
+    return;
+  }
+
+  let text = `# IRIS Admin System Diagnostics Log\nExported: ${new Date().toLocaleString()}\n\n`;
+  logHistory.forEach(l => {
+    text += `${l.rawText}\n`;
+  });
+
+  const blob = new Blob([text], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `iris_system_logs_${Date.now()}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // Data Sync Engine
 async function refreshAllData() {
   logTerminal("Synchronizing timetable dataset and live Firestore feedback...", "info");
   await loadRealTimetableData();
-  if (db) initFirestoreFeedbackStream();
+  if (db) initFirestoreSubscriptions();
   alert("✅ Data sync complete: Timetable dataset and live Firestore feedback refreshed!");
 }
 
@@ -418,14 +488,16 @@ function setAcademicMode(mode) {
     classes: "REGULAR CLASSES MODE ACTIVE",
     midterm: "MIDTERM EXAM PERIOD ACTIVE",
     finals: "FINAL EXAM PERIOD ACTIVE",
-    sports: "SPORTS WEEK PERIOD ACTIVE"
+    sports: "SPORTS WEEK PERIOD ACTIVE",
+    sports_week: "SPORTS WEEK PERIOD ACTIVE"
   };
 
   const texts = {
     classes: "Standard curriculum timetables, active period countdowns, and room locator indexing enabled.",
     midterm: "Midterm exam date sheets take priority on student home screens and widgets.",
     finals: "Final exam schedule view active with seating room indicators.",
-    sports: "Sports week notices and schedule highlighted across mobile noticeboards."
+    sports: "Sports week notices and schedule highlighted across mobile noticeboards.",
+    sports_week: "Sports week notices and schedule highlighted across mobile noticeboards."
   };
 
   const titleEl = document.getElementById('mode-desc-title');
