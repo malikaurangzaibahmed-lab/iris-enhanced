@@ -342,10 +342,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Device Details
-                      _buildLabel('DEVICE & HARDWARE TELEMETRY'),
+                      // Device Details (Auto Detected)
+                      _buildLabel('AUTO-DETECTED DEVICE TELEMETRY'),
                       const SizedBox(height: 6),
-                      _buildTextField(_deviceController, hint: 'Device details', validatorMsg: 'Enter device info', isDark: effectiveIsDark),
+                      _buildTextField(_deviceController, hint: 'Detecting device telemetry...', validatorMsg: 'Enter device info', isDark: effectiveIsDark, readOnly: true),
                       const SizedBox(height: 16),
 
                       // Category Dropdown
@@ -441,24 +441,31 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, {required String hint, required String validatorMsg, required bool isDark}) {
+  Widget _buildTextField(TextEditingController controller, {required String hint, required String validatorMsg, required bool isDark, bool readOnly = false}) {
     return TextFormField(
       controller: controller,
-      style: TextStyle(color: isDark ? Colors.white : Colors.black),
-      decoration: _inputDecoration(isDark, hint: hint),
+      readOnly: readOnly,
+      style: TextStyle(
+        color: isDark ? Colors.white : Colors.black,
+        fontWeight: readOnly ? FontWeight.w700 : FontWeight.w500,
+      ),
+      decoration: _inputDecoration(isDark, hint: hint, readOnly: readOnly),
       validator: (v) => v == null || v.trim().isEmpty ? validatorMsg : null,
     );
   }
 
-  InputDecoration _inputDecoration(bool isDark, {String? hint}) {
+  InputDecoration _inputDecoration(bool isDark, {String? hint, bool readOnly = false}) {
     return InputDecoration(
       hintText: hint,
       hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
       filled: true,
-      fillColor: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.08),
+      fillColor: readOnly 
+          ? IrisTokens.brand.withValues(alpha: 0.1) 
+          : (isDark ? Colors.black : Colors.white).withValues(alpha: 0.08),
+      prefixIcon: readOnly ? const Icon(Icons.phone_android_rounded, size: 18, color: IrisTokens.brand) : null,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: IrisTokens.brand.withValues(alpha: 0.2)),
+        borderSide: BorderSide(color: IrisTokens.brand.withValues(alpha: readOnly ? 0.35 : 0.2)),
       ),
     );
   }

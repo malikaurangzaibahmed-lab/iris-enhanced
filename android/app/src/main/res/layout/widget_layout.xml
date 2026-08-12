@@ -116,7 +116,7 @@
     <!-- Row 4: Progress Bar -->
     <ProgressBar
         android:id="@+id/widget_progress"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:max="100"
