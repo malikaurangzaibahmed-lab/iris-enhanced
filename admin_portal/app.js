@@ -381,7 +381,8 @@ function updateActiveClassCard() {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const currentDayStr = days[now.getDay()];
 
-  const activeSession = realTimetable.find(item => item.day === currentDayStr) || realTimetable[0];
+  const todaySessions = realTimetable.filter(item => item.day === currentDayStr);
+  const activeSession = todaySessions[0] || realTimetable[0];
 
   const nameEl = document.getElementById('live-subject-name');
   const teacherEl = document.getElementById('live-teacher-name');
@@ -391,6 +392,18 @@ function updateActiveClassCard() {
     if (nameEl) nameEl.innerText = activeSession.subject || "No Active Class";
     if (teacherEl) teacherEl.innerText = `${activeSession.batch || ''} • ${activeSession.teacher || ''} • Room ${activeSession.room || ''}`;
     if (rangeEl) rangeEl.innerText = `${activeSession.start || ''} - ${activeSession.end || ''}`;
+  }
+
+  // Update Mobile Student Emulator Feed with Real Today Sessions
+  const emFeed = document.getElementById('emulator-schedule-feed');
+  if (emFeed) {
+    const listToRender = (todaySessions.length > 0 ? todaySessions : realTimetable).slice(0, 3);
+    emFeed.innerHTML = listToRender.map(s => `
+      <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px; margin-bottom: 6px;">
+        <div style="font-weight: 800; font-size: 11.5px; color: var(--text-main);">${s.batch || ''} - ${s.subject || 'Class'}</div>
+        <div style="font-size: 10px; color: var(--brand-cyan);">${s.teacher || ''} • Room ${s.room || 'N/A'} (${s.start || ''})</div>
+      </div>
+    `).join('');
   }
 }
 

@@ -232,16 +232,11 @@
                   <div style="font-size: 12px; font-weight: 800; color: #fff;" id="emulator-mode-title">CLASSES IN SESSION</div>
                 </div>
 
-                <!-- Today's Schedule Feed -->
+                <!-- Today's Schedule Feed (Dynamic Real Data) -->
                 <div style="text-align: left;">
                   <div style="font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;">Today's Schedule</div>
-                  <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px; margin-bottom: 6px;">
-                    <div style="font-weight: 800; font-size: 11.5px; color: var(--text-main);">CS-311 Compiler Construction</div>
-                    <div style="font-size: 10px; color: var(--brand-cyan);">Dr. Usama Ejaz • Room CLab-3</div>
-                  </div>
-                  <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px;">
-                    <div style="font-weight: 800; font-size: 11.5px; color: var(--text-main);">EE-214 Digital Logic Design</div>
-                    <div style="font-size: 10px; color: var(--brand-cyan);">Engr. Sana Ali • Room Lab-1</div>
+                  <div id="emulator-schedule-feed">
+                    <!-- Rendered dynamically from real timetable -->
                   </div>
                 </div>
               </div>
