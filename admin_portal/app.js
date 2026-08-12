@@ -439,16 +439,18 @@ function setAcademicMode(mode) {
   if (emModeBadge) emModeBadge.innerText = `${mode.toUpperCase()} MODE`;
   if (emModeTitle) emModeTitle.innerText = titles[mode];
 
+  const targetPeriod = mode === 'sports' ? 'sports_week' : mode;
+
   if (db) {
     db.collection('config').doc('global').set({
-      academic_period: mode,
+      academic_period: targetPeriod,
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true }).then(() => {
-      logTerminal(`Academic Period set to [${mode.toUpperCase()}] in Firestore.`, "success");
+      logTerminal(`Academic Period set to [${targetPeriod.toUpperCase()}] in Firestore config/global.`, "success");
     }).catch(err => logTerminal("Firestore mode save: " + err.message, "error"));
   }
 
-  alert(`Academic mode switched to [${mode.toUpperCase()}]. Broadcast sent to all mobile client devices!`);
+  alert(`Academic mode switched to [${targetPeriod.toUpperCase()}]. Broadcast sent to all mobile client devices!`);
 }
 
 // Timetable PDF & JSON Uploader
@@ -485,11 +487,20 @@ function commitStagedTimetable() {
     updatePlatformStats();
 
     if (db) {
+      const nowTs = Math.floor(Date.now() / 1000);
+      const jsonStr = JSON.stringify(realTimetable);
+
       db.collection('timetables').doc('seed').set({
         sessions: realTimetable,
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        logTerminal("Committed timetable seed to Firestore database.", "success");
+      });
+
+      db.collection('config').doc('global').set({
+        active_timetable_json: jsonStr,
+        active_timetable_version: nowTs,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).then(() => {
+        logTerminal(`Committed timetable seed (v${nowTs}) to Firestore config/global.`, "success");
         alert("✅ Timetable seed committed to Firestore database!");
       }).catch(err => alert("Firestore save error: " + err.message));
     } else {
@@ -696,6 +707,8 @@ function sendBroadcastNotice() {
       created_at: firebase.firestore.FieldValue.serverTimestamp()
     });
     db.collection('config').doc('global').set({
+      broadcast_enabled: true,
+      broadcast_message: `${title}: ${body}`,
       broadcast_announcement: {
         title: title,
         category: category,
@@ -705,8 +718,8 @@ function sendBroadcastNotice() {
       },
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true }).then(() => {
-      logTerminal(`Emergency Notice [${title}] broadcasted live to Firestore global config.`, "success");
-      alert(`📢 Emergency Notice [${title}] broadcasted to all mobile client noticeboards!`);
+      logTerminal(`Emergency Notice [${title}] broadcasted live to Firestore config/global.`, "success");
+      alert(`📢 Emergency Notice [${title}] broadcasted live to all mobile client noticeboards!`);
       document.getElementById('broadcast-title').value = '';
       document.getElementById('broadcast-body').value = '';
       updateEmulatorNotice();
@@ -714,6 +727,19 @@ function sendBroadcastNotice() {
   } else {
     logTerminal(`Emergency Notice [${title}] broadcasted locally.`, "success");
     alert(`📢 Emergency Notice [${title}] broadcasted locally!`);
+  }
+}
+
+function clearBroadcastNotice() {
+  if (db) {
+    db.collection('config').doc('global').set({
+      broadcast_enabled: false,
+      broadcast_message: '',
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).then(() => {
+      logTerminal("Broadcast notice disabled on all mobile client screens.", "warning");
+      alert("🔇 Live broadcast disabled across mobile clients.");
+    });
   }
 }
 
