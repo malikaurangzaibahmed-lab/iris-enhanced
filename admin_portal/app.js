@@ -694,8 +694,18 @@ function sendBroadcastNotice() {
       category: category,
       body: body,
       created_at: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      logTerminal(`Emergency Notice [${title}] broadcasted live to Firestore.`, "success");
+    });
+    db.collection('config').doc('global').set({
+      broadcast_announcement: {
+        title: title,
+        category: category,
+        body: body,
+        show_broadcast: true,
+        created_at: firebase.firestore.FieldValue.serverTimestamp()
+      },
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).then(() => {
+      logTerminal(`Emergency Notice [${title}] broadcasted live to Firestore global config.`, "success");
       alert(`📢 Emergency Notice [${title}] broadcasted to all mobile client noticeboards!`);
       document.getElementById('broadcast-title').value = '';
       document.getElementById('broadcast-body').value = '';
@@ -797,8 +807,19 @@ function deployOTAPatch() {
   };
 
   if (db) {
-    db.collection('config').doc('app_update').set(releasePayload, { merge: true }).then(() => {
-      logTerminal(`OTA Release payload [${verName}] published to Firestore.`, "success");
+    db.collection('config').doc('app_update').set(releasePayload, { merge: true });
+    db.collection('config').doc('global').set({
+      latest_apk_update: {
+        version_name: verName,
+        version_code: parseInt(verCode) || 4,
+        release_notes: notes,
+        apk_url: url,
+        show_update_card: showBanner,
+        download_url: url
+      },
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).then(() => {
+      logTerminal(`OTA Release payload [${verName}] published to Firestore global config.`, "success");
       alert("🚀 OTA Release Config published to Firestore! Connected mobile apps will display update prompts.");
     }).catch(err => alert("Firestore save error: " + err.message));
   } else {
