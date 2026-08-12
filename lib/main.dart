@@ -38,6 +38,7 @@ import 'screens/document_workspace_screen.dart';
 import 'screens/setup_screens.dart';
 import 'screens/tutorial_screen.dart';
 import 'screens/teacher_locator_screen.dart';
+import 'services/helpdesk_faculty_service.dart';
 import 'screens/students_week_screen.dart';
 import 'services/remote_config_service.dart';
 import 'services/app_update_service.dart';
@@ -2413,6 +2414,7 @@ class _DashboardState extends State<Dashboard>
 
         // Background session warming on startup
         unawaited(SessionRefresherService.warmSession('swl-sis.comsats.edu.pk', 'student'));
+        unawaited(HelpdeskFacultyService().fetchOfflineOnly());
       }
     });
     _updateScheduleCache();
