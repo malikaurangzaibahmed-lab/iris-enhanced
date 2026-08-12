@@ -198,9 +198,10 @@
 
             <ImageView
                 android:id="@+id/widget_teacher_avatar"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginRight="6dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginRight="8dp"
+                android:scaleType="centerCrop"
                 android:src="@drawable/widget_ic_teacher_avatar" />
 
             <LinearLayout

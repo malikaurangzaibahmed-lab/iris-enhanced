@@ -163,28 +163,36 @@ class PrivacyPolicyScreen extends StatelessWidget {
 }
 
 class TermsOfServiceScreen extends StatelessWidget {
-  const TermsOfServiceScreen({super.key});
+  final VoidCallback? onBackPressed;
+  final bool? isDark;
+
+  const TermsOfServiceScreen({
+    super.key,
+    this.onBackPressed,
+    this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    const blue = IrisTokens.blue;
-    const blueLight = IrisTokens.blueLight;
-
+    final effectiveIsDark = isDark ?? (Theme.of(context).brightness == Brightness.dark);
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         forceMaterialTransparency: true,
         elevation: 0,
-        leading: AppBackButton(isDark: isDark),
+        leading: AppBackButton(
+          isDark: effectiveIsDark,
+          onPressed: onBackPressed,
+        ),
       ),
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          ObsidianPulse(isDark: isDark),
-          SafeArea(
+          Positioned.fill(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+              padding: const EdgeInsets.fromLTRB(20, 100, 20, 40),
+              physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -193,20 +201,13 @@ class TermsOfServiceScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [blue, blueLight],
-                          ),
+                          color: IrisTokens.brand.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: IrisTokens.brand.withValues(alpha: 0.2)),
                         ),
-                        child: const Icon(
-                          Icons.gavel_rounded,
-                          color: Colors.white,
-                          size: 24,
-                        ),
+                        child: const Icon(Icons.gavel_rounded, color: IrisTokens.brand, size: 24),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,18 +216,18 @@ class TermsOfServiceScreen extends StatelessWidget {
                               'Terms of Service',
                               style: TextStyle(
                                 fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                color: isDark ? Colors.white : Colors.black,
+                                fontWeight: FontWeight.bold,
+                                color: effectiveIsDark ? Colors.white : Colors.black,
                                 letterSpacing: 0.2,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'rules of engagement & system disclaimers',
+                              'legal framework & user guidelines',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                                color: (effectiveIsDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
                               ),
                             ),
                           ],
@@ -240,39 +241,39 @@ class TermsOfServiceScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle(context, '1. AGREEMENT TO TERMS', isDark),
+                        _buildSectionTitle(context, '1. AGREEMENT TO TERMS', effectiveIsDark),
                         _buildSectionBody(
                           context,
-                          'By initializing and running Nexsync (IRIS) client services, you agree to comply with the rules outlined herein. This application is an unofficial companion and has no direct corporate affiliation with COMSATS University.',
-                          isDark,
+                          'By initializing and running IRIS client services, you agree to comply with the rules outlined herein. This application is an unofficial companion and has no direct corporate affiliation with COMSATS University.',
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '2. SCRAPING ETHICS', isDark),
+                        _buildSectionTitle(context, '2. SCRAPING ETHICS', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'The local scraper is throttled and designed to prevent request floods on university portals. You agree not to bypass the local caching systems or execute custom automated queries that could generate excessive traffic loads.',
-                          isDark,
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '3. DISCLAIMER OF WARRANTIES', isDark),
+                        _buildSectionTitle(context, '3. DISCLAIMER OF WARRANTIES', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'IRIS is provided "as-is". While our parsing algorithms are highly accurate, timetables are subject to sudden shifts, cancellations, or administrative changes. The authors are not liable for attendance deficits, scheduling conflicts, or class/exam missed slots due to data desynchronization.',
-                          isDark,
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '4. SYSTEM RESTRAINTS', isDark),
+                        _buildSectionTitle(context, '4. SYSTEM RESTRAINTS', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'You may not modify the compiled APK, perform reverse engineering of local haptic curves, or use the timetable database extraction tools for commercial purposes without explicit permission.',
-                          isDark,
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '5. PROTOCOL REVISIONS', isDark),
+                        _buildSectionTitle(context, '5. PROTOCOL REVISIONS', effectiveIsDark),
                         _buildSectionBody(
                           context,
-                          'We reserve the right to revise these terms to align with portal structure updates or security requirements. Continued usage of Nexsync constitutes acceptance of updated disclaimers.',
-                          isDark,
+                          'We reserve the right to revise these terms to align with portal structure updates or security requirements. Continued usage of IRIS constitutes acceptance of updated disclaimers.',
+                          effectiveIsDark,
                         ),
                       ],
                     ),

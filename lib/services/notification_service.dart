@@ -4,6 +4,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_widget/home_widget.dart';
 import '../core/models.dart';
+import 'helpdesk_faculty_service.dart';
 import 'package:flutter/foundation.dart';
 
 @pragma('vm:entry-point')
@@ -257,6 +258,8 @@ class ClassNotificationTaskHandler extends TaskHandler {
           await HomeWidget.saveWidgetData<String>('flutter.widget_headline', cleanSubject);
           await HomeWidget.saveWidgetData<String>('flutter.widget_subline', currentLive.room);
           await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', role == 'faculty' ? currentLive.batchKey.batch : currentLive.teacher);
+          final teacherImgPath = HelpdeskFacultyService.resolveTeacherImagePath(currentLive.teacher);
+          await HomeWidget.saveWidgetData<String>('flutter.teacher_image_url', teacherImgPath);
           await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', progressPercent);
           await HomeWidget.saveWidgetData<String>('flutter.time_info', displayTime);
           await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
@@ -329,6 +332,8 @@ class ClassNotificationTaskHandler extends TaskHandler {
           await HomeWidget.saveWidgetData<String>('flutter.widget_headline', nextClass.subject);
           await HomeWidget.saveWidgetData<String>('flutter.widget_subline', nextClass.room);
           await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', role == 'faculty' ? nextClass.batchKey.batch : nextClass.teacher);
+          final nextTeacherImgPath = HelpdeskFacultyService.resolveTeacherImagePath(nextClass.teacher);
+          await HomeWidget.saveWidgetData<String>('flutter.teacher_image_url', nextTeacherImgPath);
           await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
           await HomeWidget.saveWidgetData<String>('flutter.time_info', displayTime);
           await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', isUrgent);

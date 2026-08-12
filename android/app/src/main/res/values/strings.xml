@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Nexsync</string>
+    <string name="app_name">IRIS</string>
     
     <!-- Widget strings -->
     <string name="widget_description">IRIS: Live Class Status</string>

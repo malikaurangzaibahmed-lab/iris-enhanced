@@ -94,6 +94,20 @@ class HelpdeskFacultyService {
     return tokens.join(' ').trim();
   }
 
+  static String resolveTeacherImagePath(String teacherName) {
+    if (teacherName.trim().isEmpty || _memoryCache.isEmpty) return '';
+    final match = matchFacultyProfile(teacherName, _memoryCache);
+    if (match != null && match.image.trim().isNotEmpty) {
+      final raw = match.image.trim();
+      if (raw.contains('uploads/')) {
+        final filename = raw.split('/').last;
+        return 'assets/faculty_images/$filename';
+      }
+      return raw;
+    }
+    return '';
+  }
+
   static FacultyProfile? matchFacultyProfile(
     String teacherName,
     List<FacultyProfile> profiles,

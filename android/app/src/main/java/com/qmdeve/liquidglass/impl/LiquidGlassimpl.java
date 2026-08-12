@@ -44,7 +44,7 @@ import android.view.View;
 import androidx.annotation.RequiresApi;
 
 import com.qmdeve.liquidglass.Config;
-import com.example.student_organizer.R;
+import com.iris.app.R;
 
 import java.io.BufferedReader;
 import java.io.IOException;

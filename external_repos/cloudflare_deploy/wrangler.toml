@@ -1,0 +1,11 @@
+name = "iris-es5"
+type = "service"
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+
+[env.production]
+routes = [
+  { pattern = "example.com/api/*", zone_name = "example.com" }
+]

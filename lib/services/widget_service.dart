@@ -92,7 +92,7 @@ class WidgetService {
     }
   }
 
-  static const String _widgetGroupId = 'com.example.student_organizer';
+  static const String _widgetGroupId = 'com.iris.app';
 
   static Future<void> initialize() async {
     try {

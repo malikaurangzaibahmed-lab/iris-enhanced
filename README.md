@@ -37,7 +37,7 @@
 IRIS Base Directory
  ├── android/                         # Native Android Project & Kotlin AppWidget Providers
  │    └── app/src/main/
- │         ├── kotlin/com/example/student_organizer/
+ │         ├── kotlin/com/iris/app/
  │         │    ├── ClassTrackerWidget.kt        # Responsive DP Live Class Widget Provider
  │         │    ├── PortalTasksWidget.kt         # Responsive Portal Tasks Widget Provider
  │         │    └── PortalTasksWidgetService.kt  # RemoteViews ListView Adapter Service

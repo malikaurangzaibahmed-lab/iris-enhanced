@@ -1,5 +1,5 @@
 name: iris
-description: "Nexsync - Intelligent Academic Companion"
+description: "IRIS - Intelligent Academic Companion"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.2+3
+version: 1.0.3+4
 
 environment:
   sdk: ^3.11.0
@@ -87,23 +87,10 @@ flutter:
     - assets/iris_logo.png
     - assets/comsats_logo.png
     - assets/comsats_logo.jpg
-    - assets/Alex_Jones.gif
-    - assets/widget_bg_light.gif
-    - assets/widget_bg_dark.gif
-    - assets/widget_bg_student.png
-    - assets/widget_bg_faculty.png
-    - assets/widget_bg_sports.png
-    - assets/widget_bg_exams.png
-    - assets/widget_bg_idle.png
-    - assets/sfx_nav_soft.ogg
-    - assets/sfx_nav_click.ogg
-    - assets/ui_toggle_soft.wav
-    - assets/ui_toggle_click.mp3
-    - assets/ui_toggle_click.wav
-    - assets/ui_toggle_soft.mp3
-    - assets/ui_sfx/coins.wav
-    - assets/ui_sfx/laser.wav
-    - assets/ui_sfx/nasa_on_a_mission.mp3
+    - assets/widget_backgrounds/
+    - assets/audio/
+    - assets/documents/
+    - assets/ui_sfx/
     - assets/ui_sfx_pack/
     - assets/helpdesk_backup/
     - assets/faculty_images/

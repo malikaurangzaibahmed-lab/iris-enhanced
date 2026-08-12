@@ -245,13 +245,13 @@ class _TutorialScreenState extends State<TutorialScreen>
             physics: const BouncingScrollPhysics(),
             children: [
               _buildTextSlide(
-                title: 'Welcome to Nexsync',
+                title: 'Welcome to IRIS',
                 subtitle: 'Your intelligent academic companion. Experience a complete system designed to keep you focused and organized.',
                 isDark: isDark,
               ),
               _buildTextSlide(
                 title: 'Live Class Tracking',
-                subtitle: 'Never miss a beat. Nexsync tracks your timetable seamlessly in the background and surfaces live progress to your lockscreen.',
+                subtitle: 'Never miss a beat. IRIS tracks your timetable seamlessly in the background and surfaces live progress to your lockscreen.',
                 isDark: isDark,
               ),
               _buildTextSlide(
@@ -792,7 +792,7 @@ class _TutorialScreenState extends State<TutorialScreen>
                             ),
                             const SizedBox(width: 6),
                             const Text(
-                              'Nexsync Widget',
+                              'IRIS Widget',
                               style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: IrisTokens.brand),
                             ),
                           ],

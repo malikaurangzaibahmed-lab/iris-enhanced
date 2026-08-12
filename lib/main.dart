@@ -96,7 +96,7 @@ Future<void> main() async {
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
         channelId: 'persistent_class_foreground',
-        channelName: 'Nexsync Class Tracker',
+        channelName: 'IRIS Class Tracker',
         channelDescription: 'Shows your current and upcoming classes',
       ),
       iosNotificationOptions: const IOSNotificationOptions(
@@ -213,7 +213,7 @@ class _IrisAppBootState extends State<IrisApp> {
                 child: GlassSurface(
                   settings: IrisGlass.settings(
                     context,
-                    blur: 28.0,
+                    blur: 16.0,
                     ambientStrength: 0.85,
                     lightAngle: 0.15 * math.pi,
                     thickness: 22.0,
