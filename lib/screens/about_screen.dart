@@ -20,6 +20,7 @@ import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/vital_card.dart';
+import '../services/remote_config_service.dart';
 import 'legal_screens.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -534,6 +535,11 @@ class _AboutScreenState extends State<AboutScreen> {
                     _buildPreferencesCard(isDark),
 
                     const SizedBox(height: 24),
+                    _buildSectionHeader('APPLICATION VERSION & RELEASE'),
+                    const SizedBox(height: 8),
+                    _buildVersionCard(isDark),
+
+                    const SizedBox(height: 24),
                     _buildSectionHeader('INFORMATION & LEGAL'),
                     const SizedBox(height: 8),
                     _buildInfoLinksCard(isDark),
@@ -940,6 +946,157 @@ class _AboutScreenState extends State<AboutScreen> {
         color: isDark ? Colors.white30 : Colors.black38,
       ),
       onTap: onTap,
+    );
+  }
+
+  void _downloadLatestApk() async {
+    IrisHaptics.actionHeavy();
+    final updateData = RemoteConfigService.latestApkUpdate.value;
+    String downloadUrl = updateData?['download_url']?.toString() ?? '';
+
+    if (downloadUrl.isEmpty) {
+      downloadUrl = 'https://github.com/malikaurangzaibahmed-lab/iris-enhanced/releases';
+    }
+
+    final uri = Uri.parse(downloadUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        showIrisFrostedSnackBar(
+          context,
+          content: const Text('Could not open download URL'),
+          tint: Colors.redAccent,
+        );
+      }
+    }
+  }
+
+  Widget _buildVersionCard(bool isDark) {
+    return ValueListenableBuilder<Map<String, dynamic>?>(
+      valueListenable: RemoteConfigService.latestApkUpdate,
+      builder: (context, updateData, _) {
+        final hasUpdate = updateData != null && updateData['download_url'] != null;
+        final newVersionName = updateData?['version_name']?.toString() ?? '1.0.3';
+
+        return GlassCard(
+          padding: const EdgeInsets.all(20),
+          borderRadius: 24,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: IrisTokens.brand.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: IrisTokens.brand.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.system_update_rounded,
+                      color: IrisTokens.brand,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "IRIS v${RemoteConfigService.CURRENT_VERSION_NAME}",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                color: isDark ? Colors.white : Colors.black87,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: (hasUpdate ? Colors.amber : IrisTokens.brand).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: (hasUpdate ? Colors.amber : IrisTokens.brand).withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Text(
+                                hasUpdate ? 'v$newVersionName Available' : 'Latest Build',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: hasUpdate ? Colors.amber : IrisTokens.brand,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Package: com.iris.app • Build ${RemoteConfigService.CURRENT_VERSION_CODE}",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Divider(
+                height: 1,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _downloadLatestApk,
+                      icon: const Icon(Icons.download_rounded, size: 18),
+                      label: Text(
+                        hasUpdate ? "Download v$newVersionName APK" : "Download Latest APK",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: IrisTokens.brand,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    onPressed: _downloadLatestApk,
+                    icon: const Icon(Icons.open_in_new_rounded, size: 20),
+                    tooltip: "Open Release Page",
+                    color: isDark ? Colors.white60 : Colors.black54,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
