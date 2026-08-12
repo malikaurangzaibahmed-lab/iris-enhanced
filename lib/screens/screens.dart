@@ -35,3 +35,4 @@ export 'iris_hub_screen.dart';
 export 'tutorial_screen.dart';
 export 'legal_screens.dart';
 export 'setup_screens.dart';
+export 'feedback_screen.dart';

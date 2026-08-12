@@ -22,6 +22,7 @@ import '../widgets/iris_components.dart';
 import '../widgets/vital_card.dart';
 import '../services/remote_config_service.dart';
 import 'legal_screens.dart';
+import 'feedback_screen.dart';
 
 class AboutScreen extends StatefulWidget {
   final UniversityMemory memory;
@@ -315,6 +316,13 @@ class _AboutScreenState extends State<AboutScreen> {
     IrisHaptics.actionSoft();
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+    );
+  }
+
+  void _openFeedback() {
+    IrisHaptics.actionSoft();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const FeedbackScreen()),
     );
   }
 
@@ -903,6 +911,14 @@ class _AboutScreenState extends State<AboutScreen> {
             subtitle: "Read privacy guidelines",
             icon: Icons.security_rounded,
             onTap: _openPrivacy,
+          ),
+          Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+          _buildLinkRow(
+            isDark,
+            title: "Send Feedback",
+            subtitle: "Share thoughts or report issues",
+            icon: Icons.rate_review_rounded,
+            onTap: _openFeedback,
           ),
           Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
           _buildLinkRow(

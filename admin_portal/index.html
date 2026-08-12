@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IRIS // Next-Gen Academic Web Platform & Control Hub</title>
+  
+  <!-- SEO & OpenGraph Meta Tags -->
+  <meta name="description" content="IRIS - Intelligent Academic Web Platform & Control Center. Real-time timetable tracking, faculty rosters, user feedback system, and release APK downloads.">
+  <meta name="theme-color" content="#070a12">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css?v=2.0.0">
+</head>
+<body>
+
+  <!-- Liquid Background Glow Blobs -->
+  <div class="liquid-bg-container">
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="liquid-blob blob-3"></div>
+  </div>
+
+  <div id="app-wrapper">
+
+    <!-- Top Glass Navigation Bar -->
+    <header class="navbar">
+      <a href="#dashboard" class="nav-brand">
+        <img src="iris_logo.png" alt="IRIS Logo" class="brand-icon-img">
+        <span class="brand-title">IRIS</span>
+        <span class="brand-tag">v1.0.3</span>
+      </a>
+
+      <nav class="nav-links">
+        <button id="tab-dashboard" class="nav-tab active" onclick="switchPage('dashboard')">
+          <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </button>
+        <button id="tab-timetable" class="nav-tab" onclick="switchPage('timetable')">
+          <i class="fa-solid fa-calendar-days"></i> Timetable
+        </button>
+        <button id="tab-directory" class="nav-tab" onclick="switchPage('directory')">
+          <i class="fa-solid fa-address-book"></i> Faculty Directory
+        </button>
+        <button id="tab-feedback" class="nav-tab" onclick="switchPage('feedback')">
+          <i class="fa-solid fa-comments"></i> Feedback Portal
+        </button>
+        <button id="tab-releases" class="nav-tab" onclick="switchPage('releases')">
+          <i class="fa-solid fa-download"></i> Releases & APK
+        </button>
+      </nav>
+
+      <div class="nav-actions">
+        <span class="badge-status badge-live">SYSTEM ONLINE</span>
+        <button class="btn-glass btn-brand" onclick="switchPage('releases')">
+          <i class="fa-solid fa-download"></i> Get App
+        </button>
+      </div>
+    </header>
+
+    <!-- PAGE 1: DASHBOARD CONSOLE -->
+    <main id="page-dashboard" class="page-section active">
+      <div class="section-banner">
+        <div>
+          <h1 class="banner-title">Command Dashboard</h1>
+          <p class="banner-subtitle">Real-time academic telemetry, active class schedule, and cloud synchronization status.</p>
+        </div>
+        <button class="btn-glass" onclick="refreshDashboardData()">
+          <i class="fa-solid fa-rotate-right"></i> Sync Data
+        </button>
+      </div>
+
+      <div class="glass-grid">
+        <!-- Live Class Status Card -->
+        <div class="glass-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <span class="form-label"><i class="fa-solid fa-clock"></i> Active Class Status</span>
+            <span id="live-period-badge" class="badge-status badge-live">CLASSES IN SESSION</span>
+          </div>
+          <h2 id="live-subject-name" style="font-size: 22px; font-weight: 800; margin-bottom: 6px;">Programming Fundamentals</h2>
+          <p id="live-teacher-name" style="color: var(--brand-cyan); font-weight: 600; margin-bottom: 14px;">CS Mr. Fayez Afzaal • Room C1.2</p>
+          <div style="background: rgba(0, 229, 255, 0.08); padding: 12px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.2);">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+              <span>Time Slot</span>
+              <span id="live-time-range">08:30 AM - 09:55 AM</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden;">
+              <div id="live-progress-bar" style="width: 65%; height: 100%; background: linear-gradient(90deg, var(--brand-cyan), var(--brand-blue));"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Academic Mode Switcher -->
+        <div class="glass-card">
+          <span class="form-label" style="margin-bottom: 14px; display: block;"><i class="fa-solid fa-sliders"></i> Active Academic Mode</span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+            <button class="btn-glass active-mode-btn" onclick="setAcademicMode('classes')"><i class="fa-solid fa-book-open"></i> Regular Classes</button>
+            <button class="btn-glass" onclick="setAcademicMode('midterm')"><i class="fa-solid fa-pen-ruler"></i> Midterms</button>
+            <button class="btn-glass" onclick="setAcademicMode('finals')"><i class="fa-solid fa-graduation-cap"></i> Final Exams</button>
+            <button class="btn-glass" onclick="setAcademicMode('sports')"><i class="fa-solid fa-trophy"></i> Sports Gala</button>
+          </div>
+          <p style="font-size: 11.5px; color: var(--text-dim);">Changes propagate instantly across all active IRIS mobile app instances via Firestore.</p>
+        </div>
+
+        <!-- Quick System Stats -->
+        <div class="glass-card">
+          <span class="form-label" style="margin-bottom: 14px; display: block;"><i class="fa-solid fa-chart-pie"></i> Platform Overview</span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
+              <div id="stat-sessions" style="font-size: 24px; font-weight: 900; color: var(--brand-cyan);">--</div>
+              <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Timetable Sessions</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
+              <div id="stat-faculty" style="font-size: 24px; font-weight: 900; color: var(--brand-purple);">--</div>
+              <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Faculty Members</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
+              <div style="font-size: 24px; font-weight: 900; color: var(--brand-emerald);">60-120</div>
+              <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">FPS Native Render</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.04); padding: 14px; border-radius: 14px; border: 1px solid var(--border-glass);">
+              <div style="font-size: 24px; font-weight: 900; color: var(--brand-amber);">v1.0.3</div>
+              <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Release Version</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- PAGE 2: TIMETABLE & CLASS STATUS HUB -->
+    <main id="page-timetable" class="page-section">
+      <div class="section-banner">
+        <div>
+          <h1 class="banner-title">Timetable Explorer</h1>
+          <p class="banner-subtitle">Browse full schedules across all department batches, rooms, and days.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="timetable-search" class="form-input" placeholder="Search batch, subject, room..." style="width: 260px;" onkeyup="filterTimetable()">
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px;" id="day-picker-container">
+          <button class="btn-glass day-btn active" onclick="selectDay('Monday')">Monday</button>
+          <button class="btn-glass day-btn" onclick="selectDay('Tuesday')">Tuesday</button>
+          <button class="btn-glass day-btn" onclick="selectDay('Wednesday')">Wednesday</button>
+          <button class="btn-glass day-btn" onclick="selectDay('Thursday')">Thursday</button>
+          <button class="btn-glass day-btn" onclick="selectDay('Friday')">Friday</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;" id="timetable-table">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-glass); color: var(--text-muted); font-size: 12px; text-transform: uppercase;">
+                <th style="padding: 12px;">Batch</th>
+                <th style="padding: 12px;">Time Slot</th>
+                <th style="padding: 12px;">Subject Name</th>
+                <th style="padding: 12px;">Teacher</th>
+                <th style="padding: 12px;">Room</th>
+              </tr>
+            </thead>
+            <tbody id="timetable-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- PAGE 3: FACULTY DIRECTORY -->
+    <main id="page-directory" class="page-section">
+      <div class="section-banner">
+        <div>
+          <h1 class="banner-title">Faculty Directory</h1>
+          <p class="banner-subtitle">Search and connect with campus faculty, department heads, and instructors.</p>
+        </div>
+        <input type="text" id="faculty-search" class="form-input" placeholder="Search teacher name, department..." style="width: 280px;" onkeyup="filterFaculty()">
+      </div>
+
+      <div class="glass-grid" id="faculty-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </main>
+
+    <!-- PAGE 4: USER FEEDBACK PORTAL -->
+    <main id="page-feedback" class="page-section">
+      <div class="section-banner">
+        <div>
+          <h1 class="banner-title">User Feedback Center</h1>
+          <p class="banner-subtitle">Submit feature requests, report issues, and share your experience with the engineering team.</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;" class="feedback-layout">
+        <!-- Feedback Submission Form -->
+        <div class="glass-card feedback-form-card">
+          <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 16px;"><i class="fa-solid fa-paper-plane" style="color: var(--brand-cyan);"></i> Submit Feedback</h3>
+          <form id="feedback-form" onsubmit="handleFeedbackSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Submitting Role</label>
+                <select id="fb-user-role" class="form-select">
+                  <option value="Student">Student</option>
+                  <option value="Faculty">Faculty / Instructor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="fb-name" class="form-input" placeholder="Enter full name" required>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Roll / Reg Number</label>
+                <input type="text" id="fb-roll" class="form-input" placeholder="e.g. SP26-BCS-001" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Batch / Section</label>
+                <input type="text" id="fb-batch" class="form-input" placeholder="e.g. SP26-BCS-1-A" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Device & Hardware</label>
+              <input type="text" id="fb-device" class="form-input" placeholder="Device details" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Feedback Category</label>
+              <select id="fb-category" class="form-select">
+                <option value="General Feedback">General Feedback</option>
+                <option value="Feature Request">Feature Request</option>
+                <option value="Bug Report">Bug Report</option>
+                <option value="UI/UX Polish">UI/UX Polish</option>
+                <option value="Timetable Data Correction">Timetable Data Correction</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Satisfaction Rating</label>
+              <div class="star-rating-row" id="star-row">
+                <button type="button" class="star-btn active" onclick="setRating(1)"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" onclick="setRating(2)"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" onclick="setRating(3)"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" onclick="setRating(4)"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" onclick="setRating(5)"><i class="fa-solid fa-star"></i></button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Detailed Comments</label>
+              <textarea id="fb-comment" class="form-textarea" rows="4" placeholder="Tell us what you love or what needs improvement..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-glass btn-brand" style="width: 100%; padding: 14px;" id="btn-submit-feedback">
+              <i class="fa-solid fa-paper-plane"></i> Send Feedback
+            </button>
+          </form>
+        </div>
+
+        <!-- Recent User Feedbacks -->
+        <div class="glass-card">
+          <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 16px;"><i class="fa-solid fa-comments" style="color: var(--brand-purple);"></i> Community Feedback Feed</h3>
+          <div id="feedback-feed-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- PAGE 5: RELEASES & APK DOWNLOAD CENTER -->
+    <main id="page-releases" class="page-section">
+      <div class="download-hero-card">
+        <div class="download-info">
+          <h2>Download IRIS for Android</h2>
+          <p>Experience zero-latency timetable tracking, liquid glass widgets, and intelligent portal synchronization on your mobile device.</p>
+          <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <a href="https://github.com/malikaurangzaibahmed-lab/iris-enhanced/releases" target="_blank" class="btn-glass btn-brand">
+              <i class="fa-solid fa-download"></i> Download Latest APK (v1.0.3)
+            </a>
+            <a href="https://github.com/malikaurangzaibahmed-lab/iris-enhanced" target="_blank" class="btn-glass">
+              <i class="fa-brands fa-github"></i> GitHub Repository
+            </a>
+          </div>
+        </div>
+        <img src="iris_logo.png" alt="IRIS Icon" style="width: 130px; height: 130px; border-radius: 28px; box-shadow: 0 0 40px rgba(0, 229, 255, 0.4);">
+      </div>
+
+      <div class="glass-grid">
+        <div class="glass-card">
+          <span class="form-label" style="margin-bottom: 10px; display: block;">Build Details</span>
+          <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">IRIS v1.0.3 (Build 4)</h3>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 14px;">Package: <code>com.iris.app</code> • Built with Flutter 3.44 & Native Kotlin Coroutines.</p>
+          <ul style="color: var(--text-muted); font-size: 12.5px; padding-left: 18px; line-height: 1.8;">
+            <li>Full <code>com.iris.app</code> native package migration.</li>
+            <li>Circular teacher avatar stream decoder & 28dp widget avatars.</li>
+            <li>Obsidian Liquid Glass adaptive blur performance tuning.</li>
+            <li>In-app & web feedback submission engine.</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div>© 2026 IRIS System Architecture • Designed with Liquid Glassmorphism</div>
+      <div style="display: flex; gap: 16px;">
+        <a href="#feedback" onclick="switchPage('feedback')" style="color: var(--text-muted); text-decoration: none;">Feedback</a>
+        <a href="#releases" onclick="switchPage('releases')" style="color: var(--text-muted); text-decoration: none;">Releases</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Firebase Web SDK Integration -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="app.js?v=2.0.0"></script>
+</body>
+</html>

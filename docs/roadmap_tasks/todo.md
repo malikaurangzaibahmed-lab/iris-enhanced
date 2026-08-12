@@ -57,6 +57,8 @@ This file tracks outstanding engineering and visual tasks throughout the Iris co
 ---
 
 ## 🚀 Upcoming UI/UX Overhauls & Optimizations
+- [ ] **In-App User Feedback System**: Build a dedicated Feedback & Ratings sheet/screen in the Flutter mobile app that allows users to submit bugs, feature requests, and star ratings directly to Firebase Firestore (`feedback` collection).
+- [ ] **Web Platform Redesign & Feedback Center**: Complete ground-up redesign of the IRIS Web Platform with multi-page navigation, performance optimizations, and user feedback submission portal.
 
 - [x] **Batch Selection Screen & Modal Sheet UI/UX Overhaul**
   - Redesign `BatchSelectorSheet` in [batch_selector.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/widgets/batch_selector.dart) and onboarding setup dropdowns in [setup_screens.dart](file:///d:/Iris%20Working%20backup/MOST%20RECENT/IRIS/lib/screens/setup_screens.dart) to use a premium, glassmorphic select deck with animated transitions.
