@@ -9,8 +9,8 @@ import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
 import '../core/vital_theme.dart';
 import '../core/animations.dart';
-import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
+import '../services/remote_config_service.dart';
 import '../widgets/glass_container_transform.dart';
 import 'students_week_screen.dart';
 
@@ -72,14 +72,25 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
   HelpdeskFacultySource _source = HelpdeskFacultySource.none;
   final ScrollController _scrollController = ScrollController();
 
+  late final VoidCallback _remoteConfigListener;
+
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialTeacherQuery ?? '');
     _query = widget.initialTeacherQuery ?? '';
 
-    // Defer populating full 150-item ListView past the 280ms container morph transition.
-    // Memory/asset cache fetches instantly in microtasks, while GPU container morphing runs smoothly at 60-120 FPS.
+    _remoteConfigListener = () {
+      if (mounted) {
+        setState(() {
+          _teacherInsightCache.clear();
+        });
+      }
+    };
+
+    RemoteConfigService.activeAcademicPeriod.addListener(_remoteConfigListener);
+    RemoteConfigService.lastTimetableUpdateTime.addListener(_remoteConfigListener);
+
     Future.delayed(const Duration(milliseconds: 280), () {
       if (mounted) _loadFaculty();
     });
@@ -87,6 +98,8 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
 
   @override
   void dispose() {
+    RemoteConfigService.activeAcademicPeriod.removeListener(_remoteConfigListener);
+    RemoteConfigService.lastTimetableUpdateTime.removeListener(_remoteConfigListener);
     _searchDebounce?.cancel();
     _searchController.dispose();
     _scrollController.dispose();

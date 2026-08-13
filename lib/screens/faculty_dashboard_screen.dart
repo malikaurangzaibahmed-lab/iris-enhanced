@@ -24,6 +24,8 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../widgets/smart_widgets.dart';
 import '../services/analytics_manager.dart';
+import '../services/remote_config_service.dart';
+import '../widgets/glass_container_transform.dart';
 
 class FacultyDashboard extends SmartStatefulWidget {
   final OmniBrain brain;
@@ -84,6 +86,8 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
     setState(() => _searchFieldFocused = _searchFocusNode.hasFocus);
   }
 
+  late final VoidCallback _remoteConfigListener;
+
   @override
   void initState() {
     super.initState();
@@ -95,7 +99,36 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+
+    _remoteConfigListener = () {
+      if (mounted) {
+        setState(() {
+          _updateScheduleCache();
+        });
+        _updateForegroundServiceAndWidget();
+      }
+    };
+
+    RemoteConfigService.activeAcademicPeriod.addListener(_remoteConfigListener);
+    RemoteConfigService.lastTimetableUpdateTime.addListener(_remoteConfigListener);
+
     _initFacultyData();
+  }
+
+  @override
+  void dispose() {
+    RemoteConfigService.activeAcademicPeriod.removeListener(_remoteConfigListener);
+    RemoteConfigService.lastTimetableUpdateTime.removeListener(_remoteConfigListener);
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchFocusNode.removeListener(_onFocusChange);
+    _searchFocusNode.dispose();
+    _searchController.dispose();
+    _pulseController.dispose();
+    try {
+      _ticker.cancel();
+    } catch (_) {}
+    super.dispose();
   }
 
   Future<void> _initFacultyData() async {
@@ -141,7 +174,7 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
       await prefs.setString('user_role', 'faculty');
 
       // Check current academic period
-      final academicPeriod = prefs.getString('active_academic_period') ?? 'classes';
+      final academicPeriod = RemoteConfigService.activeAcademicPeriod.value;
       if (academicPeriod != 'classes') {
         String notifTitle = '';
         String notifBody = '';
