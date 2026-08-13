@@ -8,6 +8,7 @@ import '../core/omni_brain.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
 import '../core/vital_theme.dart';
+import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
 import '../services/remote_config_service.dart';
