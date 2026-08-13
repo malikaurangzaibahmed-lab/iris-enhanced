@@ -975,7 +975,6 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: FacultyDirectoryScreen(
-              brain: widget.brain,
               memory: widget.memory,
               isSelectionMode: true,
               onTeacherSelected: (name) {
@@ -991,104 +990,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       ],
     );
   }
-                            });
-                          },
-                          child: Container(
-                            color: isSelected
-                                ? IrisTokens.blue.withValues(alpha: 0.1)
-                                : Colors.transparent,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: (isSelected ? IrisTokens.blue : (isDark ? Colors.white : Colors.black))
-                                        .withValues(alpha: 0.08),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.person_rounded,
-                                    color: isSelected ? IrisTokens.blue : (isDark ? Colors.white54 : Colors.black54),
-                                    size: 18,
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Text(
-                                    teacherName,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                      color: isSelected
-                                          ? IrisTokens.blue
-                                          : (isDark ? Colors.white70 : Colors.black87),
-                                    ),
-                                  ),
-                                ),
-                                if (isSelected)
-                                  const Icon(Icons.check_circle_rounded, color: IrisTokens.blue, size: 20),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: isReady
-                  ? const LinearGradient(
-                      colors: [IrisTokens.blue, IrisTokens.purple],
-                    )
-                  : null,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: isReady
-                  ? [
-                      BoxShadow(
-                        color: IrisTokens.blue.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: ElevatedButton(
-              onPressed: isReady ? _nextStep : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: isDark
-                    ? Colors.white.withValues(alpha: 0.04)
-                    : Colors.black.withValues(alpha: 0.05),
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Begin Synchronization',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.sync_rounded, size: 18),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   // ==========================================================================
   // STEP 3: SYNC PROGRESS (NEURAL SYNC LOADER)
