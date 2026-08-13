@@ -462,17 +462,7 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
   }
 
 
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    _searchController.dispose();
-    _searchFocusNode.removeListener(_onFocusChange);
-    _searchFocusNode.dispose();
-    _ticker.cancel();
-    _pulseController.dispose();
-    super.dispose();
-  }
+
 
   void _updateScheduleCache() {
     if (_selectedTeacher == null) return;
