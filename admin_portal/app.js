@@ -3246,12 +3246,8 @@ function setupGlassShaderEffects() {
       lastMouseY = y;
       lastTime = now;
       
-      // Apply subtle dynamic perspective 3D tilt
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const tiltX = ((y - centerY) / centerY) * -4; 
-      const tiltY = ((x - centerX) / centerX) * 4; 
-      card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+      // 3D tilt effects disabled for clean, flat layout
+      card.style.transform = 'none';
 
       // Write CSS variables to feed the GPU touch glow
       card.style.setProperty('--mouse-x', `${x}px`);
@@ -3262,7 +3258,7 @@ function setupGlassShaderEffects() {
       card.mouseActive = false;
       card.targetX = 0;
       card.targetY = 0;
-      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      card.style.transform = 'none';
     });
   });
 

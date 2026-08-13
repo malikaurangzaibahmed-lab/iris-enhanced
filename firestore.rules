@@ -6,15 +6,10 @@ service cloud.firestore {
     // ZERO-COST QUOTA SHIELD & PROOF-OF-ADMIN RULES
     // ---------------------------------------------------------
 
-    // 1. Basic Auth Validation
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // 2. The Quota-Shield Admin Check
-    // Instead of querying collections, this performs a targeted check using 'exists()'.
-    // If the requesting UID exists in the 'admins' collection, or if their email matches
-    // the owner's email, they are granted administrative access.
     function isAdmin() {
       return isAuthenticated() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
@@ -22,47 +17,53 @@ service cloud.firestore {
       );
     }
 
-    // ---------------------------------------------------------
-    // COLLECTION RULES
-    // ---------------------------------------------------------
-
-    // Admin Collection itself
-    // A regular user cannot read this, protecting admin identities.
+    // Admins Collection
     match /admins/{userId} {
       allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
       allow write: if isAdmin();
     }
 
-    // Announcements
-    // Students pull announcements, but only admins can broadcast/write them.
+    // Feedback & Telemetry Collection (Mobile app client submissions permitted)
+    match /feedback/{document=**} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // Campus Notices & Announcements
+    match /notices/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /announcements/{document=**} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
     // User Profiles
-    // Students can read/write their own profile settings. Admins have full control.
     match /users/{userId} {
       allow read, write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
     
-    // Public Timetable / Class Data
-    // Anyone logged in can read the timetable structure. Only admins (or the OTA Cloudflare worker) modify it.
+    // Timetables & Exam Schedules
     match /timetables/{document=**} {
-      allow read: if isAuthenticated();
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /exams/{document=**} {
+      allow read: if true;
       allow write: if isAdmin();
     }
 
     // Global App Configuration
-    // Public read-access is required for unauthenticated student apps to sync configuration.
     match /config/{document=**} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Global Catch-all (Default Deny)
-    // Closes the massive security gap that previously left the database entirely open until May 2026.
-    // If a collection isn't explicitly defined above, ONLY Admins can touch it.
+    // Global Catch-all (Default Deny for undefined collections)
     match /{document=**} {
       allow read, write: if isAdmin();
     }
