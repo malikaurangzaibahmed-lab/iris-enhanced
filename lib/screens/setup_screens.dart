@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,156 +5,19 @@ import '../core/tokens.dart';
 import '../core/models.dart';
 import '../core/vital_theme.dart';
 import '../services/ui_feedback.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import '../services/helpdesk_faculty_service.dart';
 import '../widgets/glass_card.dart';
-import 'faculty_directory_screen.dart';
+import '../widgets/iris_components.dart';
 
-// ==========================================================================
-// ROLE SELECTOR CANVAS PARTICLES
-// ==========================================================================
-
-class OnboardingParticle {
-  double x;
-  double y;
-  double vx;
-  double vy;
-  double size;
-  Color color;
-  double alpha;
-
-  OnboardingParticle({
-    required this.x,
-    required this.y,
-    required this.vx,
-    required this.vy,
-    required this.size,
-    required this.color,
-    required this.alpha,
-  });
-
-  void update(
-    double width,
-    double height,
-    Offset orbCenter,
-    Offset? attractionTarget,
-    double attractionStrength,
-    math.Random random,
-    int step,
-  ) {
-    if (x < 0 || x > width) x = random.nextDouble() * width;
-    if (y < 0 || y > height) y = random.nextDouble() * height;
-
-    if (attractionTarget != null) {
-      final dx = attractionTarget.dx - x;
-      final dy = attractionTarget.dy - y;
-      final dist = math.sqrt(dx * dx + dy * dy);
-      if (dist > 5) {
-        final forceX = (dx / dist) * attractionStrength;
-        final forceY = (dy / dist) * attractionStrength;
-        vx = vx * 0.90 + forceX * 0.10;
-        vy = vy * 0.90 + forceY * 0.10;
-      }
-    } else {
-      // Step-specific behavior: in step 3 (syncing), pull strongly to center
-      final targetCenter = step == 3 ? orbCenter : Offset(width / 2, height * 0.28);
-      final pullStrength = step == 3 ? 0.08 : 0.025;
-
-      final dx = targetCenter.dx - x;
-      final dy = targetCenter.dy - y;
-      final dist = math.sqrt(dx * dx + dy * dy);
-      if (dist > 10) {
-        vx = vx * 0.96 + (dx / dist) * pullStrength + (random.nextDouble() - 0.5) * 0.12;
-        vy = vy * 0.96 + (dy / dist) * pullStrength + (random.nextDouble() - 0.5) * 0.12;
-      } else {
-        vx = vx * 0.94 + (random.nextDouble() - 0.5) * 0.2;
-        vy = vy * 0.94 + (random.nextDouble() - 0.5) * 0.2;
-      }
-    }
-
-    x += vx;
-    y += vy;
-  }
-}
-
-// ==========================================================================
-// CUSTOM PAINTER: NEURAL ORBITAL SPHERE
-// ==========================================================================
-
-class OnboardingPainter extends CustomPainter {
-  final List<OnboardingParticle> particles;
-  final Offset? attractionTarget;
-  final double attractionStrength;
-  final double animationValue;
-  final Offset orbCenter;
-  final bool isDark;
-  final int step;
-
-  OnboardingPainter({
-    required this.particles,
-    required this.attractionTarget,
-    required this.attractionStrength,
-    required this.animationValue,
-    required this.orbCenter,
-    required this.isDark,
-    required this.step,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // 1. Draw glowing neural orb background core
-    final double pulse = 1.0 + 0.12 * math.sin(animationValue * 2 * math.pi);
-    final corePaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          (step == 3 ? const Color(0xFF10B981) : IrisTokens.brand).withValues(alpha: 0.22),
-          (step == 3 ? const Color(0xFF3B82F6) : IrisTokens.purple).withValues(alpha: 0.06),
-          Colors.transparent,
-        ],
-      ).createShader(Rect.fromCircle(center: orbCenter, radius: 100 * pulse));
-
-    canvas.drawCircle(orbCenter, 100 * pulse, corePaint);
-
-    // 2. Draw connections (lines) between close particles for a neural network effect
-    final linePaint = Paint()
-      ..color = (isDark ? Colors.white : Colors.black).withValues(alpha: step == 3 ? 0.08 : 0.04)
-      ..strokeWidth = 0.5;
-
-    for (int i = 0; i < particles.length; i++) {
-      for (int j = i + 1; j < particles.length; j++) {
-        final pi = particles[i];
-        final pj = particles[j];
-        final distSq = (pi.x - pj.x) * (pi.x - pj.x) + (pi.y - pj.y) * (pi.y - pj.y);
-        if (distSq < 4800) {
-          canvas.drawLine(Offset(pi.x, pi.y), Offset(pj.x, pj.y), linePaint);
-        }
-      }
-    }
-
-    // 3. Draw particles
-    for (final p in particles) {
-      final pPaint = Paint()
-        ..color = p.color.withValues(alpha: p.alpha)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(p.x, p.y), p.size, pPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-// ==========================================================================
-// UNIFIED ONBOARDING WIZARD
-// ==========================================================================
-
+/// Ultra-Fluid Onboarding Setup Wizard & Faculty Selector for IRIS.
 class OnboardingWizard extends StatefulWidget {
   final UniversityMemory memory;
-  final Function(String role, String name, String value) onComplete;
+  final VoidCallback onComplete;
 
   const OnboardingWizard({
+    super.key,
     required this.memory,
     required this.onComplete,
-    super.key,
   });
 
   @override
@@ -170,25 +32,36 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   double _attractionStrength = 0.0;
   final math.Random _random = math.Random();
 
-  // Wizard state variables
-  int _currentStep = 0; // 0: Role, 1: Name, 2: Setup (Batch/Teacher), 3: Brain Sync
+  // Wizard steps:
+  // 0: Role Selection (Student / Faculty)
+  // 1: Profile Selection (Student Batch / Faculty Directory Profile)
+  // 2: Notification Preferences (First-time Setup Toggles)
+  // 3: Neural Sync Loader
+  int _currentStep = 0;
+
   String? _role; // 'student' or 'faculty'
   String? _selectedRoleMorph;
   final GlobalKey _studentCardKey = GlobalKey();
   final GlobalKey _facultyCardKey = GlobalKey();
-  String _name = '';
-  final TextEditingController _nameController = TextEditingController();
 
-  // Student specific selections
+  // Student selections
   String? _program;
   int? _semester;
   String? _section;
   String _rollNo = '';
 
-  // Faculty specific selections
+  // Faculty selections & live helpdesk list
   String? _selectedTeacher;
+  FacultyProfile? _selectedFacultyProfile;
   String _teacherSearchQuery = '';
   final TextEditingController _teacherSearchController = TextEditingController();
+  List<FacultyProfile> _facultyList = [];
+  bool _loadingFaculty = false;
+
+  // Notification Toggles (First-Time Setup)
+  bool _notifClassAlerts = true;
+  bool _notifExamAlerts = true;
+  bool _notifCampusBroadcasts = true;
 
   // Sync state
   double _syncProgress = 0.0;
@@ -202,15 +75,32 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       duration: const Duration(seconds: 10),
     )..repeat();
     _controller.addListener(_updateParticles);
+    _fetchLiveFacultyProfiles();
   }
 
   @override
   void dispose() {
     _controller.removeListener(_updateParticles);
     _controller.dispose();
-    _nameController.dispose();
     _teacherSearchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchLiveFacultyProfiles() async {
+    setState(() => _loadingFaculty = true);
+    try {
+      final service = HelpdeskFacultyService();
+      final payload = await service.fetchLiveFirstWithFallbackPayload();
+      if (mounted) {
+        setState(() {
+          _facultyList = List<FacultyProfile>.from(payload.items)
+            ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          _loadingFaculty = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingFaculty = false);
+    }
   }
 
   void _updateParticles() {
@@ -255,7 +145,6 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       final dy = globalPosition.dy - orbCenter.dy;
       final angle = math.atan2(dy, dx);
 
-      // Spawn burst of particles shooting towards the action item
       for (int i = 0; i < 25; i++) {
         final speed = 4.0 + _random.nextDouble() * 5.0;
         final spreadAngle = angle + (_random.nextDouble() - 0.5) * 0.8;
@@ -286,13 +175,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   void _nextStep() {
     if (_currentStep < 3) {
       IrisHaptics.actionMedium();
-      setState(() {
-        if (_currentStep == 0 && _role == 'faculty') {
-          _currentStep = 2; // Jump directly from Role Selection (0) to Faculty List (2)
-        } else {
-          _currentStep++;
-        }
-      });
+      setState(() => _currentStep++);
 
       if (_currentStep == 3) {
         _startBrainSync();
@@ -304,16 +187,132 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     if (_currentStep > 0) {
       IrisHaptics.actionMedium();
       setState(() {
-        if (_currentStep == 2 && _role == 'faculty') {
-          _currentStep = 0; // Go back directly from Faculty List (2) to Role Selection (0)
-        } else {
-          _currentStep--;
+        _currentStep--;
+        if (_currentStep == 0) {
+          _role = null;
+          _selectedRoleMorph = null;
         }
       });
     }
   }
 
-  void _startBrainSync() {
+  void _showFacultyConfirmationDialog(FacultyProfile profile) {
+    IrisHaptics.selectionClick();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(
+              color: IrisTokens.blue.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              CircleAvatar(
+                radius: 36,
+                backgroundColor: IrisTokens.blue.withValues(alpha: 0.2),
+                child: Text(
+                  profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'F',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: IrisTokens.blue,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                profile.name,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${profile.department} • ${profile.location}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _selectedTeacher = profile.name;
+                      _selectedFacultyProfile = profile;
+                    });
+                    _nextStep(); // Proceed directly to Notification Preferences Step!
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: IrisTokens.blue,
+                    foregroundColor: Colors.white,
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle_rounded, size: 20),
+                      SizedBox(width: 10),
+                      Text(
+                        'CONFIRM PROFILE & CONTINUE',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _startBrainSync() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Save Notification Preferences
+    await prefs.setBool('notif_class_alerts', _notifClassAlerts);
+    await prefs.setBool('notif_exam_alerts', _notifExamAlerts);
+    await prefs.setBool('notif_campus_broadcasts', _notifCampusBroadcasts);
+
     setState(() {
       _syncProgress = 0.0;
       _syncLog = 'Establishing connection to academic core...';
@@ -321,8 +320,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
     IrisHaptics.actionHeavy();
 
-    const totalDuration = Duration(milliseconds: 2400);
-    const intervals = 24;
+    const totalDuration = Duration(milliseconds: 2200);
+    const intervals = 22;
     int currentInterval = 0;
 
     final timerStream = Stream.periodic(
@@ -330,25 +329,23 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       (count) => count,
     ).take(intervals);
 
-    timerStream.listen((count) {
+    timerStream.listen((count) async {
       if (!mounted) return;
 
       currentInterval++;
       final double progress = currentInterval / intervals;
 
       String log = '';
-      if (progress < 0.20) {
+      if (progress < 0.25) {
         log = 'Resolving local database caches...';
-      } else if (progress < 0.45) {
+      } else if (progress < 0.55) {
         log = _role == 'faculty'
-            ? 'Analyzing teaching timetables for $_selectedTeacher...'
+            ? 'Analyzing teaching timetables for ${_selectedTeacher ?? "Faculty"}...'
             : 'Decompressing schedules for batch $_program-$_semester$_section...';
-      } else if (progress < 0.70) {
-        log = 'Compiling Room Finder indexing parameters...';
-      } else if (progress < 0.90) {
+      } else if (progress < 0.85) {
         log = 'Configuring Live Class trackers & sensory links...';
       } else {
-        log = 'Onboarding complete! Starting your workspace...';
+        log = 'Synchronization complete!';
       }
 
       setState(() {
@@ -356,81 +353,81 @@ class _OnboardingWizardState extends State<OnboardingWizard>
         _syncLog = log;
       });
 
-      if (currentInterval % 4 == 0) {
-        IrisHaptics.actionSoft();
-      }
+      if (currentInterval >= intervals) {
+        if (_role == 'faculty') {
+          final teacherName = _selectedTeacher ?? 'Faculty Member';
+          await prefs.setString('user_role', 'faculty');
+          await prefs.setString('active_role', 'faculty');
+          await prefs.setString('faculty_user_name', teacherName);
+          await prefs.setString('faculty_teacher', teacherName);
+          await prefs.setString('student_name', teacherName);
+        } else {
+          final batchKey = '$_program-$_semester$_section';
+          await prefs.setString('user_role', 'student');
+          await prefs.setString('active_role', 'student');
+          await prefs.setString('student_batch', batchKey);
+          await prefs.setString('selected_batch', batchKey);
+          await prefs.setString('student_roll_no', _rollNo);
+        }
 
-      if (currentInterval == intervals) {
-        Future.delayed(const Duration(milliseconds: 450), () {
-          if (!mounted) return;
-          final value = _role == 'faculty'
-              ? _selectedTeacher!
-              : (_resolveBatch() ?? '$_program-$_semester$_section');
-          final finalName = _role == 'faculty' ? _selectedTeacher! : _name;
-          widget.onComplete(_role!, finalName, value);
-        });
+        await prefs.setBool('is_first_time', false);
+        await prefs.setBool('setup_completed', true);
+
+        if (mounted) {
+          IrisHaptics.actionHeavy();
+          widget.onComplete();
+        }
       }
     });
-  }
-
-  String? _resolveBatch() {
-    if (_program == null || _semester == null || _section == null) {
-      return null;
-    }
-
-    for (final batch in widget.memory.allBatches) {
-      final key = BatchKey.parse(batch);
-      if (key.program == _program && key.semester == _semester && key.section == _section) {
-        return batch;
-      }
-    }
-    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final width = MediaQuery.sizeOf(context).width;
-    final height = MediaQuery.sizeOf(context).height;
-    final orbCenter = Offset(width / 2, height * 0.28);
 
     return Scaffold(
-      backgroundColor: isDark ? IrisTokens.surfaceDark : IrisTokens.surfaceLight,
+      backgroundColor: isDark ? const Color(0xFF030712) : const Color(0xFFF8FAFC),
       body: Stack(
         children: [
-          ObsidianPulse(isDark: isDark),
-          Positioned.fill(
-            child: CustomPaint(
-              painter: OnboardingPainter(
-                particles: _particles,
-                attractionTarget: _attractionTarget,
-                attractionStrength: _attractionStrength,
-                animationValue: _controller.value,
-                orbCenter: orbCenter,
-                isDark: isDark,
-                step: _currentStep,
-              ),
-            ),
+          // Background Canvas Particles
+          CustomPaint(
+            size: Size.infinite,
+            painter: OnboardingParticlePainter(particles: _particles),
           ),
+
           SafeArea(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              transitionBuilder: (child, animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.08, 0),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    )),
-                    child: child,
+            child: Column(
+              children: [
+                // Top Progress Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Row(
+                    children: List.generate(4, (index) {
+                      final isActive = index <= _currentStep;
+                      return Expanded(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          height: 4,
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? (_role == 'faculty' ? IrisTokens.blue : IrisTokens.brand)
+                                : (isDark ? Colors.white12 : Colors.black12),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      );
+                    }),
                   ),
-                );
-              },
-              child: _buildStepContent(isDark),
+                ),
+
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    child: _buildStepContent(isDark),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -443,26 +440,24 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       case 0:
         return _buildStep0RoleSelection(isDark);
       case 1:
-        return _buildStep1NameInput(isDark);
+        return _buildStep1ProfileSetup(isDark);
       case 2:
-        return _buildStep2SetupProfile(isDark);
+        return _buildStep2NotificationPreferences(isDark);
       case 3:
       default:
         return _buildStep3SyncProgress(isDark);
     }
   }
 
-  // ==========================================================================
   // STEP 0: ROLE SELECTION
-  // ==========================================================================
   Widget _buildStep0RoleSelection(bool isDark) {
     return Padding(
       key: const ValueKey(0),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           const Text(
             'Who are you?',
             style: TextStyle(
@@ -471,7 +466,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'Select your profile type to configure the system',
             style: TextStyle(
@@ -480,7 +475,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
             ),
           ),
-          const Spacer(flex: 3),
+          const Spacer(),
           GlassCard(
             padding: EdgeInsets.zero,
             borderRadius: 24,
@@ -497,7 +492,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                     setState(() => _selectedRoleMorph = 'student');
                     _role = 'student';
                     _triggerAttraction(globalPos);
-                    Future.delayed(const Duration(milliseconds: 320), () {
+                    Future.delayed(const Duration(milliseconds: 300), () {
                       if (mounted) {
                         setState(() => _selectedRoleMorph = null);
                         _nextStep();
@@ -517,7 +512,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                     setState(() => _selectedRoleMorph = 'faculty');
                     _role = 'faculty';
                     _triggerAttraction(globalPos);
-                    Future.delayed(const Duration(milliseconds: 320), () {
+                    Future.delayed(const Duration(milliseconds: 300), () {
                       if (mounted) {
                         setState(() => _selectedRoleMorph = null);
                         _nextStep();
@@ -528,14 +523,14 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               ],
             ),
           ),
-          const Spacer(flex: 1),
+          const Spacer(),
         ],
       ),
     );
   }
 
   Widget _buildRoleCardRow({
-    Key? key,
+    required Key key,
     required String title,
     required String subtitle,
     required IconData icon,
@@ -544,47 +539,24 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     required ValueChanged<Offset> onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
+
+    return InkWell(
       key: key,
-      onTapDown: (details) {
-        IrisHaptics.actionHeavy();
-        onTap(details.globalPosition);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 280),
-        curve: const Cubic(0.05, 0.90, 0.10, 1.0),
-        transform: isSelected ? (Matrix4.identity()..scale(1.03)) : Matrix4.identity(),
-        transformAlignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: isDark ? 0.22 : 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-          border: isSelected 
-              ? Border.all(color: color, width: 2.0)
-              : Border.all(color: Colors.transparent, width: 0.0),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.40),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : null,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      onTapDown: (details) => onTap(details.globalPosition),
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Row(
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              padding: const EdgeInsets.all(14),
+            Container(
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? color : color.withValues(alpha: 0.12),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withValues(alpha: isSelected ? 0.8 : 0.25), width: 1.2),
               ),
-              child: Icon(icon, color: isSelected ? Colors.white : color, size: 28),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,16 +564,16 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   Text(
                     title,
                     style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
                     ),
@@ -609,189 +581,59 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: isDark ? Colors.white30 : Colors.black26),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ==========================================================================
-  // STEP 1: NAME INPUT
-  // ==========================================================================
-  Widget _buildStep1NameInput(bool isDark) {
-    final isNameValid = _name.length >= 2;
-
+  // STEP 1: PROFILE SETUP
+  Widget _buildStep1ProfileSetup(bool isDark) {
     return Padding(
       key: const ValueKey(1),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            onPressed: _prevStep,
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+          Row(
+            children: [
+              IconButton(
+                onPressed: _prevStep,
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _role == 'faculty' ? 'Faculty Directory' : 'Select Your Batch',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 44),
+            child: Text(
+              _role == 'faculty'
+                  ? 'Tap your faculty profile card to confirm & proceed'
+                  : 'Select program, active semester, section & roll number',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'What is your name?',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Provide your name for interface greeting panels',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-            ),
-          ),
-          const Spacer(flex: 3),
-          GlassCard(
-            borderRadius: 20,
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'DISPLAY NAME',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                    color: IrisTokens.brand.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _nameController,
-                  autofocus: true,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                  decoration: InputDecoration(
-                    hintText: 'e.g. John Doe',
-                    filled: true,
-                    fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.white10 : Colors.black12,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: IrisTokens.brand,
-                        width: 1.5,
-                      ),
-                    ),
-                    prefixIcon: const Icon(Icons.person_outline_rounded, color: IrisTokens.brand),
-                  ),
-                  onChanged: (val) {
-                    setState(() {
-                      _name = val.trim();
-                    });
-                  },
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: isNameValid
-                          ? const LinearGradient(
-                              colors: [IrisTokens.brand, IrisTokens.brandLight],
-                            )
-                          : null,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: isNameValid
-                          ? [
-                              BoxShadow(
-                                color: IrisTokens.brand.withValues(alpha: 0.4),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: ElevatedButton(
-                      onPressed: isNameValid ? _nextStep : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: isDark
-                            ? Colors.white.withValues(alpha: 0.04)
-                            : Colors.black.withValues(alpha: 0.05),
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Continue',
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward_rounded, size: 18),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(flex: 1),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================================================
-  // STEP 2: PROFILE SETUP (STUDENT BATCH VS FACULTY NAME)
-  // ==========================================================================
-  Widget _buildStep2SetupProfile(bool isDark) {
-    return Padding(
-      key: const ValueKey(2),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconButton(
-            onPressed: _prevStep,
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _role == 'faculty' ? 'Find Your Profile' : 'Select Your Batch',
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _role == 'faculty'
-                ? 'Search and link your registered faculty profile'
-                : 'Select program, active semester and section subset',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-            ),
-          ),
-          const SizedBox(height: 24),
           Expanded(
             child: _role == 'faculty'
-                ? _buildFacultySelectorWidget(isDark)
+                ? _buildFacultyDirectoryListWidget(isDark)
                 : _buildStudentSelectorWidget(isDark),
           ),
         ],
@@ -799,8 +641,105 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     );
   }
 
+  Widget _buildFacultyDirectoryListWidget(bool isDark) {
+    final matched = _facultyList
+        .where((f) => f.name.toLowerCase().contains(_teacherSearchQuery.toLowerCase()) ||
+                      f.department.toLowerCase().contains(_teacherSearchQuery.toLowerCase()) ||
+                      f.location.toLowerCase().contains(_teacherSearchQuery.toLowerCase()))
+        .toList();
+
+    return Column(
+      children: [
+        // Clean Search Field
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          child: TextField(
+            controller: _teacherSearchController,
+            onChanged: (val) => setState(() => _teacherSearchQuery = val.trim()),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            decoration: InputDecoration(
+              hintText: 'Search faculty by name, department...',
+              hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
+              prefixIcon: const Icon(Icons.search_rounded, color: IrisTokens.blue),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        Expanded(
+          child: _loadingFaculty
+              ? const Center(child: CircularProgressIndicator(color: IrisTokens.blue))
+              : matched.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No matching faculty profiles found',
+                        style: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
+                      ),
+                    )
+                  : ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: matched.length,
+                      itemBuilder: (context, index) {
+                        final item = matched[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: InkWell(
+                            onTap: () => _showFacultyConfirmationDialog(item),
+                            borderRadius: BorderRadius.circular(16),
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(14),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: IrisTokens.blue.withValues(alpha: 0.2),
+                                    child: Text(
+                                      item.name.isNotEmpty ? item.name[0].toUpperCase() : 'F',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        color: isDark ? Colors.white : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.name,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                            color: isDark ? Colors.white : Colors.black,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${item.department} • ${item.location}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: IrisTokens.blue),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStudentSelectorWidget(bool isDark) {
-    // Filter programs to exclude batch-like templates
     final programs = widget.memory
         .programs()
         .where((p) => !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p))
@@ -831,7 +770,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   _section = null;
                 }),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _HorizontalSelectorRow(
                 label: 'SEMESTER',
                 selectedValue: _semester?.toString(),
@@ -843,7 +782,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   _section = null;
                 }),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _HorizontalSelectorRow(
                 label: 'SECTION',
                 selectedValue: _section,
@@ -852,50 +791,130 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 placeholder: _semester == null ? 'Select semester first' : 'No sections found',
                 onSelected: (value) => setState(() => _section = value),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _RollNumberInputField(
                 rollNo: _rollNo,
                 onChanged: (newRoll) {
                   setState(() => _rollNo = newRoll);
-                  SharedPreferences.getInstance().then((prefs) {
-                    prefs.setString('student_roll_no', newRoll);
-                  });
                 },
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
-          height: 54,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: isReady
-                  ? const LinearGradient(
-                      colors: [IrisTokens.brand, IrisTokens.brandLight],
-                    )
-                  : null,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: isReady
-                  ? [
-                      BoxShadow(
-                        color: IrisTokens.brand.withValues(alpha: 0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: isReady ? _nextStep : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: IrisTokens.brand,
+              foregroundColor: Colors.white,
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'CONTINUE TO PREFERENCES',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 18),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // STEP 2: NOTIFICATION PREFERENCES
+  Widget _buildStep2NotificationPreferences(bool isDark) {
+    return Padding(
+      key: const ValueKey(2),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                onPressed: _prevStep,
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Notification Setup',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 44),
+            child: Text(
+              'Configure your alerts for classes, exams and broadcasts',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          GlassCard(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              children: [
+                _buildNotificationToggleRow(
+                  title: 'Live Class Schedule Alerts',
+                  subtitle: 'Get notified 10 mins before your upcoming classes',
+                  icon: Icons.notifications_active_rounded,
+                  value: _notifClassAlerts,
+                  onChanged: (val) => setState(() => _notifClassAlerts = val),
+                  isDark: isDark,
+                ),
+                Divider(height: 24, color: isDark ? Colors.white10 : Colors.black12),
+                _buildNotificationToggleRow(
+                  title: 'Exam & Date Sheet Reminders',
+                  subtitle: 'Timely reminders for midterm & final exam dates',
+                  icon: Icons.edit_calendar_rounded,
+                  value: _notifExamAlerts,
+                  onChanged: (val) => setState(() => _notifExamAlerts = val),
+                  isDark: isDark,
+                ),
+                Divider(height: 24, color: isDark ? Colors.white10 : Colors.black12),
+                _buildNotificationToggleRow(
+                  title: 'Emergency Campus Broadcasts',
+                  subtitle: 'Real-time announcements & sports week updates',
+                  icon: Icons.campaign_rounded,
+                  value: _notifCampusBroadcasts,
+                  onChanged: (val) => setState(() => _notifCampusBroadcasts = val),
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+
+          SizedBox(
+            width: double.infinity,
+            height: 52,
             child: ElevatedButton(
-              onPressed: isReady ? _nextStep : null,
+              onPressed: _nextStep,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
+                backgroundColor: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: isDark
-                    ? Colors.white.withValues(alpha: 0.04)
-                    : Colors.black.withValues(alpha: 0.05),
-                shadowColor: Colors.transparent,
+                elevation: 6,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -904,8 +923,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Begin Synchronization',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                    'BEGIN SYNCHRONIZATION',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
                   ),
                   SizedBox(width: 8),
                   Icon(Icons.sync_rounded, size: 18),
@@ -913,88 +932,60 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               ),
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+        ],
+      ),
     );
   }
 
-  Widget _buildFacultySelectorWidget(bool isDark) {
-    return Column(
+  Widget _buildNotificationToggleRow({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required bool isDark,
+  }) {
+    return Row(
       children: [
-        if (_selectedTeacher != null)
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: IrisTokens.blue.withValues(alpha: isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: IrisTokens.blue, width: 1.5),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded, color: IrisTokens.blue, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'SELECTED FACULTY PROFILE',
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          color: IrisTokens.blue,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                      Text(
-                        _selectedTeacher!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    IrisHaptics.actionSoft();
-                    setState(() {
-                      _selectedTeacher = null;
-                      _name = '';
-                    });
-                  },
-                  child: const Icon(Icons.close_rounded, size: 18, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
+        Icon(icon, color: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand, size: 22),
+        const SizedBox(width: 14),
         Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: FacultyDirectoryScreen(
-              memory: widget.memory,
-              isSelectionMode: true,
-              onTeacherSelected: (name) {
-                IrisHaptics.selectionClick();
-                setState(() {
-                  _selectedTeacher = name;
-                  _name = name;
-                });
-              },
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                ),
+              ),
+            ],
           ),
+        ),
+        Switch(
+          value: value,
+          activeColor: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
+          onChanged: (val) {
+            IrisHaptics.selectionClick();
+            onChanged(val);
+          },
         ),
       ],
     );
   }
 
-
-  // ==========================================================================
-  // STEP 3: SYNC PROGRESS (NEURAL SYNC LOADER)
-  // ==========================================================================
+  // STEP 3: SYNC PROGRESS
   Widget _buildStep3SyncProgress(bool isDark) {
     return Padding(
       key: const ValueKey(3),
@@ -1006,7 +997,6 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             Stack(
               alignment: Alignment.center,
               children: [
-                // Glowing radial backdrop
                 Container(
                   width: 140,
                   height: 140,
@@ -1048,42 +1038,21 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.5,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                        color: (_role == 'faculty' ? IrisTokens.blue : IrisTokens.brand),
                       ),
                     ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 48),
-            const Text(
-              'Synchronizing Database',
+            const SizedBox(height: 36),
+            Text(
+              _syncLog,
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              constraints: const BoxConstraints(maxWidth: 320),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.06),
-                ),
-              ),
-              child: Text(
-                _syncLog,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.4,
-                  fontWeight: FontWeight.w600,
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
-                ),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -1093,13 +1062,12 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   }
 }
 
-// Helper horizontal choice list selector row
 class _HorizontalSelectorRow extends StatelessWidget {
   final String label;
   final String? selectedValue;
   final List<String> items;
   final IconData icon;
-  final String placeholder;
+  final String? placeholder;
   final ValueChanged<String> onSelected;
 
   const _HorizontalSelectorRow({
@@ -1107,27 +1075,28 @@ class _HorizontalSelectorRow extends StatelessWidget {
     required this.selectedValue,
     required this.items,
     required this.icon,
-    this.placeholder = 'No choices found',
+    this.placeholder,
     required this.onSelected,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, color: IrisTokens.brand, size: 16),
-            const SizedBox(width: 8),
+            Icon(icon, size: 14, color: IrisTokens.brand),
+            const SizedBox(width: 6),
             Text(
-              label.toUpperCase(),
+              label,
               style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 10.5,
-                letterSpacing: 1.5,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: IrisTokens.brand,
               ),
             ),
           ],
@@ -1135,97 +1104,67 @@ class _HorizontalSelectorRow extends StatelessWidget {
         const SizedBox(height: 10),
         items.isEmpty
             ? Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.08),
-                  ),
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  placeholder,
+                  placeholder ?? 'No options available',
                   style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white30 : Colors.black38,
+                    fontSize: 12,
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
                   ),
                 ),
               )
-            : lgw.GlassMenu(
-                menuWidth: MediaQuery.of(context).size.width - 48,
-                menuHeight: math.min(items.length * 52.0 + 16.0, 240.0),
-                menuBorderRadius: 20.0,
-                settings: lgw.LiquidGlassSettings(
-                  blur: 20,
-                  ambientStrength: 0.7,
-                  lightAngle: 0.15 * math.pi,
-                  glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                      .withValues(alpha: isDark ? 0.45 : 0.5),
-                  thickness: 18,
-                ),
-                triggerBuilder: (context, toggleMenu) {
-                  return InkWell(
-                    onTap: () {
-                      IrisHaptics.actionSoft();
-                      toggleMenu();
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.04)
-                            : Colors.black.withValues(alpha: 0.02),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.08),
-                          width: 1.2,
+            : SizedBox(
+                height: 42,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: items.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final isSelected = selectedValue == item;
+                    return InkWell(
+                      onTap: () {
+                        IrisHaptics.selectionClick();
+                        onSelected(item);
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? IrisTokens.brand
+                              : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04)),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected
+                                ? IrisTokens.brand
+                                : (isDark ? Colors.white12 : Colors.black12),
+                          ),
+                        ),
+                        child: Text(
+                          item,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                            color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black),
+                          ),
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            selectedValue ?? 'Select $label',
-                            style: TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w800,
-                              color: selectedValue != null 
-                                ? (isDark ? Colors.white : Colors.black87)
-                                : (isDark ? Colors.white30 : Colors.black38),
-                            ),
-                          ),
-                          Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: isDark ? Colors.white54 : Colors.black45,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                items: items.map((String val) {
-                  return lgw.GlassMenuItem(
-                    title: val,
-                    onTap: () {
-                      IrisHaptics.chipSelect();
-                      onSelected(val);
-                    },
-                  );
-                }).toList(),
+                    );
+                  },
+                ),
               ),
       ],
     );
   }
 }
 
-class _RollNumberInputField extends StatefulWidget {
+class _RollNumberInputField extends StatelessWidget {
   final String rollNo;
   final ValueChanged<String> onChanged;
 
@@ -1235,33 +1174,6 @@ class _RollNumberInputField extends StatefulWidget {
   });
 
   @override
-  State<_RollNumberInputField> createState() => _RollNumberInputFieldState();
-}
-
-class _RollNumberInputFieldState extends State<_RollNumberInputField> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.rollNo);
-  }
-
-  @override
-  void didUpdateWidget(covariant _RollNumberInputField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.rollNo != oldWidget.rollNo && widget.rollNo != _controller.text) {
-      _controller.text = widget.rollNo;
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1270,79 +1182,101 @@ class _RollNumberInputFieldState extends State<_RollNumberInputField> {
       children: [
         Row(
           children: [
-            const Icon(Icons.badge_rounded, color: IrisTokens.brand, size: 16),
-            const SizedBox(width: 8),
+            const Icon(Icons.badge_rounded, size: 14, color: IrisTokens.brand),
+            const SizedBox(width: 6),
             Text(
-              'ROLL NUMBER (3 DIGITS)',
+              'ROLL NUMBER (OPTIONAL)',
               style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 10.5,
-                letterSpacing: 1.5,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: IrisTokens.brand,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
-        Container(
+        const SizedBox(height: 8),
+        GlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.04)
-                : Colors.black.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.08),
-              width: 1.2,
-            ),
-          ),
-          child: TextField(
-            controller: _controller,
-            keyboardType: TextInputType.number,
-            maxLength: 3,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2.0,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
+          child: TextFormField(
+            initialValue: rollNo,
+            onChanged: onChanged,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
-              counterText: '',
-              hintText: 'e.g. 042',
-              hintStyle: TextStyle(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0,
-                color: isDark ? Colors.white30 : Colors.black38,
-              ),
+              hintText: 'e.g. SP26-BCS-001',
+              hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
               border: InputBorder.none,
-              suffixIcon: _controller.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.cancel_rounded, size: 18),
-                      color: isDark ? Colors.white54 : Colors.black45,
-                      onPressed: () {
-                        IrisHaptics.actionSoft();
-                        _controller.clear();
-                        widget.onChanged('');
-                      },
-                    )
-                  : null,
             ),
-            onChanged: (val) {
-              final numericVal = val.replaceAll(RegExp(r'\D'), '');
-              if (numericVal != val) {
-                _controller.value = TextEditingValue(
-                  text: numericVal,
-                  selection: TextSelection.collapsed(offset: numericVal.length),
-                );
-              }
-              widget.onChanged(numericVal);
-            },
           ),
         ),
       ],
     );
   }
+}
+
+class OnboardingParticle {
+  double x;
+  double y;
+  double vx;
+  double vy;
+  double size;
+  Color color;
+  double alpha;
+
+  OnboardingParticle({
+    required this.x,
+    required this.y,
+    required this.vx,
+    required this.vy,
+    required this.size,
+    required this.color,
+    required this.alpha,
+  });
+
+  void update(
+    double width,
+    double height,
+    Offset orbCenter,
+    Offset? attractionTarget,
+    double attractionStrength,
+    math.Random random,
+    int currentStep,
+  ) {
+    x += vx;
+    y += vy;
+
+    if (x < 0) x = width;
+    if (x > width) x = 0;
+    if (y < 0) y = height;
+    if (y > height) y = 0;
+
+    if (attractionTarget != null) {
+      final dx = attractionTarget.dx - x;
+      final dy = attractionTarget.dy - y;
+      final dist = math.sqrt(dx * dx + dy * dy);
+      if (dist > 1.0) {
+        vx += (dx / dist) * attractionStrength * 0.1;
+        vy += (dy / dist) * attractionStrength * 0.1;
+      }
+    }
+  }
+}
+
+class OnboardingParticlePainter extends CustomPainter {
+  final List<OnboardingParticle> particles;
+
+  OnboardingParticlePainter({required this.particles});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final p in particles) {
+      final paint = Paint()
+        ..color = p.color.withValues(alpha: p.alpha)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(p.x, p.y), p.size, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant OnboardingParticlePainter oldDelegate) => true;
 }
