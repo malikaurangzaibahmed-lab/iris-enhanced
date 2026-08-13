@@ -327,69 +327,14 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   z-index: 1;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   overflow: hidden;
 }
 
+/* Hover effects and pseudo-element sweeps disabled for stable layout */
 .tech-card:hover {
-  border-color: var(--border-bright);
-  box-shadow: var(--shadow-ambient);
-  background: var(--bg-card-hover);
-}
-
-/* GPU-accelerated touch radial glow */
-.tech-card::before, .modal-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  border-radius: 12px;
-  background: radial-gradient(
-    200px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
-    rgba(99, 102, 241, 0.18) 0%,
-    rgba(6, 182, 212, 0.06) 50%,
-    transparent 100%
-  );
-  opacity: 0;
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.tech-card:hover::before, .modal-card:hover::before {
-  opacity: 1;
-}
-
-/* Glass dispersion edge (chromatic rainbow) on hover */
-.tech-card::after, .modal-card::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  border-radius: 12px;
-  padding: 1.2px; /* border thickness */
-  background: linear-gradient(
-    135deg, 
-    rgba(99, 102, 241, 0.45) 0%, 
-    rgba(6, 182, 212, 0.45) 20%, 
-    rgba(16, 185, 129, 0.45) 40%, 
-    rgba(245, 158, 11, 0.45) 60%,
-    rgba(239, 68, 68, 0.45) 80%,
-    rgba(99, 102, 241, 0.45) 100%
-  );
-  background-size: 200% 200%;
-  -webkit-mask: 
-     linear-gradient(#fff 0 0) content-box, 
-     linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  z-index: 2;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-}
-
-.tech-card:hover::after, .modal-card:hover::after {
-  opacity: 1;
-  animation: borderSweep 4s linear infinite;
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-prestige);
+  background: var(--bg-card);
 }
 
 @keyframes borderSweep {
