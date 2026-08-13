@@ -9,10 +9,12 @@ import '../services/helpdesk_faculty_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
 
+typedef OnboardingCompleteCallback = Function(String role, String name, String value);
+
 /// Ultra-Fluid Onboarding Setup Wizard & Faculty Selector for IRIS.
 class OnboardingWizard extends StatefulWidget {
   final UniversityMemory memory;
-  final VoidCallback onComplete;
+  final OnboardingCompleteCallback onComplete;
 
   const OnboardingWizard({
     super.key,
@@ -375,7 +377,14 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
         if (mounted) {
           IrisHaptics.actionHeavy();
-          widget.onComplete();
+          if (_role == 'faculty') {
+            final teacherName = _selectedTeacher ?? 'Faculty Member';
+            widget.onComplete('faculty', teacherName, teacherName);
+          } else {
+            final batchKey = '$_program-$_semester$_section';
+            final studentName = _rollNo.isNotEmpty ? _rollNo : 'IRIS Student';
+            widget.onComplete('student', studentName, batchKey);
+          }
         }
       }
     });
