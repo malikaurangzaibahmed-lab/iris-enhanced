@@ -25,9 +25,7 @@ service cloud.firestore {
 
     // Feedback & Telemetry Collection (Mobile app client submissions permitted)
     match /feedback/{document=**} {
-      allow create: if true;
-      allow read: if true;
-      allow update, delete: if isAdmin();
+      allow create, read, write: if true;
     }
 
     // Campus Notices & Announcements
