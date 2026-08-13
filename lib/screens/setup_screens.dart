@@ -919,145 +919,78 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   }
 
   Widget _buildFacultySelectorWidget(bool isDark) {
-    // Compile clean sorted unique list of all teachers in the memory dataset
-    final teachers = widget.memory.sessions
-        .map((s) => s.teacher)
-        .where((t) => t != 'Unknown' && t.trim().isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
-
-    final matched = teachers
-        .where((t) => t.toLowerCase().contains(_teacherSearchQuery.toLowerCase()))
-        .toList();
-
-    final isReady = _selectedTeacher != null;
-
     return Column(
       children: [
-        // Directory Browse Quick Button
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () {
-              IrisSfx.pillTap();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FacultyDirectoryScreen(
-                    isSelectionMode: true,
-                    onTeacherSelected: (name) {
-                      setState(() {
-                        _selectedTeacher = name;
-                        _name = name;
-                      });
-                    },
-                  ),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: IrisTokens.blue.withValues(alpha: isDark ? 0.12 : 0.08),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: IrisTokens.blue.withValues(alpha: isDark ? 0.25 : 0.18),
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.badge_rounded, color: IrisTokens.blue, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Browse Full Faculty Directory & Profiles',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: IrisTokens.blue,
-                    ),
-                  ),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_forward_ios_rounded, color: IrisTokens.blue, size: 12),
-                ],
-              ),
+        if (_selectedTeacher != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: IrisTokens.blue.withValues(alpha: isDark ? 0.18 : 0.10),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: IrisTokens.blue, width: 1.5),
             ),
-          ),
-        ),
-        // Teacher search glows input
-        Container(
-          decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? Colors.white10 : Colors.black12,
-              width: 1.0,
-            ),
-          ),
-          child: TextField(
-            controller: _teacherSearchController,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-            decoration: InputDecoration(
-              hintText: 'Search by faculty name...',
-              prefixIcon: const Icon(Icons.search_rounded, color: IrisTokens.blue),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              suffixIcon: _teacherSearchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear_rounded, size: 18),
-                      onPressed: () {
-                        setState(() {
-                          _teacherSearchController.clear();
-                          _teacherSearchQuery = '';
-                        });
-                      },
-                    )
-                  : null,
-            ),
-            onChanged: (val) {
-              setState(() {
-                _teacherSearchQuery = val.trim();
-              });
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: GlassCard(
-            padding: EdgeInsets.zero,
-            borderRadius: 20,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: matched.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No matching faculty profiles found',
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: IrisTokens.blue, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'SELECTED FACULTY PROFILE',
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: IrisTokens.blue,
+                          letterSpacing: 0.6,
                         ),
                       ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: matched.length,
-                      separatorBuilder: (context, i) => Divider(
-                        height: 1,
-                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12,
+                      Text(
+                        _selectedTeacher!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
                       ),
-                      itemBuilder: (context, idx) {
-                        final teacherName = matched[idx];
-                        final isSelected = _selectedTeacher == teacherName;
-                        return InkWell(
-                          onTap: () {
-                            IrisHaptics.chipSelect();
-                            setState(() {
-                              _selectedTeacher = teacherName;
-                              _name = teacherName;
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    IrisHaptics.actionSoft();
+                    setState(() {
+                      _selectedTeacher = null;
+                      _name = '';
+                    });
+                  },
+                  child: const Icon(Icons.close_rounded, size: 18, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: FacultyDirectoryScreen(
+              brain: widget.brain,
+              memory: widget.memory,
+              isSelectionMode: true,
+              onTeacherSelected: (name) {
+                IrisHaptics.selectionClick();
+                setState(() {
+                  _selectedTeacher = name;
+                  _name = name;
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
                             });
                           },
                           child: Container(

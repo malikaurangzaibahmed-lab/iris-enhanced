@@ -19,6 +19,7 @@ import '../services/helpdesk_faculty_service.dart';
 import 'about_screen.dart';
 import 'portal_screen.dart';
 import 'teacher_locator_screen.dart';
+import 'faculty_directory_screen.dart';
 import 'students_week_screen.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
@@ -586,26 +587,27 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
   }
 
   void _openTeacherPicker({GlobalKey? originKey}) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => TeacherLocatorScreen(
-          brain: widget.brain,
-          showBackButton: true,
-          showDock: false,
-          closeOnTeacherSelect: true,
-          onTeacherSelected: (teacherName) async {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('faculty_user_name', teacherName);
-            await prefs.setString('faculty_teacher', teacherName);
-            await prefs.setString('user_role', 'faculty');
+    pushGlassContainerMorphRoute(
+      context,
+      originKey: originKey ?? _facultyChangeTeacherKey,
+      page: FacultyDirectoryScreen(
+        brain: widget.brain,
+        isSelectionMode: true,
+        onTeacherSelected: (teacherName) async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('faculty_user_name', teacherName);
+          await prefs.setString('faculty_teacher', teacherName);
+          await prefs.setString('user_role', 'faculty');
+          if (mounted) {
             setState(() {
               _selectedTeacher = teacherName;
               _updateScheduleCache();
             });
-            await _updateForegroundServiceAndWidget();
-          },
-        ),
+          }
+          await _updateForegroundServiceAndWidget();
+        },
       ),
+      accentColor: const Color(0xFF8B5CF6),
     );
   }
 
