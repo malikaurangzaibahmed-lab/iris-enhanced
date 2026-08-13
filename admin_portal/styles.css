@@ -139,52 +139,7 @@ body {
 }
 
 .liquid-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.28;
-  mix-blend-mode: screen;
-  animation: floatBlob 25s infinite alternate ease-in-out;
-  will-change: transform;
-}
-
-.blob-1 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, var(--accent-indigo) 0%, transparent 70%);
-  top: -10%;
-  left: -10%;
-  animation-duration: 20s;
-}
-
-.blob-2 {
-  width: 650px;
-  height: 650px;
-  background: radial-gradient(circle, var(--accent-cyan) 0%, transparent 70%);
-  bottom: -15%;
-  right: -10%;
-  animation-delay: -5s;
-  animation-duration: 28s;
-}
-
-.blob-3 {
-  width: 450px;
-  height: 450px;
-  background: radial-gradient(circle, #d946ef 0%, transparent 70%);
-  top: 35%;
-  left: 45%;
-  animation-delay: -10s;
-  animation-duration: 24s;
-}
-
-.blob-4 {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, var(--accent-amber) 0%, transparent 70%);
-  bottom: 25%;
-  left: 5%;
-  animation-delay: -15s;
-  animation-duration: 18s;
+  display: none;
 }
 
 @keyframes floatBlob {

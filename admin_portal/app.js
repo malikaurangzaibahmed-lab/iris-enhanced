@@ -147,10 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupThemeToggle();
   setupDragAndDrop();
   setupUIHandlers();
-  setup3DTiltEffects();
+  // Continuous 60fps canvas shader and tilt loops disabled for maximum performance
   startLatencySimulator();
-  startTelemetryECG();
-  setupGlassShaderEffects();
   
   if (apkUrlInput) {
     apkUrlInput.addEventListener('input', () => {
