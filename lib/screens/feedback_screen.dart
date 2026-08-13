@@ -45,23 +45,26 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   void _autoPrefillAllTelemetryData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Auto-detect user name
-    final name = prefs.getString('student_name') ??
-                 prefs.getString('user_name') ??
-                 prefs.getString('name') ??
-                 'IRIS Student';
+    // Auto-detect real user name
+    final name = prefs.getString('student_user_name')?.trim().isNotEmpty == true
+        ? prefs.getString('student_user_name')!.trim()
+        : (prefs.getString('student_name') ??
+           prefs.getString('user_name') ??
+           prefs.getString('name') ??
+           'IRIS Student');
 
-    // Auto-detect batch/class
-    final batch = prefs.getString('selected_batch') ??
+    // Auto-detect real batch / class
+    final batch = prefs.getString('student_batch') ??
+                  prefs.getString('current_batch') ??
                   prefs.getString('user_batch') ??
-                  prefs.getString('student_batch') ??
+                  prefs.getString('selected_batch') ??
                   'SP26-BCS-1-A';
 
-    // Auto-detect roll number / ID
+    // Auto-detect real roll number / ID
     final roll = prefs.getString('student_roll_no') ??
-                 prefs.getString('roll_number') ??
-                 prefs.getString('student_id') ??
                  prefs.getString('roll_no') ??
+                 prefs.getString('student_id') ??
+                 prefs.getString('roll_number') ??
                  'SP26-BCS-001';
 
     // Auto-detect role
