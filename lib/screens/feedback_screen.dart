@@ -45,33 +45,53 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   void _autoPrefillAllTelemetryData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Auto-detect real user name
-    final name = prefs.getString('student_user_name')?.trim().isNotEmpty == true
-        ? prefs.getString('student_user_name')!.trim()
-        : (prefs.getString('student_name') ??
-           prefs.getString('user_name') ??
-           prefs.getString('name') ??
-           'IRIS Student');
-
-    // Auto-detect real batch / class
-    final batch = prefs.getString('student_batch') ??
-                  prefs.getString('current_batch') ??
-                  prefs.getString('user_batch') ??
-                  prefs.getString('selected_batch') ??
-                  'SP26-BCS-1-A';
-
-    // Auto-detect real roll number / ID
-    final roll = prefs.getString('student_roll_no') ??
-                 prefs.getString('roll_no') ??
-                 prefs.getString('student_id') ??
-                 prefs.getString('roll_number') ??
-                 'SP26-BCS-001';
-
     // Auto-detect role
     final savedRole = (prefs.getString('active_role') ?? prefs.getString('user_role') ?? prefs.getString('role') ?? '').toLowerCase();
     String detectedRole = 'Student';
     if (savedRole.contains('faculty') || savedRole.contains('teacher') || savedRole.contains('instructor') || savedRole.contains('prof')) {
       detectedRole = 'Faculty';
+    }
+
+    String name = 'IRIS Mobile User';
+    String batch = 'SP26-BCS-1-A';
+    String roll = 'SP26-BCS-001';
+
+    if (detectedRole == 'Faculty') {
+      name = prefs.getString('faculty_user_name') ??
+             prefs.getString('faculty_teacher') ??
+             prefs.getString('student_name') ??
+             prefs.getString('user_name') ??
+             prefs.getString('name') ??
+             'Faculty Member';
+
+      batch = prefs.getString('faculty_department') ??
+              prefs.getString('department') ??
+              prefs.getString('faculty_dept') ??
+              'COMSATS Faculty';
+
+      roll = prefs.getString('faculty_id') ??
+             prefs.getString('employee_id') ??
+             prefs.getString('faculty_emp_id') ??
+             'FACULTY-ID';
+    } else {
+      name = prefs.getString('student_user_name')?.trim().isNotEmpty == true
+          ? prefs.getString('student_user_name')!.trim()
+          : (prefs.getString('student_name') ??
+             prefs.getString('user_name') ??
+             prefs.getString('name') ??
+             'IRIS Student');
+
+      batch = prefs.getString('student_batch') ??
+                    prefs.getString('current_batch') ??
+                    prefs.getString('user_batch') ??
+                    prefs.getString('selected_batch') ??
+                    'SP26-BCS-1-A';
+
+      roll = prefs.getString('student_roll_no') ??
+                   prefs.getString('roll_no') ??
+                   prefs.getString('student_id') ??
+                   prefs.getString('roll_number') ??
+                   'SP26-BCS-001';
     }
 
     // Auto-detect device hardware specs
