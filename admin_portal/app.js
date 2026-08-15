@@ -2938,29 +2938,11 @@ function setup3DTiltEffects() {
 }
 
 // ==========================================================================
-// LIVE DATABASE INSPECTORS (TIMETABLE & EXAMS) WITH SEED FALLBACK
+// LIVE DATABASE INSPECTORS (TIMETABLE & EXAMS)
 // ==========================================================================
 
-const SAMPLE_TIMETABLE_SESSIONS = [
-  { day: "Monday", start: "08:30", end: "10:00", room: "C-101", batch: "BCS-6A", subject: "CS314 Artificial Intelligence", teacher: "Dr. Shahzad Ali" },
-  { day: "Monday", start: "10:00", end: "11:30", room: "Lab-3", batch: "BCS-6A", subject: "CS314L Artificial Intelligence Lab", teacher: "Engr. Bilal Masood" },
-  { day: "Tuesday", start: "11:30", end: "01:00", room: "C-204", batch: "BSE-4B", subject: "SE201 Software Engineering", teacher: "Dr. Nadeem Akhtar" },
-  { day: "Tuesday", start: "01:30", end: "03:00", room: "EE-04", batch: "BEE-8A", subject: "EE499 Final Year Project", teacher: "Dr. Usman Khalid" },
-  { day: "Wednesday", start: "08:30", end: "10:00", room: "C-105", batch: "BAI-2A", subject: "AI101 Intro to Data Science", teacher: "Dr. Ayesha Tariq" },
-  { day: "Thursday", start: "10:00", end: "11:30", room: "C-102", batch: "BCS-6A", subject: "CS320 Operating Systems", teacher: "Dr. Farhan Riaz" },
-  { day: "Friday", start: "09:00", end: "10:30", room: "C-201", batch: "BCS-8B", subject: "CS490 Cloud Native Systems", teacher: "Dr. Shahzad Ali" }
-];
-
-const SAMPLE_EXAM_SESSIONS = [
-  { date: "2026-04-13", time: "09:00 - 11:00", room: "Hall-A", batch: "BCS-6A", subject: "CS314 Artificial Intelligence" },
-  { date: "2026-04-14", time: "11:30 - 01:30", room: "Hall-B", batch: "BSE-4B", subject: "SE201 Software Engineering" },
-  { date: "2026-04-15", time: "02:00 - 04:00", room: "C-101", batch: "BAI-2A", subject: "AI101 Intro to Data Science" },
-  { date: "2026-04-16", time: "09:00 - 11:00", room: "EE-Hall", batch: "BEE-8A", subject: "EE499 Power Systems & Smart Grids" },
-  { date: "2026-04-17", time: "11:30 - 01:30", room: "Hall-A", batch: "BCS-8B", subject: "CS490 Cloud Native Systems" }
-];
-
-let liveClassesLedger = [...SAMPLE_TIMETABLE_SESSIONS];
-let liveExamsLedger = [...SAMPLE_EXAM_SESSIONS];
+let liveClassesLedger = [];
+let liveExamsLedger = [];
 
 async function refreshLiveClassesInspector() {
   const tableBody = document.getElementById('inspector-classes-body');
@@ -4242,100 +4224,7 @@ async function deploySemesterScheduleToFirestore() {
 // AUTHENTIC COMMUNITY FEEDBACK & TELEMETRY STREAM CONTROLLER
 // ==========================================================================
 
-const AUTHENTIC_COMMUNITY_SEEDS = [
-  {
-    id: "seed-fb-01",
-    name: "Muhammad Hamza",
-    user_role: "Student",
-    roll_number: "FA22-BCS-042",
-    batch: "BCS-6A",
-    device: "Samsung Galaxy S23 (Android 14)",
-    category: "Schedule & Timetables",
-    rating: 5,
-    comment: "The real-time live timetable synchronization with room finder is insanely smooth. Love the liquid glass design and the instant notifications before next class!",
-    date: "Feb 15, 2026",
-    rawDate: Date.now() - 1000 * 60 * 45,
-    platform: "Android Mobile Client",
-    isCloud: false
-  },
-  {
-    id: "seed-fb-02",
-    name: "Dr. Shahzad Ali",
-    user_role: "Faculty",
-    roll_number: "EMP-4109",
-    batch: "Computer Science",
-    device: "Google Pixel 8 Pro",
-    category: "Faculty Directory & Workload",
-    rating: 5,
-    comment: "Excellent companion for faculty. Locating vacant classrooms and viewing student section rosters with one tap saves a lot of time between consecutive lectures.",
-    date: "Feb 15, 2026",
-    rawDate: Date.now() - 1000 * 60 * 120,
-    platform: "Android Mobile Client",
-    isCloud: false
-  },
-  {
-    id: "seed-fb-03",
-    name: "Areeba Fatima",
-    user_role: "Student",
-    roll_number: "FA23-BSE-019",
-    batch: "BSE-4B",
-    device: "Xiaomi 13T (MIUI 15)",
-    category: "CUOnline Portal Sync",
-    rating: 5,
-    comment: "GPA calculator and attendance tracker are accurate down to each lecture. The mascot character tips on least attended courses are super helpful!",
-    date: "Feb 14, 2026",
-    rawDate: Date.now() - 1000 * 60 * 60 * 18,
-    platform: "Android Mobile Client",
-    isCloud: false
-  },
-  {
-    id: "seed-fb-04",
-    name: "Engr. Bilal Masood",
-    user_role: "Faculty",
-    roll_number: "EMP-3882",
-    batch: "Software Engineering",
-    device: "OnePlus 11 5G",
-    category: "Timetables & Labs",
-    rating: 5,
-    comment: "Smooth lab scheduling integration. The emergency broadcast banner feature from admin console alerted all my lab students instantaneously.",
-    date: "Feb 14, 2026",
-    rawDate: Date.now() - 1000 * 60 * 60 * 24,
-    platform: "Android Mobile Client",
-    isCloud: false
-  },
-  {
-    id: "seed-fb-05",
-    name: "Zainab Malik",
-    user_role: "Student",
-    roll_number: "SP24-BAI-008",
-    batch: "BAI-2A",
-    device: "iPhone 15 Pro",
-    category: "Intelligent Insight",
-    rating: 5,
-    comment: "The container morphing animations feel so fluid and modern. Transport bus route pinning works like a charm.",
-    date: "Feb 13, 2026",
-    rawDate: Date.now() - 1000 * 60 * 60 * 36,
-    platform: "Android Mobile Client",
-    isCloud: false
-  },
-  {
-    id: "seed-fb-06",
-    name: "Usman Tariq",
-    user_role: "Student",
-    roll_number: "FA21-BEE-077",
-    batch: "BEE-8A",
-    device: "Motorola Edge 40",
-    category: "Exam Date Sheets",
-    rating: 5,
-    comment: "Exam seat allocation and datesheet countdown is a lifesaver during terminal exams week. No need to hunt through PDF notices anymore.",
-    date: "Feb 13, 2026",
-    rawDate: Date.now() - 1000 * 60 * 60 * 48,
-    platform: "Android Mobile Client",
-    isCloud: false
-  }
-];
-
-let allLiveFeedback = [...AUTHENTIC_COMMUNITY_SEEDS];
+let allLiveFeedback = [];
 let firestoreFeedbackListener = null;
 
 async function fetchFirestoreFeedbackDirect() {
@@ -4405,11 +4294,7 @@ function processFeedbackSnapshot(snapshot) {
   });
 
   cloudItems.sort((a, b) => b.rawDate - a.rawDate);
-
-  // Merge live cloud items at the top and preserve baseline seeds
-  const cloudIds = new Set(cloudItems.map(c => c.id));
-  const remainingSeeds = AUTHENTIC_COMMUNITY_SEEDS.filter(s => !cloudIds.has(s.id));
-  allLiveFeedback = [...cloudItems, ...remainingSeeds];
+  allLiveFeedback = cloudItems;
 
   filterFeedbackFeed();
 }
@@ -4423,7 +4308,7 @@ function initFirestoreFeedbackStream() {
     fetchFirestoreFeedbackDirect();
     firestoreFeedbackListener = db.collection('feedback').onSnapshot(snapshot => {
       processFeedbackSnapshot(snapshot);
-      logTerminal(`Feedback stream updated: <strong>${allLiveFeedback.length}</strong> community submissions active.`, 'info');
+      logTerminal(`Feedback stream synchronized: <strong>${allLiveFeedback.length}</strong> authentic submissions active.`, 'info');
     }, err => {
       console.warn("Feedback snapshot listener error:", err);
       logTerminal(`Feedback stream error: ${err.message}`, 'warning');
@@ -4612,7 +4497,7 @@ window.deleteLiveFeedback = async function(docId) {
   if (!confirm("Are you sure you want to delete this feedback record?")) return;
 
   try {
-    if (db && !docId.startsWith('seed-')) {
+    if (db) {
       await db.collection('feedback').doc(docId).delete();
       incrementDatabaseOps();
     }
@@ -4623,6 +4508,39 @@ window.deleteLiveFeedback = async function(docId) {
   } catch (err) {
     showMossToast(`Failed to delete: ${err.message}`, "error");
     logTerminal(`Failed to delete feedback: ${err.message}`, 'error');
+  }
+};
+
+window.clearAllLiveFeedback = async function() {
+  if (!allLiveFeedback || allLiveFeedback.length === 0) {
+    showMossToast("No feedback records to clear.", "info");
+    return;
+  }
+
+  if (!confirm(`WARNING: Are you sure you want to permanently DELETE ALL ${allLiveFeedback.length} community feedback submissions from Firestore? This action cannot be undone.`)) {
+    return;
+  }
+
+  logTerminal(`Initiating purge of all ${allLiveFeedback.length} feedback records...`, 'warning');
+
+  try {
+    if (db) {
+      const snap = await db.collection('feedback').get();
+      const batch = db.batch();
+      snap.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      incrementDatabaseOps();
+    }
+
+    allLiveFeedback = [];
+    filterFeedbackFeed();
+    showMossToast("All feedback records purged successfully!", "success");
+    logTerminal("Live Community Feedback ledger cleared.", "success");
+  } catch (err) {
+    showMossToast(`Failed to clear feedback: ${err.message}`, "error");
+    logTerminal(`Clear all feedback failed: ${err.message}`, "error");
   }
 };
 

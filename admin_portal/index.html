@@ -898,6 +898,9 @@
               <button id="btn-refresh-feedback" class="btn btn-secondary" style="padding: 0 18px; height: 46px;" title="Refresh Feedback" onclick="renderFeedbackFeed()">
                 <i class="fa-solid fa-arrows-rotate"></i>
               </button>
+              <button id="btn-clear-all-feedback" class="btn" style="padding: 0 18px; height: 46px; background: rgba(244, 63, 94, 0.18); border: 1px solid rgba(244, 63, 94, 0.45); color: var(--accent-rose);" title="Clear All Live Feedback from Cloud" onclick="clearAllLiveFeedback()">
+                <i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Clear All
+              </button>
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -905,7 +908,7 @@
               <span id="feedback-count-badge" style="font-family: var(--font-mono); font-size: 10px; font-weight: 800; color: var(--accent-cyan);">0 SUBMISSIONS</span>
             </div>
             
-            <div id="feedback-feed-container" style="max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 2px;"></div>
+            <div id="feedback-feed-container" style="display: flex; flex-direction: column; gap: 18px; margin-top: 14px; width: 100%;"></div>
           </div>
 
         </section>
