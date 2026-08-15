@@ -789,6 +789,11 @@ function syncActivePeriodState() {
         activePeriodDesc.innerText = descs[currentPeriod] || 'Lecture tracks active.';
       }
 
+      const metricModeVal = document.getElementById('metric-mode-val');
+      if (metricModeVal) {
+        metricModeVal.innerText = currentPeriod.toUpperCase().replace('_', ' ');
+      }
+
 
       // Update Mockup period card theme
       const mockCard = document.getElementById('mock-period-card');
@@ -857,41 +862,29 @@ function syncActivePeriodState() {
         
         // Direct mockup Notice sync
         const mockNoticeCard = document.getElementById('mock-notice-card');
-        const mockNoticeBody = document.getElementById('mock-notice-body');
-        const mockNoticeIcon = document.getElementById('mock-notice-icon-badge');
-        const mockNoticeLive = document.getElementById('mock-notice-live-tag');
-        const mockNoticeTime = document.getElementById('mock-notice-time');
-        if (mockNoticeCard && mockNoticeBody) {
-          mockNoticeBody.innerText = broadcastMsg || 'All Quiet on Campus • No active broadcasts right now';
+        const mockNoticeText = document.getElementById('mock-notice-text') || document.getElementById('mock-notice-body');
+        if (mockNoticeCard && mockNoticeText) {
+          mockNoticeText.innerText = broadcastMsg || 'All Quiet on Campus • No active broadcasts right now';
           if (isBroadcastOn && broadcastMsg) {
-            mockNoticeCard.className = 'mock-notice-card active-notice';
-            if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge';
-            if (mockNoticeLive) mockNoticeLive.style.display = 'inline-block';
-            if (mockNoticeTime) mockNoticeTime.innerText = formatMockTime(new Date());
+            mockNoticeCard.style.background = 'rgba(239, 68, 68, 0.12)';
+            mockNoticeCard.style.borderColor = 'rgba(239, 68, 68, 0.35)';
           } else {
-            mockNoticeCard.className = 'mock-notice-card notice-off';
-            if (mockNoticeIcon) mockNoticeIcon.className = 'notice-icon-badge off';
-            if (mockNoticeLive) mockNoticeLive.style.display = 'none';
-            if (mockNoticeTime) mockNoticeTime.innerText = 'NEVER';
+            mockNoticeCard.style.background = 'rgba(6, 182, 212, 0.1)';
+            mockNoticeCard.style.borderColor = 'rgba(6, 182, 212, 0.25)';
           }
         }
         
-        btnBroadcastPush.disabled = false;
+        if (btnBroadcastPush) {
+          btnBroadcastPush.disabled = false;
+          const span = btnBroadcastPush.querySelector('span');
+          if (span) {
+            span.innerText = isBroadcastOn ? 'BROADCAST ACTIVE (CLICK TO UPDATE)' : 'PUSH EMERGENCY BROADCAST';
+          }
+        }
         
         // Synchronize hidden legacy elements for workspace compatibility
         if (broadcastSwitch) broadcastSwitch.checked = isBroadcastOn;
         if (broadcastingBadge) broadcastingBadge.style.display = isBroadcastOn ? 'inline-block' : 'none';
-        
-        // Toggle industrial LED button state
-        if (btnBroadcastPush) {
-          if (isBroadcastOn) {
-            btnBroadcastPush.classList.add('active-led');
-            btnBroadcastPush.querySelector('span').innerText = 'Announcements live (Click to broadcast update)';
-          } else {
-            btnBroadcastPush.classList.remove('active-led');
-            btnBroadcastPush.querySelector('span').innerText = 'Transmit Notification Alert';
-          }
-        }
       }
     } else {
       logTerminal('Operational config document empty. Initializing defaults.', 'warning');
@@ -1098,20 +1091,26 @@ presetChips.forEach(chip => {
 // Explicit visible industrial slide toggle switch logic
 if (broadcastSwitchVisible) {
   broadcastSwitchVisible.addEventListener('change', async () => {
-    if (!isConnected) return;
+    if (!isConnected || !db) {
+      showMossToast("Database offline. Reconnecting...", "warning");
+      return;
+    }
     
     const enabled = broadcastSwitchVisible.checked;
     logTerminal(`Updating broadcast transmission link state: ${enabled ? 'ACTIVE' : 'STANDBY'}...`, 'info');
     
     try {
-      await db.collection('config').doc('global').update({
+      await db.collection('config').doc('global').set({
         broadcast_enabled: enabled,
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
-      });
+        broadcast_updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      
       incrementDatabaseOps();
       logTerminal(`Server sync complete: Broadcast live stream set to ${enabled ? 'ON' : 'OFF'}.`, 'success');
+      showMossToast(`Broadcast announcement banner turned ${enabled ? 'ON' : 'OFF'}!`, "info");
     } catch (e) {
       logTerminal(`Failed to update broadcast switch: ${e.message}`, 'error');
+      showMossToast(e.message, "error");
       // Revert UI on failure
       broadcastSwitchVisible.checked = !enabled;
     }
@@ -1119,36 +1118,43 @@ if (broadcastSwitchVisible) {
 }
 
 // Dedicated Dispatch Signal button (explicitly turns alert ON with textarea message)
-btnBroadcastPush.addEventListener('click', async () => {
-  if (!isConnected) return;
-  
-  const msg = broadcastMessage.value.trim();
-  logTerminal(`Preparing to dispatch broadcast signal packet...`, 'info');
-  
-  btnBroadcastPush.disabled = true;
-  btnBroadcastPush.querySelector('span').innerText = 'TRANSMITTING EMISSION WAVE...';
-  
-  try {
-    await db.collection('config').doc('global').update({
-      broadcast_message: msg,
-      broadcast_enabled: true, // Always force enable ON upon explicit dispatch
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    incrementDatabaseOps();
+if (btnBroadcastPush) {
+  btnBroadcastPush.addEventListener('click', async () => {
+    if (!isConnected || !db) {
+      showMossToast("Database connection offline.", "error");
+      return;
+    }
     
-    // Sync visible switch UI
-    if (broadcastSwitchVisible) broadcastSwitchVisible.checked = true;
+    const msg = (broadcastMessage?.value || '').trim();
+    logTerminal(`Preparing to dispatch broadcast signal packet...`, 'info');
     
-    logTerminal(`Dispatch success: Broadcast alert is now LIVE with message.`, 'success');
-    showMossToast("Global notice dispatched live to student devices!", "success");
-  } catch (e) {
-    logTerminal(`Broadcast transmission failed: ${e.message}`, 'error');
-    showMossToast(e.message, "error");
-  } finally {
-    btnBroadcastPush.disabled = false;
-    btnBroadcastPush.querySelector('span').innerText = 'Transmit Notification Alert';
-  }
-});
+    btnBroadcastPush.disabled = true;
+    const btnSpan = btnBroadcastPush.querySelector('span');
+    if (btnSpan) btnSpan.innerText = 'TRANSMITTING EMISSION WAVE...';
+    
+    try {
+      await db.collection('config').doc('global').set({
+        broadcast_message: msg,
+        broadcast_enabled: true, // Always force enable ON upon explicit dispatch
+        broadcast_updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      
+      incrementDatabaseOps();
+      
+      // Sync visible switch UI
+      if (broadcastSwitchVisible) broadcastSwitchVisible.checked = true;
+      
+      logTerminal(`Dispatch success: Broadcast alert is now LIVE with message: "${msg}".`, 'success');
+      showMossToast("Global notice dispatched live to student devices!", "success");
+    } catch (e) {
+      logTerminal(`Broadcast transmission failed: ${e.message}`, 'error');
+      showMossToast(e.message, "error");
+    } finally {
+      btnBroadcastPush.disabled = false;
+      if (btnSpan) btnSpan.innerText = 'PUSH EMERGENCY BROADCAST';
+    }
+  });
+}
 
 // ==========================================================================
 // TIMETABLE DEPLOYMENT ENGINE (AIRPORT DEPARTURES LEDGER)

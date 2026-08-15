@@ -655,9 +655,9 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <span class="preset-chip" style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚨 Urgent Announcement</span>
-                <span class="preset-chip" style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🌧️ Weather Advisory</span>
-                <span class="preset-chip" style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚌 Transport Route Delay</span>
+                <span class="preset-chip" data-preset="🚨 Urgent Announcement: Campus operations suspended until further notice." style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚨 Urgent Announcement</span>
+                <span class="preset-chip" data-preset="🌧️ Weather Advisory: Heavy rainfall expected. Classes moved online." style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🌧️ Weather Advisory</span>
+                <span class="preset-chip" data-preset="🚌 Transport Route Delay: Bus routes running 20 mins delayed due to traffic." style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚌 Transport Route Delay</span>
               </div>
               <span id="broadcast-char-count" style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);">0/140</span>
             </div>
@@ -666,7 +666,8 @@
             <span id="char-ring-fill" style="display: none;"></span>
             
             <button id="btn-broadcast-push" class="btn btn-primary btn-full" style="padding: 14px; background: linear-gradient(135deg, var(--accent-rose), #991b1b); font-weight: 700;">
-              <i class="fa-solid fa-bullhorn" style="margin-right: 8px;"></i> PUSH EMERGENCY BROADCAST
+              <i class="fa-solid fa-bullhorn" style="margin-right: 8px;"></i>
+              <span>PUSH EMERGENCY BROADCAST</span>
             </button>
           </div>
 
