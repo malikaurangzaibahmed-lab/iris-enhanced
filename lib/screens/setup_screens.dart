@@ -48,7 +48,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   final GlobalKey _studentCardKey = GlobalKey();
   final GlobalKey _facultyCardKey = GlobalKey();
 
-  // Student selections
+  String _name = '';
   String? _program;
   int? _semester;
   String? _section;
@@ -1260,7 +1260,7 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                 items: items.map((val) {
                   return lgw.GlassMenuItem(
                     title: val,
-                    icon: icon,
+                    icon: Icon(icon, size: 18, color: IrisTokens.brand),
                     onTap: () {
                       IrisHaptics.selectionClick();
                       onSelected(val);
