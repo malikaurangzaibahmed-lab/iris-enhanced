@@ -1641,10 +1641,10 @@ async function parseTimetablePdf(arrayBuffer) {
       currentDay = pageDay;
     }
     
-    // 2. Identify time headers
+    // 2. Identify time headers & dynamically discover columns
     let timeWords = [];
     for (let item of items) {
-      if (/\b\d{1,2}:\d{2}\b/.test(item.str)) {
+      if (/\b\d{1,2}:\d{2}\b/.test(item.str) || /break|kaerb/i.test(item.str)) {
         timeWords.push(item);
       }
     }
@@ -1663,42 +1663,86 @@ async function parseTimetablePdf(arrayBuffer) {
       }
     }
     
-    let slotTimes = Array(7).fill(null).map(() => ({ start: "00:00", end: "00:00", isBreak: false }));
-    const DEFAULT_TIMES = [
-      { start: "00:00", end: "00:00", isBreak: false },
-      { start: "08:00", end: "09:00", isBreak: false },
-      { start: "09:00", end: "10:00", isBreak: false },
-      { start: "10:00", end: "11:00", isBreak: false },
-      { start: "11:00", end: "12:00", isBreak: false },
-      { start: "12:00", end: "01:00", isBreak: true },
-      { start: "01:00", end: "02:00", isBreak: false }
-    ];
-    for (let c = 0; c < 7; c++) {
-      slotTimes[c] = { ...DEFAULT_TIMES[c] };
-    }
-    
+    // Dynamically discover columns from header
+    let pageColumns = [];
     if (headerY !== -1) {
-      let headerItems = items.filter(item => Math.abs(item.transform[5] - headerY) <= 8 && item.str.trim() !== '');
-      for (let c = 1; c < 7; c++) {
-        let col = GRID_COLUMNS[c];
-        let colItems = headerItems.filter(item => {
-          let centerX = item.transform[4] + (item.width || 0) / 2;
-          return centerX >= col.minX && centerX < col.maxX;
-        });
-        colItems.sort((a, b) => a.transform[4] - b.transform[4]);
-        let text = colItems.map(item => item.str).join(" ").trim();
-        if (text) {
-          if (/break|kaerb/i.test(text)) {
-            slotTimes[c].isBreak = true;
+      let headerItems = items.filter(item => Math.abs(item.transform[5] - headerY) <= 15 && item.str.trim() !== '');
+      headerItems.sort((a, b) => a.transform[4] - b.transform[4]);
+      
+      // Group horizontally adjacent header items into slot clusters
+      let clusters = [];
+      let curCluster = [];
+      for (let it of headerItems) {
+        if (it.transform[4] < 100) continue; // Skip batch column header
+        if (curCluster.length === 0) {
+          curCluster.push(it);
+        } else {
+          let prevRight = curCluster[curCluster.length - 1].transform[4] + (curCluster[curCluster.length - 1].width || 0);
+          if (it.transform[4] - prevRight < 30) {
+            curCluster.push(it);
           } else {
-            let m = text.match(/(\d{1,2})[:.]?(\d{2})\s*-\s*(\d{1,2})[:.]?(\d{2})/);
-            if (m) {
-              slotTimes[c].start = `${m[1].padStart(2, '0')}:${m[2]}`;
-              slotTimes[c].end = `${m[3].padStart(2, '0')}:${m[4]}`;
-            }
+            clusters.push(curCluster);
+            curCluster = [it];
           }
         }
       }
+      if (curCluster.length > 0) clusters.push(curCluster);
+
+      if (clusters.length >= 4) {
+        let firstSlotMinX = clusters[0][0].transform[4];
+        let batchMaxX = Math.max(80, firstSlotMinX - 10);
+        
+        pageColumns.push({
+          name: "Batch",
+          minX: 0,
+          maxX: batchMaxX,
+          start: "00:00",
+          end: "00:00",
+          isBreak: false
+        });
+
+        for (let i = 0; i < clusters.length; i++) {
+          let cl = clusters[i];
+          let text = cl.map(it => it.str).join(" ").trim();
+          let clusterMinX = cl[0].transform[4];
+          let clusterMaxX = cl[cl.length - 1].transform[4] + (cl[cl.length - 1].width || 0);
+          
+          let minX = i === 0 ? batchMaxX : (clusters[i-1][clusters[i-1].length - 1].transform[4] + clusterMinX) / 2;
+          let maxX = i + 1 < clusters.length ? (clusterMaxX + clusters[i+1][0].transform[4]) / 2 : 850;
+          
+          let isBreak = /break|kaerb/i.test(text) || /\b(12:45\s*-\s*1:40|12:00\s*-\s*1:00|1:00\s*-\s*1:30)\b/i.test(text);
+          let m = text.match(/(\d{1,2})[:.]?(\d{2})\s*-\s*(\d{1,2})[:.]?(\d{2})/);
+          let start = "00:00";
+          let end = "00:00";
+          if (m) {
+            start = `${m[1].padStart(2, '0')}:${m[2]}`;
+            end = `${m[3].padStart(2, '0')}:${m[4]}`;
+          }
+
+          pageColumns.push({
+            name: `Slot ${i + 1}`,
+            minX: minX,
+            maxX: maxX,
+            start: start,
+            end: end,
+            isBreak: isBreak,
+            text: text
+          });
+        }
+      }
+    }
+
+    // Fallback if no dynamic header found
+    if (pageColumns.length < 5) {
+      pageColumns = [
+        { name: "Batch", minX: 0, maxX: 100, start: "00:00", end: "00:00", isBreak: false },
+        { name: "Slot 1", minX: 100, maxX: 204, start: "08:30", end: "09:55", isBreak: false },
+        { name: "Slot 2", minX: 204, maxX: 319, start: "09:55", end: "11:20", isBreak: false },
+        { name: "Slot 3", minX: 319, maxX: 434, start: "11:20", end: "12:45", isBreak: false },
+        { name: "Slot 4", minX: 434, maxX: 549, start: "12:45", end: "01:40", isBreak: true },
+        { name: "Slot 5", minX: 549, maxX: 664, start: "01:40", end: "03:05", isBreak: false },
+        { name: "Slot 6", minX: 664, maxX: 780, start: "03:05", end: "04:30", isBreak: false }
+      ];
     }
     
     // 3. Cluster batch rows
@@ -1706,7 +1750,7 @@ async function parseTimetablePdf(arrayBuffer) {
     for (let item of items) {
       let x = item.transform[4];
       let y = item.transform[5];
-      if (x < 100 && item.str.trim() !== '') {
+      if (x < pageColumns[0].maxX && item.str.trim() !== '') {
         let roundedY = Math.round(y / 5) * 5;
         if (!col0Groups[roundedY]) col0Groups[roundedY] = [];
         col0Groups[roundedY].push(item);
@@ -1729,12 +1773,13 @@ async function parseTimetablePdf(arrayBuffer) {
     if (rowStarts.length === 0) continue;
     
     // 4. Construct cells
+    let numCols = pageColumns.length;
     let reconstructedRows = [];
     for (let i = 0; i < rowStarts.length; i++) {
       reconstructedRows.push({
         batch: rowStarts[i].text,
-        cells: Array(7).fill(""),
-        cellItems: Array(7).fill(null).map(() => [])
+        cells: Array(numCols).fill(""),
+        cellItems: Array(numCols).fill(null).map(() => [])
       });
     }
     
@@ -1761,8 +1806,8 @@ async function parseTimetablePdf(arrayBuffer) {
       
       let targetColIdx = -1;
       let centerX = x + (item.width || 0) / 2;
-      for (let colIdx = 0; colIdx < GRID_COLUMNS.length; colIdx++) {
-        let col = GRID_COLUMNS[colIdx];
+      for (let colIdx = 0; colIdx < pageColumns.length; colIdx++) {
+        let col = pageColumns[colIdx];
         if (centerX >= col.minX && centerX < col.maxX) {
           targetColIdx = colIdx;
           break;
@@ -1775,7 +1820,7 @@ async function parseTimetablePdf(arrayBuffer) {
     
     // Reconstruct strings
     for (let row of reconstructedRows) {
-      for (let c = 0; c < 7; c++) {
+      for (let c = 0; c < numCols; c++) {
         let cellItems = row.cellItems[c];
         if (cellItems.length === 0) continue;
         let lines = {};
@@ -1801,14 +1846,15 @@ async function parseTimetablePdf(arrayBuffer) {
       if (!batchInfo) continue;
       
       let c = 1;
-      while (c <= 6) {
+      while (c < numCols) {
         let cellText = row.cells[c];
         if (!cellText || cellText.trim() === '') {
           c++;
           continue;
         }
         
-        if (slotTimes[c].isBreak || /break|kaerb/i.test(cellText)) {
+        let colDef = pageColumns[c];
+        if (colDef.isBreak || /break|kaerb/i.test(cellText)) {
           c++;
           continue;
         }
@@ -1819,16 +1865,16 @@ async function parseTimetablePdf(arrayBuffer) {
           continue;
         }
         
-        let startTime = slotTimes[c].start;
-        let endTime = slotTimes[c].end;
+        let startTime = colDef.start;
+        let endTime = colDef.end;
         
         let j = c + 1;
-        while (j <= 6) {
+        while (j < numCols) {
           if (!row.cells[j] || row.cells[j].trim() === '') {
-            if (slotTimes[j].isBreak) {
+            if (pageColumns[j].isBreak) {
               break;
             }
-            endTime = slotTimes[j].end;
+            endTime = pageColumns[j].end;
             j++;
           } else {
             break;
