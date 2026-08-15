@@ -1840,7 +1840,30 @@ async function parseTimetablePdf(arrayBuffer) {
       }
     }
     
-    // 5. Parse cell content and merge consecutive columns (for lab slots)
+    // 5. Unify multi-slot spanned labs where subject is centered and teacher/room is right-aligned
+    for (let row of reconstructedRows) {
+      for (let c = 1; c < numCols - 1; c++) {
+        let curCell = row.cells[c];
+        let nextCell = row.cells[c + 1];
+        if (!curCell || !nextCell) continue;
+        if (pageColumns[c].isBreak || pageColumns[c + 1].isBreak) continue;
+        
+        let curParsed = parseClassCell(curCell);
+        let nextParsed = parseClassCell(nextCell);
+        
+        if (curParsed && nextParsed) {
+          // If curCell has a subject but no teacher (Unknown), and nextCell has a teacher/room
+          if (curParsed.teacher === "Unknown" && nextParsed.teacher !== "Unknown") {
+            if (nextParsed.subject === "Unknown" || nextParsed.subject === curParsed.subject || curParsed.subject.toLowerCase().includes("lab")) {
+              row.cells[c] = `${curCell}\n${nextCell}`;
+              row.cells[c + 1] = ""; // Merged into slot c
+            }
+          }
+        }
+      }
+    }
+    
+    // 6. Parse cell content and merge consecutive columns (for lab slots)
     for (let row of reconstructedRows) {
       let batchInfo = parseBatch(row.batch);
       if (!batchInfo) continue;
