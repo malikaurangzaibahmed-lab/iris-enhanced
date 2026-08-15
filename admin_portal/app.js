@@ -2900,6 +2900,191 @@ function setup3DTiltEffects() {
   // 3D tilt effects disabled for clean, stable layout
 }
 
+// ==========================================================================
+// LIVE DATABASE INSPECTORS (TIMETABLE & EXAMS) WITH SEED FALLBACK
+// ==========================================================================
+
+const SAMPLE_TIMETABLE_SESSIONS = [
+  { day: "Monday", start: "08:30", end: "10:00", room: "C-101", batch: "BCS-6A", subject: "CS314 Artificial Intelligence", teacher: "Dr. Shahzad Ali" },
+  { day: "Monday", start: "10:00", end: "11:30", room: "Lab-3", batch: "BCS-6A", subject: "CS314L Artificial Intelligence Lab", teacher: "Engr. Bilal Masood" },
+  { day: "Tuesday", start: "11:30", end: "01:00", room: "C-204", batch: "BSE-4B", subject: "SE201 Software Engineering", teacher: "Dr. Nadeem Akhtar" },
+  { day: "Tuesday", start: "01:30", end: "03:00", room: "EE-04", batch: "BEE-8A", subject: "EE499 Final Year Project", teacher: "Dr. Usman Khalid" },
+  { day: "Wednesday", start: "08:30", end: "10:00", room: "C-105", batch: "BAI-2A", subject: "AI101 Intro to Data Science", teacher: "Dr. Ayesha Tariq" },
+  { day: "Thursday", start: "10:00", end: "11:30", room: "C-102", batch: "BCS-6A", subject: "CS320 Operating Systems", teacher: "Dr. Farhan Riaz" },
+  { day: "Friday", start: "09:00", end: "10:30", room: "C-201", batch: "BCS-8B", subject: "CS490 Cloud Native Systems", teacher: "Dr. Shahzad Ali" }
+];
+
+const SAMPLE_EXAM_SESSIONS = [
+  { date: "2026-04-13", time: "09:00 - 11:00", room: "Hall-A", batch: "BCS-6A", subject: "CS314 Artificial Intelligence" },
+  { date: "2026-04-14", time: "11:30 - 01:30", room: "Hall-B", batch: "BSE-4B", subject: "SE201 Software Engineering" },
+  { date: "2026-04-15", time: "02:00 - 04:00", room: "C-101", batch: "BAI-2A", subject: "AI101 Intro to Data Science" },
+  { date: "2026-04-16", time: "09:00 - 11:00", room: "EE-Hall", batch: "BEE-8A", subject: "EE499 Power Systems & Smart Grids" },
+  { date: "2026-04-17", time: "11:30 - 01:30", room: "Hall-A", batch: "BCS-8B", subject: "CS490 Cloud Native Systems" }
+];
+
+let liveClassesLedger = [...SAMPLE_TIMETABLE_SESSIONS];
+let liveExamsLedger = [...SAMPLE_EXAM_SESSIONS];
+
+async function refreshLiveClassesInspector() {
+  const tableBody = document.getElementById('inspector-classes-body');
+  if (!tableBody) return;
+
+  if (isConnected && db) {
+    try {
+      const doc = await db.collection('config').doc('global').get();
+      if (doc.exists && doc.data().active_timetable_json) {
+        const parsed = JSON.parse(doc.data().active_timetable_json);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          liveClassesLedger = parsed;
+        } else if (parsed.sessions && Array.isArray(parsed.sessions) && parsed.sessions.length > 0) {
+          liveClassesLedger = parsed.sessions;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not query live classes:", e);
+    }
+  }
+
+  filterLiveClassesInspector();
+}
+
+function filterLiveClassesInspector() {
+  const tableBody = document.getElementById('inspector-classes-body');
+  const searchInput = document.getElementById('inspector-classes-search');
+  if (!tableBody) return;
+
+  const q = (searchInput?.value || '').toLowerCase().trim();
+  const filtered = liveClassesLedger.filter(s => {
+    if (!q) return true;
+    const blob = `${s.day || ''} ${s.start || ''} ${s.end || ''} ${s.time || ''} ${s.room || ''} ${s.batch || ''} ${s.subject || ''} ${s.teacher || ''}`.toLowerCase();
+    return blob.includes(q);
+  });
+
+  if (filtered.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No class sessions match "${q}".</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = filtered.slice(0, 100).map(s => `
+    <tr>
+      <td><span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-cyan);">${s.day || 'Day'}</span></td>
+      <td><span style="font-family: var(--font-mono); font-size: 11px;">${s.start && s.end ? `${s.start} - ${s.end}` : (s.time || '08:30')}</span></td>
+      <td><span class="glass-pill-badge" style="color: var(--accent-emerald); font-size: 10px;">${s.room || 'TBD'}</span></td>
+      <td><span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700;">${s.batch || 'General'}</span></td>
+      <td><strong style="color: var(--text-title); font-size: 12px;">${s.subject || 'Lecture'}</strong></td>
+      <td style="color: var(--text-muted); font-size: 11.5px;">${s.teacher || s.instructor || 'STAFF'}</td>
+    </tr>
+  `).join('');
+}
+
+async function refreshLiveExamsInspector() {
+  const tableBody = document.getElementById('inspector-exams-body');
+  if (!tableBody) return;
+
+  if (isConnected && db) {
+    try {
+      const doc = await db.collection('config').doc('global').get();
+      if (doc.exists) {
+        const data = doc.data();
+        const jsonStr = data.active_midterm_json || data.active_finals_json;
+        if (jsonStr) {
+          const parsed = JSON.parse(jsonStr);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            liveExamsLedger = parsed;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not query live exams:", e);
+    }
+  }
+
+  filterLiveExamsInspector();
+}
+
+function filterLiveExamsInspector() {
+  const tableBody = document.getElementById('inspector-exams-body');
+  const searchInput = document.getElementById('inspector-exams-search');
+  if (!tableBody) return;
+
+  const q = (searchInput?.value || '').toLowerCase().trim();
+  const filtered = liveExamsLedger.filter(ex => {
+    if (!q) return true;
+    const blob = `${ex.date || ''} ${ex.time || ''} ${ex.room || ''} ${ex.batch || ''} ${ex.subject || ''}`.toLowerCase();
+    return blob.includes(q);
+  });
+
+  if (filtered.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No exam records match "${q}".</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = filtered.slice(0, 100).map(ex => `
+    <tr>
+      <td><span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-cyan);"><i class="fa-solid fa-calendar-day" style="margin-right: 4px;"></i> ${ex.date || 'TBD'}</span></td>
+      <td><span style="font-family: var(--font-mono); font-size: 11px;">${ex.time || '09:00 - 11:00'}</span></td>
+      <td><span class="glass-pill-badge" style="color: var(--accent-rose); font-size: 10px;">${ex.room || 'HALL'}</span></td>
+      <td><span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700;">${ex.batch || 'Batch'}</span></td>
+      <td><strong style="color: var(--text-title); font-size: 12px;">${ex.subject || 'Subject'}</strong></td>
+    </tr>
+  `).join('');
+}
+
+// Bind live inspector search and wipe buttons
+document.addEventListener('DOMContentLoaded', () => {
+  const classSearch = document.getElementById('inspector-classes-search');
+  if (classSearch) classSearch.addEventListener('input', filterLiveClassesInspector);
+
+  const btnRefreshClasses = document.getElementById('btn-refresh-inspector-classes');
+  if (btnRefreshClasses) btnRefreshClasses.addEventListener('click', () => {
+    refreshLiveClassesInspector();
+    showMossToast("Refreshed live classes ledger.", "info");
+  });
+
+  const btnWipeClasses = document.getElementById('btn-wipe-classes');
+  if (btnWipeClasses) btnWipeClasses.addEventListener('click', async () => {
+    if (!confirm("Are you sure you want to clear active classes timetable from the live database?")) return;
+    if (isConnected && db) {
+      await db.collection('config').doc('global').update({
+        active_timetable_json: "[]",
+        active_timetable_version: Date.now(),
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      incrementDatabaseOps();
+      liveClassesLedger = [];
+      filterLiveClassesInspector();
+      showMossToast("Live classes database wiped.", "info");
+      logTerminal("Wiped active classes timetable from database.", "warning");
+    }
+  });
+
+  const examsSearch = document.getElementById('inspector-exams-search');
+  if (examsSearch) examsSearch.addEventListener('input', filterLiveExamsInspector);
+
+  const btnRefreshExams = document.getElementById('btn-refresh-inspector-exams');
+  if (btnRefreshExams) btnRefreshExams.addEventListener('click', () => {
+    refreshLiveExamsInspector();
+    showMossToast("Refreshed live exams ledger.", "info");
+  });
+
+  const btnWipeExams = document.getElementById('btn-wipe-exams');
+  if (btnWipeExams) btnWipeExams.addEventListener('click', async () => {
+    if (!confirm("Are you sure you want to clear active exam date sheets from the live database?")) return;
+    if (isConnected && db) {
+      await db.collection('config').doc('global').update({
+        active_midterm_json: "[]",
+        active_finals_json: "[]",
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      incrementDatabaseOps();
+      liveExamsLedger = [];
+      filterLiveExamsInspector();
+      showMossToast("Live exams database wiped.", "info");
+      logTerminal("Wiped active exams date sheets from database.", "warning");
+    }
+  });
+});
+
 function sanitizeAndValidateFirebaseConfig(jsonStr) {
   const logConsole = document.getElementById('config-validation-log');
   if (logConsole) {
@@ -4113,52 +4298,67 @@ async function deploySemesterScheduleToFirestore() {
 }
 
 // ==========================================================================
-// COMMUNITY FEEDBACK LIVE STREAM CONTROLLER
+// AUTHENTIC COMMUNITY FEEDBACK & TELEMETRY STREAM CONTROLLER
 // ==========================================================================
+
 let allLiveFeedback = [];
+let firestoreFeedbackListener = null;
 
-async function renderFeedbackFeed() {
-  const container = document.getElementById('feedback-feed-container');
-  const countBadge = document.getElementById('feedback-count-badge');
-  if (!container) return;
-
-  if (!isConnected || !db) {
-    container.innerHTML = `
-      <div class="glass-panel" style="text-align: center; color: var(--text-muted); padding: 36px;">
-        <i class="fa-solid fa-satellite-dish" style="font-size: 28px; color: var(--accent-indigo); margin-bottom: 10px; display: block;"></i>
-        Database link offline. Connect to query live user feedback.
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="glass-panel" style="text-align: center; color: var(--text-muted); padding: 36px;">
-      <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; color: var(--accent-cyan); margin-bottom: 10px; display: block;"></i>
-      Querying real-time feedback submissions from IRIS Firestore...
-    </div>
-  `;
+function initFirestoreFeedbackStream() {
+  if (!db) return;
+  if (firestoreFeedbackListener) return; // already listening
 
   try {
-    const snap = await db.collection('feedback').orderBy('created_at', 'desc').limit(60).get();
-    incrementDatabaseOps();
+    logTerminal('Connecting live Firestore feedback stream from IRIS mobile clients...', 'info');
+    firestoreFeedbackListener = db.collection('feedback').orderBy('created_at', 'desc').onSnapshot(snapshot => {
+      const cloudItems = [];
+      snapshot.forEach(doc => {
+        const data = doc.data() || {};
+        let formattedDate = 'Recent';
+        if (data.created_at && typeof data.created_at.toDate === 'function') {
+          formattedDate = data.created_at.toDate().toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } else if (data.date) {
+          formattedDate = data.date;
+        }
 
-    allLiveFeedback = [];
-    snap.forEach(doc => {
-      allLiveFeedback.push({ id: doc.id, ...doc.data() });
+        cloudItems.push({
+          id: doc.id,
+          name: data.name || data.user_name || 'Anonymous User',
+          user_role: data.user_role || (data.role ? data.role : 'Student'),
+          roll_number: data.roll_number || data.rollNo || data.roll || '',
+          batch: data.batch || data.department || data.dept || '',
+          device: data.device || data.device_info || data.deviceSpecs || '',
+          category: data.category || 'General Feedback',
+          rating: Number(data.rating) || 5,
+          comment: data.comment || data.feedback_text || data.message || '',
+          date: formattedDate,
+          platform: data.platform || 'Android Mobile Client',
+          isCloud: true
+        });
+      });
+
+      allLiveFeedback = cloudItems;
+      filterFeedbackFeed();
+      logTerminal(`Feedback stream synchronized: <strong>${cloudItems.length}</strong> real submissions loaded from cloud.`, 'info');
+    }, err => {
+      console.warn("Feedback snapshot listener error:", err);
+      logTerminal(`Feedback stream error: ${err.message}`, 'warning');
     });
-
-    filterFeedbackFeed();
-    logTerminal(`Retrieved <strong>${allLiveFeedback.length}</strong> community feedback entries from Firestore.`, 'info');
-  } catch (err) {
-    console.error("Feedback query error:", err);
-    container.innerHTML = `
-      <div class="glass-panel" style="text-align: center; color: var(--accent-rose); padding: 28px;">
-        <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
-        Failed to query feedback: ${err.message}
-      </div>
-    `;
+  } catch (e) {
+    console.warn("Could not start feedback stream:", e);
+    logTerminal(`Feedback initialization error: ${e.message}`, 'warning');
   }
+}
+
+async function renderFeedbackFeed() {
+  initFirestoreFeedbackStream();
+  filterFeedbackFeed();
 }
 
 window.filterFeedbackFeed = function() {
@@ -4172,80 +4372,86 @@ window.filterFeedbackFeed = function() {
   const roleFilter = roleSelect?.value || 'ALL';
 
   const filtered = allLiveFeedback.filter(item => {
-    const matchRole = roleFilter === 'ALL' || (item.user_role || '').toLowerCase() === roleFilter.toLowerCase();
-    const textBlob = `${item.user_name || ''} ${item.roll_number || ''} ${item.feedback_text || ''} ${item.device_info || ''}`.toLowerCase();
+    const matchRole = roleFilter === 'ALL' || (item.user_role || 'Student').toLowerCase() === roleFilter.toLowerCase();
+    const textBlob = `${item.name || ''} ${item.roll_number || ''} ${item.batch || ''} ${item.category || ''} ${item.comment || ''} ${item.device || ''} ${item.platform || ''}`.toLowerCase();
     const matchQuery = !q || textBlob.includes(q);
     return matchRole && matchQuery;
   });
 
   if (countBadge) {
-    countBadge.innerText = `${filtered.length} SUBMISSIONS`;
+    countBadge.innerText = `${filtered.length} ${filtered.length === 1 ? 'SUBMISSION' : 'SUBMISSIONS'}`;
   }
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div class="glass-panel" style="text-align: center; color: var(--text-muted); padding: 36px;">
-        <i class="fa-solid fa-comments" style="font-size: 28px; color: var(--accent-cyan); margin-bottom: 10px; display: block;"></i>
-        No community feedback matches the active filter or search query.
+      <div class="glass-panel" style="text-align: center; color: var(--text-muted); padding: 48px 24px;">
+        <i class="fa-solid fa-comments" style="font-size: 32px; color: var(--accent-cyan); margin-bottom: 12px; display: block; opacity: 0.8;"></i>
+        <strong style="font-size: 14px; color: var(--text-title); display: block; margin-bottom: 6px;">
+          ${q ? `No feedback matching "${q}"` : 'No Feedback Submissions in Cloud'}
+        </strong>
+        <p style="font-size: 12px; color: var(--text-muted); max-width: 360px; margin: 0 auto; line-height: 1.5;">
+          ${q ? 'Try adjusting your search terms or role filters.' : 'Live user telemetry and feedback submitted from the IRIS mobile app will stream here automatically in real time.'}
+        </p>
       </div>
     `;
     return;
   }
 
   container.innerHTML = filtered.map(f => {
-    const rating = Number(f.rating) || 5;
+    const rating = Math.max(1, Math.min(5, Number(f.rating) || 5));
     let starsHtml = '';
     for (let i = 1; i <= 5; i++) {
-      starsHtml += `<i class="fa-solid fa-star" style="color: ${i <= rating ? 'var(--accent-amber)' : 'rgba(255,255,255,0.2)'}; font-size: 11px;"></i>`;
-    }
-
-    let timeStr = 'Just now';
-    if (f.created_at) {
-      const d = f.created_at.toDate ? f.created_at.toDate() : new Date(f.created_at);
-      timeStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      starsHtml += `<i class="fa-solid fa-star" style="color: ${i <= rating ? 'var(--accent-amber)' : 'rgba(255,255,255,0.18)'}; font-size: 11px;"></i>`;
     }
 
     const isFaculty = (f.user_role || '').toLowerCase() === 'faculty';
     const roleBadgeColor = isFaculty ? 'var(--accent-indigo)' : 'var(--accent-cyan)';
     const roleBg = isFaculty ? 'rgba(129, 140, 248, 0.18)' : 'rgba(56, 189, 248, 0.18)';
+    const initial = (f.name || 'U').trim().charAt(0).toUpperCase() || 'U';
 
     return `
-      <div class="glass-panel" style="display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; transition: all 0.2s ease;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+      <div class="glass-panel" style="display: flex; flex-direction: column; gap: 14px; padding: 20px 24px; transition: all 0.2s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, ${roleBadgeColor}, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-              ${(f.user_name || 'U').substring(0, 1).toUpperCase()}
+            <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, ${roleBadgeColor}, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 15px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.35); flex-shrink: 0;">
+              ${initial}
             </div>
             <div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <strong style="color: var(--text-title); font-size: 13.5px;">${f.user_name || 'Anonymous User'}</strong>
-                <span style="font-size: 9.5px; font-weight: 700; text-transform: uppercase; background: ${roleBg}; color: ${roleBadgeColor}; padding: 3px 8px; border-radius: 9999px; font-family: var(--font-mono);">
-                  ${f.user_role || 'Student'}
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <strong style="color: var(--text-title); font-size: 14.5px;">${f.name}</strong>
+                <span style="font-size: 9.5px; font-weight: 800; text-transform: uppercase; background: ${roleBg}; color: ${roleBadgeColor}; padding: 3px 10px; border-radius: 9999px; font-family: var(--font-mono); border: 1px solid rgba(255,255,255,0.2);">
+                  ${isFaculty ? '<i class="fa-solid fa-graduation-cap" style="margin-right: 3px;"></i>' : ''}${f.user_role || 'Student'}
                 </span>
-                ${f.roll_number ? `<span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 3px 7px; border-radius: 6px;">${f.roll_number}</span>` : ''}
+                ${f.roll_number && f.roll_number !== 'N/A' ? `<span style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-cyan); background: rgba(56, 189, 248, 0.12); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.25); font-weight: 700;">${f.roll_number}</span>` : ''}
+                ${f.batch && f.batch !== 'N/A' ? `<span style="font-family: var(--font-mono); font-size: 10px; color: #c084fc; background: rgba(168, 85, 247, 0.12); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(168, 85, 247, 0.2); font-weight: 700;">${f.batch}</span>` : ''}
               </div>
-              <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${timeStr}</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
+                <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${f.date}</span>
+                ${f.category ? `<span style="font-size: 10px; font-family: var(--font-mono); color: var(--accent-emerald); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 7px; border-radius: 4px;">${f.category}</span>` : ''}
+              </div>
             </div>
           </div>
           
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="display: inline-flex; gap: 3px; background: rgba(251, 191, 36, 0.12); padding: 4px 8px; border-radius: 9999px; border: 1px solid rgba(251, 191, 36, 0.3);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="display: inline-flex; gap: 3px; background: rgba(251, 191, 36, 0.14); padding: 5px 12px; border-radius: 9999px; border: 1px solid rgba(251, 191, 36, 0.35);">
               ${starsHtml}
             </div>
-            <button type="button" class="btn-row-action delete" onclick="deleteLiveFeedback('${f.id}')" title="Delete Feedback Record">
+            <button type="button" class="btn-row-action delete" onclick="deleteLiveFeedback('${f.id}')" title="Delete Feedback Record from Firestore" style="padding: 6px 10px;">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
         </div>
 
-        <p style="font-size: 13px; line-height: 1.55; color: var(--text-body); background: rgba(0,0,0,0.22); padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border-subtle); margin: 0;">
-          ${f.feedback_text || 'No comment provided.'}
-        </p>
+        ${f.comment ? `
+          <p style="font-size: 13.5px; line-height: 1.6; color: var(--text-body); background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 14px; border: 1px solid var(--border-subtle); margin: 0; white-space: pre-wrap;">
+            ${f.comment}
+          </p>
+        ` : ''}
 
-        ${f.device_info ? `
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-family: var(--font-mono); color: var(--text-muted);">
+        ${f.device && f.device !== 'N/A' ? `
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);">
             <i class="fa-solid fa-mobile-screen-button" style="color: var(--accent-cyan);"></i>
-            <span>${f.device_info}</span>
+            <span>${f.device}</span>
           </div>
         ` : ''}
       </div>
@@ -4254,23 +4460,27 @@ window.filterFeedbackFeed = function() {
 };
 
 window.deleteLiveFeedback = async function(docId) {
-  if (!confirm("Are you sure you want to delete this feedback record from Firestore?")) return;
+  if (!confirm("Are you sure you want to delete this authentic feedback record from Firestore?")) return;
   if (!db) return;
 
   try {
     await db.collection('feedback').doc(docId).delete();
+    incrementDatabaseOps();
     allLiveFeedback = allLiveFeedback.filter(f => f.id !== docId);
     filterFeedbackFeed();
-    showMossToast("Feedback entry deleted.", "info");
+    showMossToast("Feedback entry deleted from Firestore.", "info");
     logTerminal(`Deleted feedback document: <code>${docId}</code>`, 'info');
   } catch (err) {
     showMossToast(`Failed to delete: ${err.message}`, "error");
+    logTerminal(`Failed to delete feedback: ${err.message}`, 'error');
   }
 };
 
-// Auto-initialize semester handlers on document ready
+// Auto-initialize handlers on document ready
 document.addEventListener('DOMContentLoaded', () => {
   setupSemesterScheduleHandlers();
+  renderFeedbackFeed();
 });
+
 
 
