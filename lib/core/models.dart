@@ -168,9 +168,19 @@ class ClassSession {
     }
     
     final dayStr = (json['day'] ?? json['weekday'] ?? 'Monday').toString();
-    final subjectStr = (json['subject'] ?? json['course'] ?? json['title'] ?? 'Unknown').toString();
-    final teacherStr = (json['teacher'] ?? json['instructor'] ?? json['staff'] ?? 'Unknown').toString();
+    var subjectStr = (json['subject'] ?? json['course'] ?? json['title'] ?? 'Unknown').toString();
+    var teacherStr = (json['teacher'] ?? json['instructor'] ?? json['staff'] ?? 'Unknown').toString();
     final roomStr = (json['room'] ?? json['location'] ?? 'TBD').toString();
+
+    // If teacher is unknown/staff but subject has parenthesized instructor e.g. "CS314 AI (Dr. Shahzad Ali)"
+    if ((teacherStr.toLowerCase() == 'unknown' || teacherStr.toLowerCase() == 'staff') && subjectStr.contains('(')) {
+      final parenMatch = RegExp(r'\(((?:Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*)\)', caseSensitive: false).firstMatch(subjectStr);
+      if (parenMatch != null) {
+        teacherStr = parenMatch.group(1)!.trim();
+      }
+    }
+
+    final cleanSub = FormatGuard.sanitizeSubject(subjectStr);
 
     return ClassSession(
       id: json['id'] as String? ?? '${batchKey.batch}-$dayStr-$start',
@@ -178,7 +188,7 @@ class ClassSession {
       dayIndex: FormatGuard.dayIndex(dayStr),
       startTime: start,
       endTime: end,
-      subject: subjectStr,
+      subject: cleanSub,
       teacher: FormatGuard.formatTeacherName(teacherStr),
       room: FormatGuard.sanitizeRoom(roomStr),
     );

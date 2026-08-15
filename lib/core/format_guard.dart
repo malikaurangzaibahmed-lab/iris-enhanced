@@ -71,15 +71,68 @@ class FormatGuard {
     return '${hour.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')} $period';
   }
 
+  static final RegExp _batchPrefixRegex = RegExp(
+    r'^(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA|BSCS|BSSE|BSAI|BSDS|BSEE|BSME)-?\d*[A-Z]?)\s*[-/:]?\s*',
+    caseSensitive: false,
+  );
+  static final RegExp _batchSuffixRegex = RegExp(
+    r'\s*[-/:]?\s*(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA)-?\d*[A-Z]?)$',
+    caseSensitive: false,
+  );
+  static final RegExp _parenthesizedTeacherRegex = RegExp(
+    r'\s*\([^)]*(?:Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*\)',
+    caseSensitive: false,
+  );
+  static final RegExp _durationNoiseRegex = RegExp(
+    r'\s*\(\s*\d+\s*(?:hrs?|hours?)\s*\)\s*',
+    caseSensitive: false,
+  );
+  static final Set<String> _deptPrefixes = {
+    'CS', 'SE', 'AI', 'DS', 'CYS', 'BCS', 'BSE', 'BAI', 'BDS', 'BCY',
+    'EE', 'BEE', 'BSEE', 'CE', 'BCE', 'TE', 'BTE', 'PTE',
+    'ME', 'BME', 'BSME', 'CVE', 'BCVE', 'BSCE',
+    'MS', 'BBA', 'MBA', 'AF', 'BAF', 'BBS', 'EC', 'BEC', 'MGT', 'HRM',
+    'MT', 'MTH', 'BMT', 'HUM', 'ENG', 'BEN', 'PSY', 'BPS', 'MCM', 'IR', 'BIR',
+    'FSN', 'BTY', 'BCH', 'HND', 'RBS', 'BIO', 'BBI', 'MB', 'PHY', 'CHM', 'VS'
+  };
+
+  static String sanitizeSubject(String raw) {
+    if (raw.isEmpty || raw.toLowerCase() == 'unknown') return 'Unknown';
+    var cleaned = raw.trim();
+    
+    // Strip parenthesized teacher
+    cleaned = cleaned.replaceAll(_parenthesizedTeacherRegex, '');
+    // Strip room noise and duration markers
+    cleaned = cleaned.replaceAll(_roomNoise, '').replaceAll(_durationNoiseRegex, '');
+    // Strip leading/trailing batch identifiers
+    cleaned = cleaned.replaceAll(_batchPrefixRegex, '').replaceAll(_batchSuffixRegex, '');
+    // Normalize spaces
+    cleaned = cleaned.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+    
+    return cleaned.isEmpty ? raw.trim() : cleaned;
+  }
+
   static String formatTeacherName(String name) {
     var raw = name.trim();
-    if (raw.isEmpty || raw.toLowerCase() == 'unknown' || raw.toLowerCase() == 'tbd') {
-      return raw.isEmpty ? 'Unknown' : raw;
+    if (raw.isEmpty || raw.toLowerCase() == 'unknown' || raw.toLowerCase() == 'tbd' || raw.toLowerCase() == 'none') {
+      return 'Staff';
+    }
+    if (raw.toLowerCase() == 'staff' || raw.toLowerCase() == 'lecture') {
+      return 'Staff';
+    }
+
+    // Strip department prefix if any e.g. "CS Dr. Shahzad Ali" -> "Dr. Shahzad Ali", "ME Zafar Farooq" -> "Zafar Farooq"
+    final firstSpaceIdx = raw.indexOf(' ');
+    if (firstSpaceIdx > 0) {
+      final firstToken = raw.substring(0, firstSpaceIdx).replaceAll('.', '').toUpperCase();
+      if (_deptPrefixes.contains(firstToken)) {
+        raw = raw.substring(firstSpaceIdx + 1).trim();
+      }
     }
 
     // 1. Separate common titles/prefixes
     final prefixRegex = RegExp(
-      r'^\s*(dr|prof|engr|mr|ms|mrs|sir|mam|lecturer)\b\.?\s*',
+      r'^\s*(dr|prof|engr|mr|ms|mrs|sir|mam|madam|lecturer|teacher|faculty|hafiz|qari|syed|syeda|chaudhry|ch|malik|raja|sardar|mian|sheikh|sh)\b\.?\s*',
       caseSensitive: false,
     );
     
@@ -111,13 +164,31 @@ class FormatGuard {
           foundPrefix = 'Sir';
           break;
         case 'mam':
+        case 'madam':
           foundPrefix = 'Mam';
+          break;
+        case 'hafiz':
+          foundPrefix = 'Hafiz';
+          break;
+        case 'syed':
+          foundPrefix = 'Syed';
+          break;
+        case 'syeda':
+          foundPrefix = 'Syeda';
+          break;
+        case 'ch':
+        case 'chaudhry':
+          foundPrefix = 'Ch.';
+          break;
+        case 'sh':
+        case 'sheikh':
+          foundPrefix = 'Sh.';
           break;
         case 'lecturer':
           foundPrefix = 'Lecturer';
           break;
         default:
-          foundPrefix = matchedText[0].toUpperCase() + matchedText.substring(1) + '.';
+          foundPrefix = '${matchedText[0].toUpperCase()}${matchedText.substring(1)}.';
       }
       raw = raw.substring(prefixMatch.end).trim();
     }
@@ -146,7 +217,6 @@ class FormatGuard {
     var processedName = formattedWords.join(' ');
     
     // Clean up initials spaces: e.g. "M.Hassan" -> "M. Hassan" or "H. M.Hassan" -> "H. M. Hassan"
-    // Also "H.M." -> "H. M."
     processedName = processedName.replaceAllMapped(RegExp(r'\b([A-Z])\.\s*([A-Z])\.?'), (match) {
       return '${match.group(1)}. ${match.group(2)}.';
     });
