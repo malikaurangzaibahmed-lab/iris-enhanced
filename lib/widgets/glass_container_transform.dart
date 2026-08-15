@@ -1,10 +1,11 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/ui_feedback.dart';
 
 /// Ultra-Premium Liquid Glass Container Transform Route.
 /// Mimics iOS 18 / Android 15 OS-level container morphing with specular edge glow,
-/// spring physics, backdrop blur scrim, and focal-point content expansion.
+/// elastic spring physics, backdrop blur scrim, and focal-point content expansion.
 class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
   final Widget destinationPage;
   final Widget? originWidget;
@@ -21,8 +22,8 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
     this.originRadius = 24.0,
     this.accentColor,
   }) : super(
-          transitionDuration: const Duration(milliseconds: 380),
-          reverseTransitionDuration: const Duration(milliseconds: 300),
+          transitionDuration: const Duration(milliseconds: 400),
+          reverseTransitionDuration: const Duration(milliseconds: 320),
           opaque: false,
           barrierDismissible: false,
           barrierColor: Colors.transparent,
@@ -45,17 +46,17 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
               if (startRect == Rect.zero) {
                 startRect = Rect.fromCenter(
                   center: Offset(screenSize.width / 2, screenSize.height / 2),
-                  width: screenSize.width * 0.52,
-                  height: 110,
+                  width: screenSize.width * 0.55,
+                  height: 120,
                 );
               }
             }
 
-            // Liquid OS Spring Curve (iOS 18 Glide Physics)
+            // Liquid OS Spring Curve (iOS 18 Elastic Glide Physics)
             final curve = CurvedAnimation(
               parent: animation,
-              curve: const Cubic(0.16, 1.0, 0.3, 1.0),
-              reverseCurve: const Cubic(0.20, 0.0, 0.75, 0.15),
+              curve: const Cubic(0.08, 0.95, 0.12, 1.0),
+              reverseCurve: const Cubic(0.24, 0.0, 0.70, 0.20),
             );
 
             // Interpolated Rect, Radius, and Specular Glow
@@ -63,25 +64,25 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
             final currentRadius = lerpDouble(originRadius, 0.0, curve.value) ?? 0.0;
             final scrimOpacity = (curve.value * 0.45).clamp(0.0, 0.45);
             final innerContentScale = lerpDouble(0.96, 1.0, curve.value) ?? 1.0;
-            final edgeSpecularGlow = ((1.0 - (curve.value - 0.45).abs() * 2.2) * 0.40).clamp(0.0, 0.40);
+            final edgeSpecularGlow = (math.sin(curve.value * math.pi) * 0.60).clamp(0.0, 0.60);
 
-            // Dual-child opacity thresholds for seamless transition
-            final startOpacity = (1.0 - (curve.value / 0.28)).clamp(0.0, 1.0);
-            final endOpacity = ((curve.value - 0.06) / 0.94).clamp(0.0, 1.0);
+            // Dual-child opacity thresholds for seamless crossfade
+            final startOpacity = (1.0 - (curve.value / 0.26)).clamp(0.0, 1.0);
+            final endOpacity = ((curve.value - 0.05) / 0.95).clamp(0.0, 1.0);
 
             final glow = accentColor ?? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6));
 
             return Stack(
               children: [
                 // 1. Backdrop Scrim & Blur Isolation
-                if (scrimOpacity > 0.01)
+                if (scrimOpacity > 0.005)
                   Positioned.fill(
                     child: Opacity(
-                      opacity: (curve.value * 2.0).clamp(0.0, 1.0),
+                      opacity: (curve.value * 2.2).clamp(0.0, 1.0),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(
-                          sigmaX: 16.0 * curve.value,
-                          sigmaY: 16.0 * curve.value,
+                          sigmaX: 18.0 * curve.value,
+                          sigmaY: 18.0 * curve.value,
                         ),
                         child: Container(
                           color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
@@ -141,7 +142,7 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                                 opacity: endOpacity,
                                 child: Transform.scale(
                                   scale: innerContentScale,
-                                  alignment: Alignment.center,
+                                  alignment: Alignment.topCenter,
                                   child: OverflowBox(
                                     minWidth: screenSize.width,
                                     maxWidth: screenSize.width,
