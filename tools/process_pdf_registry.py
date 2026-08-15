@@ -17,15 +17,15 @@ from typing import Dict, List, Optional, Tuple
 import pdfplumber
 
 PDF_PATHS = [
-    Path(r"D:\Flutter\student_organizer\assets\CS-12-1.pdf"),
-    Path(r"D:\Flutter\student_organizer\assets\CE-1.pdf"),
-    Path(r"D:\Flutter\student_organizer\assets\EE.pdf"),
-    Path(r"D:\Flutter\student_organizer\assets\FSn,BTY,BCH,HND,RBS.pdf"),
-    Path(r"D:\Flutter\student_organizer\assets\HUM-1.pdf"),
-    Path(r"D:\Flutter\student_organizer\assets\ME-1.pdf"),
-    Path(r"D:\Flutter\student_organizer\assets\MS-2.pdf"),
+    Path("assets/documents/CS-12-1.pdf"),
+    Path("assets/documents/CE-1.pdf"),
+    Path("assets/documents/EE.pdf"),
+    Path("assets/documents/FSn,BTY,BCH,HND,RBS.pdf"),
+    Path("assets/documents/HUM-1.pdf"),
+    Path("assets/documents/ME-1.pdf"),
+    Path("assets/documents/MS-2.pdf"),
 ]
-SEED_PATH = Path(r"D:\Flutter\student_organizer\assets\timetable_seed.json")
+SEED_PATH = Path("assets/timetable_seed.json")
 
 # ── Day names ──────────────────────────────────────────────────────────
 DAY_NAMES = {
