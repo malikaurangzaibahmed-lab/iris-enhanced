@@ -280,6 +280,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Wallpaper & Theme Toggles
+  const btnToggleWallpaper = document.getElementById('btn-toggle-wallpaper');
+  if (btnToggleWallpaper) {
+    btnToggleWallpaper.addEventListener('click', () => {
+      document.body.classList.toggle('theme-forest');
+      const isForest = document.body.classList.contains('theme-forest');
+      localStorage.setItem('iris_portal_wallpaper', isForest ? 'forest' : 'alpine');
+      showMossToast(isForest ? "Emerald Mist Forest theme active!" : "Alpine Sunset theme active!", "info");
+      logTerminal(`Wallpaper switched: <strong>${isForest ? 'Emerald Mist Forest' : 'Alpine Sunset'}</strong>`, 'info');
+    });
+    if (localStorage.getItem('iris_portal_wallpaper') === 'forest') {
+      document.body.classList.add('theme-forest');
+    }
+  }
+
+  const btnThemeToggle = document.getElementById('btn-theme-toggle');
+  if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('iris_portal_theme', nextTheme);
+      btnThemeToggle.innerHTML = nextTheme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+      showMossToast(`Theme switched to ${nextTheme.toUpperCase()} mode!`, "info");
+    });
+    const savedTheme = localStorage.getItem('iris_portal_theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      btnThemeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    }
+  }
+
   // Legacy tab support
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.workspace-tab-pane');
