@@ -104,7 +104,7 @@
     "batch": "FA22-BBA-B31",
     "day": "Tuesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "F of Int.Relatns (1Hr)",
     "teacher": "Zia Hassan",
     "room": "B13"
@@ -154,7 +154,7 @@
     "batch": "FA22-BCS-8-A",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "E-Commerce and Digital Marketing (1 hr)",
     "teacher": "Mr. Hafiz Muhammad Mudasar Khan",
     "room": "B12"
@@ -204,7 +204,7 @@
     "batch": "FA22-BCS-8-A",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "E-Commerce and Digital Marketing (1 hr)",
     "teacher": "Mr. Hafiz Muhammad Mudasar Khan",
     "room": "C1.4"
@@ -244,7 +244,7 @@
     "batch": "FA22-BCS-8-B",
     "day": "Thursday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "E-Commerce and Digital Marketing (1 hr)",
     "teacher": "Mr. Manzar Abbas",
     "room": "D1"
@@ -304,7 +304,7 @@
     "batch": "FA22-BCS-8-C",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "E-Commerce and Digital Marketing (1 hr)",
     "teacher": "Dr. Rahib Ali",
     "room": "A2.1"
@@ -334,7 +334,7 @@
     "batch": "FA22-BCS-8-C",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "E-Commerce and Digital Marketing (1 hr)",
     "teacher": "Dr. Rahib Ali",
     "room": "D8"
@@ -404,7 +404,7 @@
     "batch": "FA22-BCS-8-D",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "E-Commerce and Digital Marketing (1 hr)",
     "teacher": "Mr. Manzar Abbas",
     "room": "B7"
@@ -434,7 +434,7 @@
     "batch": "FA22-BCS-8-D",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "E-Commerce and Digital Marketing (1 hr)",
     "teacher": "Mr. Manzar Abbas",
     "room": "A3"
@@ -464,7 +464,7 @@
     "batch": "FA22-BEE-B11",
     "day": "Thursday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Pakistan Studies (1 Hr)",
     "teacher": "Dr. Hafiz Muhammad Zeeshan Yousaf",
     "room": "W2"
@@ -614,7 +614,7 @@
     "batch": "FA22-BSE-8-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Design Patterns (1 hr)",
     "teacher": "Dr. Muhammad Farhan",
     "room": "C1.4"
@@ -664,7 +664,7 @@
     "batch": "FA22-BSE-8-B",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Design Patterns (1 hr)",
     "teacher": "Dr. Muhammad Farhan",
     "room": "C2.3"
@@ -1004,7 +1004,7 @@
     "batch": "FA23-BCH-03",
     "day": "Monday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Enzymology (1 Hour)",
     "teacher": "Dr. Sumaira Kanwal",
     "room": "C3"
@@ -1154,7 +1154,7 @@
     "batch": "FA23-BCS-6-A",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Mr. Bilal Shabir Qaisar",
     "room": "D3"
@@ -1164,7 +1164,7 @@
     "batch": "FA23-BCS-6-A",
     "day": "Thursday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Ms. Sana Farooq",
     "room": "C1"
@@ -1174,7 +1174,7 @@
     "batch": "FA23-BCS-6-A",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Ahmad Shaf",
     "room": "C1.1"
@@ -1244,7 +1244,7 @@
     "batch": "FA23-BCS-6-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Mr. Bilal Shabir Qaisar",
     "room": "D8"
@@ -1264,7 +1264,7 @@
     "batch": "FA23-BCS-6-B",
     "day": "Monday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Mr. Muhammad Ali Shahid",
     "room": "D4"
@@ -1274,7 +1274,7 @@
     "batch": "FA23-BCS-6-B",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Dr. Inaam ul Haq",
     "room": "C2.4"
@@ -1284,7 +1284,7 @@
     "batch": "FA23-BCS-6-B",
     "day": "Monday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Ahmad Shaf",
     "room": "C1"
@@ -1344,7 +1344,7 @@
     "batch": "FA23-BCS-6-B",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Mr. Muhammad Ali Shahid",
     "room": "D2"
@@ -1374,7 +1374,7 @@
     "batch": "FA23-BCS-6-B",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Dr. Inaam ul Haq",
     "room": "B7"
@@ -1394,7 +1394,7 @@
     "batch": "FA23-BCS-6-C",
     "day": "Friday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Ms. Aqsa Tehseen",
     "room": "C1"
@@ -1464,7 +1464,7 @@
     "batch": "FA23-BCS-6-C",
     "day": "Tuesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Ms. Raheela Shahzadi",
     "room": "C5"
@@ -1504,7 +1504,7 @@
     "batch": "FA23-BCS-6-C",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Ms. Raheela Shahzadi",
     "room": "B14"
@@ -1514,7 +1514,7 @@
     "batch": "FA23-BCS-6-C",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Ahmad Shaf",
     "room": "C1.1"
@@ -1544,7 +1544,7 @@
     "batch": "FA23-BCS-6-D",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Hafiz Muhammad Mudasar Khan",
     "room": "B7"
@@ -1554,7 +1554,7 @@
     "batch": "FA23-BCS-6-D",
     "day": "Monday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Ms. Aqsa Tehseen",
     "room": "C4"
@@ -1574,7 +1574,7 @@
     "batch": "FA23-BCS-6-D",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Mr. Gohar Liaqat",
     "room": "D7"
@@ -1624,7 +1624,7 @@
     "batch": "FA23-BCS-6-D",
     "day": "Tuesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Ms. Aqsa Tehseen",
     "room": "C1.1"
@@ -1654,7 +1654,7 @@
     "batch": "FA23-BCS-6-E",
     "day": "Friday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Mr. Syed Anwaar Mehdi",
     "room": "C4"
@@ -1674,7 +1674,7 @@
     "batch": "FA23-BCS-6-E",
     "day": "Monday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Ms. Samra Firdous Sabir",
     "room": "C1.1"
@@ -1714,7 +1714,7 @@
     "batch": "FA23-BCS-6-E",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Ms. Raheela Shahzadi",
     "room": "B3"
@@ -1764,7 +1764,7 @@
     "batch": "FA23-BCS-6-E",
     "day": "Tuesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Ms. Samra Firdous Sabir",
     "room": "C2.4"
@@ -1774,7 +1774,7 @@
     "batch": "FA23-BCS-6-E",
     "day": "Tuesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Ms. Raheela Shahzadi",
     "room": "C5"
@@ -1804,7 +1804,7 @@
     "batch": "FA23-BCS-6-F",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Ms. Raheela Shahzadi",
     "room": "C4"
@@ -1814,7 +1814,7 @@
     "batch": "FA23-BCS-6-F",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advance Database Systems (1 hr)",
     "teacher": "Mr. Syed Anwaar Mehdi",
     "room": "C1"
@@ -1844,7 +1844,7 @@
     "batch": "FA23-BCS-6-F",
     "day": "Monday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Ms. Samra Firdous Sabir",
     "room": "C1.1"
@@ -1864,7 +1864,7 @@
     "batch": "FA23-BCS-6-F",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Machine Learning Fundamentals (1 hr)",
     "teacher": "Ms. Raheela Shahzadi",
     "room": "B14"
@@ -2184,7 +2184,7 @@
     "batch": "FA23-BSE-6-A",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Khuram Nisar",
     "room": "D8"
@@ -2244,7 +2244,7 @@
     "batch": "FA23-BSE-6-A",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Automated Software Testing (1 hr)",
     "teacher": "Ms. Hafza Mehreen",
     "room": "D1"
@@ -2264,7 +2264,7 @@
     "batch": "FA23-BSE-6-A",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Software Construction and Development (1 hr)",
     "teacher": "Ms. Hafsa Saleem",
     "room": "D3"
@@ -2274,7 +2274,7 @@
     "batch": "FA23-BSE-6-A",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Software Quality Engineering (1 hr)",
     "teacher": "Ms. Fatima Khan",
     "room": "D4"
@@ -2314,7 +2314,7 @@
     "batch": "FA23-BSE-6-A",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Khuram Nisar",
     "room": "D7"
@@ -2324,7 +2324,7 @@
     "batch": "FA23-BSE-6-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Software Quality Engineering (1 hr)",
     "teacher": "Ms. Fatima Khan",
     "room": "B14"
@@ -2344,7 +2344,7 @@
     "batch": "FA23-BSE-6-A",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Software Construction and Development (1 hr)",
     "teacher": "Ms. Hafsa Saleem",
     "room": "W4"
@@ -2394,7 +2394,7 @@
     "batch": "FA23-BSE-6-B",
     "day": "Monday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Hafiz Muhammad Mudasar Khan",
     "room": "B14"
@@ -2434,7 +2434,7 @@
     "batch": "FA23-BSE-6-B",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Software Construction and Development (1 hr)",
     "teacher": "Ms. Hafsa Saleem",
     "room": "D9"
@@ -2454,7 +2454,7 @@
     "batch": "FA23-BSE-6-B",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Automated Software Testing (1 hr)",
     "teacher": "Ms. Hafza Mehreen",
     "room": "D4"
@@ -2484,7 +2484,7 @@
     "batch": "FA23-BSE-6-B",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Automated Software Testing (1 hr)",
     "teacher": "Ms. Hafza Mehreen",
     "room": "W4"
@@ -2494,7 +2494,7 @@
     "batch": "FA23-BSE-6-B",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Software Construction and Development (1 hr)",
     "teacher": "Ms. Hafsa Saleem",
     "room": "D7"
@@ -2514,7 +2514,7 @@
     "batch": "FA23-BSE-6-B",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Advanced Web Technologies (1 hr)",
     "teacher": "Mr. Hafiz Muhammad Mudasar Khan",
     "room": "C1.3"
@@ -2524,7 +2524,7 @@
     "batch": "FA23-BSME-B19-A",
     "day": "Friday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Computer Aided Design and Manufacturing (1 Hour)",
     "teacher": "Dr. Ali Raza",
     "room": "W4"
@@ -2594,7 +2594,7 @@
     "batch": "FA23-BSME-B19-A",
     "day": "Thursday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Pakistan Studies (1 Hr)",
     "teacher": "Dr. Hafiz Muhammad Zeeshan Yousaf",
     "room": "W2"
@@ -2634,7 +2634,7 @@
     "batch": "FA23-BSME-B19-A",
     "day": "Tuesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Computer Aided Design and Manufacturing (1 Hour)",
     "teacher": "Dr. Ali Raza",
     "room": "A1.2"
@@ -2674,7 +2674,7 @@
     "batch": "FA23-BSME-B19-A",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Heat Transfer (1 Hour)",
     "teacher": "Dr M Abid",
     "room": "HMT Lab"
@@ -2684,7 +2684,7 @@
     "batch": "FA23-BSME-B19-A",
     "day": "Wednesday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Instrumentation and Measurement (1 Hour)",
     "teacher": "Khawar Hussain",
     "room": "A1.3"
@@ -2864,7 +2864,7 @@
     "batch": "FA23-BTY-01",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Essentials of Enzymology (1 Hour)",
     "teacher": "Mr. M. Saad Khan",
     "room": "A2.1"
@@ -3014,7 +3014,7 @@
     "batch": "FA23-FSN-11",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Sea Food Resources and Processing (1 Hour)",
     "teacher": "Ms. Zahra Batool",
     "room": "C1"
@@ -3124,7 +3124,7 @@
     "batch": "FA24-BCS-4-A",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Muhammad Khadim Hussain",
     "room": "D3"
@@ -3134,7 +3134,7 @@
     "batch": "FA24-BCS-4-A",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Ms. Asma Iqbal",
     "room": "C2.4"
@@ -3154,7 +3154,7 @@
     "batch": "FA24-BCS-4-A",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Muhammad Khadim Hussain",
     "room": "B13"
@@ -3174,7 +3174,7 @@
     "batch": "FA24-BCS-4-A",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Information Security (1 hr)",
     "teacher": "Ms. Azka Riaz",
     "room": "A1.2"
@@ -3264,7 +3264,7 @@
     "batch": "FA24-BCS-4-B",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Sunil Ashraf",
     "room": "D2"
@@ -3284,7 +3284,7 @@
     "batch": "FA24-BCS-4-B",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Sunil Ashraf",
     "room": "D9"
@@ -3294,7 +3294,7 @@
     "batch": "FA24-BCS-4-B",
     "day": "Tuesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Information Security (1 hr)",
     "teacher": "Ms. Mahnoor Fatima",
     "room": "D8"
@@ -3314,7 +3314,7 @@
     "batch": "FA24-BCS-4-B",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Ms. Kanwal Fatima",
     "room": "B13"
@@ -3334,7 +3334,7 @@
     "batch": "FA24-BCS-4-C",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Fahad Ameen",
     "room": "D2"
@@ -3344,7 +3344,7 @@
     "batch": "FA24-BCS-4-C",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Ghias ul Din Bulbun",
     "room": "D2"
@@ -3404,7 +3404,7 @@
     "batch": "FA24-BCS-4-C",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Information Security (1 hr)",
     "teacher": "Mr. Muhammad Umar",
     "room": "C1.4"
@@ -3434,7 +3434,7 @@
     "batch": "FA24-BCS-4-C",
     "day": "Tuesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Information Security (1 hr)",
     "teacher": "Mr. Muhammad Umar",
     "room": "C1"
@@ -3454,7 +3454,7 @@
     "batch": "FA24-BCS-4-D",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Ms. Rimsha Rafiq",
     "room": "B12"
@@ -3464,7 +3464,7 @@
     "batch": "FA24-BCS-4-D",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Muhammad Usman Nasir",
     "room": "D3"
@@ -3474,7 +3474,7 @@
     "batch": "FA24-BCS-4-D",
     "day": "Monday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Muhammad Usman Nasir",
     "room": "B13"
@@ -3504,7 +3504,7 @@
     "batch": "FA24-BCS-4-D",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Information Security (1 hr)",
     "teacher": "Mr. Muhammad Umar",
     "room": "C1.4"
@@ -3514,7 +3514,7 @@
     "batch": "FA24-BCS-4-D",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Ms. Rimsha Rafiq",
     "room": "B7"
@@ -3564,7 +3564,7 @@
     "batch": "FA24-BCS-4-E",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Ms. Rimsha Rafiq",
     "room": "C4"
@@ -3574,7 +3574,7 @@
     "batch": "FA24-BCS-4-E",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Information Security (1 hr)",
     "teacher": "Mr. Muhammad Umar",
     "room": "C1"
@@ -3644,7 +3644,7 @@
     "batch": "FA24-BCS-4-E",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Information Security (1 hr)",
     "teacher": "Mr. Muhammad Umar",
     "room": "C1.1"
@@ -3654,7 +3654,7 @@
     "batch": "FA24-BCS-4-E",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Muhammad Usman Nasir",
     "room": "D9"
@@ -3694,7 +3694,7 @@
     "batch": "FA24-BCS-4-F",
     "day": "Thursday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Ms. Sameen Fatima",
     "room": "W4"
@@ -3724,7 +3724,7 @@
     "batch": "FA24-BCS-4-F",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Manzar Abbas",
     "room": "D1"
@@ -3754,7 +3754,7 @@
     "batch": "FA24-BCS-4-F",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Information Security (1 hr)",
     "teacher": "Mr. Muhammad Umar",
     "room": "C5"
@@ -3974,7 +3974,7 @@
     "batch": "FA24-BEN-B5",
     "day": "Tuesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "F of Int.Relatns (1Hr)",
     "teacher": "Zia Hassan",
     "room": "B13"
@@ -4024,7 +4024,7 @@
     "batch": "FA24-BSE-4-A",
     "day": "Friday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Fahad Ameen",
     "room": "D8"
@@ -4064,7 +4064,7 @@
     "batch": "FA24-BSE-4-A",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Syed Ameer Ahmed Gillani",
     "room": "D8"
@@ -4114,7 +4114,7 @@
     "batch": "FA24-BSE-4-A",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Fahad Ameen",
     "room": "D2"
@@ -4134,7 +4134,7 @@
     "batch": "FA24-BSE-4-B",
     "day": "Friday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Fahad Ameen",
     "room": "D8"
@@ -4174,7 +4174,7 @@
     "batch": "FA24-BSE-4-B",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Information Security (1 hr)",
     "teacher": "Ms. Azka Riaz",
     "room": "D8"
@@ -4184,7 +4184,7 @@
     "batch": "FA24-BSE-4-B",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Mr. Fahad Ameen",
     "room": "D6"
@@ -4194,7 +4194,7 @@
     "batch": "FA24-BSE-4-B",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Information Security (1 hr)",
     "teacher": "Ms. Azka Riaz",
     "room": "W4"
@@ -4214,7 +4214,7 @@
     "batch": "FA24-BSE-4-B",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Syed Ameer Ahmed Gillani",
     "room": "D7"
@@ -4234,7 +4234,7 @@
     "batch": "FA24-BSE-4-C",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Ms. Huma Nisar",
     "room": "C1.2"
@@ -4254,7 +4254,7 @@
     "batch": "FA24-BSE-4-C",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Information Security (1 hr)",
     "teacher": "Ms. Nusra Rehman",
     "room": "C4"
@@ -4264,7 +4264,7 @@
     "batch": "FA24-BSE-4-C",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Ghias ul Din Bulbun",
     "room": "B14"
@@ -4294,7 +4294,7 @@
     "batch": "FA24-BSE-4-C",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Artificial Intelligence (1 hr)",
     "teacher": "Ms. Huma Nisar",
     "room": "C2.4"
@@ -4314,7 +4314,7 @@
     "batch": "FA24-BSE-4-C",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Information Security (1 hr)",
     "teacher": "Ms. Nusra Rehman",
     "room": "B12"
@@ -4324,7 +4324,7 @@
     "batch": "FA24-BSE-4-C",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Computer Networks (1 hr)",
     "teacher": "Mr. Ghias ul Din Bulbun",
     "room": "C2.3"
@@ -4574,7 +4574,7 @@
     "batch": "FA24-BTY-03",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Essentials of Enzymology (1 Hour)",
     "teacher": "Mr. M. Saad Khan",
     "room": "A2.1"
@@ -4664,7 +4664,7 @@
     "batch": "FA24-FSN-13",
     "day": "Thursday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Techniques in Food Processing & Preservation (1 Hour)",
     "teacher": "Dr. Nadeem",
     "room": "W1"
@@ -4694,7 +4694,7 @@
     "batch": "FA24-FSN-13",
     "day": "Tuesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Confectionery and Snack Foods (1 Hour)",
     "teacher": "Ms. Zahra Batool",
     "room": "C1.4"
@@ -4794,7 +4794,7 @@
     "batch": "FA25-BBA-B37",
     "day": "Thursday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Intro. to Entrep. (1 Hr)",
     "teacher": "Dr. Arslan Dogar",
     "room": "B13"
@@ -4834,7 +4834,7 @@
     "batch": "FA25-BBA-B37",
     "day": "Tuesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Intro. to Entrep. (1 Hr)",
     "teacher": "Dr. Arslan Dogar",
     "room": "D9"
@@ -4914,7 +4914,7 @@
     "batch": "FA25-BCE-B1",
     "day": "Monday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Introduction to Chemistry (1hr)",
     "teacher": "Maham Fatima",
     "room": "A3"
@@ -5054,7 +5054,7 @@
     "batch": "FA25-BCS-2-A",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Maham Fatima",
     "room": "C2.3"
@@ -5124,7 +5124,7 @@
     "batch": "FA25-BCS-2-A",
     "day": "Tuesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Maham Fatima",
     "room": "C1.2"
@@ -5214,7 +5214,7 @@
     "batch": "FA25-BCS-2-B",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Hassan Iqbal",
     "room": "D6"
@@ -5414,7 +5414,7 @@
     "batch": "FA25-BCS-2-C",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Hassan Iqbal",
     "room": "A1.3"
@@ -5544,7 +5544,7 @@
     "batch": "FA25-BCS-2-D",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Muzammil Hussain",
     "room": "B12"
@@ -5574,7 +5574,7 @@
     "batch": "FA25-BCS-2-D",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Muzammil Hussain",
     "room": "C4"
@@ -5664,7 +5664,7 @@
     "batch": "FA25-BCS-2-E",
     "day": "Tuesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Mr. Shahzada Sufiyan",
     "room": "C2.3"
@@ -5704,7 +5704,7 @@
     "batch": "FA25-BCS-2-E",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Mr. Shahzada Sufiyan",
     "room": "W4"
@@ -6054,7 +6054,7 @@
     "batch": "FA25-BSE-2-A",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Mr. Shahzada Sufiyan",
     "room": "D3"
@@ -6104,7 +6104,7 @@
     "batch": "FA25-BSE-2-A",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Mr. Shahzada Sufiyan",
     "room": "D7"
@@ -6224,7 +6224,7 @@
     "batch": "FA25-BSE-2-B",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Applied Physics (1 hr)",
     "teacher": "Dr. Hafiz Muhammad Zeeshan Yousaf",
     "room": "C1.2"
@@ -6304,7 +6304,7 @@
     "batch": "FA25-BSME-B21-A",
     "day": "Friday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Engineering Materials (1 Hour)",
     "teacher": "Muzammil Hussain",
     "room": "A1.1"
@@ -6334,7 +6334,7 @@
     "batch": "FA25-BSME-B21-A",
     "day": "Monday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Introduction to Chemistry (1hr)",
     "teacher": "Maham Fatima",
     "room": "A3"
@@ -6384,7 +6384,7 @@
     "batch": "FA25-BSME-B21-A",
     "day": "Thursday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Introduction to Engineering Management (1 Hour)",
     "teacher": "Saiqa Hafeez",
     "room": "MOM Lab"
@@ -6454,7 +6454,7 @@
     "batch": "FA25-BSME-B21-A",
     "day": "Wednesday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Introduction to Engineering Management (1 Hour)",
     "teacher": "Saiqa Hafeez",
     "room": "MOM Lab"
@@ -6564,7 +6564,7 @@
     "batch": "FA25-BTY-05",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Fundamentals of Biochemistry (1 Hr)",
     "teacher": "Dr. Farrukh Jamil",
     "room": "C1.7"
@@ -6614,7 +6614,7 @@
     "batch": "FA25-FSN-15",
     "day": "Monday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Applications of Information and Communication Technologies (1 Hour)",
     "teacher": "Ms. Anum Hussain",
     "room": "C2.3"
@@ -6744,7 +6744,7 @@
     "batch": "FA25-PCS-2-A",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"
@@ -6774,7 +6774,7 @@
     "batch": "FA25-PCS-2-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"
@@ -7054,7 +7054,7 @@
     "batch": "FA25-RCS-2-A",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"
@@ -7124,7 +7124,7 @@
     "batch": "FA25-RCS-2-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"
@@ -7314,7 +7314,7 @@
     "batch": "SP23-BBA-B32",
     "day": "Tuesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "F of Int.Relatns (1Hr)",
     "teacher": "Zia Hassan",
     "room": "B13"
@@ -7424,7 +7424,7 @@
     "batch": "SP23-BCH-02",
     "day": "Tuesday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Methods in Molecular Biology (1 Hour)",
     "teacher": "Dr. Awais Ihsan",
     "room": "C3"
@@ -7524,7 +7524,7 @@
     "batch": "SP23-BCS-7-A",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Human Computer Interaction (1 hr)",
     "teacher": "Ms. Rimsha Naheed",
     "room": "W2"
@@ -7564,7 +7564,7 @@
     "batch": "SP23-BCS-7-A",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Compiler Construction (1 hr)",
     "teacher": "Prof. Dr. Nazir Ahmad Zafar",
     "room": "D2"
@@ -7574,7 +7574,7 @@
     "batch": "SP23-BCS-7-A",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Human Computer Interaction (1 hr)",
     "teacher": "Ms. Rimsha Naheed",
     "room": "C2.5"
@@ -7624,7 +7624,7 @@
     "batch": "SP23-BCS-7-B",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Human Computer Interaction (1 hr)",
     "teacher": "Ms. Rimsha Naheed",
     "room": "C5"
@@ -7654,7 +7654,7 @@
     "batch": "SP23-BCS-7-B",
     "day": "Tuesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Compiler Construction (1 hr)",
     "teacher": "Mr. Syed Nasir Mehdi",
     "room": "C1.2"
@@ -7674,7 +7674,7 @@
     "batch": "SP23-BCS-7-B",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Human Computer Interaction (1 hr)",
     "teacher": "Ms. Rimsha Naheed",
     "room": "C2.4"
@@ -7724,7 +7724,7 @@
     "batch": "SP23-BCS-7-C",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Compiler Construction (1 hr)",
     "teacher": "Mr. Syed Nasir Mehdi",
     "room": "W2"
@@ -7764,7 +7764,7 @@
     "batch": "SP23-BCS-7-C",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Human Computer Interaction (1 hr)",
     "teacher": "Ms. Wajiha Farooq",
     "room": "B12"
@@ -7804,7 +7804,7 @@
     "batch": "SP23-BCS-7-C",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Human Computer Interaction (1 hr)",
     "teacher": "Ms. Wajiha Farooq",
     "room": "D1"
@@ -7814,7 +7814,7 @@
     "batch": "SP23-BCS-7-C",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Compiler Construction (1 hr)",
     "teacher": "Mr. Syed Nasir Mehdi",
     "room": "C2.4"
@@ -8354,7 +8354,7 @@
     "batch": "SP24-BBA-B34",
     "day": "Tuesday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Fund. of Philo. (1 Hr)",
     "teacher": "Dr. Qamar Uz Zaman",
     "room": "B3"
@@ -8394,7 +8394,7 @@
     "batch": "SP24-BCS-5-A",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Mobile Application Development (1 hr)",
     "teacher": "Mr. Ali Sher Kashif",
     "room": "C1.1"
@@ -8444,7 +8444,7 @@
     "batch": "SP24-BCS-5-A",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Web Technologies (1 hr)",
     "teacher": "Mr. Imran Shahzad",
     "room": "B7"
@@ -8454,7 +8454,7 @@
     "batch": "SP24-BCS-5-A",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Operating Systems (1 hr)",
     "teacher": "Dr. Zafar Iqbal Roy",
     "room": "C4"
@@ -8474,7 +8474,7 @@
     "batch": "SP24-BCS-5-A",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Mobile Application Development (1 hr)",
     "teacher": "Mr. Ali Sher Kashif",
     "room": "C2.4"
@@ -8504,7 +8504,7 @@
     "batch": "SP24-BCS-5-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Computer Organization and Assembly Language (1 hr)",
     "teacher": "Mr. Mubashar Raza",
     "room": "D6"
@@ -8554,7 +8554,7 @@
     "batch": "SP24-BCS-5-B",
     "day": "Monday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Computer Organization and Assembly Language (1 hr)",
     "teacher": "Ms. Amna Bashir",
     "room": "A2.1"
@@ -8584,7 +8584,7 @@
     "batch": "SP24-BCS-5-B",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Web Technologies (1 hr)",
     "teacher": "Mr. M. Arslan Sarwar",
     "room": "C5"
@@ -8614,7 +8614,7 @@
     "batch": "SP24-BCS-5-B",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Web Technologies (1 hr)",
     "teacher": "Mr. M. Arslan Sarwar",
     "room": "C1.4"
@@ -8624,7 +8624,7 @@
     "batch": "SP24-BCS-5-B",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Computer Organization and Assembly Language (1 hr)",
     "teacher": "Ms. Amna Bashir",
     "room": "D3"
@@ -8684,7 +8684,7 @@
     "batch": "SP24-BCS-5-C",
     "day": "Monday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Mobile Application Development (1 hr)",
     "teacher": "Mr. M. Arslan Sarwar",
     "room": "C2.4"
@@ -8694,7 +8694,7 @@
     "batch": "SP24-BCS-5-C",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Computer Organization and Assembly Language (1 hr)",
     "teacher": "Mr. Mubashar Raza",
     "room": "D9"
@@ -8724,7 +8724,7 @@
     "batch": "SP24-BCS-5-C",
     "day": "Thursday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Computer Organization and Assembly Language (1 hr)",
     "teacher": "Mr. Mubashar Raza",
     "room": "D4"
@@ -8764,7 +8764,7 @@
     "batch": "SP24-BCS-5-C",
     "day": "Tuesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Operating Systems (1 hr)",
     "teacher": "Ms. Huma Nisar",
     "room": "C4"
@@ -8784,7 +8784,7 @@
     "batch": "SP24-BCS-5-C",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Operating Systems (1 hr)",
     "teacher": "Ms. Huma Nisar",
     "room": "D1"
@@ -8924,7 +8924,7 @@
     "batch": "SP24-BSE-5-A",
     "day": "Monday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Operating Systems (1 hr)",
     "teacher": "Ms. Shaheen Kausar",
     "room": "D4"
@@ -8944,7 +8944,7 @@
     "batch": "SP24-BSE-5-A",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Operating Systems (1 hr)",
     "teacher": "Ms. Shaheen Kausar",
     "room": "D8"
@@ -8954,7 +8954,7 @@
     "batch": "SP24-BSE-5-A",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Web Technologies (1 hr)",
     "teacher": "Ms. Syda Fatima Usman",
     "room": "C1.1"
@@ -8984,7 +8984,7 @@
     "batch": "SP24-BSE-5-A",
     "day": "Tuesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Mobile Application Development (1 hr)",
     "teacher": "Mr. Muhammad Yousaf",
     "room": "C2.5"
@@ -8994,7 +8994,7 @@
     "batch": "SP24-BSE-5-A",
     "day": "Tuesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Web Technologies (1 hr)",
     "teacher": "Ms. Syda Fatima Usman",
     "room": "C1.3"
@@ -9044,7 +9044,7 @@
     "batch": "SP24-BSE-5-B",
     "day": "Friday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Mobile Application Development (1 hr)",
     "teacher": "Mr. Muhammad Yousaf",
     "room": "D7"
@@ -9074,7 +9074,7 @@
     "batch": "SP24-BSE-5-B",
     "day": "Thursday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Operating Systems (1 hr)",
     "teacher": "Ms. Shaheen Kausar",
     "room": "D2"
@@ -9094,7 +9094,7 @@
     "batch": "SP24-BSE-5-B",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Web Technologies (1 hr)",
     "teacher": "Ms. Syda Fatima Usman",
     "room": "C2.5"
@@ -9144,7 +9144,7 @@
     "batch": "SP24-BSE-5-B",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Web Technologies (1 hr)",
     "teacher": "Ms. Syda Fatima Usman",
     "room": "C1.1"
@@ -9154,7 +9154,7 @@
     "batch": "SP24-BSE-5-B",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Mobile Application Development (1 hr)",
     "teacher": "Mr. Muhammad Yousaf",
     "room": "D6"
@@ -9314,7 +9314,7 @@
     "batch": "SP24-BTY-02",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Essentials of Enzymology (1 Hour)",
     "teacher": "Mr. M. Saad Khan",
     "room": "A2.1"
@@ -9374,7 +9374,7 @@
     "batch": "SP24-FSN-12",
     "day": "Friday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Sensory Evaluation of Foods (1 Hour)",
     "teacher": "Ms. Zahra Batool",
     "room": "C1.5"
@@ -9414,7 +9414,7 @@
     "batch": "SP24-FSN-12",
     "day": "Thursday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Sensory Evaluation of Foods (1 Hour)",
     "teacher": "Ms. Zahra Batool",
     "room": "C1.5"
@@ -9554,7 +9554,7 @@
     "batch": "SP25-BBA-B36",
     "day": "Thursday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Intro. to Entrep. (1 Hr)",
     "teacher": "Dr. Arslan Dogar",
     "room": "B13"
@@ -9584,7 +9584,7 @@
     "batch": "SP25-BBA-B36",
     "day": "Tuesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Intro. to Entrep. (1 Hr)",
     "teacher": "Dr. Arslan Dogar",
     "room": "D9"
@@ -9594,7 +9594,7 @@
     "batch": "SP25-BBA-B36",
     "day": "Tuesday",
     "start": "8:00",
-    "end": "9:00",
+    "end": "09:00",
     "subject": "Fund. of Philo. (1 Hr)",
     "teacher": "Dr. Qamar Uz Zaman",
     "room": "B3"
@@ -9634,7 +9634,7 @@
     "batch": "SP25-BCS-3-A",
     "day": "Friday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Mr. Khalid Majeed",
     "room": "B7"
@@ -9694,7 +9694,7 @@
     "batch": "SP25-BCS-3-A",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Mr. Khalid Majeed",
     "room": "C1.1"
@@ -9804,7 +9804,7 @@
     "batch": "SP25-BCS-3-B",
     "day": "Tuesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Mr. Khalid Majeed",
     "room": "C1.2"
@@ -9864,7 +9864,7 @@
     "batch": "SP25-BCS-3-B",
     "day": "Wednesday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Mr. Khalid Majeed",
     "room": "B12"
@@ -9934,7 +9934,7 @@
     "batch": "SP25-BCS-3-C",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Dr. Atif Mehmood",
     "room": "W2"
@@ -10134,7 +10134,7 @@
     "batch": "SP25-BSE-3-A",
     "day": "Monday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Dr. Saqlain",
     "room": "D2"
@@ -10194,7 +10194,7 @@
     "batch": "SP25-BSE-3-A",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Dr. Saqlain",
     "room": "D6"
@@ -10234,7 +10234,7 @@
     "batch": "SP25-BSE-3-B",
     "day": "Thursday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Mr. Khalid Majeed",
     "room": "D9"
@@ -10314,7 +10314,7 @@
     "batch": "SP25-BSE-3-B",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Fundamentals of Digital Logic Design (1 hr)",
     "teacher": "Mr. Khalid Majeed",
     "room": "D9"
@@ -10434,7 +10434,7 @@
     "batch": "SP25-BTY-04",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Essentials of Enzymology (1 Hour)",
     "teacher": "Mr. M. Saad Khan",
     "room": "A2.1"
@@ -10844,7 +10844,7 @@
     "batch": "SP26-BCS-1-A",
     "day": "Wednesday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Civics and Community Engagement (1 hr)",
     "teacher": "Engr. M Yousaf Mushtaq",
     "room": "C1.3"
@@ -10904,7 +10904,7 @@
     "batch": "SP26-BCS-1-B",
     "day": "Monday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Civics and Community Engagement (1 hr)",
     "teacher": "Engr. Ali Raza",
     "room": "C4"
@@ -10934,7 +10934,7 @@
     "batch": "SP26-BCS-1-B",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Civics and Community Engagement (1 hr)",
     "teacher": "Engr. Ali Raza",
     "room": "A2.2"
@@ -10944,7 +10944,7 @@
     "batch": "SP26-BCS-1-B",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Applications of Information and Communication Technology (1 hr)",
     "teacher": "Mr. Muhammad Asif Imran",
     "room": "D4"
@@ -10974,7 +10974,7 @@
     "batch": "SP26-BCS-1-B",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Applications of Information and Communication Technology (1 hr)",
     "teacher": "Mr. Muhammad Asif Imran",
     "room": "D6"
@@ -11144,7 +11144,7 @@
     "batch": "SP26-BSE-1-A",
     "day": "Thursday",
     "start": "8:30",
-    "end": "9:30",
+    "end": "09:30",
     "subject": "Applications of Information and Communication Technology (1 hr)",
     "teacher": "Mr. Muhammad Qadeer",
     "room": "D9"
@@ -11154,7 +11154,7 @@
     "batch": "SP26-BSE-1-A",
     "day": "Thursday",
     "start": "9:55",
-    "end": "10:54",
+    "end": "10:55",
     "subject": "Civics and Community Engagement (1 hr)",
     "teacher": "Engr. Ali Raza",
     "room": "W3"
@@ -11174,7 +11174,7 @@
     "batch": "SP26-BSE-1-A",
     "day": "Tuesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Applications of Information and Communication Technology (1 hr)",
     "teacher": "Mr. Muhammad Qadeer",
     "room": "A2.1"
@@ -11194,7 +11194,7 @@
     "batch": "SP26-BSE-1-A",
     "day": "Wednesday",
     "start": "1:40",
-    "end": "2:39",
+    "end": "02:40",
     "subject": "Civics and Community Engagement (1 hr)",
     "teacher": "Engr. Ali Raza",
     "room": "D9"
@@ -11234,7 +11234,7 @@
     "batch": "SP26-BTY-06",
     "day": "Monday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Applications of Information and Communication Technologies (1 Hour)",
     "teacher": "Ms. Anum Hussain",
     "room": "C2.3"
@@ -11334,7 +11334,7 @@
     "batch": "SP26-BTY-06",
     "day": "Wednesday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Fundamentals of Biochemistry (1 Hr)",
     "teacher": "Dr. Farrukh Jamil",
     "room": "C1.7"
@@ -11344,7 +11344,7 @@
     "batch": "SP26-HND-01",
     "day": "Monday",
     "start": "1:00",
-    "end": "2:00",
+    "end": "02:00",
     "subject": "Applications of Information and Communication Technologies (1 Hour)",
     "teacher": "Ms. Anum Hussain",
     "room": "C2.3"
@@ -11524,7 +11524,7 @@
     "batch": "SP26-PCS-1-A",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"
@@ -11554,7 +11554,7 @@
     "batch": "SP26-PCS-1-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"
@@ -11744,7 +11744,7 @@
     "batch": "SP26-RCS-1-A",
     "day": "Monday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"
@@ -11804,7 +11804,7 @@
     "batch": "SP26-RCS-1-A",
     "day": "Wednesday",
     "start": "3:05",
-    "end": "4:05",
+    "end": "04:05",
     "subject": "Advanced Programing Languages (1 hr)",
     "teacher": "Dr. Javed Ferzund",
     "room": "C4"

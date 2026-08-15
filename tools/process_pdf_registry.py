@@ -531,15 +531,15 @@ def build_sessions_from_pdf(pdf_path: Path) -> List[Dict[str, str]]:
                             "room": parsed["room"],
                         }
                         
-                        # Handle "(1 hr)" marker - adjust end time to be exactly 1 hour from start
-                        if "(1 hr)" in parsed["subject"].lower() or "(1hr)" in parsed["subject"].lower():
+                        # Handle "(1 hr)" / "(1 Hour)" / "(1Hr)" marker - adjust end time to be exactly 1 hour from start
+                        if re.search(r"\(1\s*(?:hr|hour)\)", parsed["subject"], re.IGNORECASE) or re.search(r"\(1\s*(?:hr|hour)\)", cell or "", re.IGNORECASE):
                             # Parse start time and add 1 hour
                             h, m = start_time.split(':')
                             start_decimal = int(h) + int(m) / 60.0
                             end_decimal = start_decimal + 1.0  # Add exactly 1 hour
                             end_h = int(end_decimal)
-                            end_m = int((end_decimal - end_h) * 60)
-                            session["end"] = f"{end_h}:{end_m:02d}"
+                            end_m = int(round((end_decimal - end_h) * 60))
+                            session["end"] = f"{end_h:02d}:{end_m:02d}"
                         
                         dedup_key = (
                             session["department"], session["batch"], session["day"],

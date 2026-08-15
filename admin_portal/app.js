@@ -1454,6 +1454,11 @@ function cleanSubject(text) {
   let cleaned = cleanRoomFromText(text);
   // Strip watermarks like "aSc Timetables", "CUI Sahiwal"
   cleaned = cleaned.replace(/\b(aSc\s+Timetables|Timetable\s+generated|COMSATS\s+University|CUI\s+Sahiwal|Islamabad,Sahiwal)\b/gi, '');
+  // Strip leading/trailing time slots or slot numbers e.g. "8:00 9:00", "1 8:00 - 9:00"
+  cleaned = cleaned.replace(/^\s*(?:\d+\s+)?\d{1,2}[:.]?\d{2}(?:\s*-\s*|\s+)\d{1,2}[:.]?\d{2}\s*/gi, '');
+  cleaned = cleaned.replace(/\s*(?:\d+\s+)?\d{1,2}[:.]?\d{2}(?:\s*-\s*|\s+)\d{1,2}[:.]?\d{2}\s*$/gi, '');
+  cleaned = cleaned.replace(/\b\d{1,2}[:.]?\d{2}\s*-\s*\d{1,2}[:.]?\d{2}\b/gi, '');
+  cleaned = cleaned.replace(/\b\d{1,2}[:.]?\d{2}\s+\d{1,2}[:.]?\d{2}\b/gi, '');
   // Strip parenthesized teacher or duration annotations e.g. (Dr. Shahzad Ali), (1 hr)
   cleaned = cleaned.replace(/\s*\([^)]*(?:Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*\)/gi, '');
   cleaned = cleaned.replace(DURATION_MARKER_RE, '');
@@ -1791,11 +1796,16 @@ async function parseTimetablePdf(arrayBuffer) {
       let x = item.transform[4];
       let y = item.transform[5];
       
-      if (y > rowStarts[0].y + 35) continue;
+      // Strict header filter: never assign header tokens to class cells
+      if (headerY !== -1 && y >= headerY - 15) continue;
+      if (/^\s*(?:\d+\s+)?\d{1,2}[:.]?\d{2}(?:\s*-\s*|\s+)\d{1,2}[:.]?\d{2}\s*$/i.test(str)) continue;
+      if (/^(?:1|2|3|4|5|6|Break|kaerB)$/i.test(str) && y >= rowStarts[0].y + 5) continue;
+      
+      if (y > rowStarts[0].y + 15) continue;
       
       let targetRowIdx = -1;
       for (let i = 0; i < rowStarts.length; i++) {
-        let startY = i === 0 ? rowStarts[0].y + 35 : (rowStarts[i-1].y + rowStarts[i].y) / 2;
+        let startY = i === 0 ? (headerY !== -1 ? headerY - 15 : rowStarts[0].y + 15) : (rowStarts[i-1].y + rowStarts[i].y) / 2;
         let endY = i + 1 < rowStarts.length ? (rowStarts[i].y + rowStarts[i+1].y) / 2 : rowStarts[i].y - 35;
         if (y <= startY && y > endY) {
           targetRowIdx = i;
@@ -2179,23 +2189,24 @@ function recomputeStagedTimetables() {
     li.style.display = 'flex';
     li.style.justifyContent = 'space-between';
     li.style.alignItems = 'center';
-    li.style.padding = '8px 12px';
-    li.style.background = 'white';
-    li.style.border = '1px solid var(--border-subtle)';
-    li.style.borderRadius = '6px';
-    li.style.fontSize = '11px';
+    li.style.padding = '10px 14px';
+    li.style.background = 'rgba(255, 255, 255, 0.04)';
+    li.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+    li.style.borderRadius = '8px';
+    li.style.fontSize = '11.5px';
+    li.style.color = 'var(--text-title)';
     
     li.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid ${file.name.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf' : 'fa-file-code'}" style="color: var(--accent-indigo);"></i>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid ${file.name.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf' : 'fa-file-code'}" style="color: var(--accent-indigo); font-size: 14px;"></i>
         <div>
-          <strong style="color: var(--text-title);">${file.name}</strong>
-          <span style="color: var(--text-muted); font-size: 9.5px; margin-left: 6px;">(${(file.size / 1024).toFixed(1)} KB)</span>
+          <strong style="color: var(--text-title); font-weight: 600;">${file.name}</strong>
+          <span style="color: var(--text-muted); font-size: 10px; margin-left: 6px;">(${(file.size / 1024).toFixed(1)} KB)</span>
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <span class="badge" style="background: rgba(79, 70, 229, 0.08); color: var(--accent-indigo); font-weight: bold; border: 1px solid rgba(79, 70, 229, 0.15);">${file.sessions.length} sessions</span>
-        <button type="button" class="btn-remove-staged" onclick="removeStagedTimetableFile(${index})" style="background: transparent; border: none; color: var(--accent-rose); cursor: pointer; padding: 4px;" title="Remove file"><i class="fa-solid fa-trash-can"></i></button>
+        <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-weight: bold; border: 1px solid rgba(99, 102, 241, 0.3);">${file.sessions.length} sessions</span>
+        <button type="button" class="btn-remove-staged" onclick="removeStagedTimetableFile(${index})" style="background: transparent; border: none; color: #f87171; cursor: pointer; padding: 4px;" title="Remove file"><i class="fa-solid fa-trash-can"></i></button>
       </div>
     `;
     list.appendChild(li);

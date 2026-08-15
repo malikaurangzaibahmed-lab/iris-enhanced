@@ -201,6 +201,20 @@ class ClassSession {
       }
     }
 
+    // If subject indicates (1 hr) and duration exceeds 1 hour (e.g. regular 1.5-hr slot), clamp duration to 1 hour
+    if (RegExp(r'\(1\s*(?:hr|hour)\)', caseSensitive: false).hasMatch(subjectStr)) {
+      final startDec = FormatGuard.toDecimalTime(start);
+      final endDec = FormatGuard.toDecimalTime(end);
+      if (endDec - startDec > 1.05) {
+        final newEndDec = startDec + 1.0;
+        final endH = newEndDec.toInt();
+        final endM = ((newEndDec - endH) * 60).round();
+        final origH = int.tryParse(start.split(RegExp(r'[:.]'))[0]) ?? 0;
+        final adjustedH = origH + 1;
+        end = '${adjustedH.toString().padLeft(2, '0')}:${endM.toString().padLeft(2, '0')}';
+      }
+    }
+
     final cleanSub = FormatGuard.sanitizeSubject(subjectStr);
 
     return ClassSession(
