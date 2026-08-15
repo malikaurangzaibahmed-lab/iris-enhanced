@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IRIS Control Center // Administrative Console</title>
+  <title>IRIS Admin // Multi-Screen Operations Hub</title>
   
-  <!-- Google Fonts for Modern UI -->
+  <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,8 +13,8 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Modern Obsidian Glassmorphic Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=2.0.0">
+  <!-- Clean Multi-Screen Stylesheet -->
+  <link rel="stylesheet" href="styles.css?v=2.5.0">
 </head>
 <body>
 
@@ -46,8 +46,8 @@
       <div class="tech-logo-badge">
         <i class="fa-solid fa-circle-nodes logo-icon"></i>
       </div>
-      <h2>IRIS Control Console</h2>
-      <p class="subtitle">Secure Administrator Authentication Required</p>
+      <h2>IRIS Admin Portal</h2>
+      <p class="subtitle">Secure Administrator Authentication</p>
       
       <div class="connection-beacon" id="auth-connection-beacon">
         <span class="beacon-dot"></span>
@@ -56,11 +56,11 @@
       
       <div class="input-group">
         <i class="fa-solid fa-user-shield input-icon"></i>
-        <input type="email" id="auth-email" placeholder="Access Profile Email" required autocomplete="email">
+        <input type="email" id="auth-email" placeholder="Admin Email" required autocomplete="email">
       </div>
       <div class="input-group">
         <i class="fa-solid fa-key input-icon"></i>
-        <input type="password" id="auth-pass" placeholder="Security Access Key" required autocomplete="current-password">
+        <input type="password" id="auth-pass" placeholder="Admin Password" required autocomplete="current-password">
         <button type="button" id="btn-toggle-password" class="password-toggle-btn" title="Toggle visibility">
           <i class="fa-solid fa-eye"></i>
         </button>
@@ -75,176 +75,258 @@
     </div>
   </div>
 
-  <!-- MAIN SYSTEM WORKSPACE -->
-  <div id="dashboard-container" class="app-layout" style="display: none;">
+  <!-- MAIN MULTI-SCREEN SYSTEM WORKSPACE -->
+  <div id="dashboard-container" class="admin-shell" style="display: none;">
     
-    <!-- FLOATING MAIN NAVBAR -->
-    <header class="system-header-nav">
-      <div class="brand">
-        <i class="fa-solid fa-circle-nodes brand-icon"></i>
-        <span class="brand-name">IRIS // CONTROL CENTER</span>
-        <span class="badge">
-          <span class="status-dot"></span>
-          <span>SYSTEM CONNECTED</span>
-        </span>
-        <span class="badge" style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.2);" id="latency-badge">
-          <i class="fa-solid fa-wifi" style="color: var(--accent-indigo);"></i> 
-          <span id="latency-val">8ms</span>
-        </span>
+    <!-- LEFT NAVIGATION SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-badge">
+          <i class="fa-solid fa-circle-nodes"></i>
+        </div>
+        <div class="brand-text">
+          <h2>IRIS ADMIN</h2>
+          <span>Operations Center</span>
+        </div>
       </div>
-      
-      <div class="nav-actions">
-        <button id="btn-theme-toggle" class="btn-icon" title="Toggle Light/Dark Theme">
-          <i class="fa-solid fa-sun"></i>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">MANAGEMENT</div>
+        <button class="nav-item active" data-nav-target="dashboard">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Overview & Modes</span>
         </button>
-        <button id="btn-show-config" class="btn-icon" title="System Configuration">
-          <i class="fa-solid fa-sliders"></i>
+        <button class="nav-item" data-nav-target="timetables">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Daily Timetables</span>
         </button>
+        <button class="nav-item" data-nav-target="exams">
+          <i class="fa-solid fa-pen-clip"></i>
+          <span>Exam Schedules</span>
+        </button>
+        <button class="nav-item" data-nav-target="semester">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Semester Schedule</span>
+        </button>
+
+        <div class="nav-section-title">COMMUNICATIONS</div>
+        <button class="nav-item" data-nav-target="broadcast">
+          <i class="fa-solid fa-tower-broadcast"></i>
+          <span>Broadcast Studio</span>
+        </button>
+        <button class="nav-item" data-nav-target="feedback">
+          <i class="fa-solid fa-comments"></i>
+          <span>User Feedback</span>
+        </button>
+
+        <div class="nav-section-title">SYSTEM & RELEASES</div>
+        <button class="nav-item" data-nav-target="releases">
+          <i class="fa-solid fa-box-archive"></i>
+          <span>APK Deployer</span>
+        </button>
+        <button class="nav-item" data-nav-target="terminal">
+          <i class="fa-solid fa-terminal"></i>
+          <span>System Terminal</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer User Profile -->
+      <div class="sidebar-footer">
         <div class="user-profile">
           <div id="user-monogram" class="monogram">OP</div>
-          <button id="btn-logout" class="btn-logout" title="Disconnect Session Link">
+          <div class="user-meta">
+            <span class="user-name">Administrator</span>
+            <span class="user-status"><span class="status-dot"></span> Online</span>
+          </div>
+          <button id="btn-logout" class="btn-logout" title="Disconnect Session">
             <i class="fa-solid fa-power-off"></i>
           </button>
         </div>
       </div>
-    </header>
+    </aside>
 
-    <!-- ASYMMETRIC 3-COLUMN WORKSPACE -->
-    <main class="dashboard-grid">
+    <!-- RIGHT MAIN CONTENT AREA -->
+    <div class="admin-main">
       
-      <!-- COLUMN 1: REMOTE SYSTEMS & MODE SWAPPERS (Narrow) -->
-      <section class="grid-col narrow-col">
+      <!-- TOP COMMAND BAR -->
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <h1 id="page-title">Overview & Telemetry</h1>
+          <span id="page-subtitle">Real-time status monitoring and global operational mode controls</span>
+        </div>
         
-        <!-- CARD 1: ACADEMIC MODE TRANSCEIVER -->
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-satellite-dish icon-accent"></i>
-            <h3>Active Academic Mode</h3>
-          </div>
-          <p class="card-desc">Control the global operational mode synchronized in real-time to student client devices.</p>
-          
-          <div class="ribbon-switcher">
-            <div class="ribbon-segment active" data-period="classes">
-              <i class="fa-solid fa-graduation-cap"></i> Classes
-            </div>
-            <div class="ribbon-segment" data-period="midterms">
-              <i class="fa-solid fa-pen-clip"></i> Mids
-            </div>
-            <div class="ribbon-segment" data-period="finals">
-              <i class="fa-solid fa-award"></i> Finals
-            </div>
-            <div class="ribbon-segment" data-period="sports_week">
-              <i class="fa-solid fa-volleyball"></i> Sports
-            </div>
-          </div>
-          
-          <div id="active-period-desc" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-body); line-height: 1.4; padding: 6px 4px;">
-            Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.
-          </div>
+        <div class="topbar-right">
+          <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald);">
+            <span class="status-dot"></span> CONNECTED
+          </span>
+          <span class="badge" id="latency-badge" style="background: rgba(99, 102, 241, 0.1); color: var(--accent-indigo);">
+            <i class="fa-solid fa-wifi"></i> <span id="latency-val">8ms</span>
+          </span>
+          <button id="btn-theme-toggle" class="btn-icon" title="Toggle Theme">
+            <i class="fa-solid fa-sun"></i>
+          </button>
+          <button id="btn-show-config" class="btn-icon" title="Configuration">
+            <i class="fa-solid fa-sliders"></i>
+          </button>
         </div>
+      </header>
 
-        <!-- CARD 2: HEALTH & TELEMETRY -->
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-chart-line icon-accent"></i>
-            <h3>System Health & Telemetry</h3>
-          </div>
-          <p class="card-desc">Monitor real-time network latency, database traffic loads, and telemetry metrics.</p>
-          
-          <div style="height: 60px; margin-bottom: 16px;">
-            <svg viewBox="0 0 300 60" style="width: 100%; height: 100%;" id="telemetry-svg">
-              <defs>
-                <linearGradient id="chart-gradient-indigo" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="var(--accent-indigo)" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="var(--accent-indigo)" stop-opacity="0.0"/>
-                </linearGradient>
-              </defs>
-              <path id="chart-latency-area" d="" fill="url(#chart-gradient-indigo)"/>
-              <path id="chart-latency-path" d="" fill="none" stroke="var(--accent-indigo)" stroke-width="2"/>
-              <path id="chart-ops-area" d="" fill="none"/>
-              <path id="chart-ops-path" d="" fill="none" stroke="var(--accent-cyan)" stroke-width="2"/>
-              <circle id="chart-ops-dot" cx="-10" cy="-10" r="3" fill="var(--accent-cyan)"/>
-            </svg>
-          </div>
-          
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
-            <div style="padding: 8px 4px; background: rgba(0,0,0,0.15); border: 1px solid var(--border-subtle); border-radius: 8px;">
-              <span style="font-size: 8px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">PROJECT ID</span>
-              <strong id="telemetry-nodes" style="font-size: 11px; font-family: var(--font-mono); color: var(--text-title);">iris-138ef</strong>
-            </div>
-            <div style="padding: 8px 4px; background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px;">
-              <span style="font-size: 8px; font-family: var(--font-mono); color: var(--accent-indigo); display: block; text-transform: uppercase;">DB WRITES</span>
-              <strong id="telemetry-ops" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-indigo);">0 writes</strong>
-            </div>
-            <div style="padding: 8px 4px; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px;">
-              <span style="font-size: 8px; font-family: var(--font-mono); color: var(--accent-emerald); display: block; text-transform: uppercase;">STATUS</span>
-              <strong id="telemetry-health" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-emerald);">OPTIMAL</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- CARD 3: MOBILE LIVE SIMULATOR MOCKUP -->
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-mobile-screen icon-accent"></i>
-            <h3>Client Mockup Feed</h3>
-          </div>
-          <p class="card-desc">Simulate live mobile card updates dispatched from this administrator console.</p>
-          
-          <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; margin-bottom: 12px;">
-            <button class="emulator-tab-btn active" style="flex: 1; border: none; background: var(--accent-indigo); color: white; padding: 6px; border-radius: 6px; font-size: 10px; font-family: var(--font-display); font-weight: 700; cursor: pointer;">Period Card</button>
-            <button class="emulator-tab-btn" style="flex: 1; border: none; background: transparent; color: var(--text-muted); padding: 6px; border-radius: 6px; font-size: 10px; font-family: var(--font-display); font-weight: 700; cursor: pointer;">Broadcast Notice</button>
-          </div>
-          
-          <div id="mock-period-card" class="emulator-screen active-screen" style="padding: 16px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px;">
-            <div id="mock-period-badge" style="font-size: 9px; font-family: var(--font-mono); font-weight: 800; color: var(--accent-indigo); margin-bottom: 4px;">
-              <i class="fa-solid fa-graduation-cap"></i> CLASSES MODE
-            </div>
-            <div id="mock-period-title" style="font-size: 14px; font-weight: 800; color: var(--text-title); margin-bottom: 2px;">
-              CLASSES IN SESSION
-            </div>
-            <div id="mock-period-subtitle" style="font-size: 11px; color: var(--text-muted);">
-              Regular academic lecturing track
-            </div>
-          </div>
-          
-          <div id="mock-notice-card" class="emulator-screen" style="display: none; padding: 16px; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 12px;">
-            <div style="font-size: 9px; font-family: var(--font-mono); font-weight: 800; color: var(--accent-cyan); margin-bottom: 4px;">
-              <i class="fa-solid fa-bullhorn"></i> CAMPUS BROADCAST
-            </div>
-            <div id="mock-notice-text" style="font-size: 12px; color: var(--text-title); line-height: 1.4;">
-              No emergency broadcast active.
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- COLUMN 2: TIMETABLE DATABASE LEDGER (Wide - Center Stage) -->
-      <section class="grid-col wide-col">
+      <!-- MULTI-SCREEN PAGE VIEWS CONTAINER -->
+      <div class="pages-container">
         
-        <!-- WORKSPACE SEEDER TABS -->
-        <div class="workspace-tabs" style="display: flex; gap: 8px; margin-bottom: 4px; background: rgba(0,0,0,0.25); padding: 6px; border-radius: 12px; border: 1px solid var(--border-subtle);">
-          <button class="tab-btn active" data-workspace-tab="classes" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 8px; font-family: var(--font-display); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: var(--accent-indigo); color: #ffffff; box-shadow: 0 2px 10px var(--accent-indigo-glow);">
-            <i class="fa-solid fa-calendar-days"></i> Daily Timetables
-          </button>
-          <button class="tab-btn" data-workspace-tab="exams" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 8px; font-family: var(--font-display); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
-            <i class="fa-solid fa-pen-clip"></i> Exam Schedules
-          </button>
-          <button class="tab-btn" data-workspace-tab="semester" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 8px; font-family: var(--font-display); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
-            <i class="fa-solid fa-calendar-check"></i> Semester Schedule
-          </button>
-        </div>
-
-        <!-- TIMETABLE WORKSPACE TAB (CLASSES) -->
-        <div id="workspace-tab-classes" class="workspace-tab-pane active-pane">
+        <!-- ================================================================= -->
+        <!-- SCREEN 1: OVERVIEW / DASHBOARD PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-dashboard" class="page-pane active">
           
-          <div class="tech-card" style="margin-bottom: 20px;">
+          <!-- Key Metrics Bento Row -->
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-icon" style="color: var(--accent-indigo); background: var(--accent-indigo-glow);">
+                <i class="fa-solid fa-satellite-dish"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">Operational Mode</span>
+                <strong class="metric-val" id="metric-mode-val">CLASSES</strong>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon" style="color: var(--accent-cyan); background: var(--accent-cyan-glow);">
+                <i class="fa-solid fa-database"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">Database Writes</span>
+                <strong class="metric-val" id="telemetry-ops">0 writes</strong>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon" style="color: var(--accent-emerald); background: var(--accent-emerald-glow);">
+                <i class="fa-solid fa-heart-pulse"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">Stream Health</span>
+                <strong class="metric-val" id="telemetry-health">OPTIMAL</strong>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon" style="color: var(--accent-amber); background: var(--accent-amber-glow);">
+                <i class="fa-solid fa-server"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">Project ID</span>
+                <strong class="metric-val" id="telemetry-nodes">iris-138ef</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid Row: Academic Mode Switcher & Telemetry Chart -->
+          <div class="bento-two-col">
+            
+            <div class="tech-card">
+              <div class="card-header">
+                <i class="fa-solid fa-satellite-dish icon-accent"></i>
+                <h3>Active Academic Period Mode</h3>
+              </div>
+              <p class="card-desc">Switch the global operational mode pushed in real-time across all mobile companion apps.</p>
+              
+              <div class="ribbon-switcher">
+                <div class="ribbon-segment active" data-period="classes">
+                  <i class="fa-solid fa-graduation-cap"></i> Classes
+                </div>
+                <div class="ribbon-segment" data-period="midterms">
+                  <i class="fa-solid fa-pen-clip"></i> Mids
+                </div>
+                <div class="ribbon-segment" data-period="finals">
+                  <i class="fa-solid fa-award"></i> Finals
+                </div>
+                <div class="ribbon-segment" data-period="sports_week">
+                  <i class="fa-solid fa-volleyball"></i> Sports
+                </div>
+              </div>
+              
+              <div id="active-period-desc" class="period-desc-box">
+                Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.
+              </div>
+            </div>
+
+            <div class="tech-card">
+              <div class="card-header">
+                <i class="fa-solid fa-chart-line icon-accent"></i>
+                <h3>Telemetry Live Latency</h3>
+              </div>
+              <p class="card-desc">Real-time ping latency and active database stream telemetry.</p>
+              
+              <div style="height: 100px; margin-top: 10px;">
+                <svg viewBox="0 0 400 80" style="width: 100%; height: 100%;" id="telemetry-svg">
+                  <defs>
+                    <linearGradient id="chart-gradient-indigo" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--accent-indigo)" stop-opacity="0.35"/>
+                      <stop offset="100%" stop-color="var(--accent-indigo)" stop-opacity="0.0"/>
+                    </linearGradient>
+                  </defs>
+                  <path id="chart-latency-area" d="" fill="url(#chart-gradient-indigo)"/>
+                  <path id="chart-latency-path" d="" fill="none" stroke="var(--accent-indigo)" stroke-width="2.5"/>
+                  <path id="chart-ops-area" d="" fill="none"/>
+                  <path id="chart-ops-path" d="" fill="none" stroke="var(--accent-cyan)" stroke-width="2"/>
+                  <circle id="chart-ops-dot" cx="-10" cy="-10" r="3.5" fill="var(--accent-cyan)"/>
+                </svg>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Mobile Mockup Simulator -->
+          <div class="tech-card" style="margin-top: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-mobile-screen icon-accent"></i>
+              <h3>Mobile Client Live Simulator</h3>
+            </div>
+            <p class="card-desc">Live preview of current cards and announcements rendered on student phones.</p>
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+              <button class="emulator-tab-btn active" style="padding: 6px 14px; font-size: 11px; border: none; border-radius: 6px; font-weight: 700; background: var(--accent-indigo); color: white; cursor: pointer;">Active Card</button>
+              <button class="emulator-tab-btn" style="padding: 6px 14px; font-size: 11px; border: none; border-radius: 6px; font-weight: 700; background: rgba(255,255,255,0.05); color: var(--text-muted); cursor: pointer;">Broadcast Notice</button>
+            </div>
+            
+            <div id="mock-period-card" class="emulator-screen active-screen" style="padding: 18px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px;">
+              <div id="mock-period-badge" style="font-size: 10px; font-family: var(--font-mono); font-weight: 800; color: var(--accent-indigo); margin-bottom: 4px;">
+                <i class="fa-solid fa-graduation-cap"></i> CLASSES MODE
+              </div>
+              <div id="mock-period-title" style="font-size: 16px; font-weight: 800; color: var(--text-title); margin-bottom: 2px;">
+                CLASSES IN SESSION
+              </div>
+              <div id="mock-period-subtitle" style="font-size: 12px; color: var(--text-muted);">
+                Regular academic lecturing track
+              </div>
+            </div>
+            
+            <div id="mock-notice-card" class="emulator-screen" style="display: none; padding: 18px; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px;">
+              <div style="font-size: 10px; font-family: var(--font-mono); font-weight: 800; color: var(--accent-cyan); margin-bottom: 4px;">
+                <i class="fa-solid fa-bullhorn"></i> CAMPUS BROADCAST
+              </div>
+              <div id="mock-notice-text" style="font-size: 13px; color: var(--text-title); line-height: 1.4;">
+                No emergency broadcast active.
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- SCREEN 2: DAILY TIMETABLES PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-timetables" class="page-pane">
+          
+          <div class="tech-card" style="margin-bottom: 24px;">
             <div class="card-header">
               <i class="fa-solid fa-database icon-accent"></i>
               <h3>Timetable Database Seeder</h3>
             </div>
-            <p class="card-desc">Import and stage academic daily class timetables. Drag and drop daily class schedule PDFs or JSON files directly to preview and deploy them.</p>
+            <p class="card-desc">Import and stage daily academic timetables. Drag and drop daily class PDFs or JSON files directly to preview and deploy them.</p>
             
             <div class="dropzone-industrial" id="timetable-dropzone">
               <input type="file" id="file-timetable" accept=".json,.pdf" style="display: none;" multiple>
@@ -253,31 +335,31 @@
               <p class="file-info" id="timetable-file-info"></p>
             </div>
             
-            <div id="staged-files-container" style="display: none; margin-bottom: 20px; background: rgba(0,0,0,0.15); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
-              <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 8px;">Staged Timetable Files</span>
+            <div id="staged-files-container" style="display: none; margin-bottom: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px;">
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 8px;">Staged Timetable Files</span>
               <ul id="staged-files-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"></ul>
-              <button type="button" id="btn-clear-staged-files" class="btn btn-logout" style="margin-top: 10px; font-size: 9px; padding: 6px 12px; height: auto; text-transform: uppercase; font-family: var(--font-mono); font-weight: bold; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); color: var(--accent-rose);">
-                <i class="fa-solid fa-trash-can" style="margin-right: 4px;"></i> Clear All Staged Files
+              <button type="button" id="btn-clear-staged-files" class="btn btn-logout" style="margin-top: 10px; font-size: 10px; padding: 8px 14px; height: auto;">
+                <i class="fa-solid fa-trash-can"></i> Clear All Staged Files
               </button>
             </div>
             
             <div id="timetable-analytics" style="display: none; margin-bottom: 20px;">
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;">
-                <div style="padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 8px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Sessions</span>
-                  <strong id="stat-sessions" style="font-size: 14px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
+                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Sessions</span>
+                  <strong id="stat-sessions" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
                 </div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 8px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Courses</span>
-                  <strong id="stat-courses" style="font-size: 14px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
+                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Courses</span>
+                  <strong id="stat-courses" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
                 </div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 8px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Labs</span>
-                  <strong id="stat-labs" style="font-size: 14px; font-family: var(--font-mono); color: var(--accent-emerald);">0</strong>
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
+                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Labs</span>
+                  <strong id="stat-labs" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-emerald);">0</strong>
                 </div>
               </div>
               
-              <div class="departure-ledger-container" style="max-height: 240px;">
+              <div class="departure-ledger-container" style="max-height: 280px;">
                 <table class="departure-ledger-table" id="timetable-preview-table">
                   <thead>
                     <tr>
@@ -294,13 +376,13 @@
               </div>
             </div>
             
-            <button id="btn-deploy-timetable" class="btn btn-primary btn-full" disabled style="padding: 14px; font-weight: 700;">
+            <button id="btn-deploy-timetable" class="btn btn-primary btn-full" disabled style="padding: 14px; font-weight: 700; letter-spacing: 0.5px;">
               <i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px;"></i>
               <span>DEPLOY STAGED TIMETABLE TO DATABASE</span>
             </button>
           </div>
 
-          <!-- LIVE CLASSES INSPECTOR -->
+          <!-- Live Database Inspector -->
           <div class="tech-card">
             <div class="card-header">
               <i class="fa-solid fa-eye icon-accent"></i>
@@ -308,20 +390,20 @@
             </div>
             <p class="card-desc">Inspect, filter, or clear active timetable database records currently served to mobile clients.</p>
             
-            <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
               <div class="input-group" style="flex: 1; margin-bottom: 0;">
                 <i class="fa-solid fa-magnifying-glass input-icon"></i>
                 <input type="text" id="inspector-classes-search" placeholder="Search by batch, subject, room, teacher, or day...">
               </div>
-              <button id="btn-refresh-inspector-classes" class="btn btn-secondary" style="padding: 0 16px;" title="Reload from Firestore">
+              <button id="btn-refresh-inspector-classes" class="btn btn-secondary" style="padding: 0 18px;" title="Reload from Firestore">
                 <i class="fa-solid fa-arrows-rotate"></i>
               </button>
-              <button id="btn-wipe-classes" class="btn btn-logout" style="padding: 0 16px; font-size: 11px; white-space: nowrap; height: 46px;" title="Clear Active Timetable from Database">
+              <button id="btn-wipe-classes" class="btn btn-logout" style="padding: 0 18px; font-size: 11px; white-space: nowrap; height: 46px;" title="Clear Active Timetable from Database">
                 <i class="fa-solid fa-trash-can"></i> WIPE LIVE
               </button>
             </div>
             
-            <div class="departure-ledger-container" style="max-height: 260px;">
+            <div class="departure-ledger-container" style="max-height: 320px;">
               <table class="departure-ledger-table">
                 <thead>
                   <tr>
@@ -334,18 +416,20 @@
                   </tr>
                 </thead>
                 <tbody id="inspector-classes-body">
-                  <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No timetable loaded. Click refresh to query database.</td></tr>
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No timetable loaded. Click refresh to query database.</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-        </div>
+        </section>
 
-        <!-- EXAM SCHEDULES WORKSPACE TAB -->
-        <div id="workspace-tab-exams" class="workspace-tab-pane" style="display: none;">
+        <!-- ================================================================= -->
+        <!-- SCREEN 3: EXAM SCHEDULES PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-exams" class="page-pane">
           
-          <div class="tech-card" style="margin-bottom: 20px;">
+          <div class="tech-card" style="margin-bottom: 24px;">
             <div class="card-header">
               <i class="fa-solid fa-file-excel icon-accent"></i>
               <h3>Exam Date Sheet Excel Converter</h3>
@@ -360,22 +444,22 @@
             </div>
             
             <div id="exams-analytics" style="display: none; margin-bottom: 20px;">
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;">
-                <div style="padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 8px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Exams</span>
-                  <strong id="exams-stat-total" style="font-size: 14px; font-family: var(--font-mono); color: var(--accent-amber);">0</strong>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
+                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Exams</span>
+                  <strong id="exams-stat-total" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-amber);">0</strong>
                 </div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 8px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Batches</span>
-                  <strong id="exams-stat-batches" style="font-size: 14px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
+                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Batches</span>
+                  <strong id="exams-stat-batches" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
                 </div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 8px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Subjects</span>
-                  <strong id="exams-stat-subjects" style="font-size: 14px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
+                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Subjects</span>
+                  <strong id="exams-stat-subjects" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
                 </div>
               </div>
               
-              <div class="departure-ledger-container" style="max-height: 240px;">
+              <div class="departure-ledger-container" style="max-height: 280px;">
                 <table class="departure-ledger-table">
                   <thead>
                     <tr>
@@ -401,7 +485,7 @@
             </div>
           </div>
 
-          <!-- LIVE EXAMS INSPECTOR -->
+          <!-- Live Exams Database Inspector -->
           <div class="tech-card">
             <div class="card-header">
               <i class="fa-solid fa-eye icon-accent"></i>
@@ -429,7 +513,7 @@
               </button>
             </div>
             
-            <div class="departure-ledger-container" style="max-height: 250px;">
+            <div class="departure-ledger-container" style="max-height: 300px;">
               <table class="departure-ledger-table">
                 <thead>
                   <tr>
@@ -441,7 +525,7 @@
                   </tr>
                 </thead>
                 <tbody id="inspector-exams-body">
-                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No exams loaded. Click refresh to query database.</td></tr>
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No exams loaded. Click refresh to query database.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -449,10 +533,12 @@
 
         </div>
 
-        <!-- SEMESTER SCHEDULE WORKSPACE TAB -->
-        <div id="workspace-tab-semester" class="workspace-tab-pane" style="display: none;">
+        <!-- ================================================================= -->
+        <!-- SCREEN 4: SEMESTER SCHEDULE PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-semester" class="page-pane">
           
-          <div class="tech-card" style="margin-bottom: 20px;">
+          <div class="tech-card">
             <div class="card-header">
               <i class="fa-solid fa-calendar-check icon-accent"></i>
               <h3>Semester Schedule & Milestones Manager</h3>
@@ -460,21 +546,21 @@
             <p class="card-desc">Create, manage, and publish official semester milestones (Classes Commencement, Midterm Exams, Terminal Exams, Drop Deadlines, Results) directly to IRIS mobile apps in real time.</p>
             
             <!-- Quick Add Form -->
-            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px; margin-bottom: 16px;">
-              <span class="segment-label" style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 12px;">Add New Semester Milestone</span>
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 14px;">Add New Semester Milestone</span>
               
-              <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+              <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Milestone Title</label>
-                  <input type="text" id="input-milestone-title" placeholder="e.g. MIDTERM EXAMINATIONS" style="width: 100%; height: 42px; padding: 0 12px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Milestone Title</label>
+                  <input type="text" id="input-milestone-title" placeholder="e.g. MIDTERM EXAMINATIONS" style="width: 100%; height: 44px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
                 </div>
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Date / Range</label>
-                  <input type="text" id="input-milestone-date" placeholder="e.g. 2026-04-13 or Apr 13, 2026" style="width: 100%; height: 42px; padding: 0 12px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Date / Range</label>
+                  <input type="text" id="input-milestone-date" placeholder="e.g. 2026-04-13 or Apr 13, 2026" style="width: 100%; height: 44px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
                 </div>
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Category</label>
-                  <select id="select-milestone-category" style="width: 100%; height: 42px; padding: 0 8px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Category</label>
+                  <select id="select-milestone-category" style="width: 100%; height: 44px; padding: 0 10px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
                     <option value="Classes">Classes</option>
                     <option value="Exams">Exams</option>
                     <option value="Registration">Registration</option>
@@ -483,8 +569,8 @@
                   </select>
                 </div>
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Status</label>
-                  <select id="select-milestone-status" style="width: 100%; height: 42px; padding: 0 8px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Status</label>
+                  <select id="select-milestone-status" style="width: 100%; height: 44px; padding: 0 10px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
                     <option value="upcoming">Upcoming</option>
                     <option value="active">Active Now</option>
                     <option value="expired">Expired</option>
@@ -492,26 +578,26 @@
                 </div>
               </div>
               
-              <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button type="button" id="btn-template-milestones" class="btn btn-secondary" style="font-size: 11px; padding: 8px 14px; height: auto;">
+              <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" id="btn-template-milestones" class="btn btn-secondary" style="font-size: 11px; padding: 10px 16px; height: auto;">
                   <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-cyan);"></i> Load Standard Template
                 </button>
-                <button type="button" id="btn-add-milestone" class="btn btn-primary" style="font-size: 11px; padding: 8px 16px; height: auto;">
+                <button type="button" id="btn-add-milestone" class="btn btn-primary" style="font-size: 11px; padding: 10px 18px; height: auto;">
                   <i class="fa-solid fa-plus"></i> Add Milestone
                 </button>
               </div>
             </div>
             
             <!-- Milestones Ledger Table -->
-            <div style="margin-bottom: 16px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--text-caption); font-weight: 700;">Staged Semester Milestones (<span id="milestone-count">0</span>)</span>
                 <button type="button" id="btn-clear-milestones" style="background: none; border: none; font-size: 10px; font-family: var(--font-mono); color: var(--accent-rose); cursor: pointer; text-transform: uppercase;">
                   <i class="fa-solid fa-trash-can"></i> Clear All
                 </button>
               </div>
               
-              <div class="departure-ledger-container" style="max-height: 280px;">
+              <div class="departure-ledger-container" style="max-height: 340px;">
                 <table class="departure-ledger-table" id="milestones-table">
                   <thead>
                     <tr>
@@ -524,190 +610,212 @@
                     </tr>
                   </thead>
                   <tbody id="milestones-table-body">
-                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No milestones staged. Click "Load Standard Template" or add milestones manually above.</td></tr>
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 28px;">No milestones staged. Click "Load Standard Template" or add milestones manually above.</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
             
-            <button id="btn-deploy-semester" class="btn btn-primary btn-full" style="padding: 14px; font-weight: 700; letter-spacing: 1px;">
+            <button id="btn-deploy-semester" class="btn btn-primary btn-full" style="padding: 16px; font-weight: 800; letter-spacing: 1px;">
               <i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px;"></i>
               <span>DEPLOY SEMESTER SCHEDULE TO IRIS (FIRESTORE)</span>
             </button>
           </div>
 
-        </div>
+        </section>
 
-        <!-- CARD: IN-APP APK DEPLOYMENT -->
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-box-archive icon-accent"></i>
-            <h3>In-App Android Release Deployment</h3>
-          </div>
-          <p class="card-desc">Publish release binaries directly to client applications with automated in-app download and update notification banners.</p>
+        <!-- ================================================================= -->
+        <!-- SCREEN 5: BROADCAST STUDIO PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-broadcast" class="page-pane">
           
-          <div class="dropzone-industrial" id="apk-dropzone">
-            <input type="file" id="file-apk" accept=".apk" style="display: none;">
-            <i class="fa-solid fa-android drag-icon" style="color: var(--accent-emerald);"></i>
-            <p>DRAG RELEASE APK OR <span class="browse-link">BROWSE</span></p>
-            <p class="file-info" id="apk-file-info"></p>
-          </div>
-          
-          <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-            <div class="input-group" style="flex: 1; margin-bottom: 0;">
-              <i class="fa-solid fa-tag input-icon"></i>
-              <input type="text" id="apk-version-name" placeholder="Version Name (e.g. 1.2.0)">
+          <div class="tech-card">
+            <div class="card-header">
+              <i class="fa-solid fa-tower-broadcast icon-accent"></i>
+              <h3>Emergency Campus Broadcast Transceiver</h3>
             </div>
-            <div class="input-group" style="flex: 1; margin-bottom: 0;">
-              <i class="fa-solid fa-hashtag input-icon"></i>
-              <input type="number" id="apk-version-code" placeholder="Build Code (e.g. 4)">
-            </div>
-            <button id="btn-pull-github" class="btn btn-secondary" style="font-size: 11px; white-space: nowrap; height: 46px;">
-              <i class="fa-brands fa-github"></i> Pull from GitHub
-            </button>
-          </div>
-          
-          <div class="input-group" style="margin-bottom: 12px;">
-            <i class="fa-solid fa-link input-icon"></i>
-            <input type="url" id="apk-url-input" placeholder="Direct APK URL from GitHub Releases (Auto-fills on pull)...">
-          </div>
-          
-          <div class="input-group" style="margin-bottom: 14px;">
-            <i class="fa-solid fa-message input-icon" style="top: 20px;"></i>
-            <textarea id="apk-notes" placeholder="Release update highlights..." style="height: 60px; padding-top: 12px; resize: none;"></textarea>
-          </div>
-          
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <span style="font-size: 12px; color: var(--text-body); font-weight: 600;">Display Update Banner in App</span>
-            <label class="switch">
-              <input type="checkbox" id="apk-switch-visible" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div id="upload-progress-container" style="display: none; margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 4px;">
-              <span>UPLOADING PACKAGE...</span>
-              <span id="upload-progress-pct">0%</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.2); border-radius: 99px; overflow: hidden;">
-              <div id="upload-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-indigo), var(--accent-cyan));"></div>
-            </div>
-          </div>
-          
-          <button id="btn-deploy-apk" class="btn btn-primary btn-full" disabled style="padding: 14px; font-weight: 700; background: linear-gradient(135deg, var(--accent-emerald), #047857);">
-            <i class="fa-solid fa-rocket" style="margin-right: 8px;"></i>
-            <span>DEPLOY RELEASE APK TO CLIENTS</span>
-          </button>
-        </div>
-
-      </section>
-
-      <!-- COLUMN 3: BROADCAST TRANSCEIVER & SYSTEMS ACTIVITY TERMINAL (Medium) -->
-      <section class="grid-col medium-col">
-        
-        <!-- CARD 1: BROADCAST STUDIO -->
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-tower-broadcast icon-accent"></i>
-            <h3>Alert Notification Studio</h3>
-          </div>
-          <p class="card-desc">Push instant campus-wide announcement banners across all student devices.</p>
-          
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <span style="font-size: 12px; color: var(--text-body); font-weight: 600;">Active Broadcast Transceiver</span>
-            <label class="switch">
-              <input type="checkbox" id="broadcast-switch-visible">
-              <span class="slider"></span>
-            </label>
-            <input type="checkbox" id="broadcast-switch" style="display: none;">
-          </div>
-          
-          <div class="input-group" style="margin-bottom: 12px;">
-            <textarea id="broadcast-message" placeholder="Type emergency broadcast message..." style="height: 75px; padding-top: 12px; resize: none;"></textarea>
-          </div>
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-              <span class="preset-chip" style="font-size: 9px; font-family: var(--font-mono); padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-muted); cursor: pointer;">🚨 Urgent</span>
-              <span class="preset-chip" style="font-size: 9px; font-family: var(--font-mono); padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-muted); cursor: pointer;">🌧️ Weather</span>
-              <span class="preset-chip" style="font-size: 9px; font-family: var(--font-mono); padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-muted); cursor: pointer;">🚌 Transport</span>
-            </div>
-            <span id="broadcast-char-count" style="font-size: 10px; font-family: var(--font-mono); color: var(--text-muted);">0/140</span>
-          </div>
-          
-          <span id="broadcasting-badge" style="display: none;"></span>
-          <span id="char-ring-fill" style="display: none;"></span>
-          
-          <button id="btn-broadcast-push" class="btn btn-primary btn-full" style="padding: 12px; background: linear-gradient(135deg, var(--accent-rose), #991b1b);">
-            <i class="fa-solid fa-bullhorn" style="margin-right: 6px;"></i> PUSH BROADCAST
-          </button>
-        </div>
-
-        <!-- CARD 2: SYSTEMS ACTIVITY TERMINAL -->
-        <div class="tech-card">
-          <div class="terminal-deck">
-            <div class="terminal-header">
-              <div class="terminal-dots">
-                <span class="dot red"></span>
-                <span class="dot yellow"></span>
-                <span class="dot green"></span>
+            <p class="card-desc">Push instant priority alerts and emergency notifications to all IRIS mobile applications.</p>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 14px; background: rgba(0,0,0,0.15); border-radius: 10px; border: 1px solid var(--border-subtle);">
+              <div>
+                <strong style="font-size: 13px; color: var(--text-title); display: block;">Active Broadcast Transceiver</strong>
+                <span style="font-size: 11px; color: var(--text-muted);">Toggle to show or hide the announcement banner on client devices</span>
               </div>
-              <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">IRIS Activity Terminal</span>
-              <button id="btn-clear-terminal" style="background: none; border: none; font-size: 9px; font-family: var(--font-mono); color: var(--accent-rose); cursor: pointer; text-transform: uppercase;">
-                Clear
-              </button>
+              <label class="switch">
+                <input type="checkbox" id="broadcast-switch-visible">
+                <span class="slider"></span>
+              </label>
+              <input type="checkbox" id="broadcast-switch" style="display: none;">
             </div>
             
-            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-              <input type="text" id="terminal-search" placeholder="Filter log stream..." style="flex: 1; height: 28px; padding: 0 8px; font-size: 10px; font-family: var(--font-mono); background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 6px; color: #cbd5e1;">
-              <select id="terminal-filter" style="height: 28px; padding: 0 6px; font-size: 9px; font-family: var(--font-mono); background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 6px; color: #cbd5e1;">
-                <option value="all">ALL</option>
-                <option value="info">INFO</option>
-                <option value="success">OK</option>
-                <option value="warning">WARN</option>
-                <option value="error">ERR</option>
-              </select>
-              <button id="btn-download-logs" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0 8px; color: #cbd5e1; font-size: 10px; cursor: pointer;">
-                <i class="fa-solid fa-download"></i>
-              </button>
+            <div class="input-group" style="margin-bottom: 14px;">
+              <label style="font-size: 10px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Broadcast Message</label>
+              <textarea id="broadcast-message" placeholder="Type urgent campus announcement here..." style="height: 100px; padding: 12px 14px; font-size: 13px; resize: none;"></textarea>
             </div>
             
-            <div class="terminal-logs" id="terminal-output"></div>
-          </div>
-        </div>
-
-        <!-- CARD 3: COMMUNITY FEEDBACK STREAM -->
-        <div class="tech-card">
-          <div class="card-header">
-            <i class="fa-solid fa-comments icon-accent"></i>
-            <h3>Community Feedback Stream</h3>
-          </div>
-          <p class="card-desc">Real-time student & faculty feedback submitted directly from the IRIS mobile app.</p>
-          
-          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <input type="text" id="feedback-search" placeholder="Search feedback..." style="flex: 1; height: 34px; padding: 0 10px; font-size: 11px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-title);" oninput="filterFeedbackFeed()">
-            <select id="feedback-role-filter" style="height: 34px; padding: 0 8px; font-size: 10px; font-family: var(--font-mono); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-title);" onchange="filterFeedbackFeed()">
-              <option value="ALL">ALL ROLES</option>
-              <option value="Student">STUDENTS</option>
-              <option value="Faculty">FACULTY</option>
-            </select>
-            <button id="btn-refresh-feedback" class="btn btn-secondary" style="padding: 0 10px; height: 34px;" title="Refresh Feedback" onclick="renderFeedbackFeed()">
-              <i class="fa-solid fa-arrows-rotate"></i>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <span class="preset-chip" style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚨 Urgent Announcement</span>
+                <span class="preset-chip" style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🌧️ Weather Advisory</span>
+                <span class="preset-chip" style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚌 Transport Route Delay</span>
+              </div>
+              <span id="broadcast-char-count" style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);">0/140</span>
+            </div>
+            
+            <span id="broadcasting-badge" style="display: none;"></span>
+            <span id="char-ring-fill" style="display: none;"></span>
+            
+            <button id="btn-broadcast-push" class="btn btn-primary btn-full" style="padding: 14px; background: linear-gradient(135deg, var(--accent-rose), #991b1b); font-weight: 700;">
+              <i class="fa-solid fa-bullhorn" style="margin-right: 8px;"></i> PUSH EMERGENCY BROADCAST
             </button>
           </div>
+
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- SCREEN 6: APK RELEASES PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-releases" class="page-pane">
           
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--text-muted);">LIVE SUBMISSIONS</span>
-            <span id="feedback-count-badge" style="font-family: var(--font-mono); font-size: 9px; font-weight: 800; color: var(--accent-cyan);">0 SUBMISSIONS</span>
+          <div class="tech-card">
+            <div class="card-header">
+              <i class="fa-solid fa-box-archive icon-accent"></i>
+              <h3>In-App Android Release Deployment</h3>
+            </div>
+            <p class="card-desc">Publish release binaries directly to client applications with automated in-app download and update notification banners.</p>
+            
+            <div class="dropzone-industrial" id="apk-dropzone">
+              <input type="file" id="file-apk" accept=".apk" style="display: none;">
+              <i class="fa-solid fa-android drag-icon" style="color: var(--accent-emerald);"></i>
+              <p>DRAG RELEASE APK OR <span class="browse-link">BROWSE</span></p>
+              <p class="file-info" id="apk-file-info"></p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; margin-bottom: 14px;">
+              <div class="input-group" style="margin-bottom: 0;">
+                <i class="fa-solid fa-tag input-icon"></i>
+                <input type="text" id="apk-version-name" placeholder="Version Name (e.g. 1.2.0)">
+              </div>
+              <div class="input-group" style="margin-bottom: 0;">
+                <i class="fa-solid fa-hashtag input-icon"></i>
+                <input type="number" id="apk-version-code" placeholder="Build Code (e.g. 4)">
+              </div>
+              <button id="btn-pull-github" class="btn btn-secondary" style="font-size: 11px; white-space: nowrap; height: 46px;">
+                <i class="fa-brands fa-github"></i> Pull from GitHub
+              </button>
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 14px;">
+              <i class="fa-solid fa-link input-icon"></i>
+              <input type="url" id="apk-url-input" placeholder="Direct APK URL from GitHub Releases (Auto-fills on pull)...">
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 16px;">
+              <i class="fa-solid fa-message input-icon" style="top: 20px;"></i>
+              <textarea id="apk-notes" placeholder="Release update highlights..." style="height: 70px; padding-top: 12px; resize: none;"></textarea>
+            </div>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 12px 14px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle);">
+              <span style="font-size: 12px; color: var(--text-body); font-weight: 600;">Display Update Banner in App</span>
+              <label class="switch">
+                <input type="checkbox" id="apk-switch-visible" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            
+            <div id="upload-progress-container" style="display: none; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 4px;">
+                <span>UPLOADING PACKAGE...</span>
+                <span id="upload-progress-pct">0%</span>
+              </div>
+              <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.2); border-radius: 99px; overflow: hidden;">
+                <div id="upload-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-indigo), var(--accent-cyan));"></div>
+              </div>
+            </div>
+            
+            <button id="btn-deploy-apk" class="btn btn-primary btn-full" disabled style="padding: 14px; font-weight: 700; background: linear-gradient(135deg, var(--accent-emerald), #047857);">
+              <i class="fa-solid fa-rocket" style="margin-right: 8px;"></i>
+              <span>DEPLOY RELEASE APK TO CLIENTS</span>
+            </button>
           </div>
+
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- SCREEN 7: COMMUNITY FEEDBACK PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-feedback" class="page-pane">
           
-          <div id="feedback-feed-container" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
-        </div>
+          <div class="tech-card">
+            <div class="card-header">
+              <i class="fa-solid fa-comments icon-accent"></i>
+              <h3>Community Feedback Stream</h3>
+            </div>
+            <p class="card-desc">Real-time student & faculty feedback submitted directly from the IRIS mobile companion app.</p>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+              <input type="text" id="feedback-search" placeholder="Search feedback by name, roll number, device, or comment..." style="flex: 1; height: 42px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);" oninput="filterFeedbackFeed()">
+              <select id="feedback-role-filter" style="height: 42px; padding: 0 12px; font-size: 11px; font-family: var(--font-mono); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);" onchange="filterFeedbackFeed()">
+                <option value="ALL">ALL ROLES</option>
+                <option value="Student">STUDENTS</option>
+                <option value="Faculty">FACULTY</option>
+              </select>
+              <button id="btn-refresh-feedback" class="btn btn-secondary" style="padding: 0 16px; height: 42px;" title="Refresh Feedback" onclick="renderFeedbackFeed()">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">LIVE USER TELEMETRY</span>
+              <span id="feedback-count-badge" style="font-family: var(--font-mono); font-size: 10px; font-weight: 800; color: var(--accent-cyan);">0 SUBMISSIONS</span>
+            </div>
+            
+            <div id="feedback-feed-container" style="max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;"></div>
+          </div>
 
-      </section>
+        </section>
 
-    </main>
+        <!-- ================================================================= -->
+        <!-- SCREEN 8: SYSTEM ACTIVITY TERMINAL PAGE -->
+        <!-- ================================================================= -->
+        <section id="page-terminal" class="page-pane">
+          
+          <div class="tech-card">
+            <div class="terminal-deck">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <span class="dot red"></span>
+                  <span class="dot yellow"></span>
+                  <span class="dot green"></span>
+                </div>
+                <span style="font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; font-weight: 700;">IRIS Activity Terminal Log Stream</span>
+                <button id="btn-clear-terminal" style="background: none; border: none; font-size: 10px; font-family: var(--font-mono); color: var(--accent-rose); cursor: pointer; text-transform: uppercase; font-weight: 700;">
+                  Clear Log
+                </button>
+              </div>
+              
+              <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <input type="text" id="terminal-search" placeholder="Filter log stream..." style="flex: 1; height: 34px; padding: 0 10px; font-size: 11px; font-family: var(--font-mono); background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 6px; color: #cbd5e1;">
+                <select id="terminal-filter" style="height: 34px; padding: 0 10px; font-size: 10px; font-family: var(--font-mono); background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 6px; color: #cbd5e1;">
+                  <option value="all">ALL SEVERITY</option>
+                  <option value="info">INFO</option>
+                  <option value="success">OK</option>
+                  <option value="warning">WARN</option>
+                  <option value="error">ERR</option>
+                </select>
+                <button id="btn-download-logs" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0 12px; color: #cbd5e1; font-size: 11px; cursor: pointer;">
+                  <i class="fa-solid fa-download"></i> Export
+                </button>
+              </div>
+              
+              <div class="terminal-logs" id="terminal-output" style="height: 440px;"></div>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
   </div>
 
   <!-- CONFIGURATION MODAL -->
@@ -748,6 +856,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
   <!-- Core Controller Scripts -->
-  <script src="app.js?v=2.0.0"></script>
+  <script src="app.js?v=2.5.0"></script>
 </body>
 </html>

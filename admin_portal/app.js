@@ -206,38 +206,91 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // WORKSPACE SEEDER TABS TOGGLER
+  // MULTI-SCREEN SIDEBAR NAVIGATION CONTROLLER
+  const navItems = document.querySelectorAll('.nav-item');
+  const pagePanes = document.querySelectorAll('.page-pane');
+  const pageTitle = document.getElementById('page-title');
+  const pageSubtitle = document.getElementById('page-subtitle');
+
+  const pageMeta = {
+    dashboard: {
+      title: 'Overview & Telemetry',
+      subtitle: 'Real-time status monitoring and global operational mode controls'
+    },
+    timetables: {
+      title: 'Daily Timetables Database',
+      subtitle: 'Import, parse, preview, and deploy daily class schedule databases'
+    },
+    exams: {
+      title: 'Exam Date Sheets & Schedules',
+      subtitle: 'Convert Midterms and Finals Excel date sheets and inspect active records'
+    },
+    semester: {
+      title: 'Semester Schedule & Milestones',
+      subtitle: 'Publish official semester milestone timelines directly to student devices'
+    },
+    broadcast: {
+      title: 'Emergency Broadcast Studio',
+      subtitle: 'Push instant priority campus alerts and announcements across mobile clients'
+    },
+    feedback: {
+      title: 'Community Feedback Stream',
+      subtitle: 'Review student and faculty ratings, device telemetry, and suggestions'
+    },
+    releases: {
+      title: 'In-App APK Release Deployer',
+      subtitle: 'Publish Android package binaries and notify active app installations'
+    },
+    terminal: {
+      title: 'Systems Activity Terminal',
+      subtitle: 'Real-time telemetry event stream and administrative execution logs'
+    }
+  };
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetPage = item.dataset.navTarget;
+      if (!targetPage) return;
+
+      navItems.forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+
+      pagePanes.forEach(pane => {
+        if (pane.id === `page-${targetPage}`) {
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+        }
+      });
+
+      if (pageMeta[targetPage]) {
+        if (pageTitle) pageTitle.innerText = pageMeta[targetPage].title;
+        if (pageSubtitle) pageSubtitle.innerText = pageMeta[targetPage].subtitle;
+      }
+
+      logTerminal(`Screen navigation: Switched to <strong>${targetPage.toUpperCase()}</strong> workspace.`, 'info');
+
+      if (targetPage === 'timetables') {
+        refreshLiveClassesInspector();
+      } else if (targetPage === 'exams') {
+        refreshLiveExamsInspector();
+      } else if (targetPage === 'feedback') {
+        renderFeedbackFeed();
+      }
+    });
+  });
+
+  // Legacy tab support
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.workspace-tab-pane');
   tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      tabButtons.forEach(b => {
-        b.classList.remove('active');
-        b.style.background = 'transparent';
-        b.style.color = 'var(--text-muted)';
-        b.style.boxShadow = 'none';
-      });
-      btn.classList.add('active');
-      btn.style.background = '#ffffff';
-      btn.style.color = 'var(--accent-indigo)';
-      btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
-      
       const targetTab = btn.dataset.workspaceTab;
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       tabPanes.forEach(pane => {
-        if (pane.id === `workspace-tab-${targetTab}`) {
-          pane.style.display = 'block';
-        } else {
-          pane.style.display = 'none';
-        }
+        pane.style.display = pane.id === `workspace-tab-${targetTab}` ? 'block' : 'none';
       });
-      logTerminal(`Workspace switch: Staging <strong>${targetTab.toUpperCase()}</strong> workspace interface.`, 'info');
-      
-      // Auto-load live data when switching tabs
-      if (targetTab === 'classes') {
-        refreshLiveClassesInspector();
-      } else if (targetTab === 'exams') {
-        refreshLiveExamsInspector();
-      }
     });
   });
 
