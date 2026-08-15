@@ -3621,20 +3621,20 @@ function filterFeedbackFeed() {
 }
 
 // ==========================================================================
-// SEMESTER SCHEDULE & MILESTONES WORKSPACE MANAGER
+// SEMESTER SCHEDULE & MILESTONES WORKSPACE MANAGER (ADVANCED EASE-OF-ACCESS)
 // ==========================================================================
 
 let stagedSemesterMilestones = [];
 
 const DEFAULT_COMSATS_MILESTONES = [
   { title: "REGISTRATION WEEK", date: "2026-01-26", category: "Registration", status: "expired" },
-  { title: "COMMENCEMENT OF CLASSES", date: "2026-02-02", category: "Classes", status: "expired" },
-  { title: "LAST DATE FOR DROP COURSE", date: "2026-03-06", category: "Registration", status: "expired" },
-  { title: "MIDTERM EXAMINATIONS", date: "2026-04-13", category: "Exams", status: "expired" },
-  { title: "STUDENT SPORTS & CULTURAL WEEK", date: "2026-05-04", category: "Events", status: "expired" },
+  { title: "COMMENCEMENT OF CLASSES", date: "2026-02-02", category: "Classes", status: "active" },
+  { title: "LAST DATE FOR DROP COURSE", date: "2026-03-06", category: "Registration", status: "upcoming" },
+  { title: "MIDTERM EXAMINATIONS", date: "2026-04-13", category: "Exams", status: "upcoming" },
+  { title: "STUDENT SPORTS & CULTURAL WEEK", date: "2026-05-04", category: "Events", status: "upcoming" },
   { title: "LAST DAY OF CLASSES", date: "2026-05-22", category: "Classes", status: "upcoming" },
   { title: "TERMINAL EXAMINATIONS", date: "2026-06-03", category: "Exams", status: "upcoming" },
-  { title: "RESULT OF TERMINAL EXAMS", date: "2026-07-06", category: "Events", status: "upcoming" }
+  { title: "RESULT OF TERMINAL EXAMS", date: "2026-07-06", category: "Registration", status: "upcoming" }
 ];
 
 function setupSemesterScheduleHandlers() {
@@ -3642,10 +3642,81 @@ function setupSemesterScheduleHandlers() {
   const btnTemplate = document.getElementById('btn-template-milestones');
   const btnClear = document.getElementById('btn-clear-milestones');
   const btnDeploy = document.getElementById('btn-deploy-semester');
+  const btnFetchCloud = document.getElementById('btn-fetch-cloud-milestones');
+  const btnExport = document.getElementById('btn-export-milestones');
+  const btnSort = document.getElementById('btn-sort-chronological');
 
+  // Quick Preset Chips Handler
+  const presetChips = document.querySelectorAll('.milestone-preset-chip');
+  presetChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const title = chip.dataset.title || chip.innerText.trim();
+      const cat = chip.dataset.cat || 'Classes';
+      const status = chip.dataset.status || 'upcoming';
+
+      const titleInput = document.getElementById('input-milestone-title');
+      const catSelect = document.getElementById('select-milestone-category');
+      const statusSelect = document.getElementById('select-milestone-status');
+      const dateInput = document.getElementById('input-milestone-date');
+
+      if (titleInput) titleInput.value = title;
+      if (catSelect) catSelect.value = cat;
+      if (statusSelect) statusSelect.value = status;
+      if (dateInput) dateInput.focus();
+
+      logTerminal(`Auto-filled milestone preset: <strong>${title}</strong> (${cat})`, 'info');
+      showMossToast(`Preset applied: ${title}`, 'info');
+    });
+  });
+
+  // Date Mode Toggle (Single vs Range)
+  const dateModeRadios = document.querySelectorAll('input[name="milestone-date-mode"]');
+  const singleDateContainer = document.getElementById('date-single-container');
+  const rangeDateContainer = document.getElementById('date-range-container');
+  const singlePicker = document.getElementById('input-milestone-date-picker');
+  const singleText = document.getElementById('input-milestone-date');
+  const startDatePicker = document.getElementById('input-milestone-start-date');
+  const endDatePicker = document.getElementById('input-milestone-end-date');
+
+  dateModeRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (radio.value === 'range') {
+        if (singleDateContainer) singleDateContainer.style.display = 'none';
+        if (rangeDateContainer) rangeDateContainer.style.display = 'flex';
+      } else {
+        if (singleDateContainer) singleDateContainer.style.display = 'flex';
+        if (rangeDateContainer) rangeDateContainer.style.display = 'none';
+      }
+    });
+  });
+
+  if (singlePicker && singleText) {
+    singlePicker.addEventListener('change', () => {
+      if (singlePicker.value) {
+        singleText.value = singlePicker.value;
+      }
+    });
+  }
+
+  const updateRangeDateText = () => {
+    const s = startDatePicker?.value;
+    const e = endDatePicker?.value;
+    if (s && e) {
+      if (singleText) singleText.value = `${s} to ${e}`;
+    } else if (s) {
+      if (singleText) singleText.value = s;
+    }
+  };
+
+  if (startDatePicker) startDatePicker.addEventListener('change', updateRangeDateText);
+  if (endDatePicker) endDatePicker.addEventListener('change', updateRangeDateText);
+
+  // Add Milestone
   if (btnAdd) {
     btnAdd.addEventListener('click', addSemesterMilestoneFromInput);
   }
+
+  // Load Template
   if (btnTemplate) {
     btnTemplate.addEventListener('click', () => {
       stagedSemesterMilestones = JSON.parse(JSON.stringify(DEFAULT_COMSATS_MILESTONES));
@@ -3654,16 +3725,99 @@ function setupSemesterScheduleHandlers() {
       showMossToast("Loaded standard semester milestones template!", "info");
     });
   }
+
+  // Fetch Live Cloud Schedule
+  if (btnFetchCloud) {
+    btnFetchCloud.addEventListener('click', fetchLiveCloudSchedule);
+  }
+
+  // Export JSON
+  if (btnExport) {
+    btnExport.addEventListener('click', exportSemesterScheduleJson);
+  }
+
+  // Auto-Sort Chronological
+  if (btnSort) {
+    btnSort.addEventListener('click', sortMilestonesChronologically);
+  }
+
+  // Clear All
   if (btnClear) {
     btnClear.addEventListener('click', () => {
       stagedSemesterMilestones = [];
       renderSemesterMilestonesTable();
       logTerminal('Cleared all staged semester milestones.', 'info');
+      showMossToast('Cleared all milestones.', 'info');
     });
   }
+
+  // Deploy
   if (btnDeploy) {
     btnDeploy.addEventListener('click', deploySemesterScheduleToFirestore);
   }
+}
+
+async function fetchLiveCloudSchedule() {
+  if (!isConnected || !db) {
+    showMossToast("Database connection offline.", "error");
+    return;
+  }
+
+  const btn = document.getElementById('btn-fetch-cloud-milestones');
+  if (btn) btn.disabled = true;
+
+  try {
+    logTerminal('Querying live semester milestones from Firestore...', 'info');
+    const doc = await db.collection('config').doc('global').get();
+    
+    if (doc.exists && doc.data().semester_schedule && Array.isArray(doc.data().semester_schedule)) {
+      stagedSemesterMilestones = JSON.parse(JSON.stringify(doc.data().semester_schedule));
+      renderSemesterMilestonesTable();
+      logTerminal(`Fetched <strong>${stagedSemesterMilestones.length}</strong> active milestones from Firestore.`, 'success');
+      showMossToast(`Loaded ${stagedSemesterMilestones.length} live milestones from cloud!`, 'success');
+    } else {
+      showMossToast("No custom cloud milestones found. Loaded default template.", "info");
+      stagedSemesterMilestones = JSON.parse(JSON.stringify(DEFAULT_COMSATS_MILESTONES));
+      renderSemesterMilestonesTable();
+    }
+  } catch (err) {
+    console.error("Fetch live schedule error:", err);
+    logTerminal(`Fetch failed: ${err.message}`, 'error');
+    showMossToast(err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function exportSemesterScheduleJson() {
+  if (stagedSemesterMilestones.length === 0) {
+    showMossToast("No milestones to export.", "warning");
+    return;
+  }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stagedSemesterMilestones, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `semester_schedule_${new Date().toISOString().split('T')[0]}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showMossToast("Exported semester milestones to JSON!", "success");
+}
+
+function sortMilestonesChronologically() {
+  if (stagedSemesterMilestones.length < 2) return;
+  stagedSemesterMilestones.sort((a, b) => {
+    const extractDate = (str) => {
+      const match = str.match(/\d{4}-\d{2}-\d{2}/);
+      if (match) return new Date(match[0]).getTime();
+      const parsed = Date.parse(str.split('to')[0].trim());
+      return isNaN(parsed) ? 0 : parsed;
+    };
+    return extractDate(a.date) - extractDate(b.date);
+  });
+  renderSemesterMilestonesTable();
+  logTerminal('Auto-sorted milestones chronologically.', 'info');
+  showMossToast("Milestones sorted by timeline date!", "info");
 }
 
 function addSemesterMilestoneFromInput() {
@@ -3693,30 +3847,87 @@ function addSemesterMilestoneFromInput() {
   if (dateInput) dateInput.value = '';
 
   logTerminal(`Staged milestone: <strong>${title}</strong> (${date})`, 'success');
-  showMossToast(`Added "${title}" to staged schedule!`, "success");
+  showMossToast(`Added "${title}" to schedule!`, "success");
 }
 
-function removeSemesterMilestone(index) {
+window.moveSemesterMilestone = function(index, direction) {
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= stagedSemesterMilestones.length) return;
+  
+  const temp = stagedSemesterMilestones[index];
+  stagedSemesterMilestones[index] = stagedSemesterMilestones[targetIndex];
+  stagedSemesterMilestones[targetIndex] = temp;
+  
+  renderSemesterMilestonesTable();
+};
+
+window.cycleMilestoneStatus = function(index) {
+  if (index < 0 || index >= stagedSemesterMilestones.length) return;
+  const current = stagedSemesterMilestones[index].status || 'upcoming';
+  const nextStatus = current === 'upcoming' ? 'active' : (current === 'active' ? 'expired' : 'upcoming');
+  stagedSemesterMilestones[index].status = nextStatus;
+  renderSemesterMilestonesTable();
+  showMossToast(`Status set to: ${nextStatus.toUpperCase()}`, 'info');
+};
+
+window.editSemesterMilestone = function(index) {
+  if (index < 0 || index >= stagedSemesterMilestones.length) return;
+  const m = stagedSemesterMilestones[index];
+  const newTitle = prompt("Edit Milestone Title:", m.title);
+  if (newTitle === null) return;
+  const newDate = prompt("Edit Milestone Date / Timeline:", m.date);
+  if (newDate === null) return;
+  
+  m.title = newTitle.trim() || m.title;
+  m.date = newDate.trim() || m.date;
+  renderSemesterMilestonesTable();
+  showMossToast(`Updated: ${m.title}`, 'success');
+};
+
+window.duplicateSemesterMilestone = function(index) {
+  if (index < 0 || index >= stagedSemesterMilestones.length) return;
+  const clone = { ...stagedSemesterMilestones[index], title: `${stagedSemesterMilestones[index].title} (Copy)` };
+  stagedSemesterMilestones.splice(index + 1, 0, clone);
+  renderSemesterMilestonesTable();
+  showMossToast(`Duplicated milestone!`, 'info');
+};
+
+window.removeSemesterMilestone = function(index) {
   if (index >= 0 && index < stagedSemesterMilestones.length) {
     const removed = stagedSemesterMilestones.splice(index, 1)[0];
     renderSemesterMilestonesTable();
     logTerminal(`Removed milestone: ${removed.title}`, 'info');
+    showMossToast(`Removed ${removed.title}`, 'info');
   }
-}
+};
 
 function renderSemesterMilestonesTable() {
   const tableBody = document.getElementById('milestones-table-body');
   const countBadge = document.getElementById('milestone-count');
+  const statusSummary = document.getElementById('milestones-status-summary');
 
   if (countBadge) {
     countBadge.innerText = stagedSemesterMilestones.length;
+  }
+
+  // Compute status counts
+  const activeCount = stagedSemesterMilestones.filter(m => m.status === 'active').length;
+  const upcomingCount = stagedSemesterMilestones.filter(m => m.status === 'upcoming').length;
+  const expiredCount = stagedSemesterMilestones.filter(m => m.status === 'expired').length;
+
+  if (statusSummary) {
+    if (stagedSemesterMilestones.length > 0) {
+      statusSummary.innerHTML = `• <span style="color: var(--accent-cyan); font-weight: 700;">${activeCount} Active</span> • <span style="color: var(--accent-emerald); font-weight: 700;">${upcomingCount} Upcoming</span> • <span style="color: var(--text-muted);">${expiredCount} Expired</span>`;
+    } else {
+      statusSummary.innerHTML = '';
+    }
   }
 
   if (!tableBody) return;
 
   if (stagedSemesterMilestones.length === 0) {
     tableBody.innerHTML = `
-      <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No milestones staged. Click "Load Standard Template" or add milestones manually above.</td></tr>
+      <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No milestones staged. Click "Fetch Live Cloud", "Load Template", or add milestones above.</td></tr>
     `;
     return;
   }
@@ -3731,28 +3942,60 @@ function renderSemesterMilestonesTable() {
 
     let statusBadgeColor = 'var(--accent-emerald)';
     let statusBg = 'rgba(16, 185, 129, 0.12)';
-    if (m.status === 'expired') { statusBadgeColor = 'var(--text-muted)'; statusBg = 'rgba(255, 255, 255, 0.05)'; }
-    else if (m.status === 'active') { statusBadgeColor = 'var(--accent-cyan)'; statusBg = 'rgba(6, 182, 212, 0.15)'; }
+    let statusIcon = 'fa-clock';
+    if (m.status === 'expired') { 
+      statusBadgeColor = 'var(--text-muted)'; 
+      statusBg = 'rgba(255, 255, 255, 0.05)'; 
+      statusIcon = 'fa-circle-check';
+    } else if (m.status === 'active') { 
+      statusBadgeColor = 'var(--accent-cyan)'; 
+      statusBg = 'rgba(6, 182, 212, 0.18)'; 
+      statusIcon = 'fa-bolt';
+    }
 
     return `
       <tr>
-        <td style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);">${idx + 1}</td>
-        <td style="font-weight: 700; color: var(--text-title);">${m.title}</td>
-        <td style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan); font-weight: 600;">${m.date}</td>
+        <td style="text-align: center;">
+          <div style="display: flex; flex-direction: column; gap: 2px; align-items: center;">
+            <button type="button" class="btn-row-action" onclick="moveSemesterMilestone(${idx}, -1)" ${idx === 0 ? 'disabled style="opacity: 0.3;"' : ''} title="Move Up" style="padding: 2px 4px; font-size: 8px;">
+              <i class="fa-solid fa-chevron-up"></i>
+            </button>
+            <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--text-muted);">${idx + 1}</span>
+            <button type="button" class="btn-row-action" onclick="moveSemesterMilestone(${idx}, 1)" ${idx === stagedSemesterMilestones.length - 1 ? 'disabled style="opacity: 0.3;"' : ''} title="Move Down" style="padding: 2px 4px; font-size: 8px;">
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+          </div>
+        </td>
         <td>
-          <span style="padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; background: ${catBg}; color: ${catBadgeColor};">
+          <strong style="color: var(--text-title); font-size: 12.5px; display: block;">${m.title}</strong>
+        </td>
+        <td>
+          <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--accent-cyan); font-weight: 600; background: rgba(6, 182, 212, 0.06); padding: 4px 8px; border-radius: 6px;">
+            <i class="fa-solid fa-calendar-day" style="margin-right: 4px;"></i> ${m.date}
+          </span>
+        </td>
+        <td>
+          <span style="padding: 4px 10px; border-radius: 6px; font-size: 9.5px; font-weight: 800; text-transform: uppercase; background: ${catBg}; color: ${catBadgeColor};">
             ${m.category || 'General'}
           </span>
         </td>
         <td>
-          <span style="padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; background: ${statusBg}; color: ${statusBadgeColor};">
-            ${m.status || 'Upcoming'}
+          <span class="status-clickable-pill" onclick="cycleMilestoneStatus(${idx})" title="Click to cycle: Upcoming -> Active -> Expired" style="padding: 4px 10px; border-radius: 6px; font-size: 9.5px; font-weight: 800; text-transform: uppercase; background: ${statusBg}; color: ${statusBadgeColor};">
+            <i class="fa-solid ${statusIcon}"></i> ${m.status || 'Upcoming'}
           </span>
         </td>
         <td style="text-align: right;">
-          <button type="button" onclick="removeSemesterMilestone(${idx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--accent-rose); border-radius: 4px; padding: 4px 8px; font-size: 10px; cursor: pointer;">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
+          <div style="display: inline-flex; gap: 4px;">
+            <button type="button" class="btn-row-action" onclick="editSemesterMilestone(${idx})" title="Edit Title/Date">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button type="button" class="btn-row-action" onclick="duplicateSemesterMilestone(${idx})" title="Duplicate Row">
+              <i class="fa-solid fa-clone"></i>
+            </button>
+            <button type="button" class="btn-row-action delete" onclick="removeSemesterMilestone(${idx})" title="Delete Milestone">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -3794,6 +4037,7 @@ async function deploySemesterScheduleToFirestore() {
       })
     ]);
 
+    incrementDatabaseOps();
     logTerminal(`✅ SUCCESS: Published <strong>${stagedSemesterMilestones.length}</strong> semester milestones live to IRIS Firestore.`, 'success');
     showMossToast("Semester schedule published live to IRIS mobile apps!", "success");
   } catch (err) {
@@ -3807,6 +4051,11 @@ async function deploySemesterScheduleToFirestore() {
     }
   }
 }
+
+// Auto-initialize semester handlers on document ready
+document.addEventListener('DOMContentLoaded', () => {
+  setupSemesterScheduleHandlers();
+});
 
 // Auto-initialize semester handlers on document ready
 document.addEventListener('DOMContentLoaded', () => {

@@ -976,3 +976,70 @@ input:checked + .slider:before {
   width: 90%;
   box-shadow: var(--shadow-card-hover);
 }
+
+/* ==========================================================================
+   SEMESTER SCHEDULE PRESETS & TABLE ACTIONS
+   ========================================================================== */
+
+.milestone-preset-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 99px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-title);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.milestone-preset-chip:hover {
+  background: var(--accent-indigo);
+  color: #ffffff;
+  border-color: var(--accent-indigo);
+  box-shadow: 0 2px 10px var(--accent-indigo-glow);
+  transform: translateY(-1px);
+}
+
+.btn-row-action {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-body);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-row-action:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-title);
+}
+
+.btn-row-action.delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--accent-rose);
+  border-color: var(--accent-rose);
+}
+
+.status-clickable-pill {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-clickable-pill:hover {
+  transform: scale(1.05);
+  filter: brightness(1.2);
+}

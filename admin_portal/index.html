@@ -539,27 +539,83 @@
         <section id="page-semester" class="page-pane">
           
           <div class="tech-card">
-            <div class="card-header">
-              <i class="fa-solid fa-calendar-check icon-accent"></i>
-              <h3>Semester Schedule & Milestones Manager</h3>
-            </div>
-            <p class="card-desc">Create, manage, and publish official semester milestones (Classes Commencement, Midterm Exams, Terminal Exams, Drop Deadlines, Results) directly to IRIS mobile apps in real time.</p>
-            
-            <!-- Quick Add Form -->
-            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-              <span class="segment-label" style="font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 14px;">Add New Semester Milestone</span>
+            <div class="card-header" style="justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-calendar-check icon-accent"></i>
+                <div>
+                  <h3 style="margin-bottom: 2px;">Semester Schedule & Milestones Manager</h3>
+                  <span style="font-size: 11px; color: var(--text-muted);">Create, customize, and publish official semester timelines synchronized in real-time to IRIS mobile apps.</span>
+                </div>
+              </div>
               
-              <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+              <!-- Quick Action Toolbar -->
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" id="btn-fetch-cloud-milestones" class="btn btn-secondary" style="font-size: 11px; padding: 8px 14px; height: auto;" title="Pull live schedule currently saved in Firestore">
+                  <i class="fa-solid fa-cloud-arrow-down" style="color: var(--accent-cyan);"></i> Fetch Live Cloud
+                </button>
+                <button type="button" id="btn-template-milestones" class="btn btn-secondary" style="font-size: 11px; padding: 8px 14px; height: auto;" title="Load standard 8 COMSATS milestones">
+                  <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-indigo);"></i> Load Template
+                </button>
+                <button type="button" id="btn-export-milestones" class="btn btn-secondary" style="font-size: 11px; padding: 8px 12px; height: auto;" title="Export staged milestones to JSON backup">
+                  <i class="fa-solid fa-download"></i> Backup JSON
+                </button>
+              </div>
+            </div>
+
+            <!-- 1-Click Milestone Quick Preset Chips -->
+            <div style="background: rgba(0,0,0,0.15); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 16px; margin: 16px 0 20px;">
+              <span style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">
+                <i class="fa-solid fa-bolt" style="color: var(--accent-amber); margin-right: 4px;"></i> 1-Click Quick Preset Adder (Click chip to auto-fill)
+              </span>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="milestone-preset-chips-container">
+                <button type="button" class="milestone-preset-chip" data-title="REGISTRATION WEEK" data-cat="Registration" data-status="upcoming">🎓 Registration Week</button>
+                <button type="button" class="milestone-preset-chip" data-title="COMMENCEMENT OF CLASSES" data-cat="Classes" data-status="active">📚 Classes Commencement</button>
+                <button type="button" class="milestone-preset-chip" data-title="LAST DAY TO DROP COURSES" data-cat="Classes" data-status="upcoming">⏳ Drop Deadline</button>
+                <button type="button" class="milestone-preset-chip" data-title="MIDTERM EXAMINATIONS" data-cat="Exams" data-status="upcoming">📝 Midterm Exams</button>
+                <button type="button" class="milestone-preset-chip" data-title="STUDENT SPORTS & CULTURAL WEEK" data-cat="Events" data-status="upcoming">🏆 Sports Week</button>
+                <button type="button" class="milestone-preset-chip" data-title="LAST DAY OF CLASSES" data-cat="Classes" data-status="upcoming">🛑 Last Day Classes</button>
+                <button type="button" class="milestone-preset-chip" data-title="TERMINAL EXAMINATIONS" data-cat="Exams" data-status="upcoming">🏛️ Terminal Exams</button>
+                <button type="button" class="milestone-preset-chip" data-title="DECLARATION OF RESULTS" data-cat="Registration" data-status="upcoming">📊 Results Announcement</button>
+                <button type="button" class="milestone-preset-chip" data-title="EID-UL-FITR HOLIDAYS" data-cat="Holidays" data-status="upcoming">🌙 Eid Holidays</button>
+                <button type="button" class="milestone-preset-chip" data-title="SEMESTER BREAK" data-cat="Holidays" data-status="upcoming">🌴 Semester Break</button>
+              </div>
+            </div>
+            
+            <!-- Add / Edit Milestone Form -->
+            <div style="background: rgba(0,0,0,0.22); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 14px;">
+                <i class="fa-solid fa-plus-circle" style="margin-right: 4px;"></i> Add Milestone Custom Details
+              </span>
+              
+              <div style="display: grid; grid-template-columns: 2fr 1.6fr 1.2fr 1fr; gap: 12px; margin-bottom: 14px;">
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Milestone Title</label>
-                  <input type="text" id="input-milestone-title" placeholder="e.g. MIDTERM EXAMINATIONS" style="width: 100%; height: 44px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <label style="font-size: 9.5px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Milestone Title</label>
+                  <input type="text" id="input-milestone-title" placeholder="e.g. MIDTERM EXAMINATIONS" style="width: 100%; height: 44px; padding: 0 14px; font-size: 12.5px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
                 </div>
+                
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Date / Range</label>
-                  <input type="text" id="input-milestone-date" placeholder="e.g. 2026-04-13 or Apr 13, 2026" style="width: 100%; height: 44px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 9.5px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted);">Date / Timeline</label>
+                    <div style="display: flex; gap: 6px; font-size: 9px; font-family: var(--font-mono);">
+                      <label style="cursor: pointer; color: var(--accent-cyan);"><input type="radio" name="milestone-date-mode" value="single" checked style="margin-right: 2px;"> Single</label>
+                      <label style="cursor: pointer; color: var(--accent-indigo);"><input type="radio" name="milestone-date-mode" value="range" style="margin-right: 2px;"> Range</label>
+                    </div>
+                  </div>
+                  
+                  <div style="display: flex; gap: 6px;" id="date-single-container">
+                    <input type="date" id="input-milestone-date-picker" style="width: 44px; height: 44px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title); cursor: pointer;" title="Open Date Picker">
+                    <input type="text" id="input-milestone-date" placeholder="e.g. 2026-04-13 or Apr 13, 2026" style="flex: 1; height: 44px; padding: 0 12px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  </div>
+
+                  <div style="display: none; gap: 6px;" id="date-range-container">
+                    <input type="date" id="input-milestone-start-date" style="flex: 1; height: 44px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title); font-size: 11px;" title="Start Date">
+                    <span style="display: flex; align-items: center; color: var(--text-muted); font-size: 11px;">to</span>
+                    <input type="date" id="input-milestone-end-date" style="flex: 1; height: 44px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title); font-size: 11px;" title="End Date">
+                  </div>
                 </div>
+
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Category</label>
+                  <label style="font-size: 9.5px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Category</label>
                   <select id="select-milestone-category" style="width: 100%; height: 44px; padding: 0 10px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
                     <option value="Classes">Classes</option>
                     <option value="Exams">Exams</option>
@@ -568,8 +624,9 @@
                     <option value="Holidays">Holidays</option>
                   </select>
                 </div>
+
                 <div>
-                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Status</label>
+                  <label style="font-size: 9.5px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Status</label>
                   <select id="select-milestone-status" style="width: 100%; height: 44px; padding: 0 10px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
                     <option value="upcoming">Upcoming</option>
                     <option value="active">Active Now</option>
@@ -579,44 +636,53 @@
               </div>
               
               <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button type="button" id="btn-template-milestones" class="btn btn-secondary" style="font-size: 11px; padding: 10px 16px; height: auto;">
-                  <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-cyan);"></i> Load Standard Template
-                </button>
-                <button type="button" id="btn-add-milestone" class="btn btn-primary" style="font-size: 11px; padding: 10px 18px; height: auto;">
-                  <i class="fa-solid fa-plus"></i> Add Milestone
+                <button type="button" id="btn-add-milestone" class="btn btn-primary" style="font-size: 12px; padding: 10px 24px; height: auto;">
+                  <i class="fa-solid fa-plus"></i> Add to Milestone Schedule
                 </button>
               </div>
             </div>
             
-            <!-- Milestones Ledger Table -->
+            <!-- Milestones Ledger Table with Live Summary -->
             <div style="margin-bottom: 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--text-caption); font-weight: 700;">Staged Semester Milestones (<span id="milestone-count">0</span>)</span>
-                <button type="button" id="btn-clear-milestones" style="background: none; border: none; font-size: 10px; font-family: var(--font-mono); color: var(--accent-rose); cursor: pointer; text-transform: uppercase;">
-                  <i class="fa-solid fa-trash-can"></i> Clear All
-                </button>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-title); font-weight: 800;">
+                    Staged Milestones Timeline (<span id="milestone-count" style="color: var(--accent-cyan);">0</span>)
+                  </span>
+                  <span id="milestones-status-summary" style="font-family: var(--font-mono); font-size: 9.5px; color: var(--text-muted);"></span>
+                </div>
+                
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" id="btn-sort-chronological" class="btn btn-secondary" style="font-size: 10px; padding: 6px 12px; height: auto;" title="Auto-sort rows by date">
+                    <i class="fa-solid fa-arrow-down-short-wide"></i> Auto-Sort Dates
+                  </button>
+                  <button type="button" id="btn-clear-milestones" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; padding: 6px 12px; font-size: 10px; font-family: var(--font-mono); color: var(--accent-rose); cursor: pointer; text-transform: uppercase; font-weight: 700;">
+                    <i class="fa-solid fa-trash-can"></i> Clear All
+                  </button>
+                </div>
               </div>
               
-              <div class="departure-ledger-container" style="max-height: 340px;">
+              <div class="departure-ledger-container" style="max-height: 420px;">
                 <table class="departure-ledger-table" id="milestones-table">
                   <thead>
                     <tr>
-                      <th style="width: 30px;">#</th>
+                      <th style="width: 40px; text-align: center;">Order</th>
                       <th>Milestone Title</th>
                       <th>Date / Timeline</th>
                       <th>Category</th>
-                      <th>Status</th>
-                      <th style="text-align: right;">Actions</th>
+                      <th>Status (Click to cycle)</th>
+                      <th style="text-align: right; width: 140px;">Actions</th>
                     </tr>
                   </thead>
                   <tbody id="milestones-table-body">
-                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 28px;">No milestones staged. Click "Load Standard Template" or add milestones manually above.</td></tr>
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No milestones staged. Click "Fetch Live Cloud", "Load Template", or add milestones above.</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
             
-            <button id="btn-deploy-semester" class="btn btn-primary btn-full" style="padding: 16px; font-weight: 800; letter-spacing: 1px;">
+            <!-- Big Deploy Button with Real-time Status -->
+            <button id="btn-deploy-semester" class="btn btn-primary btn-full" style="padding: 16px; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; box-shadow: 0 6px 24px var(--accent-indigo-glow);">
               <i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px;"></i>
               <span>DEPLOY SEMESTER SCHEDULE TO IRIS (FIRESTORE)</span>
             </button>
