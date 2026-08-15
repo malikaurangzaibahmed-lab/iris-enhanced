@@ -357,7 +357,21 @@ class _OnboardingWizardState extends State<OnboardingWizard>
         _syncLog = log;
       });
 
+  String _resolveSelectedBatchKey() {
+    if (_program == null || _semester == null || _section == null) return '';
+    for (final batch in widget.memory.allBatches) {
+      final key = BatchKey.parse(batch);
+      if (key.program.toUpperCase() == _program!.toUpperCase() &&
+          key.semester == _semester &&
+          key.section.toUpperCase() == _section!.toUpperCase()) {
+        return batch;
+      }
+    }
+    return '$_program-$_semester$_section';
+  }
+
       if (currentInterval >= intervals) {
+        final prefs = await SharedPreferences.getInstance();
         if (_role == 'faculty') {
           final teacherName = _selectedTeacher ?? 'Faculty Member';
           await prefs.setString('user_role', 'faculty');
@@ -366,11 +380,17 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           await prefs.setString('faculty_teacher', teacherName);
           await prefs.setString('student_name', teacherName);
         } else {
-          final batchKey = '$_program-$_semester$_section';
+          final batchKey = _resolveSelectedBatchKey();
+          final studentName = _name.trim().isNotEmpty ? _name.trim() : 'Student';
           await prefs.setString('user_role', 'student');
           await prefs.setString('active_role', 'student');
+          await prefs.setString('student_name', studentName);
+          await prefs.setString('student_user_name', studentName);
+          await prefs.setString('user_name', studentName);
+          await prefs.setString('name', studentName);
           await prefs.setString('student_batch', batchKey);
           await prefs.setString('selected_batch', batchKey);
+          await prefs.setString('user_batch', batchKey);
           await prefs.setString('student_roll_no', _rollNo);
         }
 
@@ -383,8 +403,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             final teacherName = _selectedTeacher ?? 'Faculty Member';
             widget.onComplete('faculty', teacherName, teacherName);
           } else {
-            final batchKey = '$_program-$_semester$_section';
-            final studentName = _rollNo.isNotEmpty ? _rollNo : 'IRIS Student';
+            final batchKey = _resolveSelectedBatchKey();
+            final studentName = _name.trim().isNotEmpty ? _name.trim() : 'Student';
             widget.onComplete('student', studentName, batchKey);
           }
         }

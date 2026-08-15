@@ -627,9 +627,9 @@ class ToolsScreenState extends State<ToolsScreen> {
 
     final allUniversal = _prioritizeTool(_getUniversalTools(), recommendedId);
     
-    const utilityIds = {'cgpa_calculator', 'doc_workspace'};
+    const utilityIds = {'cgpa_calculator', 'doc_workspace', 'intelligent_insight'};
     const peopleIds = {'faculty_directory', 'teacher_locator', 'teacher_directory', 'browse_classes', 'find_rooms'};
-    const planningIds = {'makeup_scheduler', 'transport_schedule', 'library_schedule', 'semester_schedule'};
+    const planningIds = {'makeup_scheduler', 'transport_schedule', 'library_schedule', 'semester_schedule', 'intelligent_insight'};
 
     final filteredUniversal = allUniversal.where((t) {
       final matchesSearch = t.title.toLowerCase().contains(_searchQuery.toLowerCase()) || 
