@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:shared_preferences/shared_preferences.dart';
 
-enum CampusScheduleSource { asset, none }
+enum CampusScheduleSource { live, cache, asset, none }
 
 class TransportStopData {
   final String point;
@@ -102,21 +103,24 @@ class DeadlineData {
 }
 
 class LibraryScheduleData {
-  final String open;
-  final String breakTime;
-  final String close;
+  final String weekdays;
+  final String breaks;
+  final String friday;
+  final String weekends;
 
   const LibraryScheduleData({
-    required this.open,
-    required this.breakTime,
-    required this.close,
+    required this.weekdays,
+    required this.breaks,
+    required this.friday,
+    required this.weekends,
   });
 
   factory LibraryScheduleData.fromJson(Map<String, dynamic> json) {
     return LibraryScheduleData(
-      open: (json['open'] ?? '').toString().trim(),
-      breakTime: (json['break'] ?? '').toString().trim(),
-      close: (json['close'] ?? '').toString().trim(),
+      weekdays: (json['weekdays'] ?? '').toString().trim(),
+      breaks: (json['breaks'] ?? '').toString().trim(),
+      friday: (json['friday'] ?? '').toString().trim(),
+      weekends: (json['weekends'] ?? '').toString().trim(),
     );
   }
 }
@@ -142,13 +146,45 @@ class CampusSchedulePayload {
 class HelpdeskScheduleDataService {
   static const String _assetPath =
       'assets/helpdesk_backup/helpdesk_schedule_seed.json';
+  static const String _prefAdminScheduleKey = 'admin_semester_schedule_json';
+
+  /// Admin Portal Web API method to save remote schedule updates directly into app storage
+  static Future<bool> saveAdminScheduleJson(String rawJson) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefAdminScheduleKey, rawJson);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<CampusSchedulePayload> fetchSchedulePayload() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // 1. Check for live cached payload pushed from Admin Website
+      final adminJson = prefs.getString(_prefAdminScheduleKey);
+      if (adminJson != null && adminJson.trim().isNotEmpty) {
+        final parsed = _parseJson(adminJson, CampusScheduleSource.live);
+        if (parsed.semesterSchedule.isNotEmpty || parsed.transportRoutes.isNotEmpty) {
+          return parsed;
+        }
+      }
+
+      // 2. Load fallback seed asset
       final raw = await rootBundle.loadString(_assetPath);
-      final dynamic decoded = jsonDecode(raw);
+      return _parseJson(raw, CampusScheduleSource.asset);
+    } catch (_) {
+      return _empty(CampusScheduleSource.none);
+    }
+  }
+
+  CampusSchedulePayload _parseJson(String rawJson, CampusScheduleSource source) {
+    try {
+      final dynamic decoded = jsonDecode(rawJson);
       if (decoded is! Map<String, dynamic>) {
-        return _empty(CampusScheduleSource.none);
+        return _empty(source);
       }
 
       final transportRaw = decoded['transport_routes'] is List
@@ -164,8 +200,8 @@ class HelpdeskScheduleDataService {
           ? decoded['library_schedule'] as Map<String, dynamic>
           : null;
 
-      final payload = CampusSchedulePayload(
-        source: CampusScheduleSource.asset,
+      return CampusSchedulePayload(
+        source: source,
         capturedAt: DateTime.tryParse((decoded['captured_at'] ?? '').toString()),
         transportRoutes: transportRaw
             .whereType<Map<String, dynamic>>()
@@ -185,10 +221,8 @@ class HelpdeskScheduleDataService {
         librarySchedule:
             libraryRaw == null ? null : LibraryScheduleData.fromJson(libraryRaw),
       );
-
-      return payload;
     } catch (_) {
-      return _empty(CampusScheduleSource.none);
+      return _empty(source);
     }
   }
 

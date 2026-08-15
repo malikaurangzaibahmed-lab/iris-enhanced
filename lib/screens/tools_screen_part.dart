@@ -1010,13 +1010,17 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          payload.source == CampusScheduleSource.asset
-                              ? Icons.cloud_done_rounded
-                              : Icons.cloud_off_rounded,
+                          payload.source == CampusScheduleSource.live
+                              ? Icons.verified_rounded
+                              : (payload.source == CampusScheduleSource.asset
+                                  ? Icons.cloud_done_rounded
+                                  : Icons.cloud_off_rounded),
                           size: 16,
-                          color: payload.source == CampusScheduleSource.asset
-                              ? VitalTokens.blue
-                              : VitalTokens.orange,
+                          color: payload.source == CampusScheduleSource.live
+                              ? const Color(0xFF10B981)
+                              : (payload.source == CampusScheduleSource.asset
+                                  ? VitalTokens.blue
+                                  : VitalTokens.orange),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -1024,9 +1028,11 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                payload.source == CampusScheduleSource.asset
-                                    ? '📦 Offline Campus Calendar Data'
-                                    : 'Campus schedule offline',
+                                payload.source == CampusScheduleSource.live
+                                    ? '🌐 Admin Portal Synchronized Live'
+                                    : (payload.source == CampusScheduleSource.asset
+                                        ? '📦 Offline Campus Calendar Data'
+                                        : 'Campus schedule offline'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
