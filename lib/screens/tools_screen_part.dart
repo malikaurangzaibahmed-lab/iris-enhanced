@@ -219,19 +219,16 @@ class ToolsScreenState extends State<ToolsScreen> {
     };
 
     final targetTool = _getUniversalTools().firstWhere((t) => t.id == recommendedId, orElse: () => _getUniversalTools().first);
-    final recKey = _toolCardKeys.putIfAbsent('rec_${targetTool.id}', () => GlobalKey());
 
-    return DirectoryAnimationWidget(
-      child: GlassCard(
-        key: recKey,
-        padding: const EdgeInsets.all(22),
-        borderRadius: 28,
-        glow: true,
-        shimmer: true,
-        accentColor: targetTool.color,
-        backgroundColor: targetTool.color.withValues(alpha: isDark ? 0.12 : 0.06),
-        onTap: () => _handleToolTap(context, targetTool.id, department, originKey: recKey),
-        child: Row(
+    return GlassCard(
+      padding: const EdgeInsets.all(22),
+      borderRadius: 28,
+      glow: true,
+      shimmer: true,
+      accentColor: targetTool.color,
+      backgroundColor: targetTool.color.withValues(alpha: isDark ? 0.12 : 0.06),
+      onTap: () => _handleToolTap(context, targetTool.id, department),
+      child: Row(
           children: [
             Expanded(
               child: Column(
@@ -411,17 +408,14 @@ class ToolsScreenState extends State<ToolsScreen> {
       _ => null,
     };
 
-    final cardKey = _toolCardKeys.putIfAbsent(item.id, () => GlobalKey());
-
     return GlassCard(
-      key: cardKey,
       padding: const EdgeInsets.all(16),
       borderRadius: 24,
       glow: isRecommended,
       shimmer: isRecommended,
       accentColor: item.color,
       backgroundColor: item.color.withValues(alpha: isDark ? 0.08 : 0.04),
-      onTap: () => _handleToolTap(context, item.id, department, originKey: cardKey),
+      onTap: () => _handleToolTap(context, item.id, department),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

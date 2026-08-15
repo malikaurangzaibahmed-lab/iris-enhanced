@@ -159,12 +159,34 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
       } catch (_) {}
     }
 
-    // Load Helpdesk transport routes
+    // Load Helpdesk transport routes & official semester schedule
     try {
       final helpdesk = HelpdeskScheduleDataService();
       final payload = await helpdesk.fetchSchedulePayload();
       if (payload.transportRoutes.isNotEmpty) {
         _availableRoutes = payload.transportRoutes;
+      }
+      if (payload.semesterSchedule.isNotEmpty) {
+        _semesterEvents = payload.semesterSchedule.map((m) {
+          final isExam = m.category.toLowerCase().contains('exam') ||
+              m.title.toLowerCase().contains('exam') ||
+              m.title.toLowerCase().contains('midterm');
+          final isClass = m.category.toLowerCase().contains('class') ||
+              m.title.toLowerCase().contains('commence') ||
+              m.title.toLowerCase().contains('registration');
+          return {
+            'title': m.title,
+            'date': m.dateLabel.isNotEmpty ? m.dateLabel : 'Semester Milestone',
+            'category': isExam ? 'Exams' : (isClass ? 'Classes' : 'Events'),
+            'icon': isExam
+                ? Icons.event_note_rounded
+                : (isClass ? Icons.school_rounded : Icons.celebration_rounded),
+            'color': isExam
+                ? const Color(0xFFF59E0B)
+                : (isClass ? IrisTokens.brand : const Color(0xFF8B5CF6)),
+            'status': m.badge.isNotEmpty ? m.badge : 'Official',
+          };
+        }).toList();
       }
     } catch (_) {}
 
