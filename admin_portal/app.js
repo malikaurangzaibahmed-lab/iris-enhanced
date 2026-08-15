@@ -280,6 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Dynamic Liquid Glass Specular Spotlight Tracking (Master.dev & Kube.io)
+  document.addEventListener('mousemove', (e) => {
+    const activeCards = document.querySelectorAll('.tech-card, .metric-card, .glass-panel, .auth-card');
+    activeCards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+    });
+  });
+
   // Wallpaper & Theme Toggles
   const btnToggleWallpaper = document.getElementById('btn-toggle-wallpaper');
   if (btnToggleWallpaper) {
