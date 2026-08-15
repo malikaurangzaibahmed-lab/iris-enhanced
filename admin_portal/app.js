@@ -1006,53 +1006,44 @@ function updateActiveTimetablePreview(json) {
   let sessions = [];
   if (Array.isArray(json)) {
     sessions = json;
-  } else if (json.sessions && Array.isArray(json.sessions)) {
+  } else if (json && json.sessions && Array.isArray(json.sessions)) {
     sessions = json.sessions;
   } else {
     return;
   }
 
-  const sessionCount = sessions.length;
-  const uniqueSubjects = new Set();
-  let labCount = 0;
-  
-  // Build departures visual ledger rows for active timetable
-  timetablePreviewBody.innerHTML = '';
-  const previewLimit = Math.min(5, sessions.length);
-  
-  for (let i = 0; i < previewLimit; i++) {
-    const s = sessions[i];
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${s.class_name || s.section || 'CORE-GEN'}</td>
-      <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'}</td>
-      <td>${s.time || s.period || 'ON SCHEDULE'}</td>
-      <td style="color: var(--text-caption);">${s.teacher || s.instructor || 'STAFF'}</td>
-    `;
-    timetablePreviewBody.appendChild(tr);
-  }
-  
-  sessions.forEach(s => {
-    if (s.subject) {
-      const cleanSub = s.subject.replace(/\s*\(\d*\s*hrs?\)\s*/gi, '')
-                               .replace(/\s*\(\d*\s*hr\)\s*/gi, '')
-                               .replace(/\s*\(Lab\)\s*/gi, '')
-                               .trim();
-      uniqueSubjects.add(cleanSub);
-      
-      if (s.subject.toLowerCase().includes('lab') || (s.room && s.room.toLowerCase().includes('lab'))) {
-        labCount++;
+  const normalized = sessions.map(s => {
+    let batch = s.batch || s.class_name || s.section || '';
+    let day = s.day || s.weekday || 'Monday';
+    let start = s.start || '08:30';
+    let end = s.end || '10:00';
+    if (s.time || s.period) {
+      let parts = (s.time || s.period).split('-');
+      if (parts.length >= 2) {
+        start = parts[0].trim();
+        end = parts[1].trim();
       }
     }
+    let subject = s.subject || s.course || s.title || 'LECTURE';
+    let teacher = s.teacher || s.instructor || s.staff || 'Staff';
+    let room = s.room || s.location || 'TBD';
+    return {
+      id: s.id || `${batch}-${day}-${start}`,
+      department: s.department || '',
+      batch: batch,
+      day: day,
+      start: start,
+      end: end,
+      subject: cleanSubject(subject),
+      teacher: teacher,
+      room: room
+    };
   });
 
-  if (statSessions) statSessions.innerText = sessionCount;
-  if (statCourses) statCourses.innerText = uniqueSubjects.size;
-  if (statLabs) statLabs.innerText = labCount;
-  if (timetableAnalytics) timetableAnalytics.style.display = 'block';
+  updateTimetablePreview(normalized);
   
   // Sync device emulator timetable screen
-  updateEmulatorTimetables(sessions);
+  updateEmulatorTimetables(normalized);
 }
 
 // Ribbon Switch Snappy Selection Handler
@@ -1992,7 +1983,7 @@ function updateTimetablePreview(sessions) {
       <td style="font-weight: 600; color: var(--text-title);">${s.day || 'Monday'}</td>
       <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 11px;">${s.start} - ${s.end}</td>
       <td><span style="background: rgba(16, 185, 129, 0.12); color: #34d399; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">${s.room || 'TBD'}</span></td>
-      <td style="font-weight: 600; color: var(--accent-indigo);">${s.batch || 'CORE-GEN'}</td>
+      <td style="font-weight: 600; color: var(--accent-indigo);">${s.batch || s.class_name || s.section || 'GENERAL'}</td>
       <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'} ${badgeHtml}</td>
       <td style="color: var(--text-caption); font-weight: 500;">${s.teacher || 'STAFF'}</td>
     `;
