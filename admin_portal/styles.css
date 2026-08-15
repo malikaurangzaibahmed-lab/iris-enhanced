@@ -1276,3 +1276,270 @@ input:checked + .slider:before {
   transform: scale(1.08);
   filter: brightness(1.25);
 }
+
+/* ==========================================================================
+   EXPANDABLE COMMUNITY FEEDBACK & LARGE TEXT CONTROLS
+   ========================================================================== */
+
+.feedback-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.feedback-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
+}
+
+.feedback-comment-box {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-body);
+  background: rgba(0, 0, 0, 0.26);
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  position: relative;
+}
+
+.feedback-comment-collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 5.2em;
+}
+
+.btn-expand-feedback {
+  background: none;
+  border: none;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-expand-feedback:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS & TOUCH ADAPTATION SYSTEM
+   ========================================================================== */
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(2, 6, 23, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 99;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-nav-btn {
+  display: none;
+}
+
+.mobile-only-close {
+  display: none;
+  margin-left: auto;
+}
+
+/* Tablets and Medium Screens */
+@media (max-width: 1024px) {
+  .admin-shell {
+    position: relative;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0 28px 28px 0;
+    transform: translateX(-105%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+    box-shadow: 20px 0 60px rgba(0, 0, 0, 0.7);
+  }
+
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-nav-btn {
+    display: flex;
+  }
+
+  .mobile-only-close {
+    display: flex;
+  }
+
+  .admin-main {
+    margin-left: 0;
+    width: 100%;
+    padding: 12px 16px 36px;
+  }
+
+  .metrics-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .departure-ledger-container,
+  .table-responsive-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile Phones (< 768px) */
+@media (max-width: 768px) {
+  .admin-topbar {
+    padding: 12px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .topbar-left {
+    gap: 10px;
+  }
+
+  .topbar-title-group h1 {
+    font-size: 16px;
+  }
+
+  .topbar-title-group span {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 6px;
+  }
+
+  .badge-text {
+    display: none;
+  }
+
+  .badge-latency {
+    display: none !important;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .metrics-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .metric-card {
+    padding: 14px 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .metric-icon {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 15px !important;
+  }
+
+  .metric-val {
+    font-size: 16px !important;
+  }
+
+  .feedback-stats-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .feedback-controls-row {
+    flex-direction: column !important;
+  }
+
+  .tech-card {
+    padding: 18px 14px !important;
+    border-radius: 20px !important;
+  }
+
+  .card-header h3 {
+    font-size: 16px !important;
+  }
+
+  .card-desc {
+    font-size: 11.5px !important;
+  }
+
+  .ribbon-bar {
+    flex-wrap: wrap !important;
+  }
+
+  .ribbon-btn {
+    flex: 1 1 45% !important;
+    font-size: 11px !important;
+    padding: 10px 8px !important;
+  }
+
+  .dropzone-industrial {
+    padding: 24px 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .drag-icon {
+    font-size: 32px !important;
+  }
+
+  .departure-ledger-table th,
+  .departure-ledger-table td {
+    padding: 10px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .feedback-card {
+    padding: 14px !important;
+    border-radius: 18px !important;
+  }
+
+  .milestones-add-bar {
+    flex-direction: column !important;
+  }
+}
+
+/* Very Small Mobile (< 480px) */
+@media (max-width: 480px) {
+  .metrics-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-sidebar {
+    width: 85vw;
+  }
+}

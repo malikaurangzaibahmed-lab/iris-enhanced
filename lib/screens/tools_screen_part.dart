@@ -32,7 +32,6 @@ class ToolsScreenState extends State<ToolsScreen> {
   String _activeCategory = 'All';
   late String _searchQuery;
   late final TextEditingController _searchController;
-  final Map<String, GlobalKey> _toolCardKeys = {};
 
   final List<String> _categories = ['All', 'Utilities', 'People', 'Planning'];
 
@@ -220,35 +219,50 @@ class ToolsScreenState extends State<ToolsScreen> {
 
     final targetTool = _getUniversalTools().firstWhere((t) => t.id == recommendedId, orElse: () => _getUniversalTools().first);
 
-    return GlassCard(
-      padding: const EdgeInsets.all(22),
-      borderRadius: 28,
-      glow: true,
-      shimmer: true,
-      accentColor: targetTool.color,
-      backgroundColor: targetTool.color.withValues(alpha: isDark ? 0.12 : 0.06),
-      onTap: () => _handleToolTap(context, targetTool.id, department),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            targetTool.color.withValues(alpha: 0.3),
-                            targetTool.color.withValues(alpha: 0.1),
-                          ],
+    return Builder(
+      builder: (insightCtx) => GlassCard(
+        padding: const EdgeInsets.all(22),
+        borderRadius: 28,
+        glow: true,
+        shimmer: true,
+        accentColor: targetTool.color,
+        backgroundColor: targetTool.color.withValues(alpha: isDark ? 0.12 : 0.06),
+        onTap: () {
+          Rect? bounds;
+          try {
+            final box = insightCtx.findRenderObject() as RenderBox?;
+            if (box != null && box.hasSize) {
+              bounds = box.localToGlobal(Offset.zero) & box.size;
+            }
+          } catch (_) {}
+          _handleToolTap(
+            insightCtx,
+            targetTool.id,
+            department,
+            initialBounds: bounds,
+          );
+        },
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              targetTool.color.withValues(alpha: 0.3),
+                              targetTool.color.withValues(alpha: 0.1),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: targetTool.color.withValues(alpha: 0.4), width: 1.0),
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: targetTool.color.withValues(alpha: 0.4), width: 1.0),
-                      ),
-                      child: Row(
+                        child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(targetTool.icon, color: targetTool.color, size: 16),
@@ -322,8 +336,9 @@ class ToolsScreenState extends State<ToolsScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSection({
     required BuildContext context,
@@ -398,107 +413,132 @@ class ToolsScreenState extends State<ToolsScreen> {
     required String department,
     required bool isRecommended,
   }) {
-    final badgeLabel = switch (item.id) {
-      'teacher_locator' => 'STAR',
-      'cgpa_calculator' => 'POPULAR',
-      'find_rooms' => 'LIVE',
-      'doc_workspace' => 'NEW',
-      'makeup_scheduler' => 'PLANNER',
-      _ => null,
-    };
+    return Builder(
+      builder: (cardCtx) {
+        final badgeLabel = switch (item.id) {
+          'teacher_locator' => 'STAR',
+          'cgpa_calculator' => 'POPULAR',
+          'find_rooms' => 'LIVE',
+          'doc_workspace' => 'NEW',
+          'makeup_scheduler' => 'PLANNER',
+          _ => null,
+        };
 
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      borderRadius: 24,
-      glow: isRecommended,
-      shimmer: isRecommended,
-      accentColor: item.color,
-      backgroundColor: item.color.withValues(alpha: isDark ? 0.08 : 0.04),
-      onTap: () => _handleToolTap(context, item.id, department),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return GlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: 24,
+          glow: isRecommended,
+          shimmer: isRecommended,
+          accentColor: item.color,
+          backgroundColor: item.color.withValues(alpha: isDark ? 0.08 : 0.04),
+          onTap: () {
+            Rect? bounds;
+            try {
+              final box = cardCtx.findRenderObject() as RenderBox?;
+              if (box != null && box.hasSize) {
+                bounds = box.localToGlobal(Offset.zero) & box.size;
+              }
+            } catch (_) {}
+            _handleToolTap(
+              cardCtx,
+              item.id,
+              department,
+              initialBounds: bounds,
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      item.color.withValues(alpha: isDark ? 0.25 : 0.16),
-                      item.color.withValues(alpha: isDark ? 0.10 : 0.06),
-                    ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          item.color.withValues(alpha: isDark ? 0.25 : 0.16),
+                          item.color.withValues(alpha: isDark ? 0.10 : 0.06),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: item.color.withValues(alpha: isDark ? 0.35 : 0.25),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Icon(item.icon, color: item.color, size: 22),
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: item.color.withValues(alpha: isDark ? 0.35 : 0.25),
-                    width: 1.0,
-                  ),
-                ),
-                child: Icon(item.icon, color: item.color, size: 22),
+                  if (badgeLabel != null || isRecommended)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            item.color.withValues(alpha: 0.22),
+                            item.color.withValues(alpha: 0.10),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(9),
+                        border: Border.all(color: item.color.withValues(alpha: 0.35), width: 0.9),
+                      ),
+                      child: Text(
+                        badgeLabel ?? 'STAR',
+                        style: TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                          color: item.color,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              if (badgeLabel != null || isRecommended)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        item.color.withValues(alpha: 0.22),
-                        item.color.withValues(alpha: 0.10),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: item.color.withValues(alpha: 0.35), width: 0.9),
-                  ),
-                  child: Text(
-                    badgeLabel ?? 'STAR',
-                    style: TextStyle(
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w900,
-                      color: item.color,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
+              const Spacer(),
+              Text(
+                item.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.2,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                item.subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  height: 1.25,
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.50),
+                ),
+              ),
             ],
           ),
-          const Spacer(),
-          Text(
-            item.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.2,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            item.subtitle,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              height: 1.25,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.50),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  void _handleToolTap(BuildContext context, String id, String department, {GlobalKey? originKey}) {
+  void _handleToolTap(
+    BuildContext context,
+    String id,
+    String department, {
+    GlobalKey? originKey,
+    Rect? initialBounds,
+  }) {
     IrisHaptics.actionMedium();
     switch (id) {
       case 'cgpa_calculator':
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: const CgpaCalculatorScreen(),
           accentColor: const Color(0xFF10B981),
         );
@@ -509,6 +549,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: FacultyDirectoryScreen(
             brain: widget.brain,
             onRoleChanged: widget.onRoleChanged,
@@ -522,6 +563,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: DepartmentClassesScreen(
             memory: widget.memory,
             currentBatch: widget.batch,
@@ -537,6 +579,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: MakeupLectureScheduler(
             memory: widget.memory,
             brain: widget.brain,
@@ -554,6 +597,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: IntelligentInsightScreen(
             brain: widget.brain,
             memory: widget.memory,
@@ -565,6 +609,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: const _TransportScheduleScreen(),
           accentColor: const Color(0xFF06B6D4),
         );
@@ -573,6 +618,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: const _LibraryScheduleScreen(),
           accentColor: const Color(0xFF6366F1),
         );
@@ -581,6 +627,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: _SemesterScheduleScreen(batch: widget.batch),
           accentColor: const Color(0xFF84CC16),
         );
@@ -589,6 +636,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: RoomFinderScreen(memory: widget.memory, brain: widget.brain),
           accentColor: const Color(0xFF14B8A6),
         );
@@ -597,6 +645,7 @@ class ToolsScreenState extends State<ToolsScreen> {
         pushGlassContainerMorphRoute(
           context,
           originKey: originKey,
+          initialBounds: initialBounds,
           page: const DocumentWorkspaceScreen(),
           accentColor: const Color(0xFFF43F5E),
         );

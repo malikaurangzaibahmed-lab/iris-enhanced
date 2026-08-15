@@ -103,8 +103,11 @@
   <!-- MAIN MULTI-SCREEN SYSTEM WORKSPACE -->
   <div id="dashboard-container" class="admin-shell" style="display: none;">
     
+    <!-- MOBILE SIDEBAR OVERLAY BACKDROP -->
+    <div id="sidebar-overlay" class="sidebar-backdrop"></div>
+
     <!-- LEFT NAVIGATION SIDEBAR -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="admin-sidebar">
       <div class="sidebar-brand">
         <div class="brand-badge">
           <i class="fa-solid fa-circle-nodes"></i>
@@ -113,6 +116,9 @@
           <h2>IRIS ADMIN</h2>
           <span>Operations Center</span>
         </div>
+        <button id="btn-sidebar-close" class="btn-icon mobile-only-close" title="Close Menu">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
       <!-- Navigation Menu -->
@@ -177,15 +183,20 @@
       <!-- TOP COMMAND BAR -->
       <header class="admin-topbar">
         <div class="topbar-left">
-          <h1 id="page-title">Overview & Telemetry</h1>
-          <span id="page-subtitle">Real-time status monitoring and global operational mode controls</span>
+          <button id="btn-mobile-sidebar-toggle" class="btn-icon mobile-nav-btn" title="Toggle Navigation Menu">
+            <i class="fa-solid fa-bars-staggered"></i>
+          </button>
+          <div class="topbar-title-group">
+            <h1 id="page-title">Overview & Telemetry</h1>
+            <span id="page-subtitle">Real-time status monitoring and global operational mode controls</span>
+          </div>
         </div>
         
         <div class="topbar-right">
-          <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald);">
-            <span class="status-dot"></span> CONNECTED
+          <span class="badge badge-connected" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald);">
+            <span class="status-dot"></span> <span class="badge-text">CONNECTED</span>
           </span>
-          <span class="badge" id="latency-badge" style="background: rgba(99, 102, 241, 0.1); color: var(--accent-indigo);">
+          <span class="badge badge-latency" id="latency-badge" style="background: rgba(99, 102, 241, 0.1); color: var(--accent-indigo);">
             <i class="fa-solid fa-wifi"></i> <span id="latency-val">8ms</span>
           </span>
           <button id="btn-toggle-wallpaper" class="btn-icon" title="Switch Nature Wallpaper (Alpine Lake / Emerald Forest)">
@@ -848,7 +859,36 @@
             </div>
             <p class="card-desc">Real-time student & faculty feedback submitted directly from the IRIS mobile companion app.</p>
             
-            <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+            <!-- Feedback Analytics Bento Summary Bar -->
+            <div id="feedback-stats-grid" class="feedback-stats-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;">
+              <div class="glass-panel" style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                <div>
+                  <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Average Rating</span>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <strong id="fb-stat-avg-rating" style="font-size: 26px; font-weight: 900; color: var(--text-title); font-family: var(--font-display);">5.0</strong>
+                    <div id="fb-stat-stars" style="color: var(--accent-amber); font-size: 13px;">★★★★★</div>
+                  </div>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-amber); font-size: 20px;">
+                  <i class="fa-solid fa-star"></i>
+                </div>
+              </div>
+
+              <div class="glass-panel" style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                <div>
+                  <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Cloud Telemetry</span>
+                  <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+                    <strong id="fb-stat-total" style="font-size: 26px; font-weight: 900; color: var(--text-title); font-family: var(--font-display);">0</strong>
+                    <span id="fb-stat-roles" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600;">0 Students • 0 Faculty</span>
+                  </div>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); font-size: 20px;">
+                  <i class="fa-solid fa-users"></i>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 18px;" class="feedback-controls-row">
               <input type="text" id="feedback-search" placeholder="Search feedback by name, roll number, device, or comment..." style="flex: 1; height: 46px; padding: 0 18px; font-size: 12.5px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);" oninput="filterFeedbackFeed()">
               <select id="feedback-role-filter" style="height: 46px; padding: 0 16px; font-size: 11px; font-family: var(--font-mono); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);" onchange="filterFeedbackFeed()">
                 <option value="ALL">ALL ROLES</option>
@@ -865,7 +905,7 @@
               <span id="feedback-count-badge" style="font-family: var(--font-mono); font-size: 10px; font-weight: 800; color: var(--accent-cyan);">0 SUBMISSIONS</span>
             </div>
             
-            <div id="feedback-feed-container" style="max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;"></div>
+            <div id="feedback-feed-container" style="max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 2px;"></div>
           </div>
 
         </section>

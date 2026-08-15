@@ -247,10 +247,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Mobile Sidebar Drawer Controller
+  const btnMobileSidebarToggle = document.getElementById('btn-mobile-sidebar-toggle');
+  const btnSidebarClose = document.getElementById('btn-sidebar-close');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const adminSidebar = document.getElementById('admin-sidebar');
+
+  function closeMobileSidebar() {
+    if (adminSidebar) adminSidebar.classList.remove('mobile-open');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+  }
+
+  function openMobileSidebar() {
+    if (adminSidebar) adminSidebar.classList.add('mobile-open');
+    if (sidebarOverlay) sidebarOverlay.classList.add('active');
+  }
+
+  if (btnMobileSidebarToggle) {
+    btnMobileSidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (adminSidebar && adminSidebar.classList.contains('mobile-open')) {
+        closeMobileSidebar();
+      } else {
+        openMobileSidebar();
+      }
+    });
+  }
+
+  if (btnSidebarClose) {
+    btnSidebarClose.addEventListener('click', closeMobileSidebar);
+  }
+
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeMobileSidebar);
+  }
+
   navItems.forEach(item => {
     item.addEventListener('click', () => {
       const targetPage = item.dataset.navTarget;
       if (!targetPage) return;
+
+      closeMobileSidebar();
 
       navItems.forEach(n => n.classList.remove('active'));
       item.classList.add('active');
@@ -4371,6 +4408,31 @@ window.filterFeedbackFeed = function() {
   const q = (searchInput?.value || '').toLowerCase().trim();
   const roleFilter = roleSelect?.value || 'ALL';
 
+  // Compute live analytics
+  const totalCount = allLiveFeedback.length;
+  const facultyCount = allLiveFeedback.filter(f => (f.user_role || '').toLowerCase() === 'faculty').length;
+  const studentCount = allLiveFeedback.filter(f => (f.user_role || '').toLowerCase() !== 'faculty').length;
+  const avgRating = totalCount > 0
+    ? (allLiveFeedback.reduce((sum, f) => sum + (Number(f.rating) || 5), 0) / totalCount).toFixed(1)
+    : '5.0';
+
+  const statAvgEl = document.getElementById('fb-stat-avg-rating');
+  const statStarsEl = document.getElementById('fb-stat-stars');
+  const statTotalEl = document.getElementById('fb-stat-total');
+  const statRolesEl = document.getElementById('fb-stat-roles');
+
+  if (statAvgEl) statAvgEl.innerText = avgRating;
+  if (statStarsEl) {
+    const numAvg = Math.round(Number(avgRating));
+    let sHtml = '';
+    for (let i = 1; i <= 5; i++) {
+      sHtml += `<i class="fa-solid fa-star" style="color: ${i <= numAvg ? 'var(--accent-amber)' : 'rgba(255,255,255,0.2)'}; margin-right: 2px;"></i>`;
+    }
+    statStarsEl.innerHTML = sHtml;
+  }
+  if (statTotalEl) statTotalEl.innerText = totalCount;
+  if (statRolesEl) statRolesEl.innerText = `${studentCount} Students • ${facultyCount} Faculty`;
+
   const filtered = allLiveFeedback.filter(item => {
     const matchRole = roleFilter === 'ALL' || (item.user_role || 'Student').toLowerCase() === roleFilter.toLowerCase();
     const textBlob = `${item.name || ''} ${item.roll_number || ''} ${item.batch || ''} ${item.category || ''} ${item.comment || ''} ${item.device || ''} ${item.platform || ''}`.toLowerCase();
@@ -4397,7 +4459,7 @@ window.filterFeedbackFeed = function() {
     return;
   }
 
-  container.innerHTML = filtered.map(f => {
+  container.innerHTML = filtered.map((f, idx) => {
     const rating = Math.max(1, Math.min(5, Number(f.rating) || 5));
     let starsHtml = '';
     for (let i = 1; i <= 5; i++) {
@@ -4408,9 +4470,11 @@ window.filterFeedbackFeed = function() {
     const roleBadgeColor = isFaculty ? 'var(--accent-indigo)' : 'var(--accent-cyan)';
     const roleBg = isFaculty ? 'rgba(129, 140, 248, 0.18)' : 'rgba(56, 189, 248, 0.18)';
     const initial = (f.name || 'U').trim().charAt(0).toUpperCase() || 'U';
+    const isLongComment = f.comment && f.comment.length > 240;
+    const commentSafe = f.comment ? f.comment.replace(/"/g, '&quot;') : '';
 
     return `
-      <div class="glass-panel" style="display: flex; flex-direction: column; gap: 14px; padding: 20px 24px; transition: all 0.2s ease;">
+      <div class="glass-panel feedback-card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, ${roleBadgeColor}, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 15px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.35); flex-shrink: 0;">
@@ -4432,31 +4496,70 @@ window.filterFeedbackFeed = function() {
             </div>
           </div>
           
-          <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
             <div style="display: inline-flex; gap: 3px; background: rgba(251, 191, 36, 0.14); padding: 5px 12px; border-radius: 9999px; border: 1px solid rgba(251, 191, 36, 0.35);">
               ${starsHtml}
             </div>
-            <button type="button" class="btn-row-action delete" onclick="deleteLiveFeedback('${f.id}')" title="Delete Feedback Record from Firestore" style="padding: 6px 10px;">
+            ${f.comment ? `
+              <button type="button" class="btn-row-action" onclick="copyFeedbackComment('${f.id}')" title="Copy feedback text">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            ` : ''}
+            <button type="button" class="btn-row-action delete" onclick="deleteLiveFeedback('${f.id}')" title="Delete Feedback Record from Firestore">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
         </div>
 
         ${f.comment ? `
-          <p style="font-size: 13.5px; line-height: 1.6; color: var(--text-body); background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 14px; border: 1px solid var(--border-subtle); margin: 0; white-space: pre-wrap;">
-            ${f.comment}
-          </p>
+          <div>
+            <div class="feedback-comment-box ${isLongComment ? 'feedback-comment-collapsed' : ''}" id="fb-comment-${f.id}">
+              ${f.comment}
+            </div>
+            ${isLongComment ? `
+              <button type="button" class="btn-expand-feedback" id="fb-btn-expand-${f.id}" onclick="toggleExpandFeedback('${f.id}')">
+                <i class="fa-solid fa-chevron-down"></i> Read Full Feedback (${f.comment.length} chars)
+              </button>
+            ` : ''}
+          </div>
         ` : ''}
 
         ${f.device && f.device !== 'N/A' ? `
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);">
-            <i class="fa-solid fa-mobile-screen-button" style="color: var(--accent-cyan);"></i>
-            <span>${f.device}</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-mobile-screen-button" style="color: var(--accent-cyan);"></i>
+              <span>${f.device}</span>
+            </div>
+            ${f.platform ? `<span style="font-size: 9px; opacity: 0.6;">${f.platform}</span>` : ''}
           </div>
         ` : ''}
       </div>
     `;
   }).join('');
+};
+
+window.toggleExpandFeedback = function(id) {
+  const el = document.getElementById(`fb-comment-${id}`);
+  const btn = document.getElementById(`fb-btn-expand-${id}`);
+  if (!el || !btn) return;
+  const isCollapsed = el.classList.contains('feedback-comment-collapsed');
+  if (isCollapsed) {
+    el.classList.remove('feedback-comment-collapsed');
+    btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Show Less';
+  } else {
+    el.classList.add('feedback-comment-collapsed');
+    btn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> Read Full Feedback`;
+  }
+};
+
+window.copyFeedbackComment = function(id) {
+  const item = allLiveFeedback.find(f => f.id === id);
+  if (!item || !item.comment) return;
+  navigator.clipboard.writeText(item.comment).then(() => {
+    showMossToast("Feedback comment copied to clipboard!", "success");
+  }).catch(() => {
+    showMossToast("Failed to copy to clipboard", "warning");
+  });
 };
 
 window.deleteLiveFeedback = async function(docId) {

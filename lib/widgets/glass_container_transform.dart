@@ -28,15 +28,11 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
           barrierColor: Colors.transparent,
           pageBuilder: (context, animation, secondaryAnimation) => destinationPage,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            if (animation.isCompleted) {
-              return child;
-            }
-
             final isDark = Theme.of(context).brightness == Brightness.dark;
             final screenSize = MediaQuery.of(context).size;
             final fullScreenRect = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
 
-            // Compute exact origin start rect once and lock it to prevent layout shifts
+            // Compute exact origin start rect once
             Rect startRect = initialBounds ?? Rect.zero;
             if (startRect == Rect.zero) {
               if (originKey != null && originKey.currentContext != null) {
@@ -49,8 +45,8 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
               if (startRect == Rect.zero) {
                 startRect = Rect.fromCenter(
                   center: Offset(screenSize.width / 2, screenSize.height / 2),
-                  width: screenSize.width * 0.45,
-                  height: 100,
+                  width: screenSize.width * 0.5,
+                  height: 120,
                 );
               }
             }
@@ -58,20 +54,20 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
             // Liquid OS Spring Curve (iOS 18 Glide Physics)
             final curve = CurvedAnimation(
               parent: animation,
-              curve: const Cubic(0.05, 0.90, 0.10, 1.0),
-              reverseCurve: const Cubic(0.30, 0.0, 0.80, 0.15),
+              curve: const Cubic(0.16, 1.0, 0.3, 1.0),
+              reverseCurve: const Cubic(0.25, 0.0, 0.70, 0.15),
             );
 
             // Interpolated Rect, Radius, and Specular Glow
             final currentRect = Rect.lerp(startRect, fullScreenRect, curve.value) ?? fullScreenRect;
             final currentRadius = lerpDouble(originRadius, 0.0, curve.value) ?? 0.0;
             final scrimOpacity = (curve.value * 0.45).clamp(0.0, 0.45);
-            final innerContentScale = lerpDouble(0.95, 1.0, curve.value) ?? 1.0;
+            final innerContentScale = lerpDouble(0.96, 1.0, curve.value) ?? 1.0;
             final edgeSpecularGlow = ((1.0 - (curve.value - 0.45).abs() * 2.2) * 0.40).clamp(0.0, 0.40);
 
             // Dual-child opacity thresholds for seamless transition
             final startOpacity = (1.0 - (curve.value / 0.28)).clamp(0.0, 1.0);
-            final endOpacity = ((curve.value - 0.08) / 0.92).clamp(0.0, 1.0);
+            final endOpacity = ((curve.value - 0.06) / 0.94).clamp(0.0, 1.0);
 
             final glow = accentColor ?? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6));
 
@@ -83,7 +79,10 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                     child: Opacity(
                       opacity: (curve.value * 2.0).clamp(0.0, 1.0),
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+                        filter: ImageFilter.blur(
+                          sigmaX: 16.0 * curve.value,
+                          sigmaY: 16.0 * curve.value,
+                        ),
                         child: Container(
                           color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
                         ),
@@ -97,8 +96,8 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                   child: PhysicalModel(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(currentRadius),
-                    elevation: lerpDouble(6.0, 0.0, curve.value) ?? 0.0,
-                    shadowColor: glow.withValues(alpha: 0.30),
+                    elevation: lerpDouble(8.0, 0.0, curve.value) ?? 0.0,
+                    shadowColor: glow.withValues(alpha: 0.35),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(currentRadius),
                       child: Container(
@@ -115,47 +114,47 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                              // Origin Card Preview (Fades Out)
-                              if (originWidget != null && startOpacity > 0.01)
-                                Opacity(
-                                  opacity: startOpacity,
-                                  child: FittedBox(
-                                    fit: BoxFit.cover,
-                                    child: SizedBox(
-                                      width: startRect.width,
-                                      height: startRect.height,
-                                      child: originWidget,
-                                    ),
+                            // Origin Card Preview (Fades Out)
+                            if (originWidget != null && startOpacity > 0.01)
+                              Opacity(
+                                opacity: startOpacity,
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  child: SizedBox(
+                                    width: startRect.width,
+                                    height: startRect.height,
+                                    child: originWidget,
                                   ),
                                 ),
+                              ),
 
-                              // Destination Page (Scales in & Fades In)
-                              if (endOpacity > 0.01)
-                                Opacity(
-                                  opacity: endOpacity,
-                                  child: Transform.scale(
-                                    scale: innerContentScale,
-                                    alignment: Alignment.center,
-                                    child: OverflowBox(
-                                      minWidth: screenSize.width,
-                                      maxWidth: screenSize.width,
-                                      minHeight: screenSize.height,
-                                      maxHeight: screenSize.height,
-                                      alignment: Alignment.topLeft,
-                                      child: child,
-                                    ),
+                            // Destination Page (Scales in & Fades In)
+                            if (endOpacity > 0.01)
+                              Opacity(
+                                opacity: endOpacity,
+                                child: Transform.scale(
+                                  scale: innerContentScale,
+                                  alignment: Alignment.center,
+                                  child: OverflowBox(
+                                    minWidth: screenSize.width,
+                                    maxWidth: screenSize.width,
+                                    minHeight: screenSize.height,
+                                    maxHeight: screenSize.height,
+                                    alignment: Alignment.topLeft,
+                                    child: child,
                                   ),
                                 ),
-                            ],
-                          ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          );
+                ),
+              ],
+            );
+          },
+        );
 }
 
 /// Global helper function to launch True Specular Container Morphing
