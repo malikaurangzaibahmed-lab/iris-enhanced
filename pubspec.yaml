@@ -88,6 +88,7 @@ flutter:
     - assets/iris_logo.png
     - assets/comsats_logo.png
     - assets/comsats_logo.jpg
+    - assets/iris_mascot.png
     - assets/widget_backgrounds/
     - assets/audio/
     - assets/documents/

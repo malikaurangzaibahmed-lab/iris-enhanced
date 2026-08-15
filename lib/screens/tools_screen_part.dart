@@ -84,6 +84,14 @@ class ToolsScreenState extends State<ToolsScreen> {
         description: 'Search all faculty profiles, office locations, and live timetables',
       ),
       _ToolItem(
+        id: 'intelligent_insight',
+        title: 'Intelligent Insight & Mascot',
+        subtitle: '3D mascot, attendance warning & semester events',
+        icon: Icons.auto_awesome_rounded,
+        color: IrisTokens.brand,
+        description: 'Bento-grid overview of tasks, attendance, mascot companion, & semester events',
+      ),
+      _ToolItem(
         id: 'browse_classes',
         title: 'Browse Classes',
         subtitle: 'Open all batch classes and schedules',
@@ -547,6 +555,17 @@ class ToolsScreenState extends State<ToolsScreen> {
             showBackButton: true,
           ),
           accentColor: const Color(0xFFF59E0B),
+        );
+        return;
+      case 'intelligent_insight':
+        pushGlassContainerMorphRoute(
+          context,
+          originKey: originKey,
+          page: IntelligentInsightScreen(
+            brain: widget.brain,
+            memory: widget.memory,
+          ),
+          accentColor: IrisTokens.brand,
         );
         return;
       case 'transport_schedule':
