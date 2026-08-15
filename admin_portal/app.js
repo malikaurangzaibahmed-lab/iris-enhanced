@@ -1282,7 +1282,7 @@ const DEPT_CODES = new Set([
   "FSN", "BTY", "BCH", "HND", "RBS", "BIO", "BBI", "MB", "PHY", "CHM", "VS"
 ]);
 
-const TEACHER_TITLE_RE = /\b(Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam|Instructor|Lecturer|Teacher|Faculty)\b/i;
+const TEACHER_TITLE_RE = /\b(Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam|Madam|Instructor|Lecturer|Teacher|Faculty|Advocate|Barrister|Hafiz|Qari|Syed|Syeda|Chaudhry|Ch\.?|Malik|Raja|Sardar|Mian|Sheikh|Sh\.?)\b/i;
 const CAPACITY_RE = /\s*\(\d+\)\s*/g;
 const DURATION_MARKER_RE = /\s*\(\s*\d+\s*(?:hrs?|hours?)\s*\)\s*/gi;
 
@@ -1304,7 +1304,14 @@ const SUBJECT_KEYWORDS = new Set([
   "parallel", "distributed", "artificial", "deep", "circuits",
   "signals", "differential", "equations", "dynamics", "thermodynamics",
   "fluid", "mechanics", "electromagnetics", "microprocessor", "embedded",
-  "instrumentation", "measurement", "materials", "robotics", "control"
+  "instrumentation", "measurement", "materials", "robotics", "control",
+  "algorithms", "vision", "nlp", "forensics", "cryptography", "blockchain",
+  "iot", "microcontroller", "vlsi", "antennas", "propagation", "renewable",
+  "energy", "accounting", "finance", "economics", "econometrics", "auditing",
+  "taxation", "banking", "investments", "portfolio", "logistics", "entrepreneurship",
+  "tajweed", "hadith", "seerah", "sociology", "diplomacy", "journalism", "media",
+  "french", "german", "chinese", "arabic", "matrices", "vectors", "biochemistry",
+  "microbiology", "genetics", "physiology", "immunology", "nutrition"
 ]);
 
 const ROOM_PATTERNS = [
@@ -1326,6 +1333,8 @@ const ROOM_PATTERNS = [
   /\bC\s*&\s*E\s+Lab\b/i,
   /\bD\s*Block\s+Seminar\s+Room\b/i,
   /\bSeminar\s+Room\b/i,
+  /\bConference\s+Room\b/i,
+  /\bAuditorium\b/i,
   /\bMOM\s*Lab\b/i,
   /\bEFM\s*Lab\b/i,
   /\bMechanical\s+Lab\b/i,
@@ -1339,7 +1348,8 @@ const ROOM_PATTERNS = [
   /\bHall-[A-Z0-9]+\b/i,
   /\bRoom\s*[A-Z0-9-]+\b/i,
   /\b[A-Z]-\d+\b/i,
-  /\b[A-Z]\d+(?:\.\d)?\b/i
+  /\b[A-Z]\d+(?:\.\d)?\b/i,
+  /\b[A-Z]\d{1,2}\b/i
 ];
 
 function stripCapacity(text) {
@@ -1350,7 +1360,6 @@ function stripCapacity(text) {
 function isBatchLine(line) {
   if (!line) return false;
   const stripped = line.trim();
-  // Checks if the line is predominantly a batch/section identifier
   if (BATCH_RE.test(stripped)) {
     const withoutBatch = stripped.replace(BATCH_RE, '').replace(/[\s,/&-]+/g, '').trim();
     if (withoutBatch.length <= 4) return true;
@@ -1416,8 +1425,8 @@ function looksLikeSubject(text) {
   for (let kw of SUBJECT_KEYWORDS) {
     if (lower.includes(kw)) return true;
   }
-  // If it contains a course code format like CS314, MTH101, EE241, HUM100
-  if (/\b[A-Z]{2,4}\s*\d{3}\b/i.test(text)) return true;
+  // Course code format e.g. CS314, CSC101, MTH101, EEE241, HUM100
+  if (/\b[A-Z]{2,4}\s*\d{2,4}[A-Z]?\b/i.test(text)) return true;
   return false;
 }
 
@@ -1491,7 +1500,19 @@ function parseClassCell(cellText) {
   let flat = cellText.replace(/\n/g, " ").trim();
   if (!flat || /Break|kaerB/i.test(flat)) return null;
 
-  let lines = cellText.split("\n").map(l => l.trim()).filter(l => l);
+  // Handle single-line combined formats (e.g. "CS314 AI - Dr. Shahzad Ali - C101" or "CS314 AI | Shahzad Ali | C101")
+  let rawLines = cellText.split("\n").map(l => l.trim()).filter(l => l);
+  let lines = [];
+  for (let r of rawLines) {
+    if (r.includes(' - ') && !looksLikeSubject(r)) {
+      lines.push(...r.split(/\s+-\s+/));
+    } else if (r.includes(' | ')) {
+      lines.push(...r.split(/\s+\|\s+/));
+    } else {
+      lines.push(r);
+    }
+  }
+  lines = lines.map(l => l.trim()).filter(l => l);
   if (lines.length === 0) return null;
 
   let teacher = "Unknown";
@@ -1505,7 +1526,7 @@ function parseClassCell(cellText) {
 
   // 1. Check if teacher is embedded in parentheses inside any line e.g. "CS314 AI (Dr. Shahzad Ali)"
   for (let i = 0; i < lines.length; i++) {
-    const matchParenTeacher = lines[i].match(/\(((?:Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam)\s+[A-Za-z\s.'-]+)\)/i);
+    const matchParenTeacher = lines[i].match(/\(((?:Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s*[^)]*)\)/i);
     if (matchParenTeacher) {
       teacher = cleanTeacherName(matchParenTeacher[1]).name;
       lines[i] = lines[i].replace(matchParenTeacher[0], '').trim();
