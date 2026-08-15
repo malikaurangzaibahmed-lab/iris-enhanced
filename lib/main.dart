@@ -1381,7 +1381,6 @@ class _FacultyFullScheduleScreenState
                     context,
                     page: IntelligentInsightScreen(
                       brain: widget.brain,
-                      memory: widget.memory,
                     ),
                     accentColor: IrisTokens.brand,
                   );
