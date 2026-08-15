@@ -1366,6 +1366,36 @@ class _FacultyFullScheduleScreenState
         leading: AppBackButton(isDark: isDark),
         actions: [
           Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? IrisTokens.brand.withValues(alpha: 0.2)
+                    : IrisTokens.brand.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                onPressed: () {
+                  IrisHaptics.actionMedium();
+                  pushGlassContainerMorphRoute(
+                    context,
+                    page: IntelligentInsightScreen(
+                      brain: widget.brain,
+                      memory: widget.memory,
+                    ),
+                    accentColor: IrisTokens.brand,
+                  );
+                },
+                tooltip: 'Intelligent Insight & Mascot',
+                icon: const Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 20,
+                  color: IrisTokens.brand,
+                ),
+              ),
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.only(right: 10),
             child: Container(
               decoration: BoxDecoration(
