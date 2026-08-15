@@ -168,15 +168,14 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
       }
       if (payload.semesterSchedule.isNotEmpty) {
         _semesterEvents = payload.semesterSchedule.map((m) {
-          final isExam = m.category.toLowerCase().contains('exam') ||
-              m.title.toLowerCase().contains('exam') ||
+          final isExam = m.title.toLowerCase().contains('exam') ||
               m.title.toLowerCase().contains('midterm');
-          final isClass = m.category.toLowerCase().contains('class') ||
+          final isClass = m.title.toLowerCase().contains('class') ||
               m.title.toLowerCase().contains('commence') ||
               m.title.toLowerCase().contains('registration');
           return {
             'title': m.title,
-            'date': m.dateLabel.isNotEmpty ? m.dateLabel : 'Semester Milestone',
+            'date': m.date.isNotEmpty ? m.date : 'Semester Milestone',
             'category': isExam ? 'Exams' : (isClass ? 'Classes' : 'Events'),
             'icon': isExam
                 ? Icons.event_note_rounded
@@ -184,7 +183,7 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
             'color': isExam
                 ? const Color(0xFFF59E0B)
                 : (isClass ? IrisTokens.brand : const Color(0xFF8B5CF6)),
-            'status': m.badge.isNotEmpty ? m.badge : 'Official',
+            'status': m.status.isNotEmpty ? m.status : 'Official',
           };
         }).toList();
       }

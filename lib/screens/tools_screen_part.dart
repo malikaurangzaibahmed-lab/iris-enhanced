@@ -229,99 +229,98 @@ class ToolsScreenState extends State<ToolsScreen> {
       backgroundColor: targetTool.color.withValues(alpha: isDark ? 0.12 : 0.06),
       onTap: () => _handleToolTap(context, targetTool.id, department),
       child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              targetTool.color.withValues(alpha: 0.3),
-                              targetTool.color.withValues(alpha: 0.1),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: targetTool.color.withValues(alpha: 0.4), width: 1.0),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(targetTool.icon, color: targetTool.color, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              'AI ASSISTANT INSIGHT',
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w900,
-                                color: targetTool.color,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            targetTool.color.withValues(alpha: 0.3),
+                            targetTool.color.withValues(alpha: 0.1),
                           ],
                         ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: targetTool.color.withValues(alpha: 0.4), width: 1.0),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
-                      color: isDark ? Colors.white : Colors.black87,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(targetTool.icon, color: targetTool.color, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            'AI ASSISTANT INSIGHT',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: targetTool.color,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    reason,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      height: 1.35,
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 14),
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    targetTool.color,
-                    targetTool.color.withValues(alpha: 0.7),
                   ],
                 ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: targetTool.color.withValues(alpha: 0.4),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
+                const SizedBox(height: 14),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.3,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  reason,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  targetTool.color,
+                  targetTool.color.withValues(alpha: 0.7),
                 ],
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  color: Colors.white,
-                  size: 22,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: targetTool.color.withValues(alpha: 0.4),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
                 ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                color: Colors.white,
+                size: 22,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
