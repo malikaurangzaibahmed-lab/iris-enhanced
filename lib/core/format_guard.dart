@@ -130,6 +130,16 @@ class FormatGuard {
       }
     }
 
+    // Normalize missing space after honorific title e.g. "Dr.Saqib" -> "Dr. Saqib", "Engr.Hafiz" -> "Engr. Hafiz"
+    raw = raw.replaceAllMapped(
+      RegExp(r'^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)\.([A-Za-z])', caseSensitive: false),
+      (m) => '${m[1]}. ${m[2]}',
+    );
+    raw = raw.replaceAllMapped(
+      RegExp(r'^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)([A-Z])', caseSensitive: false),
+      (m) => '${m[1]} ${m[2]}',
+    );
+
     // Clean multiple consecutive spaces and preserve authentic timetable casing & initials exactly as in university source
     return raw.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
   }

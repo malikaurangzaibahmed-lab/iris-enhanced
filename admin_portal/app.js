@@ -1389,6 +1389,10 @@ function isTeacherLine(line) {
 
 function cleanTeacherName(raw) {
   let cleaned = stripCapacity(raw).trim();
+  // Normalize missing space after title e.g. "Dr.Saqib" -> "Dr. Saqib", "Engr.Hafiz" -> "Engr. Hafiz"
+  cleaned = cleaned.replace(/^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)\.([A-Za-z])/i, '$1. $2');
+  cleaned = cleaned.replace(/^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)([A-Z])/i, '$1 $2');
+  
   let words = cleaned.split(/\s+/).filter(w => w);
   if (words.length >= 2) {
     let first = words[0].replace(/\.$/, "").toUpperCase();
@@ -1903,9 +1907,14 @@ async function parseTimetablePdf(arrayBuffer) {
                             /\b(break|kaerb|prayer|reyarp|fehm|mhef|namaz|lunch)\b/i.test(nextCell || '') || 
                             /\b(12:45\s*-\s*1:40|12:00\s*-\s*1:00|1:00\s*-\s*1:30)\b/i.test(nextCol.text || '');
           
+          let isLabOrMulti = parsed.subject.toLowerCase().includes('lab') || 
+                             parsed.room.toLowerCase().includes('lab') || 
+                             /(3\s*hrs?|2\s*hrs?)/i.test(parsed.subject) || 
+                             /(3\s*hrs?|2\s*hrs?)/i.test(cellText);
+          
           if (!nextCell || nextCell.trim() === '') {
-            if (nextIsBreak) {
-              break; // Do not span across prayer/lunch break
+            if (!isLabOrMulti || nextIsBreak) {
+              break; // Regular theory classes must NEVER span into empty slots
             }
             endTime = nextCol.end;
             j++;
