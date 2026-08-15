@@ -1925,8 +1925,8 @@ async function parseTimetablePdf(arrayBuffer) {
           }
         }
         
-        // Handle "(1 hr)" marker - adjust end time to be exactly 1 hour from start
-        if (/(1\s*hr)/i.test(parsed.subject)) {
+        // Handle "(1 hr)" / "(1 Hour)" / "(1Hr)" marker - adjust end time to be exactly 1 hour from start
+        if (/(1\s*hr|1\s*hour|1hr)/i.test(parsed.subject) || /(1\s*hr|1\s*hour|1hr)/i.test(cellText)) {
           let [sh, sm] = startTime.split(':').map(Number);
           let eh = sh + 1;
           let em = sm;
@@ -1954,24 +1954,43 @@ async function parseTimetablePdf(arrayBuffer) {
 function updateTimetablePreview(sessions) {
   const sessionCount = sessions.length;
   const uniqueSubjects = new Set();
+  const uniqueBatches = new Set();
   let labCount = 0;
+  let oneHrCount = 0;
+  let unknownTeachers = 0;
+  let unknownRooms = 0;
   
   timetablePreviewBody.innerHTML = '';
-  const previewLimit = Math.min(10, sessions.length);
+  const previewLimit = Math.min(20, sessions.length);
   
   for (let i = 0; i < previewLimit; i++) {
     const s = sessions[i];
     const tr = document.createElement('tr');
+    
+    const isOneHr = /(1\s*hr|1\s*hour|1hr)/i.test(s.subject);
+    const isLab = (s.subject && s.subject.toLowerCase().includes('lab')) || (s.room && s.room.toLowerCase().includes('lab'));
+    
+    let badgeHtml = '';
+    if (isOneHr) {
+      badgeHtml += `<span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">1 Hr (60m)</span>`;
+    }
+    if (isLab) {
+      badgeHtml += `<span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Lab</span>`;
+    }
+
     tr.innerHTML = `
-      <td>${s.batch || 'CORE-GEN'}</td>
-      <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'}</td>
-      <td>${s.day} // ${s.start} - ${s.end}</td>
-      <td style="color: var(--text-caption);">${s.teacher || 'STAFF'}</td>
+      <td style="font-weight: 600; color: var(--text-title);">${s.day || 'Monday'}</td>
+      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 11px;">${s.start} - ${s.end}</td>
+      <td><span style="background: rgba(16, 185, 129, 0.12); color: #34d399; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">${s.room || 'TBD'}</span></td>
+      <td style="font-weight: 600; color: var(--accent-indigo);">${s.batch || 'CORE-GEN'}</td>
+      <td style="color: var(--text-title); font-weight: 500;">${s.subject || 'LECTURE'} ${badgeHtml}</td>
+      <td style="color: var(--text-caption); font-weight: 500;">${s.teacher || 'STAFF'}</td>
     `;
     timetablePreviewBody.appendChild(tr);
   }
   
   sessions.forEach(s => {
+    if (s.batch) uniqueBatches.add(s.batch);
     if (s.subject) {
       const cleanSub = s.subject.replace(/\s*\(\d*\s*hrs?\)\s*/gi, '')
                                .replace(/\s*\(\d*\s*hr\)\s*/gi, '')
@@ -1982,13 +2001,25 @@ function updateTimetablePreview(sessions) {
       if (s.subject.toLowerCase().includes('lab') || (s.room && s.room.toLowerCase().includes('lab'))) {
         labCount++;
       }
+      if (/(1\s*hr|1\s*hour|1hr)/i.test(s.subject)) {
+        oneHrCount++;
+      }
     }
+    if (!s.teacher || s.teacher === "Unknown") unknownTeachers++;
+    if (!s.room || s.room === "TBD") unknownRooms++;
   });
 
-  statSessions.innerText = sessionCount;
-  statCourses.innerText = uniqueSubjects.size;
-  statLabs.innerText = labCount;
+  if (statSessions) statSessions.innerText = sessionCount;
+  if (statCourses) statCourses.innerText = uniqueSubjects.size;
+  if (statLabs) statLabs.innerText = labCount;
+  
+  const statBatchesElem = document.getElementById('stat-batches');
+  if (statBatchesElem) statBatchesElem.innerText = uniqueBatches.size;
+  const statOneHrElem = document.getElementById('stat-one-hr');
+  if (statOneHrElem) statOneHrElem.innerText = oneHrCount;
+  
   timetableAnalytics.style.display = 'block';
+  logTerminal(`Extracted <strong>${sessionCount} sessions</strong> across <strong>${uniqueBatches.size} batches</strong> (${uniqueSubjects.size} courses, ${labCount} labs, ${oneHrCount} 1-hr classes, <strong>${unknownTeachers} unknown teachers</strong>, <strong>${unknownRooms} TBD rooms</strong>).`, 'success');
 }
 
 function setupDragAndDrop() {
