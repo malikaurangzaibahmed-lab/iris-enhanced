@@ -96,7 +96,7 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
       'date': 'May 04, 2026',
       'category': 'Events',
       'icon': Icons.emoji_events_rounded,
-      'color': Colors.emerald,
+      'color': const Color(0xFF10B981),
       'status': 'Scheduled',
     },
     {
@@ -150,24 +150,19 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
 
     final savedRoute = prefs.getString('pinned_transport_route') ?? 'Route 4A: Saddar ➔ Campus';
 
-    // Calculate weekly lectures count from brain
-    int weeklyLectures = 0;
-    if (widget.brain != null) {
+    // Calculate weekly lectures count
+    int weeklyLectures = 16;
+    if (widget.memory != null) {
       try {
-        final sessions = widget.brain!.allSessions();
-        weeklyLectures = sessions.where((s) => s.batchKey.batch.contains(batch.split('-').first)).length;
-        if (weeklyLectures == 0) weeklyLectures = sessions.length > 30 ? 16 : sessions.length;
-      } catch (_) {
-        weeklyLectures = 16;
-      }
-    } else {
-      weeklyLectures = 16;
+        final sessions = widget.memory!.sessionsForBatch(batch);
+        weeklyLectures = sessions.isNotEmpty ? sessions.length : 16;
+      } catch (_) {}
     }
 
     // Load Helpdesk transport routes
     try {
       final helpdesk = HelpdeskScheduleDataService();
-      final payload = await helpdesk.fetchData();
+      final payload = await helpdesk.fetchOfflineOnly();
       if (payload.transportRoutes.isNotEmpty) {
         _availableRoutes = payload.transportRoutes;
       }
@@ -202,7 +197,7 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
     final prefs = await SharedPreferences.getInstance();
 
     final routesList = _availableRoutes.isNotEmpty
-        ? _availableRoutes.map((r) => '${r.title} • ${r.time}').toList()
+        ? _availableRoutes.map((r) => '${r.route} • ${r.stops.isNotEmpty ? r.stops.first.time : "4:30 PM"}').toList()
         : [
             'Route 4A: Saddar ➔ Campus • Departs 4:30 PM',
             'Route 2B: Faizabad ➔ Campus • Departs 4:30 PM',
@@ -592,12 +587,12 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.pie_chart_rounded, size: 18, color: Colors.emerald),
+                              const Icon(Icons.pie_chart_rounded, size: 18, color: Color(0xFF10B981)),
                               const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.emerald.withValues(alpha: 0.15),
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: const Text(
@@ -605,7 +600,7 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
-                                    color: Colors.emerald,
+                                    color: Color(0xFF10B981),
                                   ),
                                 ),
                               ),
