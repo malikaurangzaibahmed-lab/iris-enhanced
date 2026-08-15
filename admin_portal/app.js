@@ -1481,17 +1481,25 @@ function isNameContinuation(line) {
 function parseBatch(text) {
   if (!text) return null;
   let cleaned = text.replace(/\(.*?\)/g, "").trim().replace(/\s+/g, "");
-  let parts = cleaned.split("-");
-  if (parts.length >= 2) {
-    let program = parts[1];
+  // Examples: FA22-BCS-6A -> BCS, BCS-6A -> BCS, FA25-BSME-B21-A -> BSME, BBA-4A -> BBA
+  let mWithIntake = cleaned.match(/^(?:FA|SP)\d{2}-([A-Z]{2,4})/i);
+  if (mWithIntake) {
     return {
       batch: cleaned,
-      department: program
+      department: mWithIntake[1].toUpperCase()
     };
   }
+  let mNoIntake = cleaned.match(/^([A-Z]{2,4})/i);
+  if (mNoIntake) {
+    return {
+      batch: cleaned,
+      department: mNoIntake[1].toUpperCase()
+    };
+  }
+  let parts = cleaned.split("-");
   return {
     batch: cleaned,
-    department: "Unknown"
+    department: parts.length >= 2 ? parts[0].toUpperCase() : "General"
   };
 }
 
