@@ -1261,7 +1261,7 @@ if (btnBroadcastPush) {
 // TIMETABLE DEPLOYMENT ENGINE (AIRPORT DEPARTURES LEDGER)
 // ==========================================================================
 
-const BATCH_RE = /\b[A-Z]{2}\d{2}-[A-Z0-9]+/i;
+const BATCH_RE = /\b(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|(?:BCS|BSE|BAI|BDS|BCY|BEE|BME|BCE|BBA|BAF|BEN|BPS|FSN|BTY|BCH|HND|RBS|BSCS|BSSE|BSAI|BSDS|BSEE|BSME|BSCE)-?\d*[A-Z]?|[A-Z]{2,4}-\d+[A-Z]?)\b/i;
 
 const GRID_COLUMNS = [
   { name: "Batch", minX: 0, maxX: 100 },
@@ -1273,14 +1273,23 @@ const GRID_COLUMNS = [
   { name: "Slot 6", minX: 664, maxX: 780 }
 ];
 
-const DEPT_CODES = new Set(["CS", "SE", "MS", "EE", "ME", "CVE", "BBA", "MBA", "MT", "VS", "HUM", "CE", "BI"]);
-const TEACHER_TITLE_RE = /\b(Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam)\b/i;
+const DEPT_CODES = new Set([
+  "CS", "SE", "AI", "DS", "CYS", "BCS", "BSE", "BAI", "BDS", "BCY", "BSCS", "BSSE", "BSAI", "BSDS",
+  "EE", "BEE", "BSEE", "CE", "BCE", "TE", "BTE", "PTE",
+  "ME", "BME", "BSME", "CVE", "BCVE", "BSCE",
+  "MS", "BBA", "MBA", "AF", "BAF", "BBS", "EC", "BEC", "MGT", "HRM",
+  "MT", "MTH", "BMT", "HUM", "ENG", "BEN", "PSY", "BPS", "MCM", "IR", "BIR",
+  "FSN", "BTY", "BCH", "HND", "RBS", "BIO", "BBI", "MB", "PHY", "CHM", "VS"
+]);
+
+const TEACHER_TITLE_RE = /\b(Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam|Instructor|Lecturer|Teacher|Faculty)\b/i;
 const CAPACITY_RE = /\s*\(\d+\)\s*/g;
+const DURATION_MARKER_RE = /\s*\(\s*\d+\s*(?:hrs?|hours?)\s*\)\s*/gi;
 
 const SUBJECT_KEYWORDS = new Set([
   "programming", "engineering", "structures", "systems", "calculus",
   "algebra", "physics", "chemistry", "communication", "technology",
-  "network", "database", "security", "intelligence", "learning",
+  "network", "networks", "database", "security", "intelligence", "learning",
   "design", "architecture", "development", "operating", "digital",
   "web", "mobile", "software", "compiler", "automata", "quran",
   "marketing", "management", "psychology", "commerce", "civics",
@@ -1292,7 +1301,10 @@ const SUBJECT_KEYWORDS = new Set([
   "information", "numerical", "discrete", "linear", "islamic",
   "studies", "professional", "ethics", "technical", "writing",
   "computer", "organization", "graphics", "visualization",
-  "parallel", "distributed", "artificial", "deep"
+  "parallel", "distributed", "artificial", "deep", "circuits",
+  "signals", "differential", "equations", "dynamics", "thermodynamics",
+  "fluid", "mechanics", "electromagnetics", "microprocessor", "embedded",
+  "instrumentation", "measurement", "materials", "robotics", "control"
 ]);
 
 const ROOM_PATTERNS = [
@@ -1313,6 +1325,7 @@ const ROOM_PATTERNS = [
   /\bPower\s+Lab\b/i,
   /\bC\s*&\s*E\s+Lab\b/i,
   /\bD\s*Block\s+Seminar\s+Room\b/i,
+  /\bSeminar\s+Room\b/i,
   /\bMOM\s*Lab\b/i,
   /\bEFM\s*Lab\b/i,
   /\bMechanical\s+Lab\b/i,
@@ -1322,23 +1335,53 @@ const ROOM_PATTERNS = [
   /\bSoftware\s+Lab\b/i,
   /\bComputer\s+Lab\b/i,
   /\bCLab-?\d*\b/i,
+  /\bLab-?\d+\b/i,
+  /\bHall-[A-Z0-9]+\b/i,
+  /\bRoom\s*[A-Z0-9-]+\b/i,
+  /\b[A-Z]-\d+\b/i,
   /\b[A-Z]\d+(?:\.\d)?\b/i
 ];
 
 function stripCapacity(text) {
-  return text.replace(CAPACITY_RE, "").trim();
+  if (!text) return "";
+  return text.replace(CAPACITY_RE, "").replace(DURATION_MARKER_RE, "").trim();
+}
+
+function isBatchLine(line) {
+  if (!line) return false;
+  const stripped = line.trim();
+  // Checks if the line is predominantly a batch/section identifier
+  if (BATCH_RE.test(stripped)) {
+    const withoutBatch = stripped.replace(BATCH_RE, '').replace(/[\s,/&-]+/g, '').trim();
+    if (withoutBatch.length <= 4) return true;
+  }
+  return false;
 }
 
 function isTeacherLine(line) {
-  if (TEACHER_TITLE_RE.test(line)) return true;
-  let words = line.split(/\s+/);
-  if (words.length >= 2) {
-    let first = words[0].replace(/\.$/, "").toUpperCase();
+  if (!line) return false;
+  const clean = stripCapacity(line).trim();
+  if (TEACHER_TITLE_RE.test(clean)) return true;
+
+  const words = clean.split(/\s+/).filter(w => w);
+  if (words.length >= 2 && words.length <= 5) {
+    const first = words[0].replace(/\.$/, "").toUpperCase();
     if (DEPT_CODES.has(first)) {
-      let rest = words.slice(1).join(" ");
-      if (!looksLikeSubject(rest) && !matchRoom(rest)) {
+      const rest = words.slice(1).join(" ");
+      if (!looksLikeSubject(rest) && !matchRoom(rest) && !isBatchLine(rest)) {
         return true;
       }
+    }
+
+    // Capitalized name heuristic: 2-4 words, starts with uppercase, no subject keywords, no numbers
+    const hasDigits = /\d/.test(clean);
+    const allCapitalized = words.every(w => /^[A-Z][a-zA-Z.'-]*$/.test(w));
+    const hasSubjectWord = words.some(w => SUBJECT_KEYWORDS.has(w.toLowerCase()));
+    const isRoom = matchRoom(clean);
+    const isBatch = isBatchLine(clean);
+
+    if (!hasDigits && allCapitalized && !hasSubjectWord && !isRoom && !isBatch) {
+      return true;
     }
   }
   return false;
@@ -1346,7 +1389,7 @@ function isTeacherLine(line) {
 
 function cleanTeacherName(raw) {
   let cleaned = stripCapacity(raw).trim();
-  let words = cleaned.split(/\s+/);
+  let words = cleaned.split(/\s+/).filter(w => w);
   if (words.length >= 2) {
     let first = words[0].replace(/\.$/, "").toUpperCase();
     if (DEPT_CODES.has(first)) {
@@ -1355,10 +1398,10 @@ function cleanTeacherName(raw) {
   }
   
   let subjectCode = "";
-  words = cleaned.split(/\s+/);
+  words = cleaned.split(/\s+/).filter(w => w);
   if (words.length >= 3) {
     let lastWord = words[words.length - 1].trim();
-    if (/^[A-Z]{2,4}$/.test(lastWord) && !DEPT_CODES.has(lastWord)) {
+    if (/^[A-Z]{2,4}\d*$/.test(lastWord) && !DEPT_CODES.has(lastWord)) {
       subjectCode = lastWord;
       cleaned = words.slice(0, -1).join(" ");
     }
@@ -1368,23 +1411,28 @@ function cleanTeacherName(raw) {
 }
 
 function looksLikeSubject(text) {
+  if (!text) return false;
   let lower = text.toLowerCase();
   for (let kw of SUBJECT_KEYWORDS) {
     if (lower.includes(kw)) return true;
   }
+  // If it contains a course code format like CS314, MTH101, EE241, HUM100
+  if (/\b[A-Z]{2,4}\s*\d{3}\b/i.test(text)) return true;
   return false;
 }
 
 function matchRoom(text) {
+  if (!text) return null;
   let stripped = stripCapacity(text);
   for (let pat of ROOM_PATTERNS) {
     let m = stripped.match(pat);
-    if (m) return m[0];
+    if (m) return m[0].trim();
   }
   return null;
 }
 
 function cleanRoomFromText(text) {
+  if (!text) return "";
   let cleaned = text;
   for (let pat of ROOM_PATTERNS) {
     cleaned = cleaned.replace(pat, "");
@@ -1393,49 +1441,32 @@ function cleanRoomFromText(text) {
 }
 
 function cleanSubject(text) {
+  if (!text) return "";
   let cleaned = cleanRoomFromText(text);
+  // Strip parenthesized teacher or duration annotations e.g. (Dr. Shahzad Ali), (1 hr)
+  cleaned = cleaned.replace(/\s*\([^)]*(?:Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*\)/gi, '');
+  cleaned = cleaned.replace(DURATION_MARKER_RE, '');
+  cleaned = cleaned.replace(CAPACITY_RE, '');
+  // Strip leading/trailing batch identifiers
+  cleaned = cleaned.replace(/^(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA|BSCS|BSSE|BSAI|BSDS|BSEE|BSME)-?\d*[A-Z]?)\s*[-/:]?\s*/i, '');
+  cleaned = cleaned.replace(/\s*[-/:]?\s*(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA)-?\d*[A-Z]?)$/i, '');
   cleaned = cleaned.replace(/\s{2,}/g, " ").trim();
   return cleaned;
 }
 
 function isNameContinuation(line) {
-  let words = line.split(/\s+/);
+  if (!line) return false;
+  let words = line.split(/\s+/).filter(w => w);
   if (words.length === 0) return false;
-  
-  if (words.length >= 2 && words[0].endsWith('.')) {
-    if (words[0].length <= 6 && words[1].length <= 6) {
-      return false;
-    }
-  }
-  
-  if (words.length >= 2) {
-    if (words.some(w => w.length > 5)) return false;
-    if (line.length > 12) return false;
-  }
-  
-  if (/^[A-Z]+\.\s+[A-Z]/i.test(line)) return false;
-  
-  if (words.length === 1 && words[0].length >= 2 && words[0].length <= 4 && words[0] === words[0].toUpperCase() && !DEPT_CODES.has(words[0])) {
-    return false;
-  }
-  
-  if (words.length === 1) {
-    let word = words[0];
-    if (word.length > 6 && /^[A-Z][a-z]+$/.test(word)) {
-      let vowels = (word.toLowerCase().match(/[aeiou]/g) || []).length;
-      if (vowels >= 2) return false;
-    }
-  }
-  
-  for (let w of words) {
-    if (!/^[A-Z]/.test(w)) return false;
-    if (!/^[A-Z][a-z]*\.?$/.test(w)) return false;
-  }
-  
   if (looksLikeSubject(line)) return false;
   if (matchRoom(line)) return false;
-  
-  return true;
+  if (isBatchLine(line)) return false;
+  if (/\d/.test(line)) return false;
+
+  for (let w of words) {
+    if (!/^[A-Z][a-zA-Z.'-]*$/.test(w)) return false;
+  }
+  return words.length <= 3 && line.length <= 25;
 }
 
 function parseBatch(text) {
@@ -1470,42 +1501,64 @@ function parseClassCell(cellText) {
   let teacherIdx = -1;
   let teacherContIdx = -1;
   let roomIdx = -1;
+  let batchIdx = -1;
 
+  // 1. Check if teacher is embedded in parentheses inside any line e.g. "CS314 AI (Dr. Shahzad Ali)"
   for (let i = 0; i < lines.length; i++) {
-    if (isTeacherLine(lines[i])) {
-      let cleanedTeacher = cleanTeacherName(lines[i]);
-      teacher = cleanedTeacher.name;
-      teacherIdx = i;
-      
-      if (i + 1 < lines.length) {
-        let nextLine = lines[i + 1];
-        if (isNameContinuation(nextLine)) {
-          teacher = teacher + " " + nextLine;
-          teacherContIdx = i + 1;
-        }
-      }
+    const matchParenTeacher = lines[i].match(/\(((?:Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam)\s+[A-Za-z\s.'-]+)\)/i);
+    if (matchParenTeacher) {
+      teacher = cleanTeacherName(matchParenTeacher[1]).name;
+      lines[i] = lines[i].replace(matchParenTeacher[0], '').trim();
       break;
     }
   }
 
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (i === teacherIdx || i === teacherContIdx) continue;
-    let line = lines[i];
-    let stripped = stripCapacity(line);
-    let roomMatch = matchRoom(stripped);
-    if (roomMatch) {
-      let ratio = roomMatch.length / Math.max(stripped.length, 1);
-      if (ratio > 0.35) {
-        room = roomMatch;
-        roomIdx = i;
+  // 2. Identify Batch line (so it is not merged into subject)
+  for (let i = 0; i < lines.length; i++) {
+    if (isBatchLine(lines[i])) {
+      batchIdx = i;
+      break;
+    }
+  }
+
+  // 3. Identify Teacher line
+  if (teacher === "Unknown") {
+    for (let i = 0; i < lines.length; i++) {
+      if (i === batchIdx) continue;
+      if (isTeacherLine(lines[i])) {
+        let cleanedTeacher = cleanTeacherName(lines[i]);
+        teacher = cleanedTeacher.name;
+        teacherIdx = i;
+        
+        if (i + 1 < lines.length && i + 1 !== batchIdx) {
+          let nextLine = lines[i + 1];
+          if (isNameContinuation(nextLine)) {
+            teacher = teacher + " " + nextLine;
+            teacherContIdx = i + 1;
+          }
+        }
         break;
       }
     }
   }
 
+  // 4. Identify Room line
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (i === teacherIdx || i === teacherContIdx || i === batchIdx) continue;
+    let line = lines[i];
+    let stripped = stripCapacity(line);
+    let roomMatch = matchRoom(stripped);
+    if (roomMatch) {
+      room = roomMatch;
+      roomIdx = i;
+      break;
+    }
+  }
+
+  // 5. Construct cleaned Course Subject
   let subjectParts = [];
   for (let i = 0; i < lines.length; i++) {
-    if (i === teacherIdx || i === teacherContIdx) continue;
+    if (i === teacherIdx || i === teacherContIdx || i === batchIdx) continue;
     let cleaned = stripCapacity(lines[i]);
     if (i === roomIdx) {
       cleaned = cleanRoomFromText(cleaned);
@@ -2594,9 +2647,19 @@ function handleExamsFileSelect(file) {
             
             const maxLen = Math.max(batches.length, subjects.length);
             for (let idx = 0; idx < maxLen; idx++) {
-              const b = idx < batches.length ? batches[idx] : batches[batches.length - 1];
-              const s = idx < subjects.length ? subjects[idx] : subjects[subjects.length - 1];
+              let b = idx < batches.length ? batches[idx] : batches[batches.length - 1];
+              let s = idx < subjects.length ? subjects[idx] : subjects[subjects.length - 1];
               
+              // Smart separation if course name was embedded in batch cell
+              if (b.includes(' - ') && (!s || s === b)) {
+                const parts = b.split(/\s*-\s*/);
+                b = parts[0].trim();
+                s = parts.slice(1).join(' - ').trim();
+              }
+              
+              // Clean course subject from batch codes and extra symbols
+              s = cleanSubject(s);
+
               parsedExams.push({
                 date: currentDate || "Unknown Date",
                 time: currentTime,
@@ -2665,7 +2728,7 @@ function handleExamsFileSelect(file) {
 function splitCombinedCell(val) {
   if (!val) return [];
   
-  val = val.trim().replace(/-+$/, '');
+  val = String(val).trim().replace(/-+$/, '');
   const parts = val.split(/-(?=FA\d{2}|SP\d{2})/i);
   
   const result = [];
@@ -2677,7 +2740,7 @@ function splitCombinedCell(val) {
       const suffix = match[2];
       if (suffix) {
         const sections = suffix.split(/[,/&]/).map(s => s.trim()).filter(s => s);
-        if (sections.every(s => s.length <= 3)) {
+        if (sections.every(s => s.length <= 4)) {
           for (const s of sections) {
             result.push(`${base}-${s}`);
           }
