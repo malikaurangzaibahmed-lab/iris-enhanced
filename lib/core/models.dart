@@ -45,26 +45,47 @@ class BatchKey {
   }
 
   factory BatchKey.parse(String batch) {
-    final parts = batch.split('-');
+    var raw = batch.trim();
+    // Extract purely valid canonical batch pattern: e.g. "FA25-BCS-2-D" or "FA22-BCS-6A" or "FA25-BCE-B1"
+    final fullBatchMatch = RegExp(r'^(?:FA|SP)\d{2}-[A-Za-z]+(?:-\d+)?-[A-Za-z0-9]{1,3}', caseSensitive: false).firstMatch(raw);
+    if (fullBatchMatch != null) {
+      raw = fullBatchMatch.group(0)!;
+    } else {
+      final shortBatchMatch = RegExp(r'^[A-Za-z]{2,4}-(?:\d+-)?[A-Za-z0-9]{1,3}', caseSensitive: false).firstMatch(raw);
+      if (shortBatchMatch != null) {
+        raw = shortBatchMatch.group(0)!;
+      }
+    }
+
+    final parts = raw.split('-');
     if (parts.length < 3) {
       return BatchKey(
-        batch: batch,
-        program: parts.isNotEmpty ? parts.first : 'UNKNOWN',
+        batch: raw,
+        program: parts.isNotEmpty ? parts.first.toUpperCase() : 'UNKNOWN',
         semester: 0,
-        section: parts.length > 1 ? parts[1] : 'A',
-        intake: parts.isNotEmpty ? parts.first : 'NA',
+        section: parts.length > 1 ? parts[1].toUpperCase() : 'A',
+        intake: parts.isNotEmpty ? parts.first.toUpperCase() : 'NA',
       );
     }
 
-    final intake = parts[0];
-    final program = parts[1];
+    final intake = parts[0].toUpperCase();
+    final program = parts[1].toUpperCase();
     final semesterText = parts[2];
     final semester = int.tryParse(semesterText) ??
         int.tryParse(RegExp(r'\d+').firstMatch(semesterText)?.group(0) ?? '') ??
         0;
-    final section = parts.length >= 4 ? parts[3] : parts[2];
+    
+    // Clean section token e.g. if parts[3] is "DSoftwareEngineering" -> "D"
+    var rawSection = parts.length >= 4 ? parts[3] : parts[2];
+    final secMatch = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(rawSection);
+    final section = secMatch != null ? secMatch.group(0)!.toUpperCase() : rawSection.toUpperCase();
+
+    final canonicalBatch = parts.length >= 4 
+        ? '$intake-$program-$semesterText-$section'
+        : '$intake-$program-$section';
+
     return BatchKey(
-      batch: batch,
+      batch: canonicalBatch,
       program: program,
       semester: semester,
       section: section,
@@ -465,7 +486,12 @@ class UniversityMemory {
   List<String> sections(String program, int semester) {
     final items = activeSessions()
         .where((s) => s.batchKey.program == program && s.batchKey.semester == semester)
-        .map((s) => s.batchKey.section)
+        .map((s) {
+          final sec = s.batchKey.section;
+          final m = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(sec);
+          return m != null ? m.group(0)!.toUpperCase() : sec;
+        })
+        .where((s) => s.isNotEmpty)
         .toSet()
         .toList();
     items.sort();

@@ -1452,6 +1452,8 @@ function cleanRoomFromText(text) {
 function cleanSubject(text) {
   if (!text) return "";
   let cleaned = cleanRoomFromText(text);
+  // Strip watermarks like "aSc Timetables", "CUI Sahiwal"
+  cleaned = cleaned.replace(/\b(aSc\s+Timetables|Timetable\s+generated|COMSATS\s+University|CUI\s+Sahiwal|Islamabad,Sahiwal)\b/gi, '');
   // Strip parenthesized teacher or duration annotations e.g. (Dr. Shahzad Ali), (1 hr)
   cleaned = cleaned.replace(/\s*\([^)]*(?:Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*\)/gi, '');
   cleaned = cleaned.replace(DURATION_MARKER_RE, '');
@@ -1716,8 +1718,10 @@ async function parseTimetablePdf(arrayBuffer) {
       let groupItems = col0Groups[roundedY];
       groupItems.sort((a, b) => a.transform[4] - b.transform[4]);
       let text = groupItems.map(item => item.str).join("").trim();
-      if (BATCH_RE.test(text)) {
-        rowStarts.push({ text: text, y: parseFloat(roundedY) });
+      let match = text.match(BATCH_RE);
+      if (match) {
+        let cleanBatch = match[0].replace(CAPACITY_RE, '').trim();
+        rowStarts.push({ text: cleanBatch, y: parseFloat(roundedY) });
       }
     }
     rowStarts.sort((a, b) => b.y - a.y);
@@ -1737,16 +1741,17 @@ async function parseTimetablePdf(arrayBuffer) {
     for (let item of items) {
       let str = item.str.trim();
       if (str === '') continue;
+      if (/\b(aSc\s+Timetables|Timetable\s+generated|COMSATS\s+University|CUI\s+Sahiwal|Islamabad,Sahiwal)\b/i.test(str)) continue;
       
       let x = item.transform[4];
       let y = item.transform[5];
       
-      if (y > rowStarts[0].y + 15) continue;
+      if (y > rowStarts[0].y + 35) continue;
       
       let targetRowIdx = -1;
       for (let i = 0; i < rowStarts.length; i++) {
-        let startY = rowStarts[i].y + 12;
-        let endY = i + 1 < rowStarts.length ? rowStarts[i+1].y + 12 : -9999;
+        let startY = i === 0 ? rowStarts[0].y + 35 : (rowStarts[i-1].y + rowStarts[i].y) / 2;
+        let endY = i + 1 < rowStarts.length ? (rowStarts[i].y + rowStarts[i+1].y) / 2 : rowStarts[i].y - 35;
         if (y <= startY && y > endY) {
           targetRowIdx = i;
           break;
