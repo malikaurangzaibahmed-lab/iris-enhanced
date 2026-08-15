@@ -154,15 +154,15 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
     int weeklyLectures = 16;
     if (widget.memory != null) {
       try {
-        final sessions = widget.memory!.sessionsForBatch(batch);
-        weeklyLectures = sessions.isNotEmpty ? sessions.length : 16;
+        final batchSessions = widget.memory!.byBatch()[batch] ?? widget.memory!.sessions;
+        weeklyLectures = batchSessions.isNotEmpty ? batchSessions.length : 16;
       } catch (_) {}
     }
 
     // Load Helpdesk transport routes
     try {
       final helpdesk = HelpdeskScheduleDataService();
-      final payload = await helpdesk.fetchOfflineOnly();
+      final payload = await helpdesk.fetchSchedulePayload();
       if (payload.transportRoutes.isNotEmpty) {
         _availableRoutes = payload.transportRoutes;
       }
