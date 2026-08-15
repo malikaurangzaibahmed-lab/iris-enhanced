@@ -3804,103 +3804,7 @@ function updateThemeIcon(theme) {
   }
 }
 
-// ==========================================================================
-// ADMIN FEEDBACK & TELEMETRY STREAM ENGINE
-// ==========================================================================
-let communityFeedbacks = [];
 
-function initFirestoreFeedbackStream() {
-  if (!db) return;
-  try {
-    db.collection('feedback').orderBy('created_at', 'desc').onSnapshot(snapshot => {
-      communityFeedbacks = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        let formattedDate = 'Recent';
-        if (data.created_at && data.created_at.toDate) {
-          formattedDate = data.created_at.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        } else if (data.date) {
-          formattedDate = data.date;
-        }
-        communityFeedbacks.push({
-          name: data.name || 'User',
-          user_role: data.user_role || 'Student',
-          roll_number: data.roll_number || '',
-          batch: data.batch || '',
-          device: data.device || '',
-          category: data.category || 'General Feedback',
-          rating: data.rating || 5,
-          comment: data.comment || '',
-          date: formattedDate
-        });
-      });
-      renderFeedbackFeed();
-    }, err => console.warn("Firestore feedback snapshot listener error:", err));
-  } catch (e) {
-    console.warn("Could not start feedback listener:", e);
-  }
-}
-
-function renderFeedbackFeed() {
-  const container = document.getElementById('feedback-feed-container');
-  const countBadge = document.getElementById('feedback-count-badge');
-  if (!container) return;
-
-  const searchVal = (document.getElementById('feedback-search')?.value || '').toLowerCase();
-  const roleFilter = document.getElementById('feedback-role-filter')?.value || 'ALL';
-
-  const filtered = communityFeedbacks.filter(fb => {
-    const matchRole = roleFilter === 'ALL' || (fb.user_role || 'Student') === roleFilter;
-    const matchSearch = !searchVal ||
-      (fb.name && fb.name.toLowerCase().includes(searchVal)) ||
-      (fb.comment && fb.comment.toLowerCase().includes(searchVal)) ||
-      (fb.roll_number && fb.roll_number.toLowerCase().includes(searchVal)) ||
-      (fb.device && fb.device.toLowerCase().includes(searchVal)) ||
-      (fb.batch && fb.batch.toLowerCase().includes(searchVal));
-    return matchRole && matchSearch;
-  });
-
-  if (countBadge) {
-    countBadge.innerText = `${filtered.length} ${filtered.length === 1 ? 'SUBMISSION' : 'SUBMISSIONS'}`;
-  }
-
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div style="padding: 30px 10px; text-align: center; color: var(--text-muted);">
-        <i class="fa-solid fa-comments" style="font-size: 28px; color: var(--accent-cyan); margin-bottom: 8px; display: block; opacity: 0.5;"></i>
-        <div style="font-weight: 700; font-size: 13px; color: var(--text-title); margin-bottom: 4px;">No Submissions Match Filter</div>
-        <div style="font-size: 11px; color: var(--text-muted); max-width: 280px; margin: 0 auto;">User telemetry submitted from the IRIS mobile app will appear here in real time.</div>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = filtered.map(fb => `
-    <div style="padding: 10px 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; ${fb.user_role === 'Faculty' ? 'border-color: rgba(168, 85, 247, 0.4); background: rgba(109, 40, 217, 0.08);' : ''}">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="font-weight: 800; color: var(--text-title); font-size: 13px;">${fb.name}</span>
-          ${fb.user_role === 'Faculty' 
-            ? `<span style="padding: 2px 6px; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 4px; font-size: 9px; font-weight: 800; color: #d8b4fe;"><i class="fa-solid fa-graduation-cap"></i> FACULTY</span>`
-            : `<span style="padding: 2px 6px; background: rgba(6, 182, 212, 0.12); border-radius: 4px; font-size: 9px; font-weight: 700; color: var(--accent-cyan);">STUDENT</span>`}
-          ${fb.roll_number && fb.roll_number !== 'N/A' ? `<span style="font-size: 10px; color: var(--accent-cyan); font-weight: 700;">(${fb.roll_number})</span>` : ''}
-        </div>
-        <span style="font-size: 10px; color: var(--text-muted); font-weight: 600;">${fb.date}</span>
-      </div>
-      <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 6px;">
-        <span style="padding: 2px 6px; background: rgba(99, 102, 241, 0.12); border-radius: 4px; font-size: 9px; font-weight: 700; color: var(--accent-indigo);">${fb.category}</span>
-        ${fb.batch && fb.batch !== 'N/A' ? `<span style="padding: 2px 6px; background: rgba(168, 85, 247, 0.12); border-radius: 4px; font-size: 9px; font-weight: 700; color: #c084fc;">${fb.batch}</span>` : ''}
-        ${fb.device && fb.device !== 'N/A' ? `<span style="padding: 2px 6px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; font-size: 9px; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-mobile-screen-button"></i> ${fb.device}</span>` : ''}
-        <span style="color: var(--accent-amber); font-size: 11px; margin-left: auto;">${'★'.repeat(fb.rating || 5)}</span>
-      </div>
-      <p style="font-size: 12px; color: var(--text-body); line-height: 1.4; margin: 0;">${fb.comment}</p>
-    </div>
-  `).join('');
-}
-
-function filterFeedbackFeed() {
-  renderFeedbackFeed();
-}
 
 // ==========================================================================
 // SEMESTER SCHEDULE & MILESTONES WORKSPACE MANAGER (ADVANCED EASE-OF-ACCESS)
@@ -4347,38 +4251,66 @@ function initFirestoreFeedbackStream() {
 
   try {
     logTerminal('Connecting live Firestore feedback stream from IRIS mobile clients...', 'info');
-    firestoreFeedbackListener = db.collection('feedback').orderBy('created_at', 'desc').onSnapshot(snapshot => {
+    // Snapshot without server-side orderBy so all documents (even without created_at index) are captured 100%
+    firestoreFeedbackListener = db.collection('feedback').onSnapshot(snapshot => {
       const cloudItems = [];
       snapshot.forEach(doc => {
         const data = doc.data() || {};
+        let rawDate = 0;
         let formattedDate = 'Recent';
+
         if (data.created_at && typeof data.created_at.toDate === 'function') {
-          formattedDate = data.created_at.toDate().toLocaleString('en-US', {
+          const d = data.created_at.toDate();
+          rawDate = d.getTime();
+          formattedDate = d.toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
           });
+        } else if (data.created_at && typeof data.created_at === 'number') {
+          const d = new Date(data.created_at);
+          rawDate = d.getTime();
+          formattedDate = d.toLocaleString('en-US');
+        } else if (data.created_at && typeof data.created_at === 'string') {
+          const d = new Date(data.created_at);
+          if (!isNaN(d.getTime())) {
+            rawDate = d.getTime();
+            formattedDate = d.toLocaleString('en-US');
+          } else {
+            formattedDate = data.created_at;
+          }
+        } else if (data.timestamp && typeof data.timestamp.toDate === 'function') {
+          const d = data.timestamp.toDate();
+          rawDate = d.getTime();
+          formattedDate = d.toLocaleString('en-US');
         } else if (data.date) {
           formattedDate = data.date;
         }
 
+        // Multi-field comment extraction with fallback
+        const commentText = (data.comment || data.feedback_text || data.feedback || data.message || data.text || data.comments || data.note || '').trim();
+
         cloudItems.push({
           id: doc.id,
-          name: data.name || data.user_name || 'Anonymous User',
-          user_role: data.user_role || (data.role ? data.role : 'Student'),
-          roll_number: data.roll_number || data.rollNo || data.roll || '',
+          name: data.name || data.user_name || data.student_name || data.faculty_name || 'Anonymous User',
+          user_role: data.user_role || data.role || 'Student',
+          roll_number: data.roll_number || data.rollNo || data.roll_no || data.roll || '',
           batch: data.batch || data.department || data.dept || '',
-          device: data.device || data.device_info || data.deviceSpecs || '',
+          device: data.device || data.device_info || data.deviceSpecs || data.device_specs || '',
           category: data.category || 'General Feedback',
           rating: Number(data.rating) || 5,
-          comment: data.comment || data.feedback_text || data.message || '',
+          comment: commentText,
           date: formattedDate,
+          rawDate: rawDate,
           platform: data.platform || 'Android Mobile Client',
           isCloud: true
         });
       });
+
+      // Sort newest first
+      cloudItems.sort((a, b) => b.rawDate - a.rawDate);
 
       allLiveFeedback = cloudItems;
       filterFeedbackFeed();
@@ -4471,7 +4403,7 @@ window.filterFeedbackFeed = function() {
     const roleBg = isFaculty ? 'rgba(129, 140, 248, 0.18)' : 'rgba(56, 189, 248, 0.18)';
     const initial = (f.name || 'U').trim().charAt(0).toUpperCase() || 'U';
     const isLongComment = f.comment && f.comment.length > 240;
-    const commentSafe = f.comment ? f.comment.replace(/"/g, '&quot;') : '';
+    const hasComment = Boolean(f.comment && f.comment.trim().length > 0);
 
     return `
       <div class="glass-panel feedback-card">
@@ -4500,7 +4432,7 @@ window.filterFeedbackFeed = function() {
             <div style="display: inline-flex; gap: 3px; background: rgba(251, 191, 36, 0.14); padding: 5px 12px; border-radius: 9999px; border: 1px solid rgba(251, 191, 36, 0.35);">
               ${starsHtml}
             </div>
-            ${f.comment ? `
+            ${hasComment ? `
               <button type="button" class="btn-row-action" onclick="copyFeedbackComment('${f.id}')" title="Copy feedback text">
                 <i class="fa-solid fa-copy"></i>
               </button>
@@ -4511,7 +4443,7 @@ window.filterFeedbackFeed = function() {
           </div>
         </div>
 
-        ${f.comment ? `
+        ${hasComment ? `
           <div>
             <div class="feedback-comment-box ${isLongComment ? 'feedback-comment-collapsed' : ''}" id="fb-comment-${f.id}">
               ${f.comment}
@@ -4522,7 +4454,11 @@ window.filterFeedbackFeed = function() {
               </button>
             ` : ''}
           </div>
-        ` : ''}
+        ` : `
+          <div style="font-size: 12px; color: var(--text-muted); font-style: italic; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--border-subtle);">
+            (No written comment provided with rating)
+          </div>
+        `}
 
         ${f.device && f.device !== 'N/A' ? `
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); flex-wrap: wrap;">
@@ -4579,10 +4515,97 @@ window.deleteLiveFeedback = async function(docId) {
   }
 };
 
+// Liquid Glass Morphing Dropdowns Engine for Portal
+function initGlassDropdowns() {
+  const selects = document.querySelectorAll('select:not(.glass-enhanced)');
+  selects.forEach(sel => {
+    sel.classList.add('glass-enhanced');
+    sel.style.display = 'none';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'glass-dropdown-wrapper';
+
+    const trigger = document.createElement('div');
+    trigger.className = 'glass-dropdown-trigger';
+    
+    function updateTriggerText() {
+      const selectedOpt = sel.options[sel.selectedIndex];
+      const text = selectedOpt ? selectedOpt.text : 'Select Option';
+      trigger.innerHTML = `<span>${text}</span> <i class="fa-solid fa-chevron-down" style="font-size: 10px; opacity: 0.7; transition: transform 0.25s ease;"></i>`;
+    }
+    updateTriggerText();
+
+    const menu = document.createElement('div');
+    menu.className = 'glass-dropdown-menu';
+
+    function buildOptions() {
+      menu.innerHTML = '';
+      Array.from(sel.options).forEach((opt, idx) => {
+        const item = document.createElement('div');
+        item.className = `glass-dropdown-item ${idx === sel.selectedIndex ? 'selected' : ''}`;
+        item.innerHTML = `<span>${opt.text}</span> ${idx === sel.selectedIndex ? '<i class="fa-solid fa-check" style="font-size: 10px; color: var(--accent-cyan);"></i>' : ''}`;
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sel.selectedIndex = idx;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+          sel.dispatchEvent(new Event('input', { bubbles: true }));
+          updateTriggerText();
+          closeMenu();
+        });
+        menu.appendChild(item);
+      });
+    }
+
+    function openMenu() {
+      buildOptions();
+      trigger.classList.add('open');
+      menu.classList.add('open');
+      const chevron = trigger.querySelector('.fa-chevron-down');
+      if (chevron) chevron.style.transform = 'rotate(180deg)';
+    }
+
+    function closeMenu() {
+      trigger.classList.remove('open');
+      menu.classList.remove('open');
+      const chevron = trigger.querySelector('.fa-chevron-down');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.glass-dropdown-menu.open').forEach(m => {
+        if (m !== menu) m.classList.remove('open');
+      });
+      document.querySelectorAll('.glass-dropdown-trigger.open').forEach(t => {
+        if (t !== trigger) t.classList.remove('open');
+      });
+
+      if (menu.classList.contains('open')) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    sel.addEventListener('change', updateTriggerText);
+
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(menu);
+    sel.parentNode.insertBefore(wrapper, sel.nextSibling);
+  });
+}
+
 // Auto-initialize handlers on document ready
 document.addEventListener('DOMContentLoaded', () => {
   setupSemesterScheduleHandlers();
   renderFeedbackFeed();
+  initGlassDropdowns();
 });
 
 
