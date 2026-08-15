@@ -2605,8 +2605,20 @@ function handleExamsFileSelect(file) {
         throw new Error("Excel sheet contains too few rows. Header row 3 expected.");
       }
       
-      // Header is on Row 3 (index 2)
-      const headerRow = rows[2] || [];
+      // Dynamically locate the header row containing "Date", "Time", or room columns
+      let headerRowIdx = -1;
+      for (let rIdx = 0; rIdx < Math.min(rows.length, 10); rIdx++) {
+        const row = rows[rIdx] || [];
+        const hasDateTime = row.some(cell => cell && /\b(date|time)\b/i.test(String(cell)));
+        const roomCount = row.filter(cell => cell && /\b([A-Z]\d+|Lab|Hall|Auditorium|Room)\b/i.test(String(cell))).length;
+        if (hasDateTime || roomCount >= 3) {
+          headerRowIdx = rIdx;
+          break;
+        }
+      }
+      if (headerRowIdx === -1) headerRowIdx = 2; // Fallback to index 2
+
+      const headerRow = rows[headerRowIdx] || [];
       const rooms = [];
       for (let c = 2; c < headerRow.length; c++) {
         const val = headerRow[c];
@@ -2616,12 +2628,12 @@ function handleExamsFileSelect(file) {
       }
       
       if (rooms.length === 0) {
-        throw new Error("No exam rooms/venues detected on row 3.");
+        throw new Error(`No exam rooms/venues detected on row ${headerRowIdx + 1}.`);
       }
       
-      logTerminal(`Detected ${rooms.length} exam rooms/venues in header.`, 'info');
+      logTerminal(`Detected ${rooms.length} exam rooms/venues on header row ${headerRowIdx + 1}.`, 'info');
       
-      let r = 3; // Row 4 (index 3)
+      let r = headerRowIdx + 1;
       let currentDate = null;
       let currentTime = null;
       

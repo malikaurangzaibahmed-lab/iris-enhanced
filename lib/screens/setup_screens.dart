@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
-import '../core/vital_theme.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/iris_components.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 typedef OnboardingCompleteCallback =
@@ -545,10 +542,10 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             children: [
               _buildRoleSelectCard(
                 key: _studentCardKey,
-                title: 'Student Profile',
+                title: 'Students',
                 subtitle:
                     'Timetables, batch trackers, dynamic alerts & room finder',
-                badgeText: 'RECOMMENDED',
+                badgeText: 'STUDENT Profile',
                 icon: Icons.school_rounded,
                 color: IrisTokens.brand,
                 isDark: isDark,
