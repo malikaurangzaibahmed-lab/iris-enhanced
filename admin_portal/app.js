@@ -4112,13 +4112,165 @@ async function deploySemesterScheduleToFirestore() {
   }
 }
 
-// Auto-initialize semester handlers on document ready
-document.addEventListener('DOMContentLoaded', () => {
-  setupSemesterScheduleHandlers();
-});
+// ==========================================================================
+// COMMUNITY FEEDBACK LIVE STREAM CONTROLLER
+// ==========================================================================
+let allLiveFeedback = [];
+
+async function renderFeedbackFeed() {
+  const container = document.getElementById('feedback-feed-container');
+  const countBadge = document.getElementById('feedback-count-badge');
+  if (!container) return;
+
+  if (!isConnected || !db) {
+    container.innerHTML = `
+      <div class="glass-panel" style="text-align: center; color: var(--text-muted); padding: 36px;">
+        <i class="fa-solid fa-satellite-dish" style="font-size: 28px; color: var(--accent-indigo); margin-bottom: 10px; display: block;"></i>
+        Database link offline. Connect to query live user feedback.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="glass-panel" style="text-align: center; color: var(--text-muted); padding: 36px;">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; color: var(--accent-cyan); margin-bottom: 10px; display: block;"></i>
+      Querying real-time feedback submissions from IRIS Firestore...
+    </div>
+  `;
+
+  try {
+    const snap = await db.collection('feedback').orderBy('created_at', 'desc').limit(60).get();
+    incrementDatabaseOps();
+
+    allLiveFeedback = [];
+    snap.forEach(doc => {
+      allLiveFeedback.push({ id: doc.id, ...doc.data() });
+    });
+
+    filterFeedbackFeed();
+    logTerminal(`Retrieved <strong>${allLiveFeedback.length}</strong> community feedback entries from Firestore.`, 'info');
+  } catch (err) {
+    console.error("Feedback query error:", err);
+    container.innerHTML = `
+      <div class="glass-panel" style="text-align: center; color: var(--accent-rose); padding: 28px;">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+        Failed to query feedback: ${err.message}
+      </div>
+    `;
+  }
+}
+
+window.filterFeedbackFeed = function() {
+  const container = document.getElementById('feedback-feed-container');
+  const countBadge = document.getElementById('feedback-count-badge');
+  const searchInput = document.getElementById('feedback-search');
+  const roleSelect = document.getElementById('feedback-role-filter');
+  if (!container) return;
+
+  const q = (searchInput?.value || '').toLowerCase().trim();
+  const roleFilter = roleSelect?.value || 'ALL';
+
+  const filtered = allLiveFeedback.filter(item => {
+    const matchRole = roleFilter === 'ALL' || (item.user_role || '').toLowerCase() === roleFilter.toLowerCase();
+    const textBlob = `${item.user_name || ''} ${item.roll_number || ''} ${item.feedback_text || ''} ${item.device_info || ''}`.toLowerCase();
+    const matchQuery = !q || textBlob.includes(q);
+    return matchRole && matchQuery;
+  });
+
+  if (countBadge) {
+    countBadge.innerText = `${filtered.length} SUBMISSIONS`;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="glass-panel" style="text-align: center; color: var(--text-muted); padding: 36px;">
+        <i class="fa-solid fa-comments" style="font-size: 28px; color: var(--accent-cyan); margin-bottom: 10px; display: block;"></i>
+        No community feedback matches the active filter or search query.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(f => {
+    const rating = Number(f.rating) || 5;
+    let starsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+      starsHtml += `<i class="fa-solid fa-star" style="color: ${i <= rating ? 'var(--accent-amber)' : 'rgba(255,255,255,0.2)'}; font-size: 11px;"></i>`;
+    }
+
+    let timeStr = 'Just now';
+    if (f.created_at) {
+      const d = f.created_at.toDate ? f.created_at.toDate() : new Date(f.created_at);
+      timeStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    const isFaculty = (f.user_role || '').toLowerCase() === 'faculty';
+    const roleBadgeColor = isFaculty ? 'var(--accent-indigo)' : 'var(--accent-cyan)';
+    const roleBg = isFaculty ? 'rgba(129, 140, 248, 0.18)' : 'rgba(56, 189, 248, 0.18)';
+
+    return `
+      <div class="glass-panel" style="display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; transition: all 0.2s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, ${roleBadgeColor}, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+              ${(f.user_name || 'U').substring(0, 1).toUpperCase()}
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <strong style="color: var(--text-title); font-size: 13.5px;">${f.user_name || 'Anonymous User'}</strong>
+                <span style="font-size: 9.5px; font-weight: 700; text-transform: uppercase; background: ${roleBg}; color: ${roleBadgeColor}; padding: 3px 8px; border-radius: 9999px; font-family: var(--font-mono);">
+                  ${f.user_role || 'Student'}
+                </span>
+                ${f.roll_number ? `<span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 3px 7px; border-radius: 6px;">${f.roll_number}</span>` : ''}
+              </div>
+              <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${timeStr}</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: inline-flex; gap: 3px; background: rgba(251, 191, 36, 0.12); padding: 4px 8px; border-radius: 9999px; border: 1px solid rgba(251, 191, 36, 0.3);">
+              ${starsHtml}
+            </div>
+            <button type="button" class="btn-row-action delete" onclick="deleteLiveFeedback('${f.id}')" title="Delete Feedback Record">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+
+        <p style="font-size: 13px; line-height: 1.55; color: var(--text-body); background: rgba(0,0,0,0.22); padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border-subtle); margin: 0;">
+          ${f.feedback_text || 'No comment provided.'}
+        </p>
+
+        ${f.device_info ? `
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-family: var(--font-mono); color: var(--text-muted);">
+            <i class="fa-solid fa-mobile-screen-button" style="color: var(--accent-cyan);"></i>
+            <span>${f.device_info}</span>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+};
+
+window.deleteLiveFeedback = async function(docId) {
+  if (!confirm("Are you sure you want to delete this feedback record from Firestore?")) return;
+  if (!db) return;
+
+  try {
+    await db.collection('feedback').doc(docId).delete();
+    allLiveFeedback = allLiveFeedback.filter(f => f.id !== docId);
+    filterFeedbackFeed();
+    showMossToast("Feedback entry deleted.", "info");
+    logTerminal(`Deleted feedback document: <code>${docId}</code>`, 'info');
+  } catch (err) {
+    showMossToast(`Failed to delete: ${err.message}`, "error");
+  }
+};
 
 // Auto-initialize semester handlers on document ready
 document.addEventListener('DOMContentLoaded', () => {
   setupSemesterScheduleHandlers();
 });
+
 
