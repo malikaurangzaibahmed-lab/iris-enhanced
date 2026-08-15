@@ -146,7 +146,7 @@ class _IrisAnimatedMascotState extends State<IrisAnimatedMascot>
                 alignment: Alignment.center,
                 child: CustomPaint(
                   size: Size(mascotSize, mascotSize * 1.25),
-                  painter: _3DMascotFullBodyPainter(
+                  painter: _MascotFullBodyPainter(
                     waveAngle: waveAngle,
                     orbitAngle: orbitVal * 2 * math.pi,
                     blinkVal: blinkVal,
@@ -165,7 +165,7 @@ class _IrisAnimatedMascotState extends State<IrisAnimatedMascot>
 }
 
 /// 3D Vector Graphics Character Painter: Renders fully rigged Head, Torso, Moving Arms/Hands, Feet & Aura
-class _3DMascotFullBodyPainter extends CustomPainter {
+class _MascotFullBodyPainter extends CustomPainter {
   final double waveAngle;
   final double orbitAngle;
   final double blinkVal;
@@ -173,7 +173,7 @@ class _3DMascotFullBodyPainter extends CustomPainter {
   final Color primaryColor;
   final Color secondaryColor;
 
-  _3DMascotFullBodyPainter({
+  _MascotFullBodyPainter({
     required this.waveAngle,
     required this.orbitAngle,
     required this.blinkVal,
@@ -186,7 +186,6 @@ class _3DMascotFullBodyPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final center = Offset(w / 2, h / 2);
 
     // 1. GROUND 3D SHADOW
     final shadowPaint = Paint()
@@ -384,5 +383,5 @@ class _3DMascotFullBodyPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _3DMascotFullBodyPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _MascotFullBodyPainter oldDelegate) => true;
 }

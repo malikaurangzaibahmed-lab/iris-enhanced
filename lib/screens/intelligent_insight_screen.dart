@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/tokens.dart';
@@ -74,38 +72,38 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
   ];
 
   // Semester Schedule Events
-  final List<Map<String, dynamic>> _semesterEvents = [
+  List<Map<String, dynamic>> _semesterEvents = [
     {
-      'title': 'Classes Commencement',
-      'date': 'Feb 09, 2026',
+      'title': 'COMMENCEMENT OF CLASSES',
+      'date': '2026-02-02',
       'category': 'Classes',
       'icon': Icons.school_rounded,
       'color': IrisTokens.brand,
-      'status': 'Active Phase',
+      'status': 'Official',
     },
     {
-      'title': 'Midterm Examinations',
-      'date': 'Apr 13, 2026',
+      'title': 'MIDTERM EXAMINATIONS',
+      'date': '2026-04-13',
       'category': 'Exams',
-      'icon': Icons.edit_calendar_rounded,
-      'color': Colors.amber,
-      'status': 'Upcoming in 24d',
+      'icon': Icons.event_note_rounded,
+      'color': const Color(0xFFF59E0B),
+      'status': 'Official',
     },
     {
-      'title': 'Sports & Cultural Week',
-      'date': 'May 04, 2026',
+      'title': 'STUDENT SPORTS & CULTURAL WEEK',
+      'date': '2026-05-04',
       'category': 'Events',
-      'icon': Icons.emoji_events_rounded,
-      'color': const Color(0xFF10B981),
-      'status': 'Scheduled',
+      'icon': Icons.celebration_rounded,
+      'color': const Color(0xFF8B5CF6),
+      'status': 'Official',
     },
     {
-      'title': 'Final Examinations',
-      'date': 'Jun 15, 2026',
+      'title': 'TERMINAL EXAMINATIONS',
+      'date': '2026-06-03',
       'category': 'Exams',
       'icon': Icons.history_edu_rounded,
-      'color': Colors.purpleAccent,
-      'status': 'Scheduled',
+      'color': const Color(0xFFEF4444),
+      'status': 'Official',
     },
   ];
 
