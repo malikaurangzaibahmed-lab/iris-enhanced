@@ -587,55 +587,61 @@ function setupAuthListeners() {
   });
 }
 
-let failedAttempts = parseInt(localStorage.getItem('iris_admin_failed_attempts') || '0');
-let lockUntil = parseInt(localStorage.getItem('iris_admin_lock_until') || '0');
+// Clear any stale local lockouts
+localStorage.removeItem('iris_admin_failed_attempts');
+localStorage.removeItem('iris_admin_lock_until');
 
 loginBtn.addEventListener('click', async () => {
   const email = emailInput.value.trim();
   const pass = passInput.value;
   
-  const now = Date.now();
-  if (now < lockUntil) {
-    const remainingSecs = Math.ceil((lockUntil - now) / 1000);
-    showAuthError(`Vault locked. Security lockout active for ${remainingSecs} seconds.`);
-    logTerminal(`Access Denied: Lockout actively running. Remaining: ${remainingSecs}s.`, 'error');
-    return;
-  }
-  
   if (!email || !pass) {
-    showAuthError('Email and passkey credentials parameters required.');
+    showAuthError('Please enter your access email and password.');
     return;
   }
   
   if (!isConnected || !auth) {
-    showAuthError('Console gateway compilation error. Check backend connections.');
+    showAuthError('Firebase connection initializing... Please check network or reload.');
     return;
   }
   
   loginBtn.disabled = true;
-  loginBtn.querySelector('span').innerText = 'DECRYPTING LOCKOUT KEY...';
+  loginBtn.querySelector('span').innerText = 'AUTHENTICATING...';
   authError.style.display = 'none';
   
   try {
     await auth.signInWithEmailAndPassword(email, pass);
-    failedAttempts = 0;
-    localStorage.setItem('iris_admin_failed_attempts', '0');
+    logTerminal(`Vault session successfully mapped: <strong>${email}</strong>`, 'success');
   } catch (e) {
-    failedAttempts++;
-    localStorage.setItem('iris_admin_failed_attempts', failedAttempts.toString());
-    logTerminal(`Vault credential validation failed: ${e.message}`, 'error');
-    
-    if (failedAttempts >= 3) {
-      lockUntil = Date.now() + 45000; // 45 seconds lock
-      localStorage.setItem('iris_admin_lock_until', lockUntil.toString());
-      showAuthError(`Vault lock initialized. Access profile suspended for 45s.`);
-      logTerminal(`Brute Shield: Successive failures. Key gateway suspended.`, 'error');
-    } else {
-      showAuthError(`Validation Failed. (${failedAttempts}/3 Attempts)`);
+    console.error("Auth error:", e);
+    let msg = e.message;
+    if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+      msg = 'Invalid email or password. Please verify your admin credentials.';
+    } else if (e.code === 'auth/invalid-email') {
+      msg = 'Please enter a valid email address format.';
+    } else if (e.code === 'auth/network-request-failed') {
+      msg = 'Network timeout. Could not reach Firebase servers.';
+    } else if (e.code === 'auth/too-many-requests') {
+      msg = 'Temporarily rate limited due to multiple attempts. Please wait a moment.';
     }
+    
+    showAuthError(msg);
+    logTerminal(`Authentication failed: ${msg}`, 'error');
   } finally {
     loginBtn.disabled = false;
-    loginBtn.querySelector('span').innerText = 'Verify Access Profile';
+    loginBtn.querySelector('span').innerText = 'Verify Access Portal';
+  }
+});
+
+// Enter key support for instant login
+[emailInput, passInput].forEach(input => {
+  if (input) {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        loginBtn.click();
+      }
+    });
   }
 });
 

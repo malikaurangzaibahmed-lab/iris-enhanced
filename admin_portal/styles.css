@@ -398,11 +398,17 @@ body {
 }
 
 .error-msg {
-  color: var(--accent-rose);
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 10px;
+  padding: 12px 16px;
   font-size: 12px;
   font-weight: 600;
-  margin-top: 12px;
+  margin-top: 16px;
   display: none;
+  text-align: left;
+  line-height: 1.45;
 }
 
 /* ==========================================================================
