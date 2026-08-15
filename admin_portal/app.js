@@ -292,19 +292,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Wallpaper & Theme Toggles
+  // 3-Stage Nature Wallpaper Switcher (Glacial Aurora, Alpine Sunset, Emerald Forest)
   const btnToggleWallpaper = document.getElementById('btn-toggle-wallpaper');
   if (btnToggleWallpaper) {
-    btnToggleWallpaper.addEventListener('click', () => {
-      document.body.classList.toggle('theme-forest');
-      const isForest = document.body.classList.contains('theme-forest');
-      localStorage.setItem('iris_portal_wallpaper', isForest ? 'forest' : 'alpine');
-      showMossToast(isForest ? "Emerald Mist Forest theme active!" : "Alpine Sunset theme active!", "info");
-      logTerminal(`Wallpaper switched: <strong>${isForest ? 'Emerald Mist Forest' : 'Alpine Sunset'}</strong>`, 'info');
-    });
-    if (localStorage.getItem('iris_portal_wallpaper') === 'forest') {
-      document.body.classList.add('theme-forest');
+    const wallpapers = [
+      { id: 'aurora', name: 'Glacial Aurora Borealis', class: 'theme-aurora', icon: 'fa-wand-magic-sparkles' },
+      { id: 'alpine', name: 'Alpine Sunset Lake', class: 'theme-alpine', icon: 'fa-mountain-sun' },
+      { id: 'forest', name: 'Emerald Mist Forest', class: 'theme-forest', icon: 'fa-tree' }
+    ];
+
+    function applyWallpaper(wId) {
+      document.body.classList.remove('theme-aurora', 'theme-alpine', 'theme-forest');
+      const wp = wallpapers.find(w => w.id === wId) || wallpapers[0];
+      document.body.classList.add(wp.class);
+      localStorage.setItem('iris_portal_wallpaper', wp.id);
+      btnToggleWallpaper.innerHTML = `<i class="fa-solid ${wp.icon}"></i>`;
+      return wp;
     }
+
+    btnToggleWallpaper.addEventListener('click', () => {
+      const current = localStorage.getItem('iris_portal_wallpaper') || 'aurora';
+      const curIdx = wallpapers.findIndex(w => w.id === current);
+      const nextWp = wallpapers[(curIdx + 1) % wallpapers.length];
+      applyWallpaper(nextWp.id);
+      showMossToast(`Nature Wallpaper: ${nextWp.name}!`, "info");
+      logTerminal(`Wallpaper switched: <strong>${nextWp.name}</strong>`, 'info');
+    });
+
+    const savedWp = localStorage.getItem('iris_portal_wallpaper') || 'aurora';
+    applyWallpaper(savedWp);
   }
 
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
