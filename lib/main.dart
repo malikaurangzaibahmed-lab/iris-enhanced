@@ -32,6 +32,7 @@ import 'widgets/glass_container_transform.dart';
 import 'screens/portal_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/academics_hub_screen.dart';
+import 'screens/intelligent_insight_screen.dart';
 import 'screens/faculty_dashboard_screen.dart';
 import 'screens/room_finder_screen.dart';
 import 'screens/document_workspace_screen.dart';
