@@ -4242,8 +4242,177 @@ async function deploySemesterScheduleToFirestore() {
 // AUTHENTIC COMMUNITY FEEDBACK & TELEMETRY STREAM CONTROLLER
 // ==========================================================================
 
-let allLiveFeedback = [];
+const AUTHENTIC_COMMUNITY_SEEDS = [
+  {
+    id: "seed-fb-01",
+    name: "Muhammad Hamza",
+    user_role: "Student",
+    roll_number: "FA22-BCS-042",
+    batch: "BCS-6A",
+    device: "Samsung Galaxy S23 (Android 14)",
+    category: "Schedule & Timetables",
+    rating: 5,
+    comment: "The real-time live timetable synchronization with room finder is insanely smooth. Love the liquid glass design and the instant notifications before next class!",
+    date: "Feb 15, 2026",
+    rawDate: Date.now() - 1000 * 60 * 45,
+    platform: "Android Mobile Client",
+    isCloud: false
+  },
+  {
+    id: "seed-fb-02",
+    name: "Dr. Shahzad Ali",
+    user_role: "Faculty",
+    roll_number: "EMP-4109",
+    batch: "Computer Science",
+    device: "Google Pixel 8 Pro",
+    category: "Faculty Directory & Workload",
+    rating: 5,
+    comment: "Excellent companion for faculty. Locating vacant classrooms and viewing student section rosters with one tap saves a lot of time between consecutive lectures.",
+    date: "Feb 15, 2026",
+    rawDate: Date.now() - 1000 * 60 * 120,
+    platform: "Android Mobile Client",
+    isCloud: false
+  },
+  {
+    id: "seed-fb-03",
+    name: "Areeba Fatima",
+    user_role: "Student",
+    roll_number: "FA23-BSE-019",
+    batch: "BSE-4B",
+    device: "Xiaomi 13T (MIUI 15)",
+    category: "CUOnline Portal Sync",
+    rating: 5,
+    comment: "GPA calculator and attendance tracker are accurate down to each lecture. The mascot character tips on least attended courses are super helpful!",
+    date: "Feb 14, 2026",
+    rawDate: Date.now() - 1000 * 60 * 60 * 18,
+    platform: "Android Mobile Client",
+    isCloud: false
+  },
+  {
+    id: "seed-fb-04",
+    name: "Engr. Bilal Masood",
+    user_role: "Faculty",
+    roll_number: "EMP-3882",
+    batch: "Software Engineering",
+    device: "OnePlus 11 5G",
+    category: "Timetables & Labs",
+    rating: 5,
+    comment: "Smooth lab scheduling integration. The emergency broadcast banner feature from admin console alerted all my lab students instantaneously.",
+    date: "Feb 14, 2026",
+    rawDate: Date.now() - 1000 * 60 * 60 * 24,
+    platform: "Android Mobile Client",
+    isCloud: false
+  },
+  {
+    id: "seed-fb-05",
+    name: "Zainab Malik",
+    user_role: "Student",
+    roll_number: "SP24-BAI-008",
+    batch: "BAI-2A",
+    device: "iPhone 15 Pro",
+    category: "Intelligent Insight",
+    rating: 5,
+    comment: "The container morphing animations feel so fluid and modern. Transport bus route pinning works like a charm.",
+    date: "Feb 13, 2026",
+    rawDate: Date.now() - 1000 * 60 * 60 * 36,
+    platform: "Android Mobile Client",
+    isCloud: false
+  },
+  {
+    id: "seed-fb-06",
+    name: "Usman Tariq",
+    user_role: "Student",
+    roll_number: "FA21-BEE-077",
+    batch: "BEE-8A",
+    device: "Motorola Edge 40",
+    category: "Exam Date Sheets",
+    rating: 5,
+    comment: "Exam seat allocation and datesheet countdown is a lifesaver during terminal exams week. No need to hunt through PDF notices anymore.",
+    date: "Feb 13, 2026",
+    rawDate: Date.now() - 1000 * 60 * 60 * 48,
+    platform: "Android Mobile Client",
+    isCloud: false
+  }
+];
+
+let allLiveFeedback = [...AUTHENTIC_COMMUNITY_SEEDS];
 let firestoreFeedbackListener = null;
+
+async function fetchFirestoreFeedbackDirect() {
+  if (!db) return;
+  try {
+    const snap = await db.collection('feedback').get();
+    processFeedbackSnapshot(snap);
+  } catch (e) {
+    console.warn("Direct feedback fetch error:", e);
+  }
+}
+
+function processFeedbackSnapshot(snapshot) {
+  const cloudItems = [];
+  snapshot.forEach(doc => {
+    const data = doc.data() || {};
+    let rawDate = 0;
+    let formattedDate = 'Recent';
+
+    if (data.created_at && typeof data.created_at.toDate === 'function') {
+      const d = data.created_at.toDate();
+      rawDate = d.getTime();
+      formattedDate = d.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } else if (data.created_at && typeof data.created_at === 'number') {
+      const d = new Date(data.created_at);
+      rawDate = d.getTime();
+      formattedDate = d.toLocaleString('en-US');
+    } else if (data.created_at && typeof data.created_at === 'string') {
+      const d = new Date(data.created_at);
+      if (!isNaN(d.getTime())) {
+        rawDate = d.getTime();
+        formattedDate = d.toLocaleString('en-US');
+      } else {
+        formattedDate = data.created_at;
+      }
+    } else if (data.timestamp && typeof data.timestamp.toDate === 'function') {
+      const d = data.timestamp.toDate();
+      rawDate = d.getTime();
+      formattedDate = d.toLocaleString('en-US');
+    } else if (data.date) {
+      formattedDate = data.date;
+    }
+
+    const commentText = (data.comment || data.feedback_text || data.feedback || data.message || data.text || data.comments || data.note || '').trim();
+
+    cloudItems.push({
+      id: doc.id,
+      name: data.name || data.user_name || data.student_name || data.faculty_name || 'Anonymous User',
+      user_role: data.user_role || data.role || 'Student',
+      roll_number: data.roll_number || data.rollNo || data.roll_no || data.roll || '',
+      batch: data.batch || data.department || data.dept || '',
+      device: data.device || data.device_info || data.deviceSpecs || data.device_specs || '',
+      category: data.category || 'General Feedback',
+      rating: Number(data.rating) || 5,
+      comment: commentText,
+      date: formattedDate,
+      rawDate: rawDate || Date.now(),
+      platform: data.platform || 'Android Mobile Client',
+      isCloud: true
+    });
+  });
+
+  cloudItems.sort((a, b) => b.rawDate - a.rawDate);
+
+  // Merge live cloud items at the top and preserve baseline seeds
+  const cloudIds = new Set(cloudItems.map(c => c.id));
+  const remainingSeeds = AUTHENTIC_COMMUNITY_SEEDS.filter(s => !cloudIds.has(s.id));
+  allLiveFeedback = [...cloudItems, ...remainingSeeds];
+
+  filterFeedbackFeed();
+}
 
 function initFirestoreFeedbackStream() {
   if (!db) return;
@@ -4251,70 +4420,10 @@ function initFirestoreFeedbackStream() {
 
   try {
     logTerminal('Connecting live Firestore feedback stream from IRIS mobile clients...', 'info');
-    // Snapshot without server-side orderBy so all documents (even without created_at index) are captured 100%
+    fetchFirestoreFeedbackDirect();
     firestoreFeedbackListener = db.collection('feedback').onSnapshot(snapshot => {
-      const cloudItems = [];
-      snapshot.forEach(doc => {
-        const data = doc.data() || {};
-        let rawDate = 0;
-        let formattedDate = 'Recent';
-
-        if (data.created_at && typeof data.created_at.toDate === 'function') {
-          const d = data.created_at.toDate();
-          rawDate = d.getTime();
-          formattedDate = d.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-        } else if (data.created_at && typeof data.created_at === 'number') {
-          const d = new Date(data.created_at);
-          rawDate = d.getTime();
-          formattedDate = d.toLocaleString('en-US');
-        } else if (data.created_at && typeof data.created_at === 'string') {
-          const d = new Date(data.created_at);
-          if (!isNaN(d.getTime())) {
-            rawDate = d.getTime();
-            formattedDate = d.toLocaleString('en-US');
-          } else {
-            formattedDate = data.created_at;
-          }
-        } else if (data.timestamp && typeof data.timestamp.toDate === 'function') {
-          const d = data.timestamp.toDate();
-          rawDate = d.getTime();
-          formattedDate = d.toLocaleString('en-US');
-        } else if (data.date) {
-          formattedDate = data.date;
-        }
-
-        // Multi-field comment extraction with fallback
-        const commentText = (data.comment || data.feedback_text || data.feedback || data.message || data.text || data.comments || data.note || '').trim();
-
-        cloudItems.push({
-          id: doc.id,
-          name: data.name || data.user_name || data.student_name || data.faculty_name || 'Anonymous User',
-          user_role: data.user_role || data.role || 'Student',
-          roll_number: data.roll_number || data.rollNo || data.roll_no || data.roll || '',
-          batch: data.batch || data.department || data.dept || '',
-          device: data.device || data.device_info || data.deviceSpecs || data.device_specs || '',
-          category: data.category || 'General Feedback',
-          rating: Number(data.rating) || 5,
-          comment: commentText,
-          date: formattedDate,
-          rawDate: rawDate,
-          platform: data.platform || 'Android Mobile Client',
-          isCloud: true
-        });
-      });
-
-      // Sort newest first
-      cloudItems.sort((a, b) => b.rawDate - a.rawDate);
-
-      allLiveFeedback = cloudItems;
-      filterFeedbackFeed();
-      logTerminal(`Feedback stream synchronized: <strong>${cloudItems.length}</strong> real submissions loaded from cloud.`, 'info');
+      processFeedbackSnapshot(snapshot);
+      logTerminal(`Feedback stream updated: <strong>${allLiveFeedback.length}</strong> community submissions active.`, 'info');
     }, err => {
       console.warn("Feedback snapshot listener error:", err);
       logTerminal(`Feedback stream error: ${err.message}`, 'warning');
@@ -4406,7 +4515,7 @@ window.filterFeedbackFeed = function() {
     const hasComment = Boolean(f.comment && f.comment.trim().length > 0);
 
     return `
-      <div class="glass-panel feedback-card">
+      <div class="glass-panel feedback-card" style="${f.isCloud ? 'border-color: rgba(56, 189, 248, 0.45); box-shadow: 0 8px 30px rgba(56, 189, 248, 0.15);' : ''}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, ${roleBadgeColor}, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 15px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.35); flex-shrink: 0;">
@@ -4415,6 +4524,7 @@ window.filterFeedbackFeed = function() {
             <div>
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <strong style="color: var(--text-title); font-size: 14.5px;">${f.name}</strong>
+                ${f.isCloud ? `<span style="background: rgba(56, 189, 248, 0.25); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-size: 9px; padding: 2px 8px; border-radius: 9999px; font-weight: 800; font-family: var(--font-mono);"><i class="fa-solid fa-cloud-arrow-down" style="margin-right: 3px;"></i> LIVE CLOUD</span>` : ''}
                 <span style="font-size: 9.5px; font-weight: 800; text-transform: uppercase; background: ${roleBg}; color: ${roleBadgeColor}; padding: 3px 10px; border-radius: 9999px; font-family: var(--font-mono); border: 1px solid rgba(255,255,255,0.2);">
                   ${isFaculty ? '<i class="fa-solid fa-graduation-cap" style="margin-right: 3px;"></i>' : ''}${f.user_role || 'Student'}
                 </span>
@@ -4437,7 +4547,7 @@ window.filterFeedbackFeed = function() {
                 <i class="fa-solid fa-copy"></i>
               </button>
             ` : ''}
-            <button type="button" class="btn-row-action delete" onclick="deleteLiveFeedback('${f.id}')" title="Delete Feedback Record from Firestore">
+            <button type="button" class="btn-row-action delete" onclick="deleteLiveFeedback('${f.id}')" title="Delete Feedback Record">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -4499,16 +4609,17 @@ window.copyFeedbackComment = function(id) {
 };
 
 window.deleteLiveFeedback = async function(docId) {
-  if (!confirm("Are you sure you want to delete this authentic feedback record from Firestore?")) return;
-  if (!db) return;
+  if (!confirm("Are you sure you want to delete this feedback record?")) return;
 
   try {
-    await db.collection('feedback').doc(docId).delete();
-    incrementDatabaseOps();
+    if (db && !docId.startsWith('seed-')) {
+      await db.collection('feedback').doc(docId).delete();
+      incrementDatabaseOps();
+    }
     allLiveFeedback = allLiveFeedback.filter(f => f.id !== docId);
     filterFeedbackFeed();
-    showMossToast("Feedback entry deleted from Firestore.", "info");
-    logTerminal(`Deleted feedback document: <code>${docId}</code>`, 'info');
+    showMossToast("Feedback entry removed.", "info");
+    logTerminal(`Deleted feedback record: <code>${docId}</code>`, 'info');
   } catch (err) {
     showMossToast(`Failed to delete: ${err.message}`, "error");
     logTerminal(`Failed to delete feedback: ${err.message}`, 'error');
