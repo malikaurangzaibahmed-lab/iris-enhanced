@@ -11,7 +11,8 @@ import '../widgets/iris_components.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
-typedef OnboardingCompleteCallback = Function(String role, String name, String value);
+typedef OnboardingCompleteCallback =
+    Function(String role, String name, String value);
 
 /// Ultra-Fluid Onboarding Setup Wizard & Faculty Selector for IRIS.
 class OnboardingWizard extends StatefulWidget {
@@ -58,7 +59,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   String? _selectedTeacher;
   FacultyProfile? _selectedFacultyProfile;
   String _teacherSearchQuery = '';
-  final TextEditingController _teacherSearchController = TextEditingController();
+  final TextEditingController _teacherSearchController =
+      TextEditingController();
   List<FacultyProfile> _facultyList = [];
   bool _loadingFaculty = false;
 
@@ -98,7 +100,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       if (mounted) {
         setState(() {
           _facultyList = List<FacultyProfile>.from(payload.items)
-            ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+            ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
           _loadingFaculty = false;
         });
       }
@@ -117,21 +121,31 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
     if (_particles.isEmpty) {
       for (int i = 0; i < 18; i++) {
-        _particles.add(OnboardingParticle(
-          x: _random.nextDouble() * width,
-          y: _random.nextDouble() * height,
-          vx: (_random.nextDouble() - 0.5) * 0.12,
-          vy: (_random.nextDouble() - 0.5) * 0.12,
-          size: 1.5 + _random.nextDouble() * 2.0,
-          color: _random.nextBool() ? IrisTokens.brand : IrisTokens.blue,
-          alpha: 0.08 + _random.nextDouble() * 0.15,
-        ));
+        _particles.add(
+          OnboardingParticle(
+            x: _random.nextDouble() * width,
+            y: _random.nextDouble() * height,
+            vx: (_random.nextDouble() - 0.5) * 0.12,
+            vy: (_random.nextDouble() - 0.5) * 0.12,
+            size: 1.5 + _random.nextDouble() * 2.0,
+            color: _random.nextBool() ? IrisTokens.brand : IrisTokens.blue,
+            alpha: 0.08 + _random.nextDouble() * 0.15,
+          ),
+        );
       }
     }
 
     setState(() {
       for (final p in _particles) {
-        p.update(width, height, orbCenter, _attractionTarget, _attractionStrength, _random, _currentStep);
+        p.update(
+          width,
+          height,
+          orbCenter,
+          _attractionTarget,
+          _attractionStrength,
+          _random,
+          _currentStep,
+        );
       }
     });
   }
@@ -152,17 +166,21 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       for (int i = 0; i < 25; i++) {
         final speed = 4.0 + _random.nextDouble() * 5.0;
         final spreadAngle = angle + (_random.nextDouble() - 0.5) * 0.8;
-        _particles.add(OnboardingParticle(
-          x: orbCenter.dx,
-          y: orbCenter.dy,
-          vx: math.cos(spreadAngle) * speed,
-          vy: math.sin(spreadAngle) * speed,
-          size: 1.5 + _random.nextDouble() * 2.0,
-          color: _random.nextBool()
-              ? IrisTokens.brand
-              : (_role == 'faculty' ? IrisTokens.blue : IrisTokens.purpleLight),
-          alpha: 1.0,
-        ));
+        _particles.add(
+          OnboardingParticle(
+            x: orbCenter.dx,
+            y: orbCenter.dy,
+            vx: math.cos(spreadAngle) * speed,
+            vy: math.sin(spreadAngle) * speed,
+            size: 1.5 + _random.nextDouble() * 2.0,
+            color: _random.nextBool()
+                ? IrisTokens.brand
+                : (_role == 'faculty'
+                      ? IrisTokens.blue
+                      : IrisTokens.purpleLight),
+            alpha: 1.0,
+          ),
+        );
       }
     });
 
@@ -260,7 +278,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                  color: (isDark ? Colors.white : Colors.black).withValues(
+                    alpha: 0.6,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -357,18 +377,19 @@ class _OnboardingWizardState extends State<OnboardingWizard>
         _syncLog = log;
       });
 
-  String _resolveSelectedBatchKey() {
-    if (_program == null || _semester == null || _section == null) return '';
-    for (final batch in widget.memory.allBatches) {
-      final key = BatchKey.parse(batch);
-      if (key.program.toUpperCase() == _program!.toUpperCase() &&
-          key.semester == _semester &&
-          key.section.toUpperCase() == _section!.toUpperCase()) {
-        return batch;
+      String _resolveSelectedBatchKey() {
+        if (_program == null || _semester == null || _section == null)
+          return '';
+        for (final batch in widget.memory.allBatches) {
+          final key = BatchKey.parse(batch);
+          if (key.program.toUpperCase() == _program!.toUpperCase() &&
+              key.semester == _semester &&
+              key.section.toUpperCase() == _section!.toUpperCase()) {
+            return batch;
+          }
+        }
+        return '$_program-$_semester$_section';
       }
-    }
-    return '$_program-$_semester$_section';
-  }
 
       if (currentInterval >= intervals) {
         final prefs = await SharedPreferences.getInstance();
@@ -381,7 +402,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           await prefs.setString('student_name', teacherName);
         } else {
           final batchKey = _resolveSelectedBatchKey();
-          final studentName = _name.trim().isNotEmpty ? _name.trim() : 'Student';
+          final studentName = _name.trim().isNotEmpty
+              ? _name.trim()
+              : 'Student';
           await prefs.setString('user_role', 'student');
           await prefs.setString('active_role', 'student');
           await prefs.setString('student_name', studentName);
@@ -404,7 +427,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             widget.onComplete('faculty', teacherName, teacherName);
           } else {
             final batchKey = _resolveSelectedBatchKey();
-            final studentName = _name.trim().isNotEmpty ? _name.trim() : 'Student';
+            final studentName = _name.trim().isNotEmpty
+                ? _name.trim()
+                : 'Student';
             widget.onComplete('student', studentName, batchKey);
           }
         }
@@ -417,7 +442,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF030712) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF030712)
+          : const Color(0xFFF8FAFC),
       body: Stack(
         children: [
           // Background Canvas Particles
@@ -431,7 +458,10 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               children: [
                 // Top Progress Bar
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: List.generate(4, (index) {
                       final isActive = index <= _currentStep;
@@ -442,7 +472,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                           margin: const EdgeInsets.symmetric(horizontal: 3),
                           decoration: BoxDecoration(
                             color: isActive
-                                ? (_role == 'faculty' ? IrisTokens.blue : IrisTokens.brand)
+                                ? (_role == 'faculty'
+                                      ? IrisTokens.blue
+                                      : IrisTokens.brand)
                                 : (isDark ? Colors.white12 : Colors.black12),
                             borderRadius: BorderRadius.circular(2),
                           ),
@@ -503,7 +535,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+              color: (isDark ? Colors.white : Colors.black).withValues(
+                alpha: 0.6,
+              ),
             ),
           ),
           const Spacer(),
@@ -512,7 +546,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               _buildRoleSelectCard(
                 key: _studentCardKey,
                 title: 'Student Profile',
-                subtitle: 'Timetables, batch trackers, dynamic alerts & room finder',
+                subtitle:
+                    'Timetables, batch trackers, dynamic alerts & room finder',
                 badgeText: 'RECOMMENDED',
                 icon: Icons.school_rounded,
                 color: IrisTokens.brand,
@@ -535,7 +570,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               _buildRoleSelectCard(
                 key: _facultyCardKey,
                 title: 'Faculty Profile',
-                subtitle: 'Teaching schedules, department directories & room finder',
+                subtitle:
+                    'Teaching schedules, department directories & room finder',
                 badgeText: 'FACULTY & STAFF',
                 icon: Icons.badge_rounded,
                 color: IrisTokens.blue,
@@ -584,13 +620,19 @@ class _OnboardingWizardState extends State<OnboardingWizard>
         glow: isSelected,
         shimmer: !isSelected,
         accentColor: color,
-        backgroundColor: color.withValues(alpha: isDark ? (isSelected ? 0.20 : 0.10) : (isSelected ? 0.12 : 0.05)),
+        backgroundColor: color.withValues(
+          alpha: isDark
+              ? (isSelected ? 0.20 : 0.10)
+              : (isSelected ? 0.12 : 0.05),
+        ),
         onTap: () {
           Offset pos = Offset.zero;
           try {
             final box = key.currentContext?.findRenderObject() as RenderBox?;
             if (box != null && box.hasSize) {
-              pos = box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
+              pos = box.localToGlobal(
+                Offset(box.size.width / 2, box.size.height / 2),
+              );
             }
           } catch (_) {}
           onTap(pos);
@@ -629,11 +671,17 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: isDark ? 0.2 : 0.12),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8),
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.3),
+                            width: 0.8,
+                          ),
                         ),
                         child: Text(
                           badgeText,
@@ -664,7 +712,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                       fontSize: 11.5,
                       fontWeight: FontWeight.w500,
                       height: 1.3,
-                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+                      color: (isDark ? Colors.white : Colors.black).withValues(
+                        alpha: 0.55,
+                      ),
                     ),
                   ),
                 ],
@@ -674,7 +724,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.06,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -726,7 +778,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.6,
+                ),
               ),
             ),
           ),
@@ -743,9 +797,18 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
   Widget _buildFacultyDirectoryListWidget(bool isDark) {
     final matched = _facultyList
-        .where((f) => f.name.toLowerCase().contains(_teacherSearchQuery.toLowerCase()) ||
-                      f.department.toLowerCase().contains(_teacherSearchQuery.toLowerCase()) ||
-                      f.location.toLowerCase().contains(_teacherSearchQuery.toLowerCase()))
+        .where(
+          (f) =>
+              f.name.toLowerCase().contains(
+                _teacherSearchQuery.toLowerCase(),
+              ) ||
+              f.department.toLowerCase().contains(
+                _teacherSearchQuery.toLowerCase(),
+              ) ||
+              f.location.toLowerCase().contains(
+                _teacherSearchQuery.toLowerCase(),
+              ),
+        )
         .toList();
 
     return Column(
@@ -755,12 +818,20 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           child: TextField(
             controller: _teacherSearchController,
-            onChanged: (val) => setState(() => _teacherSearchQuery = val.trim()),
+            onChanged: (val) =>
+                setState(() => _teacherSearchQuery = val.trim()),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: 'Search faculty by name, department...',
-              hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
-              prefixIcon: const Icon(Icons.search_rounded, color: IrisTokens.blue),
+              hintStyle: TextStyle(
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.4,
+                ),
+              ),
+              prefixIcon: const Icon(
+                Icons.search_rounded,
+                color: IrisTokens.blue,
+              ),
               border: InputBorder.none,
             ),
           ),
@@ -769,71 +840,91 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
         Expanded(
           child: _loadingFaculty
-              ? const Center(child: CircularProgressIndicator(color: IrisTokens.blue))
+              ? const Center(
+                  child: CircularProgressIndicator(color: IrisTokens.blue),
+                )
               : matched.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No matching faculty profiles found',
-                        style: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
+              ? Center(
+                  child: Text(
+                    'No matching faculty profiles found',
+                    style: TextStyle(
+                      color: (isDark ? Colors.white : Colors.black).withValues(
+                        alpha: 0.4,
                       ),
-                    )
-                  : ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: matched.length,
-                      itemBuilder: (context, index) {
-                        final item = matched[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: InkWell(
-                            onTap: () => _showFacultyConfirmationDialog(item),
-                            borderRadius: BorderRadius.circular(16),
-                            child: GlassCard(
-                              padding: const EdgeInsets.all(14),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 20,
-                                    backgroundColor: IrisTokens.blue.withValues(alpha: 0.2),
-                                    child: Text(
-                                      item.name.isNotEmpty ? item.name[0].toUpperCase() : 'F',
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: matched.length,
+                  itemBuilder: (context, index) {
+                    final item = matched[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: InkWell(
+                        onTap: () => _showFacultyConfirmationDialog(item),
+                        borderRadius: BorderRadius.circular(16),
+                        child: GlassCard(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: IrisTokens.blue.withValues(
+                                  alpha: 0.2,
+                                ),
+                                child: Text(
+                                  item.name.isNotEmpty
+                                      ? item.name[0].toUpperCase()
+                                      : 'F',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
                                       style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        color: isDark ? Colors.white : Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.name,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w800,
-                                            color: isDark ? Colors.white : Colors.black,
-                                          ),
-                                        ),
-                                        Text(
-                                          '${item.department} • ${item.location}',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
-                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
-                                          ),
-                                        ),
-                                      ],
+                                    Text(
+                                      '${item.department} • ${item.location}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color:
+                                            (isDark
+                                                    ? Colors.white
+                                                    : Colors.black)
+                                                .withValues(alpha: 0.6),
+                                      ),
                                     ),
-                                  ),
-                                  const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: IrisTokens.blue),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 14,
+                                color: IrisTokens.blue,
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
         ),
       ],
     );
@@ -851,7 +942,11 @@ class _OnboardingWizardState extends State<OnboardingWizard>
         ? widget.memory.sections(_program!, _semester!)
         : <String>[];
 
-    final isReady = _name.trim().isNotEmpty && _program != null && _semester != null && _section != null;
+    final isReady =
+        _name.trim().isNotEmpty &&
+        _program != null &&
+        _semester != null &&
+        _section != null;
 
     return Column(
       children: [
@@ -888,7 +983,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 selectedValue: _semester?.toString(),
                 items: semesters.map((e) => e.toString()).toList(),
                 icon: Icons.calendar_month_rounded,
-                placeholder: _program == null ? 'Select program first' : 'No semesters found',
+                placeholder: _program == null
+                    ? 'Select program first'
+                    : 'No semesters found',
                 onSelected: (value) => setState(() {
                   _semester = int.tryParse(value);
                   _section = null;
@@ -902,7 +999,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 selectedValue: _section,
                 items: sections,
                 icon: Icons.group_rounded,
-                placeholder: _semester == null ? 'Select semester first' : 'No sections found',
+                placeholder: _semester == null
+                    ? 'Select semester first'
+                    : 'No sections found',
                 onSelected: (value) => setState(() => _section = value),
               ),
               const SizedBox(height: 16),
@@ -936,7 +1035,11 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               children: [
                 Text(
                   'CONTINUE TO PREFERENCES',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 SizedBox(width: 8),
                 Icon(Icons.arrow_forward_rounded, size: 18),
@@ -981,7 +1084,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.6,
+                ),
               ),
             ),
           ),
@@ -999,7 +1104,10 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   onChanged: (val) => setState(() => _notifClassAlerts = val),
                   isDark: isDark,
                 ),
-                Divider(height: 24, color: isDark ? Colors.white10 : Colors.black12),
+                Divider(
+                  height: 24,
+                  color: isDark ? Colors.white10 : Colors.black12,
+                ),
                 _buildNotificationToggleRow(
                   title: 'Exam & Date Sheet Reminders',
                   subtitle: 'Timely reminders for midterm & final exam dates',
@@ -1008,13 +1116,17 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   onChanged: (val) => setState(() => _notifExamAlerts = val),
                   isDark: isDark,
                 ),
-                Divider(height: 24, color: isDark ? Colors.white10 : Colors.black12),
+                Divider(
+                  height: 24,
+                  color: isDark ? Colors.white10 : Colors.black12,
+                ),
                 _buildNotificationToggleRow(
                   title: 'Emergency Campus Broadcasts',
                   subtitle: 'Real-time announcements & sports week updates',
                   icon: Icons.campaign_rounded,
                   value: _notifCampusBroadcasts,
-                  onChanged: (val) => setState(() => _notifCampusBroadcasts = val),
+                  onChanged: (val) =>
+                      setState(() => _notifCampusBroadcasts = val),
                   isDark: isDark,
                 ),
               ],
@@ -1028,7 +1140,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             child: ElevatedButton(
               onPressed: _nextStep,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
+                backgroundColor: _role == 'faculty'
+                    ? IrisTokens.blue
+                    : IrisTokens.brand,
                 foregroundColor: Colors.white,
                 elevation: 6,
                 shape: RoundedRectangleBorder(
@@ -1040,7 +1154,11 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 children: [
                   Text(
                     'BEGIN SYNCHRONIZATION',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                   SizedBox(width: 8),
                   Icon(Icons.sync_rounded, size: 18),
@@ -1064,7 +1182,11 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   }) {
     return Row(
       children: [
-        Icon(icon, color: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand, size: 22),
+        Icon(
+          icon,
+          color: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
+          size: 22,
+        ),
         const SizedBox(width: 14),
         Expanded(
           child: Column(
@@ -1083,7 +1205,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                  color: (isDark ? Colors.white : Colors.black).withValues(
+                    alpha: 0.6,
+                  ),
                 ),
               ),
             ],
@@ -1120,7 +1244,10 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        (_role == 'faculty' ? IrisTokens.blue : IrisTokens.brand).withValues(alpha: 0.3),
+                        (_role == 'faculty'
+                                ? IrisTokens.blue
+                                : IrisTokens.brand)
+                            .withValues(alpha: 0.3),
                         Colors.transparent,
                       ],
                     ),
@@ -1132,8 +1259,11 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   child: CircularProgressIndicator(
                     value: _syncProgress,
                     strokeWidth: 4,
-                    color: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
-                    backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                    color: _role == 'faculty'
+                        ? IrisTokens.blue
+                        : IrisTokens.brand,
+                    backgroundColor: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: 0.08),
                   ),
                 ),
                 Column(
@@ -1154,7 +1284,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.5,
-                        color: (_role == 'faculty' ? IrisTokens.blue : IrisTokens.brand),
+                        color: (_role == 'faculty'
+                            ? IrisTokens.blue
+                            : IrisTokens.brand),
                       ),
                     ),
                   ],
@@ -1168,7 +1300,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
           ],
@@ -1182,10 +1316,7 @@ class _StudentNameInputField extends StatelessWidget {
   final String name;
   final ValueChanged<String> onChanged;
 
-  const _StudentNameInputField({
-    required this.name,
-    required this.onChanged,
-  });
+  const _StudentNameInputField({required this.name, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -1217,8 +1348,12 @@ class _StudentNameInputField extends StatelessWidget {
             onChanged: onChanged,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             decoration: InputDecoration(
-              hintText: 'e.g. Malik Aurangzaib',
-              hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
+              hintText: 'e.g. Ali',
+              hintStyle: TextStyle(
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.4,
+                ),
+              ),
               border: InputBorder.none,
             ),
           ),
@@ -1271,12 +1406,19 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
         items.isEmpty
             ? Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                  color: (isDark ? Colors.white : Colors.black).withValues(
+                    alpha: 0.04,
+                  ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                    color: (isDark ? Colors.white : Colors.black).withValues(
+                      alpha: 0.08,
+                    ),
                   ),
                 ),
                 child: Text(
@@ -1284,7 +1426,9 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
+                    color: (isDark ? Colors.white : Colors.black).withValues(
+                      alpha: 0.4,
+                    ),
                   ),
                 ),
               )
@@ -1308,7 +1452,10 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: isDark
                             ? Colors.white.withValues(alpha: 0.05)
@@ -1317,7 +1464,9 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                         border: Border.all(
                           color: selectedValue != null
                               ? IrisTokens.brand
-                              : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
+                              : (isDark
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.1)),
                           width: selectedValue != null ? 1.5 : 1.0,
                         ),
                       ),
@@ -1366,10 +1515,7 @@ class _RollNumberInputField extends StatelessWidget {
   final String rollNo;
   final ValueChanged<String> onChanged;
 
-  const _RollNumberInputField({
-    required this.rollNo,
-    required this.onChanged,
-  });
+  const _RollNumberInputField({required this.rollNo, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -1401,8 +1547,12 @@ class _RollNumberInputField extends StatelessWidget {
             onChanged: onChanged,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
-              hintText: 'e.g. SP26-BCS-001',
-              hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
+              hintText: 'e.g. 001',
+              hintStyle: TextStyle(
+                color: (isDark ? Colors.white : Colors.black).withValues(
+                  alpha: 0.4,
+                ),
+              ),
               border: InputBorder.none,
             ),
           ),
