@@ -159,6 +159,7 @@ class HelpdeskScheduleDataService {
   Future<CampusSchedulePayload> fetchSchedulePayload() async {
     CampusScheduleSource scheduleSource = CampusScheduleSource.asset;
     List<SemesterMilestoneData> resolvedSemesterMilestones = [];
+    DateTime? capturedTime;
 
     // 1. First, attempt live fetch from Firestore Admin Portal schedule
     try {
@@ -166,22 +167,66 @@ class HelpdeskScheduleDataService {
           .collection('config')
           .doc('global')
           .get()
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
 
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         final rawSchedule = data['semester_schedule'];
         if (rawSchedule is List && rawSchedule.isNotEmpty) {
           resolvedSemesterMilestones = rawSchedule
-              .whereType<Map<String, dynamic>>()
-              .map(SemesterMilestoneData.fromJson)
+              .where((item) => item is Map)
+              .map((item) => SemesterMilestoneData.fromJson(
+                  Map<String, dynamic>.from(item as Map)))
               .where((m) => m.title.isNotEmpty)
               .toList(growable: false);
 
           if (resolvedSemesterMilestones.isNotEmpty) {
             scheduleSource = CampusScheduleSource.live;
+            final rawTime = data['semester_schedule_updated_at'] ??
+                data['active_semester_version'] ??
+                data['updated_at'];
+            if (rawTime is Timestamp) {
+              capturedTime = rawTime.toDate();
+            } else if (rawTime is int) {
+              capturedTime = DateTime.fromMillisecondsSinceEpoch(rawTime);
+            } else if (rawTime is String) {
+              capturedTime = DateTime.tryParse(rawTime);
+            }
             // Cache to local storage for instant offline access
             _cacheRemoteSchedule(rawSchedule);
+          }
+        }
+      }
+
+      // Fallback check on dedicated 'semester_schedule' document if global was empty
+      if (resolvedSemesterMilestones.isEmpty) {
+        final scheduleDoc = await FirebaseFirestore.instance
+            .collection('config')
+            .doc('semester_schedule')
+            .get()
+            .timeout(const Duration(seconds: 4));
+
+        if (scheduleDoc.exists && scheduleDoc.data() != null) {
+          final sData = scheduleDoc.data()!;
+          final milestonesRaw = sData['milestones'] ?? sData['semester_schedule'];
+          if (milestonesRaw is List && milestonesRaw.isNotEmpty) {
+            resolvedSemesterMilestones = milestonesRaw
+                .where((item) => item is Map)
+                .map((item) => SemesterMilestoneData.fromJson(
+                    Map<String, dynamic>.from(item as Map)))
+                .where((m) => m.title.isNotEmpty)
+                .toList(growable: false);
+
+            if (resolvedSemesterMilestones.isNotEmpty) {
+              scheduleSource = CampusScheduleSource.live;
+              final rawTime = sData['updated_at'] ?? sData['version'];
+              if (rawTime is Timestamp) {
+                capturedTime = rawTime.toDate();
+              } else if (rawTime is int) {
+                capturedTime = DateTime.fromMillisecondsSinceEpoch(rawTime);
+              }
+              _cacheRemoteSchedule(milestonesRaw);
+            }
           }
         }
       }
@@ -223,8 +268,9 @@ class HelpdeskScheduleDataService {
             : const [];
 
         resolvedSemesterMilestones = semesterRaw
-            .whereType<Map<String, dynamic>>()
-            .map(SemesterMilestoneData.fromJson)
+            .where((item) => item is Map)
+            .map((item) => SemesterMilestoneData.fromJson(
+                Map<String, dynamic>.from(item as Map)))
             .where((m) => m.title.isNotEmpty)
             .toList(growable: false);
         scheduleSource = CampusScheduleSource.asset;
@@ -232,20 +278,24 @@ class HelpdeskScheduleDataService {
 
       return CampusSchedulePayload(
         source: scheduleSource,
-        capturedAt: DateTime.tryParse((decoded['captured_at'] ?? '').toString()),
+        capturedAt: capturedTime ??
+            DateTime.tryParse((decoded['captured_at'] ?? '').toString()),
         transportRoutes: transportRaw
-            .whereType<Map<String, dynamic>>()
-            .map(TransportRouteData.fromJson)
+            .where((item) => item is Map)
+            .map((item) => TransportRouteData.fromJson(
+                Map<String, dynamic>.from(item as Map)))
             .where((route) => route.route.isNotEmpty)
             .toList(growable: false),
         semesterSchedule: resolvedSemesterMilestones,
         deadlines: deadlinesRaw
-            .whereType<Map<String, dynamic>>()
-            .map(DeadlineData.fromJson)
+            .where((item) => item is Map)
+            .map((item) =>
+                DeadlineData.fromJson(Map<String, dynamic>.from(item as Map)))
             .where((d) => d.title.isNotEmpty)
             .toList(growable: false),
-        librarySchedule:
-            libraryRaw == null ? null : LibraryScheduleData.fromJson(libraryRaw),
+        librarySchedule: libraryRaw == null
+            ? null
+            : LibraryScheduleData.fromJson(libraryRaw),
       );
     } catch (_) {
       return _empty(CampusScheduleSource.none);
@@ -267,8 +317,9 @@ class HelpdeskScheduleDataService {
         final dynamic decoded = jsonDecode(raw);
         if (decoded is List) {
           return decoded
-              .whereType<Map<String, dynamic>>()
-              .map(SemesterMilestoneData.fromJson)
+              .where((item) => item is Map)
+              .map((item) => SemesterMilestoneData.fromJson(
+                  Map<String, dynamic>.from(item as Map)))
               .where((m) => m.title.isNotEmpty)
               .toList(growable: false);
         }
