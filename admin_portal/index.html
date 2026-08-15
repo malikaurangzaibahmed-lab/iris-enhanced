@@ -338,8 +338,8 @@
               <p class="file-info" id="timetable-file-info"></p>
             </div>
             
-            <div id="staged-files-container" style="display: none; margin-bottom: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px;">
-              <span class="segment-label" style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 8px;">Staged Timetable Files</span>
+            <div id="staged-files-container" class="glass-panel" style="display: none; margin-bottom: 20px;">
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 8px;">Staged Timetable Files</span>
               <ul id="staged-files-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"></ul>
               <button type="button" id="btn-clear-staged-files" class="btn btn-logout" style="margin-top: 10px; font-size: 10px; padding: 8px 14px; height: auto;">
                 <i class="fa-solid fa-trash-can"></i> Clear All Staged Files
@@ -348,17 +348,17 @@
             
             <div id="timetable-analytics" style="display: none; margin-bottom: 20px;">
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Sessions</span>
-                  <strong id="stat-sessions" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
+                <div class="glass-panel" style="padding: 14px; text-align: center;">
+                  <span style="font-size: 9.5px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Sessions</span>
+                  <strong id="stat-sessions" style="font-size: 20px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
                 </div>
-                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Courses</span>
-                  <strong id="stat-courses" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
+                <div class="glass-panel" style="padding: 14px; text-align: center;">
+                  <span style="font-size: 9.5px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Courses</span>
+                  <strong id="stat-courses" style="font-size: 20px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
                 </div>
-                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Labs</span>
-                  <strong id="stat-labs" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-emerald);">0</strong>
+                <div class="glass-panel" style="padding: 14px; text-align: center;">
+                  <span style="font-size: 9.5px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Labs</span>
+                  <strong id="stat-labs" style="font-size: 20px; font-family: var(--font-mono); color: var(--accent-emerald);">0</strong>
                 </div>
               </div>
               
@@ -448,17 +448,17 @@
             
             <div id="exams-analytics" style="display: none; margin-bottom: 20px;">
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Exams</span>
-                  <strong id="exams-stat-total" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-amber);">0</strong>
+                <div class="glass-panel" style="padding: 14px; text-align: center;">
+                  <span style="font-size: 9.5px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Total Exams</span>
+                  <strong id="exams-stat-total" style="font-size: 20px; font-family: var(--font-mono); color: var(--accent-amber);">0</strong>
                 </div>
-                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Batches</span>
-                  <strong id="exams-stat-batches" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
+                <div class="glass-panel" style="padding: 14px; text-align: center;">
+                  <span style="font-size: 9.5px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Batches</span>
+                  <strong id="exams-stat-batches" style="font-size: 20px; font-family: var(--font-mono); color: var(--accent-cyan);">0</strong>
                 </div>
-                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border-subtle); text-align: center;">
-                  <span style="font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Subjects</span>
-                  <strong id="exams-stat-subjects" style="font-size: 18px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
+                <div class="glass-panel" style="padding: 14px; text-align: center;">
+                  <span style="font-size: 9.5px; font-family: var(--font-mono); color: var(--text-muted); display: block; text-transform: uppercase;">Subjects</span>
+                  <strong id="exams-stat-subjects" style="font-size: 20px; font-family: var(--font-mono); color: var(--accent-indigo);">0</strong>
                 </div>
               </div>
               
@@ -566,11 +566,11 @@
             </div>
 
             <!-- 1-Click Milestone Quick Preset Chips -->
-            <div style="background: rgba(0,0,0,0.15); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 16px; margin: 16px 0 20px;">
-              <span style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 8px;">
-                <i class="fa-solid fa-bolt" style="color: var(--accent-amber); margin-right: 4px;"></i> 1-Click Quick Preset Adder (Click chip to auto-fill)
+            <div class="glass-panel" style="margin: 16px 0 20px; padding: 16px 20px;">
+              <span style="font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 10px;">
+                <i class="fa-solid fa-bolt" style="color: var(--accent-amber); margin-right: 6px;"></i> 1-Click Quick Preset Adder (Click chip to auto-fill)
               </span>
-              <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="milestone-preset-chips-container">
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;" id="milestone-preset-chips-container">
                 <button type="button" class="milestone-preset-chip" data-title="REGISTRATION WEEK" data-cat="Registration" data-status="upcoming">🎓 Registration Week</button>
                 <button type="button" class="milestone-preset-chip" data-title="COMMENCEMENT OF CLASSES" data-cat="Classes" data-status="active">📚 Classes Commencement</button>
                 <button type="button" class="milestone-preset-chip" data-title="LAST DAY TO DROP COURSES" data-cat="Classes" data-status="upcoming">⏳ Drop Deadline</button>
@@ -585,7 +585,7 @@
             </div>
             
             <!-- Add / Edit Milestone Form -->
-            <div style="background: rgba(0,0,0,0.22); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <div class="glass-panel" style="margin-bottom: 20px; padding: 22px;">
               <span class="segment-label" style="font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; color: var(--accent-indigo); font-weight: 700; display: block; margin-bottom: 14px;">
                 <i class="fa-solid fa-plus-circle" style="margin-right: 4px;"></i> Add Milestone Custom Details
               </span>
@@ -593,7 +593,7 @@
               <div style="display: grid; grid-template-columns: 2fr 1.6fr 1.2fr 1fr; gap: 12px; margin-bottom: 14px;">
                 <div>
                   <label style="font-size: 9.5px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Milestone Title</label>
-                  <input type="text" id="input-milestone-title" placeholder="e.g. MIDTERM EXAMINATIONS" style="width: 100%; height: 44px; padding: 0 14px; font-size: 12.5px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <input type="text" id="input-milestone-title" placeholder="e.g. MIDTERM EXAMINATIONS" style="width: 100%; height: 46px; padding: 0 16px; font-size: 12.5px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);">
                 </div>
                 
                 <div>
@@ -606,20 +606,20 @@
                   </div>
                   
                   <div style="display: flex; gap: 6px;" id="date-single-container">
-                    <input type="date" id="input-milestone-date-picker" style="width: 44px; height: 44px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title); cursor: pointer;" title="Open Date Picker">
-                    <input type="text" id="input-milestone-date" placeholder="e.g. 2026-04-13 or Apr 13, 2026" style="flex: 1; height: 44px; padding: 0 12px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                    <input type="date" id="input-milestone-date-picker" style="width: 46px; height: 46px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-title); cursor: pointer;" title="Open Date Picker">
+                    <input type="text" id="input-milestone-date" placeholder="e.g. 2026-04-13" style="flex: 1; height: 46px; padding: 0 16px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);">
                   </div>
 
                   <div style="display: none; gap: 6px;" id="date-range-container">
-                    <input type="date" id="input-milestone-start-date" style="flex: 1; height: 44px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title); font-size: 11px;" title="Start Date">
+                    <input type="date" id="input-milestone-start-date" style="flex: 1; height: 46px; padding: 0 10px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-title); font-size: 11px;" title="Start Date">
                     <span style="display: flex; align-items: center; color: var(--text-muted); font-size: 11px;">to</span>
-                    <input type="date" id="input-milestone-end-date" style="flex: 1; height: 44px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title); font-size: 11px;" title="End Date">
+                    <input type="date" id="input-milestone-end-date" style="flex: 1; height: 46px; padding: 0 10px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-title); font-size: 11px;" title="End Date">
                   </div>
                 </div>
 
                 <div>
                   <label style="font-size: 9.5px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Category</label>
-                  <select id="select-milestone-category" style="width: 100%; height: 44px; padding: 0 10px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <select id="select-milestone-category" style="width: 100%; height: 46px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);">
                     <option value="Classes">Classes</option>
                     <option value="Exams">Exams</option>
                     <option value="Registration">Registration</option>
@@ -630,7 +630,7 @@
 
                 <div>
                   <label style="font-size: 9.5px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Status</label>
-                  <select id="select-milestone-status" style="width: 100%; height: 44px; padding: 0 10px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);">
+                  <select id="select-milestone-status" style="width: 100%; height: 46px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);">
                     <option value="upcoming">Upcoming</option>
                     <option value="active">Active Now</option>
                     <option value="expired">Expired</option>
@@ -705,9 +705,9 @@
             </div>
             <p class="card-desc">Push instant priority alerts and emergency notifications to all IRIS mobile applications.</p>
             
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 14px; background: rgba(0,0,0,0.15); border-radius: 10px; border: 1px solid var(--border-subtle);">
+            <div class="glass-panel" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 18px 24px;">
               <div>
-                <strong style="font-size: 13px; color: var(--text-title); display: block;">Active Broadcast Transceiver</strong>
+                <strong style="font-size: 13.5px; color: var(--text-title); display: block;">Active Broadcast Transceiver</strong>
                 <span style="font-size: 11px; color: var(--text-muted);">Toggle to show or hide the announcement banner on client devices</span>
               </div>
               <label class="switch">
@@ -719,14 +719,14 @@
             
             <div class="input-group" style="margin-bottom: 14px;">
               <label style="font-size: 10px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Broadcast Message</label>
-              <textarea id="broadcast-message" placeholder="Type urgent campus announcement here..." style="height: 100px; padding: 12px 14px; font-size: 13px; resize: none;"></textarea>
+              <textarea id="broadcast-message" placeholder="Type urgent campus announcement here..." style="height: 100px; padding: 14px 18px; font-size: 13px; resize: none;"></textarea>
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <span class="preset-chip" data-preset="🚨 Urgent Announcement: Campus operations suspended until further notice." style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚨 Urgent Announcement</span>
-                <span class="preset-chip" data-preset="🌧️ Weather Advisory: Heavy rainfall expected. Classes moved online." style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🌧️ Weather Advisory</span>
-                <span class="preset-chip" data-preset="🚌 Transport Route Delay: Bus routes running 20 mins delayed due to traffic." style="font-size: 10px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-title); cursor: pointer;">🚌 Transport Route Delay</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span class="milestone-preset-chip preset-chip" data-preset="🚨 Urgent Announcement: Campus operations suspended until further notice.">🚨 Urgent Announcement</span>
+                <span class="milestone-preset-chip preset-chip" data-preset="🌧️ Weather Advisory: Heavy rainfall expected. Classes moved online.">🌧️ Weather Advisory</span>
+                <span class="milestone-preset-chip preset-chip" data-preset="🚌 Transport Route Delay: Bus routes running 20 mins delayed due to traffic.">🚌 Transport Route Delay</span>
               </div>
               <span id="broadcast-char-count" style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);">0/140</span>
             </div>
@@ -734,7 +734,7 @@
             <span id="broadcasting-badge" style="display: none;"></span>
             <span id="char-ring-fill" style="display: none;"></span>
             
-            <button id="btn-broadcast-push" class="btn btn-primary btn-full" style="padding: 14px; background: linear-gradient(135deg, var(--accent-rose), #991b1b); font-weight: 700;">
+            <button id="btn-broadcast-push" class="btn btn-primary btn-full" style="padding: 15px; background: linear-gradient(135deg, var(--accent-rose), #991b1b); font-weight: 700;">
               <i class="fa-solid fa-bullhorn" style="margin-right: 8px;"></i>
               <span>PUSH EMERGENCY BROADCAST</span>
             </button>
@@ -785,8 +785,8 @@
               <textarea id="apk-notes" placeholder="Release update highlights..." style="height: 70px; padding-top: 12px; resize: none;"></textarea>
             </div>
             
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 12px 14px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <span style="font-size: 12px; color: var(--text-body); font-weight: 600;">Display Update Banner in App</span>
+            <div class="glass-panel" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 16px 22px;">
+              <span style="font-size: 12.5px; color: var(--text-title); font-weight: 700;">Display Update Banner in Student Apps</span>
               <label class="switch">
                 <input type="checkbox" id="apk-switch-visible" checked>
                 <span class="slider"></span>
@@ -823,14 +823,14 @@
             </div>
             <p class="card-desc">Real-time student & faculty feedback submitted directly from the IRIS mobile companion app.</p>
             
-            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-              <input type="text" id="feedback-search" placeholder="Search feedback by name, roll number, device, or comment..." style="flex: 1; height: 42px; padding: 0 14px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);" oninput="filterFeedbackFeed()">
-              <select id="feedback-role-filter" style="height: 42px; padding: 0 12px; font-size: 11px; font-family: var(--font-mono); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-title);" onchange="filterFeedbackFeed()">
+            <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+              <input type="text" id="feedback-search" placeholder="Search feedback by name, roll number, device, or comment..." style="flex: 1; height: 46px; padding: 0 18px; font-size: 12.5px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);" oninput="filterFeedbackFeed()">
+              <select id="feedback-role-filter" style="height: 46px; padding: 0 16px; font-size: 11px; font-family: var(--font-mono); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);" onchange="filterFeedbackFeed()">
                 <option value="ALL">ALL ROLES</option>
                 <option value="Student">STUDENTS</option>
                 <option value="Faculty">FACULTY</option>
               </select>
-              <button id="btn-refresh-feedback" class="btn btn-secondary" style="padding: 0 16px; height: 42px;" title="Refresh Feedback" onclick="renderFeedbackFeed()">
+              <button id="btn-refresh-feedback" class="btn btn-secondary" style="padding: 0 18px; height: 46px;" title="Refresh Feedback" onclick="renderFeedbackFeed()">
                 <i class="fa-solid fa-arrows-rotate"></i>
               </button>
             </div>
