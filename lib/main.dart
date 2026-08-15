@@ -5970,11 +5970,10 @@ class _DashboardState extends State<Dashboard>
                     title: 'Locate Classroom',
                     icon: const Icon(Icons.meeting_room_rounded, size: 18),
                     onTap: () {
-                      Navigator.push(
+                      pushGlassContainerMorphRoute(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => RoomFinderScreen(memory: widget.memory, brain: widget.brain),
-                        ),
+                        page: RoomFinderScreen(memory: widget.memory, brain: widget.brain),
+                        accentColor: const Color(0xFF14B8A6),
                       );
                     },
                   ),
@@ -5983,18 +5982,17 @@ class _DashboardState extends State<Dashboard>
                     icon: const Icon(Icons.person_search_rounded, size: 18),
                     onTap: () {
                       final currentClass = widget.brain.getCurrentClass(widget.batch, now);
-                      Navigator.push(
+                      pushGlassContainerMorphRoute(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => TeacherLocatorScreen(
-                            brain: widget.brain,
-                            memory: widget.memory,
-                            currentBatch: widget.batch,
-                            initialTeacherQuery: currentClass?.teacher,
-                            autoSearchInitial: currentClass != null,
-                            showBackButton: true,
-                          ),
+                        page: TeacherLocatorScreen(
+                          brain: widget.brain,
+                          memory: widget.memory,
+                          currentBatch: widget.batch,
+                          initialTeacherQuery: currentClass?.teacher,
+                          autoSearchInitial: currentClass != null,
+                          showBackButton: true,
                         ),
+                        accentColor: const Color(0xFF8B5CF6),
                       );
                     },
                   ),

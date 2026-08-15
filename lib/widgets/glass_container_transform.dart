@@ -45,8 +45,8 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
               if (startRect == Rect.zero) {
                 startRect = Rect.fromCenter(
                   center: Offset(screenSize.width / 2, screenSize.height / 2),
-                  width: screenSize.width * 0.5,
-                  height: 120,
+                  width: screenSize.width * 0.52,
+                  height: 110,
                 );
               }
             }
@@ -55,7 +55,7 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
             final curve = CurvedAnimation(
               parent: animation,
               curve: const Cubic(0.16, 1.0, 0.3, 1.0),
-              reverseCurve: const Cubic(0.25, 0.0, 0.70, 0.15),
+              reverseCurve: const Cubic(0.20, 0.0, 0.75, 0.15),
             );
 
             // Interpolated Rect, Radius, and Specular Glow
@@ -110,6 +110,13 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                             color: glow.withValues(alpha: edgeSpecularGlow),
                             width: lerpDouble(2.0, 0.0, curve.value) ?? 0.0,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: glow.withValues(alpha: (0.35 * (1.0 - curve.value)).clamp(0.0, 0.35)),
+                              blurRadius: lerpDouble(24.0, 0.0, curve.value) ?? 0.0,
+                              spreadRadius: lerpDouble(2.0, 0.0, curve.value) ?? 0.0,
+                            ),
+                          ],
                         ),
                         child: Stack(
                           fit: StackFit.expand,
@@ -170,11 +177,21 @@ Future<T?> pushGlassContainerMorphRoute<T>(
   IrisHaptics.actionMedium();
 
   Rect? bounds = initialBounds;
-  if (bounds == null && originKey != null && originKey.currentContext != null) {
-    final renderBox = originKey.currentContext!.findRenderObject() as RenderBox?;
-    if (renderBox != null && renderBox.hasSize) {
-      final pos = renderBox.localToGlobal(Offset.zero);
-      bounds = pos & renderBox.size;
+  if (bounds == null) {
+    if (originKey != null && originKey.currentContext != null) {
+      final renderBox = originKey.currentContext!.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize) {
+        final pos = renderBox.localToGlobal(Offset.zero);
+        bounds = pos & renderBox.size;
+      }
+    } else {
+      try {
+        final renderBox = context.findRenderObject() as RenderBox?;
+        if (renderBox != null && renderBox.hasSize) {
+          final pos = renderBox.localToGlobal(Offset.zero);
+          bounds = pos & renderBox.size;
+        }
+      } catch (_) {}
     }
   }
 

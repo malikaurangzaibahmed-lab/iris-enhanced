@@ -7,6 +7,7 @@ import '../core/glass.dart';
 import '../core/omni_brain.dart';
 import '../screens/room_finder_screen.dart';
 import '../screens/teacher_locator_screen.dart';
+import 'glass_container_transform.dart';
 
 class LiveClassHubSheet extends StatefulWidget {
   final OmniBrain brain;
@@ -275,11 +276,10 @@ class _LiveClassHubSheetState extends State<LiveClassHubSheet> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context); // Dismiss sheet first
-                    Navigator.push(
+                    pushGlassContainerMorphRoute(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => RoomFinderScreen(memory: widget.memory, brain: widget.brain),
-                      ),
+                      page: RoomFinderScreen(memory: widget.memory, brain: widget.brain),
+                      accentColor: const Color(0xFF14B8A6),
                     );
                   },
                   icon: const Icon(Icons.meeting_room_rounded, size: 18),
@@ -297,18 +297,17 @@ class _LiveClassHubSheetState extends State<LiveClassHubSheet> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context); // Dismiss sheet first
-                    Navigator.push(
+                    pushGlassContainerMorphRoute(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => TeacherLocatorScreen(
-                          brain: widget.brain,
-                          memory: widget.memory,
-                          currentBatch: widget.batch,
-                          initialTeacherQuery: currentClass?.teacher,
-                          autoSearchInitial: currentClass != null,
-                          showBackButton: true,
-                        ),
+                      page: TeacherLocatorScreen(
+                        brain: widget.brain,
+                        memory: widget.memory,
+                        currentBatch: widget.batch,
+                        initialTeacherQuery: currentClass?.teacher,
+                        autoSearchInitial: currentClass != null,
+                        showBackButton: true,
                       ),
+                      accentColor: const Color(0xFF8B5CF6),
                     );
                   },
                   icon: const Icon(Icons.person_search_rounded, size: 18),

@@ -8,6 +8,7 @@ import '../services/helpdesk_schedule_data_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/iris_animated_mascot.dart';
+import '../widgets/glass_container_transform.dart';
 import 'portal_screen.dart';
 
 /// Ultra-Premium Intelligent Insight Screen for IRIS Mobile Client.
@@ -516,15 +517,13 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
                         const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () {
-                            IrisHaptics.actionMedium();
-                            Navigator.push(
+                            pushGlassContainerMorphRoute(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => const PortalScreen(
-                                  url: 'https://cuonline.comsats.edu.pk/',
-                                  title: 'CUOnline Portal Sync',
-                                ),
+                              page: const PortalScreen(
+                                url: 'https://cuonline.comsats.edu.pk/',
+                                title: 'CUOnline Portal Sync',
                               ),
+                              accentColor: Colors.amber,
                             );
                           },
                           style: ElevatedButton.styleFrom(

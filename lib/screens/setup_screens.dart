@@ -507,52 +507,54 @@ class _OnboardingWizardState extends State<OnboardingWizard>
             ),
           ),
           const Spacer(),
-          GlassCard(
-            padding: EdgeInsets.zero,
-            borderRadius: 24,
-            child: Column(
-              children: [
-                _buildRoleCardRow(
-                  key: _studentCardKey,
-                  title: 'Student Profile',
-                  subtitle: 'Timetables, batch trackers, dynamic alerts',
-                  icon: Icons.school_rounded,
-                  color: IrisTokens.brand,
-                  isSelected: _selectedRoleMorph == 'student',
-                  onTap: (globalPos) {
-                    setState(() => _selectedRoleMorph = 'student');
-                    _role = 'student';
-                    _triggerAttraction(globalPos);
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      if (mounted) {
-                        setState(() => _selectedRoleMorph = null);
-                        _nextStep();
-                      }
-                    });
-                  },
-                ),
-                Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                _buildRoleCardRow(
-                  key: _facultyCardKey,
-                  title: 'Faculty Profile',
-                  subtitle: 'Teaching schedules, room finder resources',
-                  icon: Icons.badge_rounded,
-                  color: IrisTokens.blue,
-                  isSelected: _selectedRoleMorph == 'faculty',
-                  onTap: (globalPos) {
-                    setState(() => _selectedRoleMorph = 'faculty');
-                    _role = 'faculty';
-                    _triggerAttraction(globalPos);
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      if (mounted) {
-                        setState(() => _selectedRoleMorph = null);
-                        _nextStep();
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
+          Column(
+            children: [
+              _buildRoleSelectCard(
+                key: _studentCardKey,
+                title: 'Student Profile',
+                subtitle: 'Timetables, batch trackers, dynamic alerts & room finder',
+                badgeText: 'RECOMMENDED',
+                icon: Icons.school_rounded,
+                color: IrisTokens.brand,
+                isDark: isDark,
+                isSelected: _selectedRoleMorph == 'student',
+                onTap: (globalPos) {
+                  IrisHaptics.actionMedium();
+                  setState(() => _selectedRoleMorph = 'student');
+                  _role = 'student';
+                  _triggerAttraction(globalPos);
+                  Future.delayed(const Duration(milliseconds: 280), () {
+                    if (mounted) {
+                      setState(() => _selectedRoleMorph = null);
+                      _nextStep();
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildRoleSelectCard(
+                key: _facultyCardKey,
+                title: 'Faculty Profile',
+                subtitle: 'Teaching schedules, department directories & room finder',
+                badgeText: 'FACULTY & STAFF',
+                icon: Icons.badge_rounded,
+                color: IrisTokens.blue,
+                isDark: isDark,
+                isSelected: _selectedRoleMorph == 'faculty',
+                onTap: (globalPos) {
+                  IrisHaptics.actionMedium();
+                  setState(() => _selectedRoleMorph = 'faculty');
+                  _role = 'faculty';
+                  _triggerAttraction(globalPos);
+                  Future.delayed(const Duration(milliseconds: 280), () {
+                    if (mounted) {
+                      setState(() => _selectedRoleMorph = null);
+                      _nextStep();
+                    }
+                  });
+                },
+              ),
+            ],
           ),
           const Spacer(),
         ],
@@ -560,61 +562,128 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     );
   }
 
-  Widget _buildRoleCardRow({
-    required Key key,
+  Widget _buildRoleSelectCard({
+    required GlobalKey key,
     required String title,
     required String subtitle,
+    required String badgeText,
     required IconData icon,
     required Color color,
+    required bool isDark,
     required bool isSelected,
     required ValueChanged<Offset> onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return InkWell(
-      key: key,
-      onTapDown: (details) => onTap(details.globalPosition),
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
+    return AnimatedScale(
+      scale: isSelected ? 0.97 : 1.0,
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      child: GlassCard(
+        key: key,
         padding: const EdgeInsets.all(20),
+        borderRadius: 26,
+        glow: isSelected,
+        shimmer: !isSelected,
+        accentColor: color,
+        backgroundColor: color.withValues(alpha: isDark ? (isSelected ? 0.20 : 0.10) : (isSelected ? 0.12 : 0.05)),
+        onTap: () {
+          Offset pos = Offset.zero;
+          try {
+            final box = key.currentContext?.findRenderObject() as RenderBox?;
+            if (box != null && box.hasSize) {
+              pos = box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
+            }
+          } catch (_) {}
+          onTap(pos);
+        },
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  colors: [
+                    color.withValues(alpha: isDark ? 0.35 : 0.22),
+                    color.withValues(alpha: isDark ? 0.15 : 0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: color.withValues(alpha: isDark ? 0.45 : 0.3),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8),
+                        ),
+                        child: Text(
+                          badgeText,
+                          style: TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                            color: color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : Colors.black,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.2,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w500,
+                      height: 1.3,
                       color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: color,
+                  size: 14,
+                ),
+              ),
             ),
           ],
         ),
