@@ -3554,3 +3554,197 @@ function renderFeedbackFeed() {
 function filterFeedbackFeed() {
   renderFeedbackFeed();
 }
+
+// ==========================================================================
+// SEMESTER SCHEDULE & MILESTONES WORKSPACE MANAGER
+// ==========================================================================
+
+let stagedSemesterMilestones = [];
+
+const DEFAULT_COMSATS_MILESTONES = [
+  { title: "REGISTRATION WEEK", date: "2026-01-26", category: "Registration", status: "expired" },
+  { title: "COMMENCEMENT OF CLASSES", date: "2026-02-02", category: "Classes", status: "expired" },
+  { title: "LAST DATE FOR DROP COURSE", date: "2026-03-06", category: "Registration", status: "expired" },
+  { title: "MIDTERM EXAMINATIONS", date: "2026-04-13", category: "Exams", status: "expired" },
+  { title: "STUDENT SPORTS & CULTURAL WEEK", date: "2026-05-04", category: "Events", status: "expired" },
+  { title: "LAST DAY OF CLASSES", date: "2026-05-22", category: "Classes", status: "upcoming" },
+  { title: "TERMINAL EXAMINATIONS", date: "2026-06-03", category: "Exams", status: "upcoming" },
+  { title: "RESULT OF TERMINAL EXAMS", date: "2026-07-06", category: "Events", status: "upcoming" }
+];
+
+function setupSemesterScheduleHandlers() {
+  const btnAdd = document.getElementById('btn-add-milestone');
+  const btnTemplate = document.getElementById('btn-template-milestones');
+  const btnClear = document.getElementById('btn-clear-milestones');
+  const btnDeploy = document.getElementById('btn-deploy-semester');
+
+  if (btnAdd) {
+    btnAdd.addEventListener('click', addSemesterMilestoneFromInput);
+  }
+  if (btnTemplate) {
+    btnTemplate.addEventListener('click', () => {
+      stagedSemesterMilestones = JSON.parse(JSON.stringify(DEFAULT_COMSATS_MILESTONES));
+      renderSemesterMilestonesTable();
+      logTerminal('Staged standard COMSATS semester milestones template.', 'info');
+      showMossToast("Loaded standard semester milestones template!", "info");
+    });
+  }
+  if (btnClear) {
+    btnClear.addEventListener('click', () => {
+      stagedSemesterMilestones = [];
+      renderSemesterMilestonesTable();
+      logTerminal('Cleared all staged semester milestones.', 'info');
+    });
+  }
+  if (btnDeploy) {
+    btnDeploy.addEventListener('click', deploySemesterScheduleToFirestore);
+  }
+}
+
+function addSemesterMilestoneFromInput() {
+  const titleInput = document.getElementById('input-milestone-title');
+  const dateInput = document.getElementById('input-milestone-date');
+  const catSelect = document.getElementById('select-milestone-category');
+  const statusSelect = document.getElementById('select-milestone-status');
+
+  const title = (titleInput?.value || '').trim();
+  const date = (dateInput?.value || '').trim();
+  const category = catSelect?.value || 'Classes';
+  const status = statusSelect?.value || 'upcoming';
+
+  if (!title) {
+    showMossToast("Please enter a milestone title.", "warning");
+    return;
+  }
+  if (!date) {
+    showMossToast("Please enter a date or timeline range.", "warning");
+    return;
+  }
+
+  stagedSemesterMilestones.push({ title, date, category, status });
+  renderSemesterMilestonesTable();
+
+  if (titleInput) titleInput.value = '';
+  if (dateInput) dateInput.value = '';
+
+  logTerminal(`Staged milestone: <strong>${title}</strong> (${date})`, 'success');
+  showMossToast(`Added "${title}" to staged schedule!`, "success");
+}
+
+function removeSemesterMilestone(index) {
+  if (index >= 0 && index < stagedSemesterMilestones.length) {
+    const removed = stagedSemesterMilestones.splice(index, 1)[0];
+    renderSemesterMilestonesTable();
+    logTerminal(`Removed milestone: ${removed.title}`, 'info');
+  }
+}
+
+function renderSemesterMilestonesTable() {
+  const tableBody = document.getElementById('milestones-table-body');
+  const countBadge = document.getElementById('milestone-count');
+
+  if (countBadge) {
+    countBadge.innerText = stagedSemesterMilestones.length;
+  }
+
+  if (!tableBody) return;
+
+  if (stagedSemesterMilestones.length === 0) {
+    tableBody.innerHTML = `
+      <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No milestones staged. Click "Load Standard Template" or add milestones manually above.</td></tr>
+    `;
+    return;
+  }
+
+  tableBody.innerHTML = stagedSemesterMilestones.map((m, idx) => {
+    let catBadgeColor = 'var(--accent-indigo)';
+    let catBg = 'rgba(99, 102, 241, 0.12)';
+    if (m.category === 'Exams') { catBadgeColor = 'var(--accent-amber)'; catBg = 'rgba(245, 158, 11, 0.12)'; }
+    else if (m.category === 'Events') { catBadgeColor = '#a855f7'; catBg = 'rgba(168, 85, 247, 0.12)'; }
+    else if (m.category === 'Registration') { catBadgeColor = 'var(--accent-cyan)'; catBg = 'rgba(6, 182, 212, 0.12)'; }
+    else if (m.category === 'Holidays') { catBadgeColor = 'var(--accent-rose)'; catBg = 'rgba(239, 68, 68, 0.12)'; }
+
+    let statusBadgeColor = 'var(--accent-emerald)';
+    let statusBg = 'rgba(16, 185, 129, 0.12)';
+    if (m.status === 'expired') { statusBadgeColor = 'var(--text-muted)'; statusBg = 'rgba(255, 255, 255, 0.05)'; }
+    else if (m.status === 'active') { statusBadgeColor = 'var(--accent-cyan)'; statusBg = 'rgba(6, 182, 212, 0.15)'; }
+
+    return `
+      <tr>
+        <td style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);">${idx + 1}</td>
+        <td style="font-weight: 700; color: var(--text-title);">${m.title}</td>
+        <td style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan); font-weight: 600;">${m.date}</td>
+        <td>
+          <span style="padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; background: ${catBg}; color: ${catBadgeColor};">
+            ${m.category || 'General'}
+          </span>
+        </td>
+        <td>
+          <span style="padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; background: ${statusBg}; color: ${statusBadgeColor};">
+            ${m.status || 'Upcoming'}
+          </span>
+        </td>
+        <td style="text-align: right;">
+          <button type="button" onclick="removeSemesterMilestone(${idx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--accent-rose); border-radius: 4px; padding: 4px 8px; font-size: 10px; cursor: pointer;">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function deploySemesterScheduleToFirestore() {
+  if (!isConnected || !db) {
+    showMossToast("Database link offline. Cannot deploy schedule.", "error");
+    return;
+  }
+  if (stagedSemesterMilestones.length === 0) {
+    showMossToast("No milestones staged to deploy. Add milestones first.", "warning");
+    return;
+  }
+
+  const btnDeploy = document.getElementById('btn-deploy-semester');
+  if (btnDeploy) {
+    btnDeploy.disabled = true;
+    btnDeploy.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEPLOYING SEMESTER SCHEDULE...';
+  }
+
+  try {
+    logTerminal(`Initiating deployment of <strong>${stagedSemesterMilestones.length}</strong> semester milestones...`, 'info');
+
+    const updatePayload = {
+      semester_schedule: stagedSemesterMilestones,
+      active_semester_version: Date.now(),
+      semester_schedule_updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Write to Firestore global config and dedicated semester_schedule document
+    await Promise.all([
+      db.collection('config').doc('global').set(updatePayload, { merge: true }),
+      db.collection('config').doc('semester_schedule').set({
+        milestones: stagedSemesterMilestones,
+        version: Date.now(),
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      })
+    ]);
+
+    logTerminal(`✅ SUCCESS: Published <strong>${stagedSemesterMilestones.length}</strong> semester milestones live to IRIS Firestore.`, 'success');
+    showMossToast("Semester schedule published live to IRIS mobile apps!", "success");
+  } catch (err) {
+    console.error("Semester schedule deployment error:", err);
+    logTerminal(`Deployment failed: ${err.message}`, 'error');
+    showMossToast(`Deployment error: ${err.message}`, "error");
+  } finally {
+    if (btnDeploy) {
+      btnDeploy.disabled = false;
+      btnDeploy.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px;"></i> <span>DEPLOY SEMESTER SCHEDULE TO IRIS (FIRESTORE)</span>';
+    }
+  }
+}
+
+// Auto-initialize semester handlers on document ready
+document.addEventListener('DOMContentLoaded', () => {
+  setupSemesterScheduleHandlers();
+});
+

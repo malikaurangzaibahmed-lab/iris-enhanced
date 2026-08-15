@@ -279,6 +279,9 @@
           <button class="tab-btn" data-workspace-tab="exams" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
             <i class="fa-solid fa-pen-clip"></i> Exam Schedules
           </button>
+          <button class="tab-btn" data-workspace-tab="semester" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 10px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);">
+            <i class="fa-solid fa-calendar-check"></i> Semester Schedule
+          </button>
         </div>
 
         <!-- TIMETABLE WORKSPACE TAB (CLASSES) -->
@@ -538,7 +541,94 @@
           </div>
         </div>
 
-      </section>
+        <!-- SEMESTER SCHEDULE WORKSPACE TAB -->
+        <div id="workspace-tab-semester" class="workspace-tab-pane" style="display: none;">
+          <!-- CARD: SEMESTER SCHEDULE MANAGER -->
+          <div class="tech-card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <i class="fa-solid fa-calendar-check icon-accent"></i>
+              <h3>Semester Schedule & Milestones Manager</h3>
+            </div>
+            <p class="card-desc">Create, manage, and publish official semester milestones (Classes Commencement, Midterm Exams, Terminal Exams, Drop Deadlines, Results) directly to IRIS mobile apps in real time.</p>
+            
+            <!-- Quick Add Form -->
+            <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption); display: block; margin-bottom: 12px;">Add New Semester Milestone</span>
+              
+              <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Milestone Title</label>
+                  <input type="text" id="input-milestone-title" placeholder="e.g. MIDTERM EXAMINATIONS" style="width: 100%; height: 38px; padding: 0 12px; font-size: 11px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-title);">
+                </div>
+                <div>
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Date / Range</label>
+                  <input type="text" id="input-milestone-date" placeholder="e.g. 2026-04-13 or Apr 13, 2026" style="width: 100%; height: 38px; padding: 0 12px; font-size: 11px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-title);">
+                </div>
+                <div>
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Category</label>
+                  <select id="select-milestone-category" style="width: 100%; height: 38px; padding: 0 8px; font-size: 11px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-title);">
+                    <option value="Classes">Classes</option>
+                    <option value="Exams">Exams</option>
+                    <option value="Registration">Registration</option>
+                    <option value="Events">Events</option>
+                    <option value="Holidays">Holidays</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 9px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Status</label>
+                  <select id="select-milestone-status" style="width: 100%; height: 38px; padding: 0 8px; font-size: 11px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-title);">
+                    <option value="upcoming">Upcoming</option>
+                    <option value="active">Active Now</option>
+                    <option value="expired">Expired</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button type="button" id="btn-template-milestones" class="btn btn-secondary" style="font-size: 10px; padding: 8px 14px; height: auto; text-transform: uppercase; font-family: var(--font-mono); font-weight: bold;">
+                  <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 4px; color: var(--accent-cyan);"></i> Load Standard Template
+                </button>
+                <button type="button" id="btn-add-milestone" class="btn btn-primary" style="font-size: 10px; padding: 8px 16px; height: auto; text-transform: uppercase; font-family: var(--font-mono); font-weight: bold;">
+                  <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Add Milestone
+                </button>
+              </div>
+            </div>
+            
+            <!-- Milestones Ledger Table -->
+            <div class="analytics-sheet" style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span class="segment-label" style="font-family: var(--font-mono); font-size: 8.5px; text-transform: uppercase; color: var(--text-caption);">Staged Semester Milestones (<span id="milestone-count">0</span>)</span>
+                <button type="button" id="btn-clear-milestones" style="background: none; border: none; font-size: 9px; font-family: var(--font-mono); color: var(--accent-rose); cursor: pointer; text-transform: uppercase;">
+                  <i class="fa-solid fa-trash-can"></i> Clear All
+                </button>
+              </div>
+              
+              <div class="departure-ledger-container" style="max-height: 280px;">
+                <table class="departure-ledger-table" id="milestones-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 30px;">#</th>
+                      <th>Milestone Title</th>
+                      <th>Date / Timeline</th>
+                      <th>Category</th>
+                      <th>Status</th>
+                      <th style="text-align: right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="milestones-table-body">
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No milestones staged. Click "Load Standard Template" or add milestones manually above.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <!-- Deploy Button -->
+            <button id="btn-deploy-semester" class="btn btn-primary btn-full" style="padding: 14px; font-weight: 700; letter-spacing: 1px;">
+              <i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px;"></i>
+              <span>DEPLOY SEMESTER SCHEDULE TO IRIS (FIRESTORE)</span>
+            </button>
+          </div>
+        </div>
 
       <!-- COLUMN 3: BROADCAST TRANSCEIVER & SYSTEMS ACTIVITY TERMINAL (Medium) -->
       <section class="grid-col medium-col">

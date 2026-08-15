@@ -1011,16 +1011,14 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
                       children: [
                         Icon(
                           payload.source == CampusScheduleSource.live
-                              ? Icons.verified_rounded
-                              : (payload.source == CampusScheduleSource.asset
-                                  ? Icons.cloud_done_rounded
-                                  : Icons.cloud_off_rounded),
-                          size: 16,
+                              ? Icons.cloud_done_rounded
+                              : (payload.source == CampusScheduleSource.cached
+                                  ? Icons.bolt_rounded
+                                  : Icons.calendar_month_rounded),
+                          size: 18,
                           color: payload.source == CampusScheduleSource.live
-                              ? const Color(0xFF10B981)
-                              : (payload.source == CampusScheduleSource.asset
-                                  ? VitalTokens.blue
-                                  : VitalTokens.orange),
+                              ? VitalTokens.success
+                              : VitalTokens.blue,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -1029,10 +1027,10 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
                             children: [
                               Text(
                                 payload.source == CampusScheduleSource.live
-                                    ? '🌐 Admin Portal Synchronized Live'
-                                    : (payload.source == CampusScheduleSource.asset
-                                        ? '📦 Offline Campus Calendar Data'
-                                        : 'Campus schedule offline'),
+                                    ? '🟢 Live Cloud Synchronized Schedule'
+                                    : (payload.source == CampusScheduleSource.cached
+                                        ? '⚡ Cached Offline Schedule'
+                                        : '📦 Base Campus Calendar Data'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,

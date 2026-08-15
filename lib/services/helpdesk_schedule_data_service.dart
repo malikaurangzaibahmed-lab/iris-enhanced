@@ -1,9 +1,10 @@
 import 'dart:convert';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum CampusScheduleSource { live, cache, asset, none }
+enum CampusScheduleSource { live, asset, cached, none }
 
 class TransportStopData {
   final String point;
@@ -66,11 +67,13 @@ class SemesterMilestoneData {
   final String title;
   final String date;
   final String status;
+  final String category;
 
   const SemesterMilestoneData({
     required this.title,
     required this.date,
     required this.status,
+    this.category = 'General',
   });
 
   factory SemesterMilestoneData.fromJson(Map<String, dynamic> json) {
@@ -78,8 +81,16 @@ class SemesterMilestoneData {
       title: (json['title'] ?? '').toString().trim(),
       date: (json['date'] ?? '').toString().trim(),
       status: (json['status'] ?? '').toString().trim(),
+      category: (json['category'] ?? 'General').toString().trim(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'date': date,
+    'status': status,
+    'category': category,
+  };
 }
 
 class DeadlineData {
@@ -103,24 +114,21 @@ class DeadlineData {
 }
 
 class LibraryScheduleData {
-  final String weekdays;
-  final String breaks;
-  final String friday;
-  final String weekends;
+  final String open;
+  final String breakTime;
+  final String close;
 
   const LibraryScheduleData({
-    required this.weekdays,
-    required this.breaks,
-    required this.friday,
-    required this.weekends,
+    required this.open,
+    required this.breakTime,
+    required this.close,
   });
 
   factory LibraryScheduleData.fromJson(Map<String, dynamic> json) {
     return LibraryScheduleData(
-      weekdays: (json['weekdays'] ?? '').toString().trim(),
-      breaks: (json['breaks'] ?? '').toString().trim(),
-      friday: (json['friday'] ?? '').toString().trim(),
-      weekends: (json['weekends'] ?? '').toString().trim(),
+      open: (json['open'] ?? '').toString().trim(),
+      breakTime: (json['break'] ?? '').toString().trim(),
+      close: (json['close'] ?? '').toString().trim(),
     );
   }
 }
@@ -146,52 +154,60 @@ class CampusSchedulePayload {
 class HelpdeskScheduleDataService {
   static const String _assetPath =
       'assets/helpdesk_backup/helpdesk_schedule_seed.json';
-  static const String _prefAdminScheduleKey = 'admin_semester_schedule_json';
-
-  /// Admin Portal Web API method to save remote schedule updates directly into app storage
-  static Future<bool> saveAdminScheduleJson(String rawJson) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefAdminScheduleKey, rawJson);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
+  static const String _prefCachedScheduleKey = 'cached_firestore_semester_schedule';
 
   Future<CampusSchedulePayload> fetchSchedulePayload() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
+    CampusScheduleSource scheduleSource = CampusScheduleSource.asset;
+    List<SemesterMilestoneData> resolvedSemesterMilestones = [];
 
-      // 1. Check for live cached payload pushed from Admin Website
-      final adminJson = prefs.getString(_prefAdminScheduleKey);
-      if (adminJson != null && adminJson.trim().isNotEmpty) {
-        final parsed = _parseJson(adminJson, CampusScheduleSource.live);
-        if (parsed.semesterSchedule.isNotEmpty || parsed.transportRoutes.isNotEmpty) {
-          return parsed;
+    // 1. First, attempt live fetch from Firestore Admin Portal schedule
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('config')
+          .doc('global')
+          .get()
+          .timeout(const Duration(seconds: 4));
+
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        final rawSchedule = data['semester_schedule'];
+        if (rawSchedule is List && rawSchedule.isNotEmpty) {
+          resolvedSemesterMilestones = rawSchedule
+              .whereType<Map<String, dynamic>>()
+              .map(SemesterMilestoneData.fromJson)
+              .where((m) => m.title.isNotEmpty)
+              .toList(growable: false);
+
+          if (resolvedSemesterMilestones.isNotEmpty) {
+            scheduleSource = CampusScheduleSource.live;
+            // Cache to local storage for instant offline access
+            _cacheRemoteSchedule(rawSchedule);
+          }
         }
       }
-
-      // 2. Load fallback seed asset
-      final raw = await rootBundle.loadString(_assetPath);
-      return _parseJson(raw, CampusScheduleSource.asset);
-    } catch (_) {
-      return _empty(CampusScheduleSource.none);
+    } catch (e) {
+      debugPrint('ℹ️ Live semester schedule query failed (offline or timeout): $e');
     }
-  }
 
-  CampusSchedulePayload _parseJson(String rawJson, CampusScheduleSource source) {
+    // 2. If live query was unavailable, check SharedPreferences cache
+    if (resolvedSemesterMilestones.isEmpty) {
+      final cached = await _getCachedRemoteSchedule();
+      if (cached.isNotEmpty) {
+        resolvedSemesterMilestones = cached;
+        scheduleSource = CampusScheduleSource.cached;
+      }
+    }
+
+    // 3. Load base asset seed (for Transport Routes & Library schedules)
     try {
-      final dynamic decoded = jsonDecode(rawJson);
+      final raw = await rootBundle.loadString(_assetPath);
+      final dynamic decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) {
-        return _empty(source);
+        return _empty(scheduleSource);
       }
 
       final transportRaw = decoded['transport_routes'] is List
           ? decoded['transport_routes'] as List
-          : const [];
-      final semesterRaw = decoded['semester_schedule'] is List
-          ? decoded['semester_schedule'] as List
           : const [];
       final deadlinesRaw = decoded['deadlines'] is List
           ? decoded['deadlines'] as List
@@ -200,19 +216,29 @@ class HelpdeskScheduleDataService {
           ? decoded['library_schedule'] as Map<String, dynamic>
           : null;
 
+      // If no live or cached semester milestones found, fall back to asset seed
+      if (resolvedSemesterMilestones.isEmpty) {
+        final semesterRaw = decoded['semester_schedule'] is List
+            ? decoded['semester_schedule'] as List
+            : const [];
+
+        resolvedSemesterMilestones = semesterRaw
+            .whereType<Map<String, dynamic>>()
+            .map(SemesterMilestoneData.fromJson)
+            .where((m) => m.title.isNotEmpty)
+            .toList(growable: false);
+        scheduleSource = CampusScheduleSource.asset;
+      }
+
       return CampusSchedulePayload(
-        source: source,
+        source: scheduleSource,
         capturedAt: DateTime.tryParse((decoded['captured_at'] ?? '').toString()),
         transportRoutes: transportRaw
             .whereType<Map<String, dynamic>>()
             .map(TransportRouteData.fromJson)
             .where((route) => route.route.isNotEmpty)
             .toList(growable: false),
-        semesterSchedule: semesterRaw
-            .whereType<Map<String, dynamic>>()
-            .map(SemesterMilestoneData.fromJson)
-            .where((m) => m.title.isNotEmpty)
-            .toList(growable: false),
+        semesterSchedule: resolvedSemesterMilestones,
         deadlines: deadlinesRaw
             .whereType<Map<String, dynamic>>()
             .map(DeadlineData.fromJson)
@@ -222,8 +248,33 @@ class HelpdeskScheduleDataService {
             libraryRaw == null ? null : LibraryScheduleData.fromJson(libraryRaw),
       );
     } catch (_) {
-      return _empty(source);
+      return _empty(CampusScheduleSource.none);
     }
+  }
+
+  Future<void> _cacheRemoteSchedule(List rawSchedule) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefCachedScheduleKey, jsonEncode(rawSchedule));
+    } catch (_) {}
+  }
+
+  Future<List<SemesterMilestoneData>> _getCachedRemoteSchedule() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefCachedScheduleKey);
+      if (raw != null && raw.isNotEmpty) {
+        final dynamic decoded = jsonDecode(raw);
+        if (decoded is List) {
+          return decoded
+              .whereType<Map<String, dynamic>>()
+              .map(SemesterMilestoneData.fromJson)
+              .where((m) => m.title.isNotEmpty)
+              .toList(growable: false);
+        }
+      }
+    } catch (_) {}
+    return const [];
   }
 
   CampusSchedulePayload _empty(CampusScheduleSource source) {
