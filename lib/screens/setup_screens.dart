@@ -8,6 +8,8 @@ import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 typedef OnboardingCompleteCallback = Function(String role, String name, String value);
 
@@ -114,15 +116,15 @@ class _OnboardingWizardState extends State<OnboardingWizard>
     final orbCenter = Offset(width / 2, height * 0.28);
 
     if (_particles.isEmpty) {
-      for (int i = 0; i < 45; i++) {
+      for (int i = 0; i < 18; i++) {
         _particles.add(OnboardingParticle(
           x: _random.nextDouble() * width,
           y: _random.nextDouble() * height,
-          vx: (_random.nextDouble() - 0.5) * 1.5,
-          vy: (_random.nextDouble() - 0.5) * 1.5,
-          size: 1.8 + _random.nextDouble() * 3.0,
+          vx: (_random.nextDouble() - 0.5) * 0.12,
+          vy: (_random.nextDouble() - 0.5) * 0.12,
+          size: 1.5 + _random.nextDouble() * 2.0,
           color: _random.nextBool() ? IrisTokens.brand : IrisTokens.blue,
-          alpha: 0.15 + _random.nextDouble() * 0.35,
+          alpha: 0.08 + _random.nextDouble() * 0.15,
         ));
       }
     }
@@ -760,7 +762,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
         ? widget.memory.sections(_program!, _semester!)
         : <String>[];
 
-    final isReady = _program != null && _semester != null && _section != null;
+    final isReady = _name.trim().isNotEmpty && _program != null && _semester != null && _section != null;
 
     return Column(
       children: [
@@ -768,7 +770,17 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           child: ListView(
             physics: const BouncingScrollPhysics(),
             children: [
-              _HorizontalSelectorRow(
+              // 1. YOUR FULL NAME INPUT AT THE VERY TOP
+              _StudentNameInputField(
+                name: _name,
+                onChanged: (newName) {
+                  setState(() => _name = newName);
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // 2. PROGRAM GLASS MENU SELECTOR
+              _GlassMenuDropdownSelector(
                 label: 'PROGRAM',
                 selectedValue: _program,
                 items: programs,
@@ -780,7 +792,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 }),
               ),
               const SizedBox(height: 16),
-              _HorizontalSelectorRow(
+
+              // 3. SEMESTER GLASS MENU SELECTOR
+              _GlassMenuDropdownSelector(
                 label: 'SEMESTER',
                 selectedValue: _semester?.toString(),
                 items: semesters.map((e) => e.toString()).toList(),
@@ -792,7 +806,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 }),
               ),
               const SizedBox(height: 16),
-              _HorizontalSelectorRow(
+
+              // 4. SECTION GLASS MENU SELECTOR
+              _GlassMenuDropdownSelector(
                 label: 'SECTION',
                 selectedValue: _section,
                 items: sections,
@@ -801,6 +817,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 onSelected: (value) => setState(() => _section = value),
               ),
               const SizedBox(height: 16),
+
+              // 5. ROLL NUMBER (OPTIONAL)
               _RollNumberInputField(
                 rollNo: _rollNo,
                 onChanged: (newRoll) {
@@ -1071,7 +1089,57 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   }
 }
 
-class _HorizontalSelectorRow extends StatelessWidget {
+class _StudentNameInputField extends StatelessWidget {
+  final String name;
+  final ValueChanged<String> onChanged;
+
+  const _StudentNameInputField({
+    required this.name,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.person_rounded, size: 14, color: IrisTokens.brand),
+            const SizedBox(width: 6),
+            Text(
+              'YOUR FULL NAME',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: IrisTokens.brand,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          child: TextFormField(
+            initialValue: name,
+            onChanged: onChanged,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            decoration: InputDecoration(
+              hintText: 'e.g. Malik Aurangzaib',
+              hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4)),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GlassMenuDropdownSelector extends StatelessWidget {
   final String label;
   final String? selectedValue;
   final List<String> items;
@@ -1079,7 +1147,7 @@ class _HorizontalSelectorRow extends StatelessWidget {
   final String? placeholder;
   final ValueChanged<String> onSelected;
 
-  const _HorizontalSelectorRow({
+  const _GlassMenuDropdownSelector({
     required this.label,
     required this.selectedValue,
     required this.items,
@@ -1101,7 +1169,7 @@ class _HorizontalSelectorRow extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.8,
@@ -1110,63 +1178,95 @@ class _HorizontalSelectorRow extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         items.isEmpty
             ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                  ),
                 ),
                 child: Text(
                   placeholder ?? 'No options available',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
                     color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
                   ),
                 ),
               )
-            : SizedBox(
-                height: 42,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: items.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    final isSelected = selectedValue == item;
-                    return InkWell(
-                      onTap: () {
-                        IrisHaptics.selectionClick();
-                        onSelected(item);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isSelected
+            : lgw.GlassMenu(
+                menuWidth: MediaQuery.sizeOf(context).width - 48,
+                menuHeight: math.min(items.length * 52.0 + 16.0, 240.0),
+                menuBorderRadius: 20.0,
+                settings: lgw.LiquidGlassSettings(
+                  blur: 16,
+                  ambientStrength: 0.7,
+                  glassColor: (isDark ? const Color(0xFF0F172A) : Colors.white)
+                      .withValues(alpha: isDark ? 0.6 : 0.7),
+                  thickness: 18,
+                ),
+                triggerBuilder: (context, toggleMenu) {
+                  return InkWell(
+                    onTap: () {
+                      IrisHaptics.actionSoft();
+                      toggleMenu();
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: selectedValue != null
                               ? IrisTokens.brand
-                              : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04)),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? IrisTokens.brand
-                                : (isDark ? Colors.white12 : Colors.black12),
-                          ),
-                        ),
-                        child: Text(
-                          item,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                            color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black),
-                          ),
+                              : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
+                          width: selectedValue != null ? 1.5 : 1.0,
                         ),
                       ),
-                    );
-                  },
-                ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedValue ?? 'Select $label',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: selectedValue != null
+                                  ? (isDark ? Colors.white : Colors.black)
+                                  : (isDark ? Colors.white38 : Colors.black38),
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: selectedValue != null
+                                ? IrisTokens.brand
+                                : (isDark ? Colors.white54 : Colors.black45),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                items: items.map((val) {
+                  return lgw.GlassMenuItem(
+                    title: val,
+                    icon: icon,
+                    onTap: () {
+                      IrisHaptics.selectionClick();
+                      onSelected(val);
+                    },
+                  );
+                }).toList(),
               ),
       ],
     );
