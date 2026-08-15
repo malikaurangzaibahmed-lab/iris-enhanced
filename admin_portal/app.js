@@ -1854,7 +1854,10 @@ async function parseTimetablePdf(arrayBuffer) {
         }
         
         let colDef = pageColumns[c];
-        if (colDef.isBreak || /break|kaerb/i.test(cellText)) {
+        let isBreakCol = colDef.isBreak || 
+                         /\b(break|kaerb|prayer|reyarp|fehm|mhef|namaz|lunch)\b/i.test(cellText) || 
+                         /\b(12:45\s*-\s*1:40|12:00\s*-\s*1:00|1:00\s*-\s*1:30)\b/i.test(colDef.text || '');
+        if (isBreakCol) {
           c++;
           continue;
         }
@@ -1870,12 +1873,30 @@ async function parseTimetablePdf(arrayBuffer) {
         
         let j = c + 1;
         while (j < numCols) {
-          if (!row.cells[j] || row.cells[j].trim() === '') {
-            if (pageColumns[j].isBreak) {
+          let nextCol = pageColumns[j];
+          let nextCell = row.cells[j];
+          let nextIsBreak = nextCol.isBreak || 
+                            /\b(break|kaerb|prayer|reyarp|fehm|mhef|namaz|lunch)\b/i.test(nextCell || '') || 
+                            /\b(12:45\s*-\s*1:40|12:00\s*-\s*1:00|1:00\s*-\s*1:30)\b/i.test(nextCol.text || '');
+          
+          if (!nextCell || nextCell.trim() === '') {
+            if (nextIsBreak) {
+              break; // Do not span across prayer/lunch break
+            }
+            endTime = nextCol.end;
+            j++;
+          } else if (!nextIsBreak) {
+            // Check if consecutive cell has the exact same lecture/lab (2-slot course)
+            let nextParsed = parseClassCell(nextCell);
+            if (nextParsed && 
+                nextParsed.subject === parsed.subject && 
+                nextParsed.teacher === parsed.teacher && 
+                nextParsed.room === parsed.room) {
+              endTime = nextCol.end;
+              j++;
+            } else {
               break;
             }
-            endTime = pageColumns[j].end;
-            j++;
           } else {
             break;
           }
