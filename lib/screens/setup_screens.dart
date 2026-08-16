@@ -362,7 +362,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       } else if (progress < 0.55) {
         log = _role == 'faculty'
             ? 'Analyzing teaching timetables for ${_selectedTeacher ?? "Faculty"}...'
-            : 'Decompressing schedules for batch $_program-$_semester$_section...';
+            : 'Decompressing schedules for batch $_intake-$_program-$_section...';
       } else if (progress < 0.85) {
         log = 'Configuring Live Class trackers & sensory links...';
       } else {
