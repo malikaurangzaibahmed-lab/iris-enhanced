@@ -168,9 +168,11 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
   }
 
   String _timeFromDecimal(double value) {
-    final hour = value.floor().clamp(0, 23);
+    final rawHour = value.floor().clamp(0, 23);
     final minute = ((value - value.floor()) * 60).round().clamp(0, 59);
-    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    final period = rawHour >= 12 ? 'PM' : 'AM';
+    final hour = rawHour == 0 ? 12 : (rawHour > 12 ? rawHour - 12 : rawHour);
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
   }
 
   String _slotKey(MakeupSlotSuggestion suggestion) {

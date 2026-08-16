@@ -1172,6 +1172,7 @@ class _ClassCardState extends State<ClassCard>
     final textSecondary = (isDark ? Colors.white : Colors.black).withValues(
       alpha: 0.68,
     );
+    final isMakeup = widget.session.id.startsWith('makeup_') || widget.onRemoveMakeup != null;
 
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeSignals.useVitalTheme,
@@ -1223,6 +1224,33 @@ class _ClassCardState extends State<ClassCard>
                             ),
                           ),
                         ),
+                        if (isMakeup) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: IrisTokens.warning.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(99),
+                              border: Border.all(color: IrisTokens.warning.withValues(alpha: 0.4), width: 1),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.event_repeat_rounded, size: 10, color: IrisTokens.warning),
+                                SizedBox(width: 4),
+                                Text(
+                                  'MAKEUP',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    color: IrisTokens.warning,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
                         if (live) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1296,6 +1324,20 @@ class _ClassCardState extends State<ClassCard>
                             ),
                           ),
                         ),
+                        if (widget.onRemoveMakeup != null) ...[
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                            color: IrisTokens.error,
+                            tooltip: 'Remove makeup class',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            onPressed: () {
+                              IrisHaptics.actionMedium();
+                              widget.onRemoveMakeup!();
+                            },
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -1471,6 +1513,33 @@ class _ClassCardState extends State<ClassCard>
                               ),
                               const SizedBox(width: 6),
                             ],
+                            if (isMakeup) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: IrisTokens.warning.withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(color: IrisTokens.warning.withValues(alpha: 0.4), width: 1),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.event_repeat_rounded, size: 11, color: IrisTokens.warning),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'MAKEUP',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: IrisTokens.warning,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 14,
@@ -1491,6 +1560,20 @@ class _ClassCardState extends State<ClassCard>
                                 ),
                               ),
                             ),
+                            if (widget.onRemoveMakeup != null) ...[
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                                color: IrisTokens.error,
+                                tooltip: 'Remove makeup class',
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                onPressed: () {
+                                  IrisHaptics.actionMedium();
+                                  widget.onRemoveMakeup!();
+                                },
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 18),

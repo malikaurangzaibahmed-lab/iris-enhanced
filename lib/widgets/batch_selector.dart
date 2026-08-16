@@ -23,7 +23,7 @@ class BatchSelectorSheet extends StatefulWidget {
 
 class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
   String? program;
-  int? semester;
+  String? intake;
   String? section;
   String rollNo = '';
 
@@ -35,7 +35,9 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
         : (widget.memory.allBatches.isNotEmpty ? widget.memory.allBatches.first : '');
     final key = BatchKey.parse(seed);
     program = key.program;
-    semester = key.semester;
+    intake = (key.intake.isNotEmpty && key.intake != 'UNKNOWN' && key.intake != 'NA')
+        ? key.intake
+        : null;
     section = key.section;
     SharedPreferences.getInstance().then((prefs) {
       if (mounted) {
@@ -52,13 +54,14 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
     }
 
     final progUpper = program!.toUpperCase().trim();
+    final intakeUpper = intake?.toUpperCase().trim();
     final secUpper = section!.toUpperCase().trim();
 
-    // 1. Exact match with program, semester, and section
+    // 1. Exact match with program, intake, and section
     for (final batch in widget.memory.allBatches) {
       final key = BatchKey.parse(batch);
       if (key.program.toUpperCase().trim() == progUpper &&
-          (semester == null || key.semester == semester) &&
+          (intakeUpper == null || key.intake.toUpperCase().trim() == intakeUpper) &&
           key.section.toUpperCase().trim() == secUpper) {
         return batch;
       }
@@ -74,8 +77,9 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
     }
 
     // 3. Construct canonical batch string
-    if (semester != null) {
-      return '$progUpper-$semester$secUpper';
+    if (intakeUpper != null) {
+      final sem = BatchKey.calculateSemester(intakeUpper);
+      return '$progUpper-$sem$secUpper';
     }
     return '$progUpper-$secUpper';
   }
@@ -92,12 +96,12 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
         .programs()
         .where((p) => !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p))
         .toList();
-    final semesters = program == null
-        ? <int>[]
-        : widget.memory.semesters(program!);
-    final sections = (program != null && semester != null)
-        ? widget.memory.sections(program!, semester!)
-        : <String>[];
+    final intakes = program == null
+        ? <String>[]
+        : widget.memory.intakes(program!);
+    final sections = (program != null && intake != null)
+        ? widget.memory.sectionsForIntake(program!, intake!)
+        : (program != null ? widget.memory.sectionsForIntake(program!, '') : <String>[]);
 
     final content = Column(
       mainAxisSize: MainAxisSize.min,
@@ -171,19 +175,23 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
                       icon: Icons.school_rounded,
                       onSelected: (value) => setState(() {
                         program = value;
-                        semester = null;
+                        intake = null;
                         section = null;
                       }),
                     ),
                     const SizedBox(height: 14),
                     _HorizontalChipSelector(
-                      label: 'Semester',
-                      selectedValue: semester?.toString(),
-                      items: semesters.map((e) => e.toString()).toList(),
+                      label: 'Batch / Intake',
+                      selectedValue: intake,
+                      items: intakes,
+                      itemLabelBuilder: (item) {
+                        final sem = BatchKey.calculateSemester(item);
+                        return '$item · Semester $sem';
+                      },
                       icon: Icons.calendar_month_rounded,
-                      placeholderText: program == null ? 'Select program first' : 'No semesters found',
+                      placeholderText: program == null ? 'Select program first' : 'No batches found',
                       onSelected: (value) => setState(() {
-                        semester = int.tryParse(value);
+                        intake = value;
                         section = null;
                       }),
                     ),
@@ -199,7 +207,7 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
                       selectedValue: section,
                       items: sections,
                       icon: Icons.group_rounded,
-                      placeholderText: semester == null ? 'Select semester first' : 'No sections found',
+                      placeholderText: intake == null ? 'Select batch first' : 'No sections found',
                       onSelected: (value) => setState(() => section = value),
                     ),
                     const SizedBox(height: 14),
@@ -225,19 +233,23 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
             icon: Icons.school_rounded,
             onSelected: (value) => setState(() {
               program = value;
-              semester = null;
+              intake = null;
               section = null;
             }),
           ),
           const SizedBox(height: 16),
           _HorizontalChipSelector(
-            label: 'Semester',
-            selectedValue: semester?.toString(),
-            items: semesters.map((e) => e.toString()).toList(),
+            label: 'Batch / Intake',
+            selectedValue: intake,
+            items: intakes,
+            itemLabelBuilder: (item) {
+              final sem = BatchKey.calculateSemester(item);
+              return '$item · Semester $sem';
+            },
             icon: Icons.calendar_month_rounded,
-            placeholderText: program == null ? 'Select program first' : 'No semesters found',
+            placeholderText: program == null ? 'Select program first' : 'No batches found',
             onSelected: (value) => setState(() {
-              semester = int.tryParse(value);
+              intake = value;
               section = null;
             }),
           ),
@@ -247,7 +259,7 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
             selectedValue: section,
             items: sections,
             icon: Icons.group_rounded,
-            placeholderText: semester == null ? 'Select semester first' : 'No sections found',
+            placeholderText: intake == null ? 'Select batch first' : 'No sections found',
             onSelected: (value) => setState(() => section = value),
           ),
           const SizedBox(height: 16),
@@ -290,7 +302,7 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
               flex: 2,
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: (program != null && semester != null && section != null)
+                  gradient: (program != null && intake != null && section != null)
                       ? const LinearGradient(
                           colors: [
                             IrisTokens.brand,
@@ -299,7 +311,7 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
                         )
                       : null,
                   borderRadius: BorderRadius.circular(14),
-                  boxShadow: (program != null && semester != null && section != null)
+                  boxShadow: (program != null && intake != null && section != null)
                       ? [
                           BoxShadow(
                             color: IrisTokens.brand.withValues(alpha: 0.4),
@@ -310,7 +322,7 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
                       : null,
                 ),
                 child: ElevatedButton(
-                  onPressed: (program != null && semester != null && section != null)
+                  onPressed: (program != null && intake != null && section != null)
                       ? () {
                           final batch = _resolveBatch();
                           if (batch == null) return;
@@ -417,6 +429,7 @@ class _HorizontalChipSelector extends StatelessWidget {
   final IconData icon;
   final String placeholderText;
   final ValueChanged<String> onSelected;
+  final String Function(String item)? itemLabelBuilder;
 
   const _HorizontalChipSelector({
     required this.label,
@@ -425,6 +438,7 @@ class _HorizontalChipSelector extends StatelessWidget {
     required this.icon,
     this.placeholderText = 'No options available',
     required this.onSelected,
+    this.itemLabelBuilder,
   });
 
   @override
@@ -487,6 +501,9 @@ class _HorizontalChipSelector extends StatelessWidget {
                   thickness: 18,
                 ),
                 triggerBuilder: (context, toggleMenu) {
+                  final displayText = selectedValue != null
+                      ? (itemLabelBuilder != null ? itemLabelBuilder!(selectedValue!) : selectedValue!)
+                      : 'Select $label';
                   return InkWell(
                     onTap: () {
                       IrisHaptics.actionSoft();
@@ -511,14 +528,18 @@ class _HorizontalChipSelector extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            selectedValue ?? 'Select $label',
-                            style: TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w800,
-                              color: selectedValue != null 
-                                ? (isDark ? Colors.white : Colors.black87)
-                                : (isDark ? Colors.white30 : Colors.black38),
+                          Expanded(
+                            child: Text(
+                              displayText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w800,
+                                color: selectedValue != null 
+                                  ? (isDark ? Colors.white : Colors.black87)
+                                  : (isDark ? Colors.white30 : Colors.black38),
+                              ),
                             ),
                           ),
                           Icon(
@@ -532,8 +553,9 @@ class _HorizontalChipSelector extends StatelessWidget {
                   );
                 },
                 items: items.map((String val) {
+                  final title = itemLabelBuilder != null ? itemLabelBuilder!(val) : val;
                   return lgw.GlassMenuItem(
-                    title: val,
+                    title: title,
                     onTap: () {
                       IrisHaptics.chipSelect();
                       onSelected(val);

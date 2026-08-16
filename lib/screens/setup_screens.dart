@@ -48,7 +48,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
   String _name = '';
   String? _program;
-  int? _semester;
+  String? _intake;
   String? _section;
   String _rollNo = '';
 
@@ -377,13 +377,14 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       String _resolveSelectedBatchKey() {
         if (_program == null || _section == null) return '';
         final progUpper = _program!.toUpperCase().trim();
+        final intakeUpper = _intake?.toUpperCase().trim();
         final secUpper = _section!.toUpperCase().trim();
 
-        // 1. Exact match with program, semester, and section
+        // 1. Exact match with program, intake, and section
         for (final batch in widget.memory.allBatches) {
           final key = BatchKey.parse(batch);
           if (key.program.toUpperCase().trim() == progUpper &&
-              (_semester == null || key.semester == _semester) &&
+              (intakeUpper == null || key.intake.toUpperCase().trim() == intakeUpper) &&
               key.section.toUpperCase().trim() == secUpper) {
             return batch;
           }
@@ -398,8 +399,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           }
         }
 
-        if (_semester != null) {
-          return '$progUpper-$_semester$secUpper';
+        if (intakeUpper != null) {
+          final sem = BatchKey.calculateSemester(intakeUpper);
+          return '$progUpper-$sem$secUpper';
         }
         return '$progUpper-$secUpper';
       }
@@ -948,17 +950,17 @@ class _OnboardingWizardState extends State<OnboardingWizard>
         .programs()
         .where((p) => !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p))
         .toList();
-    final semesters = _program == null
-        ? <int>[]
-        : widget.memory.semesters(_program!);
-    final sections = (_program != null && _semester != null)
-        ? widget.memory.sections(_program!, _semester!)
-        : <String>[];
+    final intakes = _program == null
+        ? <String>[]
+        : widget.memory.intakes(_program!);
+    final sections = (_program != null && _intake != null)
+        ? widget.memory.sectionsForIntake(_program!, _intake!)
+        : (_program != null ? widget.memory.sectionsForIntake(_program!, '') : <String>[]);
 
     final isReady =
         _name.trim().isNotEmpty &&
         _program != null &&
-        _semester != null &&
+        _intake != null &&
         _section != null;
 
     return Column(
@@ -984,23 +986,27 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 icon: Icons.school_rounded,
                 onSelected: (value) => setState(() {
                   _program = value;
-                  _semester = null;
+                  _intake = null;
                   _section = null;
                 }),
               ),
               const SizedBox(height: 16),
 
-              // 3. SEMESTER GLASS MENU SELECTOR
+              // 3. INTAKE / BATCH GLASS MENU SELECTOR
               _GlassMenuDropdownSelector(
-                label: 'SEMESTER',
-                selectedValue: _semester?.toString(),
-                items: semesters.map((e) => e.toString()).toList(),
+                label: 'BATCH / INTAKE',
+                selectedValue: _intake,
+                items: intakes,
+                itemLabelBuilder: (item) {
+                  final sem = BatchKey.calculateSemester(item);
+                  return '$item · Semester $sem';
+                },
                 icon: Icons.calendar_month_rounded,
                 placeholder: _program == null
                     ? 'Select program first'
-                    : 'No semesters found',
+                    : 'No batches found',
                 onSelected: (value) => setState(() {
-                  _semester = int.tryParse(value);
+                  _intake = value;
                   _section = null;
                 }),
               ),
@@ -1012,8 +1018,8 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                 selectedValue: _section,
                 items: sections,
                 icon: Icons.group_rounded,
-                placeholder: _semester == null
-                    ? 'Select semester first'
+                placeholder: _intake == null
+                    ? 'Select batch first'
                     : 'No sections found',
                 onSelected: (value) => setState(() => _section = value),
               ),
@@ -1383,6 +1389,7 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
   final IconData icon;
   final String? placeholder;
   final ValueChanged<String> onSelected;
+  final String Function(String item)? itemLabelBuilder;
 
   const _GlassMenuDropdownSelector({
     required this.label,
@@ -1391,6 +1398,7 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
     required this.icon,
     this.placeholder,
     required this.onSelected,
+    this.itemLabelBuilder,
   });
 
   @override
@@ -1457,6 +1465,11 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                   thickness: 18,
                 ),
                 triggerBuilder: (context, toggleMenu) {
+                  final displayText = selectedValue != null
+                      ? (itemLabelBuilder != null
+                          ? itemLabelBuilder!(selectedValue!)
+                          : selectedValue!)
+                      : 'Select $label';
                   return InkWell(
                     onTap: () {
                       IrisHaptics.actionSoft();
@@ -1486,14 +1499,18 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            selectedValue ?? 'Select $label',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: selectedValue != null
-                                  ? (isDark ? Colors.white : Colors.black)
-                                  : (isDark ? Colors.white38 : Colors.black38),
+                          Expanded(
+                            child: Text(
+                              displayText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: selectedValue != null
+                                    ? (isDark ? Colors.white : Colors.black)
+                                    : (isDark ? Colors.white38 : Colors.black38),
+                              ),
                             ),
                           ),
                           Icon(
@@ -1509,8 +1526,11 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                   );
                 },
                 items: items.map((val) {
+                  final itemTitle = itemLabelBuilder != null
+                      ? itemLabelBuilder!(val)
+                      : val;
                   return lgw.GlassMenuItem(
-                    title: val,
+                    title: itemTitle,
                     icon: Icon(icon, size: 18, color: IrisTokens.brand),
                     onTap: () {
                       IrisHaptics.selectionClick();

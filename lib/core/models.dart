@@ -671,6 +671,42 @@ class UniversityMemory {
     return items;
   }
 
+  List<String> intakes(String program) {
+    final progUpper = program.toUpperCase().trim();
+    final items = activeSessions()
+        .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)
+        .map((s) => s.batchKey.intake.toUpperCase().trim())
+        .where((intake) => intake.isNotEmpty && intake != 'UNKNOWN' && intake != 'NA')
+        .toSet()
+        .toList();
+    items.sort((a, b) {
+      final aYear = int.tryParse(RegExp(r'\d+').firstMatch(a)?.group(0) ?? '') ?? 0;
+      final bYear = int.tryParse(RegExp(r'\d+').firstMatch(b)?.group(0) ?? '') ?? 0;
+      if (aYear != bYear) return bYear.compareTo(aYear);
+      return b.compareTo(a);
+    });
+    return items;
+  }
+
+  List<String> sectionsForIntake(String program, String intake) {
+    final progUpper = program.toUpperCase().trim();
+    final intakeUpper = intake.toUpperCase().trim();
+    final items = activeSessions()
+        .where((s) =>
+            s.batchKey.program.toUpperCase().trim() == progUpper &&
+            s.batchKey.intake.toUpperCase().trim() == intakeUpper)
+        .map((s) {
+          final sec = s.batchKey.section.trim();
+          final m = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(sec);
+          return m != null ? m.group(0)!.toUpperCase() : sec.toUpperCase();
+        })
+        .where((s) => s.isNotEmpty && s != 'UNKNOWN' && s != 'NA')
+        .toSet()
+        .toList();
+    items.sort();
+    return items;
+  }
+
   List<String> sections(String program, int semester) {
     final progUpper = program.toUpperCase().trim();
     final items = activeSessions()
