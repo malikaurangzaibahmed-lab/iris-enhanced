@@ -307,18 +307,18 @@ class ClassSession {
   // Check if this session is consecutive with another
   bool isConsecutiveWith(ClassSession other) {
     return dayIndex == other.dayIndex &&
-           subject == other.subject &&
-           teacher == other.teacher &&
-           room == other.room &&
-           (actualEndVal - other.safeStartVal).abs() < 0.01; // This session starts when other ends
+           subject.trim().toLowerCase() == other.subject.trim().toLowerCase() &&
+           teacher.trim().toLowerCase() == other.teacher.trim().toLowerCase() &&
+           FormatGuard.sanitizeRoom(room) == FormatGuard.sanitizeRoom(other.room) &&
+           ((actualEndVal - other.safeStartVal).abs() < 0.1 || (safeEndVal - other.safeStartVal).abs() < 0.1);
   }
 
   // Check if two sessions are the same lecture (for merging)
   bool isSameLectureAs(ClassSession other) {
     return dayIndex == other.dayIndex &&
-           subject == other.subject &&
-           teacher == other.teacher &&
-           room == other.room;
+           subject.trim().toLowerCase() == other.subject.trim().toLowerCase() &&
+           teacher.trim().toLowerCase() == other.teacher.trim().toLowerCase() &&
+           FormatGuard.sanitizeRoom(room) == FormatGuard.sanitizeRoom(other.room);
   }
 
   Map<String, dynamic> toJson() => {

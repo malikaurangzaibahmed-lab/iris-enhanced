@@ -212,6 +212,8 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
 
   void _applyFilter() {
     final q = _query.toLowerCase().trim();
+    final qTokens = q.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+    
     final result = _all.where((item) {
       final departmentOk = _selectedDepartment == 'All' ||
           item.department.toLowerCase() == _selectedDepartment.toLowerCase();
@@ -220,13 +222,13 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
               _selectedBlock.toLowerCase();
 
       if (!departmentOk || !blockOk) return false;
-      if (q.isEmpty) return true;
+      if (qTokens.isEmpty) return true;
 
-      return item.name.toLowerCase().contains(q) ||
-          item.department.toLowerCase().contains(q) ||
-          item.location.toLowerCase().contains(q) ||
-          item.email.toLowerCase().contains(q) ||
-          item.contact.toLowerCase().contains(q);
+      final normalizedName = item.name.replaceAll('.', ' ').toLowerCase();
+      final fullSearchText = '${item.name} $normalizedName ${item.department} ${item.location} ${item.email} ${item.contact}'.toLowerCase();
+
+      // Ensure every search token matches somewhere in the profile text
+      return qTokens.every((token) => fullSearchText.contains(token.replaceAll('.', '')));
     }).toList();
 
     setState(() {

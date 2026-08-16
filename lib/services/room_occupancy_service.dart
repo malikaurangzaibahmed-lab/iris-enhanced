@@ -1,4 +1,5 @@
 import 'package:iris/core/models.dart';
+import 'package:iris/core/format_guard.dart';
 
 class RoomOccupancyService {
   final Map<String, Room> _rooms = {};
@@ -13,8 +14,9 @@ class RoomOccupancyService {
   }
 
   void registerRoom(String roomId, String building, int capacity, List<String> amenities) {
-    _rooms[roomId] = Room(
-      id: roomId,
+    final cleanId = FormatGuard.sanitizeRoom(roomId);
+    _rooms[cleanId] = Room(
+      id: cleanId,
       building: building,
       capacity: capacity,
       amenities: amenities,
@@ -23,7 +25,8 @@ class RoomOccupancyService {
   }
 
   void registerRoomModel(Room room) {
-    _rooms[room.id] = room;
+    final cleanId = FormatGuard.sanitizeRoom(room.id);
+    _rooms[cleanId] = room;
   }
 
   /// Get all available rooms right now
@@ -37,11 +40,12 @@ class RoomOccupancyService {
     // First pass to build raw availability
     final rawAvailability = <RoomAvailability>[];
     for (final room in _rooms.values) {
+      final cleanRoomId = FormatGuard.sanitizeRoom(room.id);
       final occupyingSessions = allSessions.where((s) =>
-          s.room == room.id &&
+          FormatGuard.sanitizeRoom(s.room) == cleanRoomId &&
           s.dayIndex == dayIndex &&
           s.safeStartVal <= currentHour &&
-          currentHour < s.safeEndVal);
+          currentHour < s.actualEndVal);
 
       if (occupyingSessions.isEmpty) {
         final nextSession = _getNextSession(room.id, allSessions, dayIndex, currentHour);
@@ -67,10 +71,10 @@ class RoomOccupancyService {
           capacity: room.capacity,
           amenities: room.amenities,
           isAvailable: false,
-          occupiedUntil: session.safeEndVal,
+          occupiedUntil: session.actualEndVal,
           occupiedBy: session.subject,
           occupiedByTeacher: session.teacher,
-          minulesFreeUntilNextSession: ((session.safeEndVal - currentHour) * 60).toInt(),
+          minulesFreeUntilNextSession: ((session.actualEndVal - currentHour) * 60).toInt(),
           studyScore: 0,
         ));
       }
@@ -108,11 +112,12 @@ class RoomOccupancyService {
   ) {
     final rawAvailability = <RoomAvailability>[];
     for (final room in _rooms.values) {
+      final cleanRoomId = FormatGuard.sanitizeRoom(room.id);
       final occupyingSessions = allSessions.where((s) =>
-          s.room == room.id &&
+          FormatGuard.sanitizeRoom(s.room) == cleanRoomId &&
           s.dayIndex == dayIndex &&
           s.safeStartVal <= targetHour &&
-          targetHour < s.safeEndVal);
+          targetHour < s.actualEndVal);
 
       final isAvailable = occupyingSessions.isEmpty;
       final nextSession = isAvailable
@@ -125,7 +130,7 @@ class RoomOccupancyService {
         capacity: room.capacity,
         amenities: room.amenities,
         isAvailable: isAvailable,
-        occupiedUntil: isAvailable ? null : occupyingSessions.first.safeEndVal,
+        occupiedUntil: isAvailable ? null : occupyingSessions.first.actualEndVal,
         nextSessionAt: nextSession?.safeStartVal,
         nextSessionSubject: nextSession?.subject,
         minulesFreeUntilNextSession: nextSession != null
@@ -168,12 +173,13 @@ class RoomOccupancyService {
     final availableRooms = <String>[];
 
     for (final room in _rooms.values) {
+      final cleanRoomId = FormatGuard.sanitizeRoom(room.id);
       // Check if any session overlaps with this time range
       final conflicts = allSessions.where((s) =>
-          s.room == room.id &&
+          FormatGuard.sanitizeRoom(s.room) == cleanRoomId &&
           s.dayIndex == dayIndex &&
           // Overlap check: not (one ends before other starts)
-          !(s.safeEndVal <= startTime || s.safeStartVal >= endTime));
+          !(s.actualEndVal <= startTime || s.safeStartVal >= endTime));
 
       if (conflicts.isEmpty) {
         availableRooms.add(room.id);
@@ -190,7 +196,8 @@ class RoomOccupancyService {
 
     // Group sessions by room
     for (final session in allSessions) {
-      sessionsByRoom.putIfAbsent(session.room, () => []).add(session);
+      final cleanRoom = FormatGuard.sanitizeRoom(session.room);
+      sessionsByRoom.putIfAbsent(cleanRoom, () => []).add(session);
     }
 
     // Check for overlaps in each room
@@ -202,13 +209,13 @@ class RoomOccupancyService {
 
           // Check if same day and time overlap
           if (s1.dayIndex == s2.dayIndex &&
-              !(s1.safeEndVal <= s2.safeStartVal || s2.safeEndVal <= s1.safeStartVal)) {
+              !(s1.actualEndVal <= s2.safeStartVal || s2.actualEndVal <= s1.safeStartVal)) {
             conflicts.add(RoomConflict(
               room: s1.room,
               session1: s1,
               session2: s2,
               overlapMinutes:
-                  ((_getMinTime(s1.safeEndVal, s2.safeEndVal) - _getMaxTime(s1.safeStartVal, s2.safeStartVal)) * 60).toInt(),
+                  ((_getMinTime(s1.actualEndVal, s2.actualEndVal) - _getMaxTime(s1.safeStartVal, s2.safeStartVal)) * 60).toInt(),
               severity: _calculateConflictSeverity(s1, s2),
             ));
           }
@@ -222,6 +229,7 @@ class RoomOccupancyService {
   /// Get occupancy heatmap for a room across the week
   Map<String, double> getRoomHeatmap(String roomId, List<ClassSession> allSessions) {
     final heatmap = <String, double>{};
+    final cleanTarget = FormatGuard.sanitizeRoom(roomId);
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
     const hours = [
       '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
@@ -237,10 +245,10 @@ class RoomOccupancyService {
 
     // Calculate occupancy density
     for (final session in allSessions) {
-      if (session.room == roomId) {
+      if (FormatGuard.sanitizeRoom(session.room) == cleanTarget) {
         final day = days[session.dayIndex - 1];
         final startHour = session.safeStartVal.toInt();
-        final baseName = '$day-${startHour}:00';
+        final baseName = '$day-$startHour:00';
         heatmap[baseName] = (heatmap[baseName] ?? 0.0) + 1.0;
       }
     }
@@ -278,42 +286,30 @@ class RoomOccupancyService {
     // Score rooms based on:
     // 1. Time until next occupied (longer is better)
     // 2. Proximity to next user class
-    // 3. Amenities
-    // 4. Quiet score (based on occupancy patterns)
-
-    final scored = available.map((room) {
+    final scoredRooms = available.map((room) {
       double score = room.studyScore;
 
-      // Bonus for rooms far from occupied classes
-      score += (room.minulesFreeUntilNextSession ?? 60).toDouble() * 0.5;
-
-      // Proximity bonus if near next user class
+      // Bonus for being near user's next class
       if (nextUserClass != null) {
-        score += proximityPreference.toDouble() * 0.01;
+        final sameBuilding = room.building == nextUserClass.room.split('-').first;
+        if (sameBuilding) {
+          score += (proximityPreference / 100.0) * 30; // Up to +30 for same building
+        }
       }
 
-      // Amenity bonus
-      score += room.amenities.length * 5.0;
-
-      return (room, score);
+      return MapEntry(room, score);
     }).toList();
 
-    scored.sort((a, b) => b.$2.compareTo(a.$2));
+    scoredRooms.sort((a, b) => b.value.compareTo(a.value));
 
-    final best = scored.first.$1;
-    final alternatives = scored.skip(1).take(2).map((e) => e.$1).toList();
+    final best = scoredRooms.first.key;
+    final alternatives = scoredRooms.skip(1).take(3).map((e) => e.key).toList();
 
-    String reason = 'Currently available';
+    String reason = 'Quiet space in ${best.building}';
     if (best.minulesFreeUntilNextSession != null) {
-      if (best.minulesFreeUntilNextSession! > 120) {
-        reason = 'Available for a long study session';
-      } else {
-        reason = 'Free for the next ${best.minulesFreeUntilNextSession} minutes';
-      }
-    }
-    
-    if (best.studyScore > 85) {
-      reason += ' • Ideal for focused study';
+      reason += ' • Free for ${best.minulesFreeUntilNextSession} mins';
+    } else {
+      reason += ' • Free rest of day';
     }
 
     return RoomRecommendation(
@@ -330,13 +326,16 @@ class RoomOccupancyService {
     int dayIndex,
     double currentHour,
   ) {
-    return allSessions
-        .where((s) =>
-            s.room == roomId && s.dayIndex == dayIndex && s.safeStartVal > currentHour)
-        .fold<ClassSession?>(null, (prev, current) =>
-            prev == null || current.safeStartVal < prev.safeStartVal
-                ? current
-                : prev);
+    final cleanTarget = FormatGuard.sanitizeRoom(roomId);
+    final upcomingSessions = allSessions.where((s) =>
+        FormatGuard.sanitizeRoom(s.room) == cleanTarget &&
+        s.dayIndex == dayIndex &&
+        s.safeStartVal > currentHour).toList();
+
+    if (upcomingSessions.isEmpty) return null;
+
+    upcomingSessions.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+    return upcomingSessions.first;
   }
 
   double _calculateStudyScore(Room room, ClassSession? nextSession, List<RoomAvailability> allAvailability) {
@@ -348,9 +347,13 @@ class RoomOccupancyService {
       final currentHour = now.hour + (now.minute / 60.0);
       final freeMinutes = (nextSession.safeStartVal - currentHour) * 60;
       
-      if (freeMinutes < 30) score -= 40; // Too short
-      else if (freeMinutes < 60) score -= 20;
-      else score += 10; // Good duration
+      if (freeMinutes < 30) {
+        score -= 40; // Too short
+      } else if (freeMinutes < 60) {
+        score -= 20;
+      } else {
+        score += 10; // Good duration
+      }
     } else {
       score += 20; // Free for the rest of the day
     }
@@ -373,7 +376,7 @@ class RoomOccupancyService {
   }
 
   String _calculateConflictSeverity(ClassSession s1, ClassSession s2) {
-    final overlap = _getMinTime(s1.safeEndVal, s2.safeEndVal) -
+    final overlap = _getMinTime(s1.actualEndVal, s2.actualEndVal) -
         _getMaxTime(s1.safeStartVal, s2.safeStartVal);
     if (overlap >= 0.5) return 'HIGH';
     if (overlap >= 0.25) return 'MEDIUM';

@@ -451,8 +451,9 @@ class OmniBrain {
 
   /// Smart fuzzy-ish search: matches if all search words appear in the name
   bool _matchesTeacher(String teacherName, String search) {
-    final name = teacherName.toLowerCase();
-    final words = search.split(RegExp(r'\s+'));
+    final name = teacherName.toLowerCase().replaceAll('.', ' ');
+    final cleanSearch = search.toLowerCase().replaceAll('.', ' ');
+    final words = cleanSearch.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
     // All words must appear in the name
     return words.every((w) => name.contains(w));
   }
