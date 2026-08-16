@@ -47,20 +47,37 @@ class _BatchSelectorSheetState extends State<BatchSelectorSheet> {
   }
 
   String? _resolveBatch() {
-    if (program == null || semester == null || section == null) {
+    if (program == null || section == null) {
       return null;
     }
 
+    final progUpper = program!.toUpperCase().trim();
+    final secUpper = section!.toUpperCase().trim();
+
+    // 1. Exact match with program, semester, and section
     for (final batch in widget.memory.allBatches) {
       final key = BatchKey.parse(batch);
-      if (key.program == program &&
-          key.semester == semester &&
-          key.section == section) {
+      if (key.program.toUpperCase().trim() == progUpper &&
+          (semester == null || key.semester == semester) &&
+          key.section.toUpperCase().trim() == secUpper) {
         return batch;
       }
     }
 
-    return null;
+    // 2. Program + section match (handles cohort batches like BBA-B21, BME-01)
+    for (final batch in widget.memory.allBatches) {
+      final key = BatchKey.parse(batch);
+      if (key.program.toUpperCase().trim() == progUpper &&
+          key.section.toUpperCase().trim() == secUpper) {
+        return batch;
+      }
+    }
+
+    // 3. Construct canonical batch string
+    if (semester != null) {
+      return '$progUpper-$semester$secUpper';
+    }
+    return '$progUpper-$secUpper';
   }
 
   @override

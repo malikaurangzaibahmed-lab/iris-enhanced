@@ -375,17 +375,33 @@ class _OnboardingWizardState extends State<OnboardingWizard>
       });
 
       String _resolveSelectedBatchKey() {
-        if (_program == null || _semester == null || _section == null)
-          return '';
+        if (_program == null || _section == null) return '';
+        final progUpper = _program!.toUpperCase().trim();
+        final secUpper = _section!.toUpperCase().trim();
+
+        // 1. Exact match with program, semester, and section
         for (final batch in widget.memory.allBatches) {
           final key = BatchKey.parse(batch);
-          if (key.program.toUpperCase() == _program!.toUpperCase() &&
-              key.semester == _semester &&
-              key.section.toUpperCase() == _section!.toUpperCase()) {
+          if (key.program.toUpperCase().trim() == progUpper &&
+              (_semester == null || key.semester == _semester) &&
+              key.section.toUpperCase().trim() == secUpper) {
             return batch;
           }
         }
-        return '$_program-$_semester$_section';
+
+        // 2. Program + section match (handles cohort batches like BBA-B21, BME-01)
+        for (final batch in widget.memory.allBatches) {
+          final key = BatchKey.parse(batch);
+          if (key.program.toUpperCase().trim() == progUpper &&
+              key.section.toUpperCase().trim() == secUpper) {
+            return batch;
+          }
+        }
+
+        if (_semester != null) {
+          return '$progUpper-$_semester$secUpper';
+        }
+        return '$progUpper-$secUpper';
       }
 
       if (currentInterval >= intervals) {
