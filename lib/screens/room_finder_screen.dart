@@ -47,10 +47,12 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
   String? _likelyBuilding;
   int _likelyBuildingCount = 0;
   List<String> _buildings = ['All'];
+  bool _showExamSlots = false;
 
   List<String> get _currentSlots {
     final period = RemoteConfigService.activeAcademicPeriod.value;
-    if (period == 'midterms' || period == 'finals' || period == 'exams') {
+    final isExamPeriod = period == 'midterms' || period == 'finals' || period == 'exams';
+    if (isExamPeriod && _showExamSlots) {
       return ['Exam Slot 1 (09:30 AM)', 'Exam Slot 2 (01:30 PM)'];
     }
     return _slots;
@@ -58,7 +60,8 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
 
   double _slotToHour(int slotIndex) {
     final period = RemoteConfigService.activeAcademicPeriod.value;
-    if (period == 'midterms' || period == 'finals' || period == 'exams') {
+    final isExamPeriod = period == 'midterms' || period == 'finals' || period == 'exams';
+    if (isExamPeriod && _showExamSlots) {
       switch (slotIndex) {
         case 0: return 10.0;  // 09:30 AM - 11:30 AM Exam Paper Slot
         case 1: return 14.5;  // 01:30 PM - 03:30 PM Exam Paper Slot
@@ -243,7 +246,104 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                       valueListenable: RemoteConfigService.activeAcademicPeriod,
                       builder: (context, period, _) {
                         final isExam = period == 'midterms' || period == 'finals' || period == 'exams';
-                        return _buildSectionHeader(isExam ? 'EXAM PAPER SLOTS' : 'LECTURE SLOTS', isDark);
+                        if (!isExam) {
+                          return _buildSectionHeader('LECTURE SLOTS', isDark);
+                        }
+
+                        final examTitle = period == 'midterms' ? 'Midterm Slots' : 'Final Slots';
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionHeader(
+                              _showExamSlots ? 'EXAM PAPER SLOTS' : 'LECTURE SLOTS',
+                              isDark,
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        IrisHaptics.chipSelect();
+                                        setState(() {
+                                          _showExamSlots = false;
+                                          _targetSlot = null;
+                                          _targetHour = null;
+                                          _updateFilteredAvailability();
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: !_showExamSlots
+                                              ? (isDark ? Colors.white.withValues(alpha: 0.16) : Colors.white)
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(9),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            'Lecture Slots',
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: !_showExamSlots ? FontWeight.w800 : FontWeight.w600,
+                                              color: !_showExamSlots
+                                                  ? (isDark ? Colors.white : Colors.black87)
+                                                  : (isDark ? Colors.white54 : Colors.black45),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        IrisHaptics.chipSelect();
+                                        setState(() {
+                                          _showExamSlots = true;
+                                          _targetSlot = null;
+                                          _targetHour = null;
+                                          _updateFilteredAvailability();
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: _showExamSlots
+                                              ? IrisTokens.brand.withValues(alpha: isDark ? 0.35 : 0.20)
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(9),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            examTitle,
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: _showExamSlots ? FontWeight.w800 : FontWeight.w600,
+                                              color: _showExamSlots
+                                                  ? (isDark ? Colors.white : Colors.black87)
+                                                  : (isDark ? Colors.white54 : Colors.black45),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
                       },
                     ),
                     const SizedBox(height: 12),

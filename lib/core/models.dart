@@ -628,29 +628,29 @@ class UniversityMemory {
   }
 
   List<String> get allBatches {
-    final batches = activeSessions().map((s) => s.batchKey.batch).toSet().toList();
+    final batches = sessions.map((s) => s.batchKey.batch).toSet().toList();
     batches.sort();
     return batches;
   }
 
-  Map<String, List<ClassSession>> byBatch() {
+  Map<String, List<ClassSession>> byBatch({String? overridePeriod}) {
     final map = <String, List<ClassSession>>{};
-    for (final session in activeSessions()) {
+    for (final session in activeSessions(overridePeriod: overridePeriod)) {
       map.putIfAbsent(session.batchKey.batch, () => []).add(session);
     }
     return map;
   }
 
-  Map<String, List<ClassSession>> byProgram(String program) {
+  Map<String, List<ClassSession>> byProgram(String program, {String? overridePeriod}) {
     final map = <String, List<ClassSession>>{};
-    for (final session in activeSessions().where((s) => s.batchKey.program == program)) {
+    for (final session in activeSessions(overridePeriod: overridePeriod).where((s) => s.batchKey.program == program)) {
       map.putIfAbsent(session.batchKey.batch, () => []).add(session);
     }
     return map;
   }
 
   List<String> programs() {
-    final items = activeSessions()
+    final items = sessions
         .map((s) => s.batchKey.program.toUpperCase().trim())
         .where((p) => p.isNotEmpty && p != 'UNKNOWN' && p != 'NA' && !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p))
         .toSet()
@@ -661,7 +661,7 @@ class UniversityMemory {
 
   List<int> semesters(String program) {
     final progUpper = program.toUpperCase().trim();
-    final items = activeSessions()
+    final items = sessions
         .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)
         .map((s) => s.batchKey.semester)
         .where((sem) => sem > 0)
@@ -673,7 +673,7 @@ class UniversityMemory {
 
   List<String> intakes(String program) {
     final progUpper = program.toUpperCase().trim();
-    final items = activeSessions()
+    final items = sessions
         .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)
         .map((s) => s.batchKey.intake.toUpperCase().trim())
         .where((intake) => intake.isNotEmpty && intake != 'UNKNOWN' && intake != 'NA')
@@ -691,7 +691,7 @@ class UniversityMemory {
   List<String> sectionsForIntake(String program, String intake) {
     final progUpper = program.toUpperCase().trim();
     final intakeUpper = intake.toUpperCase().trim();
-    final items = activeSessions()
+    final items = sessions
         .where((s) =>
             s.batchKey.program.toUpperCase().trim() == progUpper &&
             s.batchKey.intake.toUpperCase().trim() == intakeUpper)
@@ -709,7 +709,7 @@ class UniversityMemory {
 
   List<String> sections(String program, int semester) {
     final progUpper = program.toUpperCase().trim();
-    final items = activeSessions()
+    final items = sessions
         .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper && s.batchKey.semester == semester)
         .map((s) {
           final sec = s.batchKey.section.trim();

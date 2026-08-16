@@ -55,6 +55,7 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
   int? selectedSemester;
   String? selectedSection;
   int? selectedDay;
+  bool _showExamSchedule = false;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -455,7 +456,8 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
     final allSessions = (selectedProgram != null &&
             selectedSemester != null &&
             selectedSection != null)
-        ? widget.memory.activeSessions()
+        ? widget.memory
+            .activeSessions(overridePeriod: _showExamSchedule ? null : 'classes')
             .where((s) =>
                 s.batchKey.program == selectedProgram &&
                 s.batchKey.semester == selectedSemester &&
@@ -659,6 +661,128 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                               ),
                             ),
                           ],
+                        ),
+                        ValueListenableBuilder<String>(
+                          valueListenable: RemoteConfigService.activeAcademicPeriod,
+                          builder: (context, period, _) {
+                            if (period != 'midterms' && period != 'finals') {
+                              return const SizedBox.shrink();
+                            }
+                            final isMid = period == 'midterms';
+                            final examTitle = isMid ? 'Midterms Matrix' : 'Finals Matrix';
+                            final examIcon = isMid ? Icons.edit_calendar_rounded : Icons.school_rounded;
+                            final accentColor = isMid ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6);
+
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          IrisHaptics.chipSelect();
+                                          setState(() => _showExamSchedule = false);
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: !_showExamSchedule
+                                                ? (isDark ? Colors.white.withValues(alpha: 0.16) : Colors.white)
+                                                : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(9),
+                                            boxShadow: !_showExamSchedule
+                                                ? [
+                                                    BoxShadow(
+                                                      color: Colors.black.withValues(alpha: 0.06),
+                                                      blurRadius: 4,
+                                                    )
+                                                  ]
+                                                : null,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.auto_stories_rounded,
+                                                size: 14,
+                                                color: !_showExamSchedule
+                                                    ? IrisTokens.brand
+                                                    : (isDark ? Colors.white54 : Colors.black45),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                'Class Timetable',
+                                                style: TextStyle(
+                                                  fontSize: 11.5,
+                                                  fontWeight: !_showExamSchedule ? FontWeight.w800 : FontWeight.w600,
+                                                  color: !_showExamSchedule
+                                                      ? (isDark ? Colors.white : Colors.black87)
+                                                      : (isDark ? Colors.white54 : Colors.black45),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          IrisHaptics.chipSelect();
+                                          setState(() => _showExamSchedule = true);
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: _showExamSchedule
+                                                ? accentColor.withValues(alpha: isDark ? 0.35 : 0.20)
+                                                : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(9),
+                                            border: _showExamSchedule
+                                                ? Border.all(color: accentColor.withValues(alpha: 0.45), width: 1)
+                                                : null,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                examIcon,
+                                                size: 14,
+                                                color: _showExamSchedule
+                                                    ? accentColor
+                                                    : (isDark ? Colors.white54 : Colors.black45),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                examTitle,
+                                                style: TextStyle(
+                                                  fontSize: 11.5,
+                                                  fontWeight: _showExamSchedule ? FontWeight.w800 : FontWeight.w600,
+                                                  color: _showExamSchedule
+                                                      ? (isDark ? Colors.white : Colors.black87)
+                                                      : (isDark ? Colors.white54 : Colors.black45),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 12),
                         // Smart Search Bar
