@@ -375,7 +375,7 @@ class ClassSession {
 class UniversityMemory {
   final List<ClassSession> sessions;
 
-  UniversityMemory(this.sessions);
+  UniversityMemory([this.sessions = const []]);
 
   List<ClassSession>? _cachedActiveSessions;
   String? _cachedPeriodKey;

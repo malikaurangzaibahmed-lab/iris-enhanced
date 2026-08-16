@@ -21,7 +21,6 @@ export 'teacher_locator_screen.dart';
 export 'room_finder_screen.dart';
 export 'cgpa_calculator_screen.dart';
 export 'document_workspace_screen.dart';
-export 'tools_screen_part.dart';
 
 // ==========================================
 // 🌐 PORTAL & SYNC
