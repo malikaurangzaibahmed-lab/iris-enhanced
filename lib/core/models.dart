@@ -650,15 +650,21 @@ class UniversityMemory {
   }
 
   List<String> programs() {
-    final items = activeSessions().map((s) => s.batchKey.program).toSet().toList();
+    final items = activeSessions()
+        .map((s) => s.batchKey.program.toUpperCase().trim())
+        .where((p) => p.isNotEmpty && p != 'UNKNOWN' && p != 'NA' && !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p))
+        .toSet()
+        .toList();
     items.sort();
     return items;
   }
 
   List<int> semesters(String program) {
+    final progUpper = program.toUpperCase().trim();
     final items = activeSessions()
-        .where((s) => s.batchKey.program == program)
+        .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)
         .map((s) => s.batchKey.semester)
+        .where((sem) => sem > 0)
         .toSet()
         .toList();
     items.sort();
@@ -666,14 +672,15 @@ class UniversityMemory {
   }
 
   List<String> sections(String program, int semester) {
+    final progUpper = program.toUpperCase().trim();
     final items = activeSessions()
-        .where((s) => s.batchKey.program == program && s.batchKey.semester == semester)
+        .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper && s.batchKey.semester == semester)
         .map((s) {
-          final sec = s.batchKey.section;
+          final sec = s.batchKey.section.trim();
           final m = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(sec);
-          return m != null ? m.group(0)!.toUpperCase() : sec;
+          return m != null ? m.group(0)!.toUpperCase() : sec.toUpperCase();
         })
-        .where((s) => s.isNotEmpty)
+        .where((s) => s.isNotEmpty && s != 'UNKNOWN' && s != 'NA')
         .toSet()
         .toList();
     items.sort();
