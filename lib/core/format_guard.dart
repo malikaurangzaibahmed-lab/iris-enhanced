@@ -96,6 +96,12 @@ class FormatGuard {
       return DateTime(y, m, d);
     }
 
+    // 4. Excel Serial Date number e.g. "45999" (days since 1899-12-30)
+    final serial = int.tryParse(s);
+    if (serial != null && serial >= 35000 && serial <= 65000) {
+      return DateTime(1899, 12, 30).add(Duration(days: serial));
+    }
+
     return null;
   }
 

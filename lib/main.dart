@@ -66,7 +66,6 @@ import 'screens/faculty_directory_screen.dart';
 import 'screens/department_classes_screen.dart';
 import 'screens/makeup_lecture_scheduler_screen.dart';
 import 'screens/exam_grid_dashboard_screen.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 part 'screens/tools_screen_part.dart';
