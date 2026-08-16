@@ -2775,10 +2775,26 @@ function parseBatchTaxonomy(raw) {
     } else {
       section = last;
       // Calculate dynamic semester from intake
-      let curYear = new Date().getFullYear();
-      let curMonth = new Date().getMonth() + 1;
+      let now = new Date();
+      let curYear = now.getFullYear();
+      let curMonth = now.getMonth() + 1; // 1-12
+      
       let intakeIdx = yearNum * 2 + (intake.startsWith("FA") ? 1 : 0);
-      let curIdx = curYear * 2 + (curMonth >= 8 ? 1 : 0);
+      let curAcademicYear = curYear;
+      let isFall = false;
+      
+      if (curMonth >= 9) {
+        isFall = true;
+        curAcademicYear = curYear;
+      } else if (curMonth <= 2) {
+        isFall = true;
+        curAcademicYear = curYear - 1;
+      } else {
+        isFall = false;
+        curAcademicYear = curYear;
+      }
+      
+      let curIdx = curAcademicYear * 2 + (isFall ? 1 : 0);
       semester = Math.max(1, Math.min(8, curIdx - intakeIdx + 1));
     }
   }

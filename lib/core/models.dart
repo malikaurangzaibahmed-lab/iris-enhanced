@@ -36,7 +36,7 @@ class BatchKey {
 
   /// Full descriptive title e.g. "Fall 2025 - BS Computer Science (Semester 2, Section C)"
   String get fullDescription {
-    final semStr = semester > 0 ? 'Semester $semester' : 'Semester ${dynamicSemester}';
+    final semStr = semester > 0 ? 'Semester $semester' : 'Semester $dynamicSemester';
     final secStr = section.isNotEmpty ? ', Section $section' : '';
     return '$intakeSeason $intakeYear - $programFullName ($semStr$secStr)';
   }
@@ -160,16 +160,29 @@ class BatchKey {
     final currentYear = current.year;
     final currentMonth = current.month;
 
-    int intakeIndex = intakeYear * 2;
-    if (term == 'FA') {
-      intakeIndex += 1;
+    // Term Index Calculation:
+    // Spring (Mar-Aug) = year * 2
+    // Fall (Sep-Feb) = year * 2 + 1
+    final intakeIndex = (intakeYear * 2) + (term == 'FA' ? 1 : 0);
+
+    int currentAcademicYear = currentYear;
+    bool isFall = false;
+
+    if (currentMonth >= 9) {
+      // Sep-Dec: Fall of current year
+      isFall = true;
+      currentAcademicYear = currentYear;
+    } else if (currentMonth <= 2) {
+      // Jan-Feb: Fall of previous year
+      isFall = true;
+      currentAcademicYear = currentYear - 1;
+    } else {
+      // Mar-Aug: Spring of current year
+      isFall = false;
+      currentAcademicYear = currentYear;
     }
 
-    int currentIndex = currentYear * 2;
-    if (currentMonth >= 8) {
-      currentIndex += 1;
-    }
-
+    final currentIndex = (currentAcademicYear * 2) + (isFall ? 1 : 0);
     final sem = currentIndex - intakeIndex + 1;
     return sem.clamp(1, 8);
   }
