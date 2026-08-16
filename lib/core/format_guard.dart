@@ -3,10 +3,127 @@ import 'dart:math';
 class FormatGuard {
   static final RegExp _timeSplit = RegExp(r'[:.]');
   static final RegExp _roomNoise = RegExp(r'\(\d+\)');
+  static final RegExp _roomParen = RegExp(r'\s*\([^)]*\)');
 
+  /// Canonicalize room name across PDF timetables and Excel date sheets
   static String sanitizeRoom(String raw) {
-    final cleaned = raw.replaceAll(_roomNoise, '').trim();
+    if (raw.isEmpty) return 'TBA';
+    var cleaned = raw.replaceAll(_roomNoise, '').replaceAll(_roomParen, '').trim();
+    
+    // Normalize dashes and spaces: "A - 3" -> "A-3", "C - 1.1" -> "C-1.1"
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'^([A-Za-z]+)\s*-\s*([0-9.]+)$'),
+      (m) => '${m[1]!.toUpperCase()}-${m[2]}',
+    );
+
+    // Normalize "WCR 1" -> "WCR-1", "D 1" -> "D1"
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'^(WCR)\s*(\d+)$', caseSensitive: false),
+      (m) => 'WCR-${m[2]}',
+    );
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'^([D])\s*(\d+)$', caseSensitive: false),
+      (m) => 'D${m[2]}',
+    );
+
+    // Normalize "C-Lab 3", "CLab 3", "Computer Lab 3" -> "CLab-3"
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'^(?:C-Lab|CLab|Computer\s*Lab)\s*[- ]?(\d+)$', caseSensitive: false),
+      (m) => 'CLab-${m[1]}',
+    );
+
     return cleaned.isEmpty ? raw.trim() : cleaned;
+  }
+
+  /// Comprehensive date parser handling all university date sheet variations:
+  /// - "Mon 08-12-2025", "Monday 08-12-25", "08-12-2025", "08-12-25"
+  /// - "25/03/2026", "25/03/26", "08-Dec-2025", "25-Mar-2026", "2025-12-08"
+  static DateTime? parseDate(String raw) {
+    if (raw.trim().isEmpty) return null;
+    var s = raw.trim();
+
+    // Strip weekday prefix e.g. "Monday 08-12-2025" or "Mon, 08-12-2025"
+    s = s.replaceAll(RegExp(r'^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Mon|Tue|Wed|Thu|Fri|Sat|Sun)[,\s]+', caseSensitive: false), '').trim();
+
+    // 1. ISO format: YYYY-MM-DD
+    final isoRegex = RegExp(r'^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$');
+    var match = isoRegex.firstMatch(s);
+    if (match != null) {
+      final y = int.parse(match.group(1)!);
+      final m = int.parse(match.group(2)!);
+      final d = int.parse(match.group(3)!);
+      return DateTime(y, m, d);
+    }
+
+    // 2. Named Month: DD-MMM-YYYY or DD-MMM-YY (e.g. 08-Dec-2025, 25-Mar-26)
+    final namedRegex = RegExp(r'^(\d{1,2})[-/\s]([A-Za-z]{3,9})[-/\s](\d{2,4})$');
+    match = namedRegex.firstMatch(s);
+    if (match != null) {
+      final d = int.parse(match.group(1)!);
+      final monthStr = match.group(2)!.toLowerCase();
+      var y = int.parse(match.group(3)!);
+      if (y < 100) y += 2000;
+
+      const months = {
+        'jan': 1, 'january': 1, 'feb': 2, 'february': 2, 'mar': 3, 'march': 3,
+        'apr': 4, 'april': 4, 'may': 5, 'jun': 6, 'june': 6, 'jul': 7, 'july': 7,
+        'aug': 8, 'august': 8, 'sep': 9, 'september': 9, 'oct': 10, 'october': 10,
+        'nov': 11, 'november': 11, 'dec': 12, 'december': 12
+      };
+      final m = months[monthStr] ?? 1;
+      return DateTime(y, m, d);
+    }
+
+    // 3. Numeric DMY: DD-MM-YYYY or DD-MM-YY or DD/MM/YYYY or DD/MM/YY
+    final dmyRegex = RegExp(r'^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$');
+    match = dmyRegex.firstMatch(s);
+    if (match != null) {
+      final d = int.parse(match.group(1)!);
+      final m = int.parse(match.group(2)!);
+      var y = int.parse(match.group(3)!);
+      if (y < 100) y += 2000;
+      return DateTime(y, m, d);
+    }
+
+    // Fallback: search anywhere in string for DD-MM-YYYY or DD-MM-YY
+    final embeddedRegex = RegExp(r'(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})');
+    match = embeddedRegex.firstMatch(raw);
+    if (match != null) {
+      final d = int.parse(match.group(1)!);
+      final m = int.parse(match.group(2)!);
+      var y = int.parse(match.group(3)!);
+      if (y < 100) y += 2000;
+      return DateTime(y, m, d);
+    }
+
+    return null;
+  }
+
+  /// Expands combined cohort sections e.g. "FA25-BCS-2-A&B" -> ["FA25-BCS-2-A", "FA25-BCS-2-B"]
+  static List<String> expandBatchSections(String raw) {
+    if (raw.trim().isEmpty) return [];
+    final clean = raw.trim().toUpperCase();
+
+    // Check for combined section markers '&', ',', '/'
+    if (clean.contains('&') || clean.contains(',') || clean.contains('/')) {
+      // Check compound batches: "FA25-BME/FA24-BME/FA22-BEE"
+      if (RegExp(r'(?:FA|SP)\d{2}').allMatches(clean).length > 1) {
+        return clean.split(RegExp(r'[/,]')).map((b) => b.trim()).where((b) => b.isNotEmpty).toList();
+      }
+
+      // Check section combo: "FA25-BCS-2-A&B" or "FA24-BSE-A,B"
+      final parts = clean.split('-');
+      if (parts.length >= 3) {
+        final lastPart = parts.last;
+        final sections = lastPart.split(RegExp(r'[&,/]')).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        if (sections.length > 1) {
+          final prefix = parts.sublist(0, parts.length - 1).join('-');
+          return sections.map((sec) => '$prefix-$sec').toList();
+        }
+      }
+    }
+
+    return [clean];
   }
 
   static double toDecimalTime(String raw) {

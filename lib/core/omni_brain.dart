@@ -3,14 +3,6 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../services/remote_config_service.dart';
 
-// ============ LECTURE DURATION HELPER ============
-/// Helper functions to handle 1-hour lecture duration calculations
-bool _isOneHourLecture(String subject) {
-  return subject.toLowerCase().contains('(1 hr)') ||
-         subject.toLowerCase().contains('(1hr)') ||
-         subject.toLowerCase().contains('1 hr)');
-}
-
 double _getActualEndTime(ClassSession session) {
   return session.actualEndVal;
 }

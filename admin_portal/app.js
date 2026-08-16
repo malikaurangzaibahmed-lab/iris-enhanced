@@ -2726,13 +2726,25 @@ function splitCombinedBatches(raw) {
   const s = String(raw).trim();
   if (s === '' || s.toLowerCase() === 'none' || s.toLowerCase() === 'date' || s.toLowerCase() === 'time') return [];
   
-  // 1. Check if contains standard batch pattern like FA24-BCS-A, SP23-FSN
+  let results = [];
+
+  // 1. Check compound batches e.g. "FA25-BME-FA24-BME-FA22-BEE" or "FA25-BME/FA24-BME"
   const batchMatches = s.match(/(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)*/gi);
   if (batchMatches && batchMatches.length > 0) {
-    let results = [];
     for (let bm of batchMatches) {
       const sub = bm.split(/(?=(?:FA|SP)\d{2}-)/i).map(b => b.replace(/^[-/, ]+|[-/, ]+$/g, '').trim()).filter(Boolean);
-      results.push(...sub);
+      for (let sb of sub) {
+        // Expand section combos like "FA25-BCS-2-A&B" -> ["FA25-BCS-2-A", "FA25-BCS-2-B"]
+        const parts = sb.split('-');
+        if (parts.length >= 3 && (parts[parts.length - 1].includes('&') || parts[parts.length - 1].includes(','))) {
+          const last = parts[parts.length - 1];
+          const secs = last.split(/[&,]/).map(x => x.trim()).filter(Boolean);
+          const prefix = parts.slice(0, parts.length - 1).join('-');
+          secs.forEach(sc => results.push(`${prefix}-${sc}`));
+        } else {
+          results.push(sb);
+        }
+      }
     }
     return results;
   }
@@ -2819,8 +2831,20 @@ function parseBatchTaxonomy(raw) {
 function cleanRoomName(raw) {
   if (!raw) return "";
   let r = String(raw).trim();
-  r = r.replace(/\s*\(\d+\)\s*/g, '');
-  r = r.replace(/\s*-\s*/g, '-');
+  r = r.replace(/\s*\([^)]*\)\s*/g, ''); // Strip (42) or (CS) or parenthesized capacities
+  
+  // Normalize "A - 3" -> "A-3", "C - 1.1" -> "C-1.1"
+  r = r.replace(/^([A-Za-z]+)\s*-\s*([0-9.]+)$/, '$1-$2');
+  
+  // Normalize "WCR 1" -> "WCR-1"
+  r = r.replace(/^(WCR)\s*(\d+)$/i, 'WCR-$2');
+  
+  // Normalize "D 1" -> "D1"
+  r = r.replace(/^([D])\s*(\d+)$/i, 'D$2');
+
+  // Normalize "C-Lab 3", "CLab 3", "Computer Lab 3" -> "CLab-3"
+  r = r.replace(/^(?:C-Lab|CLab|Computer\s*Lab)\s*[- ]?(\d+)$/i, 'CLab-$1');
+
   r = r.replace(/\s+/g, '-');
   return r.trim();
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/tokens.dart';
 import '../core/models.dart';
+import '../core/format_guard.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
 import '../core/animations.dart';
@@ -36,29 +37,7 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
   }
 
   DateTime? _parseExamDate(String dateStr) {
-    final parts = dateStr.split(' ');
-    if (parts.length < 2) return null;
-    final datePart = parts[1];
-    
-    final dmyRegex = RegExp(r'(\d{2})-(\d{2})-(\d{4})');
-    var match = dmyRegex.firstMatch(datePart);
-    if (match != null) {
-      final day = int.parse(match.group(1)!);
-      final month = int.parse(match.group(2)!);
-      final year = int.parse(match.group(3)!);
-      return DateTime(year, month, day);
-    }
-    
-    final dmyShortRegex = RegExp(r'(\d{2})-(\d{2})-(\d{2})');
-    match = dmyShortRegex.firstMatch(datePart);
-    if (match != null) {
-      final day = int.parse(match.group(1)!);
-      final month = int.parse(match.group(2)!);
-      final shortYear = int.parse(match.group(3)!);
-      final year = 2000 + shortYear;
-      return DateTime(year, month, day);
-    }
-    return null;
+    return FormatGuard.parseDate(dateStr);
   }
 
   String _getExamStatus(DateTime? examDate) {
@@ -384,25 +363,39 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
             : RemoteConfigService.finalExams,
         builder: (context, rawExams, _) {
           final matchedExams = rawExams.where((exam) {
-            final examBatch = (exam['batch'] ?? '').toString();
-            if (examBatch.isEmpty || widget.batch.isEmpty) return false;
+            final examBatchRaw = (exam['batch'] ?? '').toString();
+            if (examBatchRaw.isEmpty || widget.batch.isEmpty) return false;
             
             final studentBatch = widget.batch.trim().toLowerCase();
-            final examBatchLower = examBatch.trim().toLowerCase();
-            if (examBatchLower == studentBatch) return true;
-            
             final studentKey = BatchKey.parse(widget.batch);
-            final examKey = BatchKey.parse(examBatch);
             
-            final examParts = examBatchLower.split('-');
-            if (examParts.length == 2) {
-              return studentKey.intake.toLowerCase() == examKey.intake.toLowerCase() &&
-                     studentKey.program.toLowerCase() == examKey.program.toLowerCase();
+            final expandedBatches = FormatGuard.expandBatchSections(examBatchRaw);
+            
+            for (final examBatch in expandedBatches) {
+              final examBatchLower = examBatch.trim().toLowerCase();
+              if (examBatchLower == studentBatch) return true;
+              
+              final examKey = BatchKey.parse(examBatch);
+              
+              final examParts = examBatchLower.split('-');
+              if (examParts.length == 2) {
+                if (studentKey.intake.toLowerCase() == examKey.intake.toLowerCase() &&
+                    studentKey.program.toLowerCase() == examKey.program.toLowerCase()) {
+                  return true;
+                }
+              } else if (examParts.length >= 3) {
+                final intakeMatch = studentKey.intake.toLowerCase() == examKey.intake.toLowerCase();
+                final progMatch = studentKey.program.toLowerCase() == examKey.program.toLowerCase();
+                final secMatch = examKey.section.isEmpty || studentKey.section.toLowerCase() == examKey.section.toLowerCase();
+                final semMatch = examKey.semester == 0 || studentKey.semester == 0 || examKey.semester == studentKey.semester;
+                
+                if (intakeMatch && progMatch && secMatch && semMatch) {
+                  return true;
+                }
+              }
             }
             
-            return studentKey.intake.toLowerCase() == examKey.intake.toLowerCase() &&
-                   studentKey.program.toLowerCase() == examKey.program.toLowerCase() &&
-                   studentKey.section.toLowerCase() == examKey.section.toLowerCase();
+            return false;
           }).toList();
 
           final Map<String, Map<String, dynamic>> grouped = {};
@@ -412,7 +405,7 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
             final subject = (exam['subject'] ?? '').toString();
             final room = (exam['room'] ?? '').toString();
             
-            final key = '${date}_${time}_${subject}';
+            final key = '${date}_${time}_$subject';
             if (grouped.containsKey(key)) {
               final existingRooms = grouped[key]!['rooms'] as List<String>;
               if (!existingRooms.contains(room)) {
