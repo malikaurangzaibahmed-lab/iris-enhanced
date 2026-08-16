@@ -7,6 +7,7 @@ class BatchKey {
   final int semester;
   final String section;
   final String intake;
+  final String department;
 
   const BatchKey({
     required this.batch,
@@ -14,7 +15,136 @@ class BatchKey {
     required this.semester,
     required this.section,
     required this.intake,
+    required this.department,
   });
+
+  /// e.g. "FA" -> "Fall", "SP" -> "Spring"
+  String get intakeSeason {
+    if (intake.startsWith('FA')) return 'Fall';
+    if (intake.startsWith('SP')) return 'Spring';
+    return intake;
+  }
+
+  /// e.g. "FA25" -> 2025
+  int get intakeYear {
+    if (intake.length >= 4) {
+      final y = int.tryParse(intake.substring(2, 4));
+      if (y != null) return 2000 + y;
+    }
+    return 2025;
+  }
+
+  /// Full descriptive title e.g. "Fall 2025 - BS Computer Science (Semester 2, Section C)"
+  String get fullDescription {
+    final semStr = semester > 0 ? 'Semester $semester' : 'Semester ${dynamicSemester}';
+    final secStr = section.isNotEmpty ? ', Section $section' : '';
+    return '$intakeSeason $intakeYear - $programFullName ($semStr$secStr)';
+  }
+
+  /// Readable Program Name
+  String get programFullName {
+    switch (program.toUpperCase()) {
+      case 'BCS':
+        return 'BS Computer Science';
+      case 'BSE':
+        return 'BS Software Engineering';
+      case 'BEE':
+        return 'BS Electrical Engineering';
+      case 'BME':
+        return 'BS Mechanical Engineering';
+      case 'CVE':
+      case 'BCE':
+      case 'CE':
+        return 'BS Civil Engineering';
+      case 'BBA':
+        return 'Bachelor of Business Administration';
+      case 'BBC':
+      case 'BCH':
+        return 'BS Biochemistry';
+      case 'BTY':
+        return 'BS Biotechnology';
+      case 'FSN':
+        return 'BS Food Science & Nutrition';
+      case 'HND':
+        return 'BS Human Nutrition & Dietetics';
+      case 'RBS':
+        return 'BS Remote Sensing & GIS';
+      case 'BEN':
+        return 'BS English';
+      case 'MCS':
+      case 'MSCS':
+        return 'MS Computer Science';
+      case 'MSSE':
+        return 'MS Software Engineering';
+      case 'MSEE':
+        return 'MS Electrical Engineering';
+      case 'MSME':
+        return 'MS Mechanical Engineering';
+      case 'MSMS':
+      case 'MBA':
+        return 'Master of Business Administration';
+      default:
+        return 'BS $program';
+    }
+  }
+
+  static String resolveDepartment(String prog) {
+    switch (prog.toUpperCase()) {
+      case 'SE':
+      case 'BSE':
+      case 'MSSE':
+        return 'Software Engineering';
+      case 'CS':
+      case 'BCS':
+      case 'MCS':
+      case 'MSCS':
+        return 'Computer Science';
+      case 'EE':
+      case 'BEE':
+      case 'MSEE':
+        return 'Electrical Engineering';
+      case 'ME':
+      case 'BME':
+      case 'MSME':
+        return 'Mechanical Engineering';
+      case 'CVE':
+      case 'BCE':
+      case 'CE':
+      case 'MSCE':
+        return 'Civil Engineering';
+      case 'BBA':
+      case 'BBS':
+      case 'AF':
+      case 'MS':
+      case 'MSMS':
+      case 'MBA':
+        return 'Management Sciences';
+      case 'BTY':
+        return 'Biotechnology';
+      case 'BBC':
+      case 'BCH':
+        return 'Biochemistry';
+      case 'FSN':
+        return 'Food Science & Nutrition';
+      case 'HND':
+        return 'Human Nutrition & Dietetics';
+      case 'RBS':
+        return 'Remote Sensing & GIS';
+      case 'BI':
+        return 'Biosciences';
+      case 'BEN':
+      case 'ENG':
+      case 'HUM':
+        return 'Humanities';
+      case 'MT':
+      case 'MTH':
+        return 'Mathematics';
+      case 'VS':
+        return 'Visiting Faculty';
+      default:
+        return 'General';
+    }
+  }
 
   int get dynamicSemester => calculateSemester(intake);
 
@@ -46,7 +176,6 @@ class BatchKey {
 
   factory BatchKey.parse(String batch) {
     var raw = batch.trim();
-    // Extract purely valid canonical batch pattern: e.g. "FA25-BCS-2-D" or "FA22-BCS-6A" or "FA25-BCE-B1"
     final fullBatchMatch = RegExp(r'^(?:FA|SP)\d{2}-[A-Za-z]+(?:-\d+)?-[A-Za-z0-9]{1,3}', caseSensitive: false).firstMatch(raw);
     if (fullBatchMatch != null) {
       raw = fullBatchMatch.group(0)!;
@@ -59,37 +188,63 @@ class BatchKey {
 
     final parts = raw.split('-');
     if (parts.length < 3) {
+      final prog = parts.isNotEmpty ? parts.first.toUpperCase() : 'UNKNOWN';
       return BatchKey(
         batch: raw,
-        program: parts.isNotEmpty ? parts.first.toUpperCase() : 'UNKNOWN',
-        semester: 0,
+        program: prog,
+        semester: 1,
         section: parts.length > 1 ? parts[1].toUpperCase() : 'A',
         intake: parts.isNotEmpty ? parts.first.toUpperCase() : 'NA',
+        department: resolveDepartment(prog),
       );
     }
 
     final intake = parts[0].toUpperCase();
     final program = parts[1].toUpperCase();
-    final semesterText = parts[2];
-    final semester = int.tryParse(semesterText) ??
-        int.tryParse(RegExp(r'\d+').firstMatch(semesterText)?.group(0) ?? '') ??
-        0;
-    
-    // Clean section token e.g. if parts[3] is "DSoftwareEngineering" -> "D"
-    var rawSection = parts.length >= 4 ? parts[3] : parts[2];
-    final secMatch = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(rawSection);
-    final section = secMatch != null ? secMatch.group(0)!.toUpperCase() : rawSection.toUpperCase();
+    final dept = resolveDepartment(program);
 
-    final canonicalBatch = parts.length >= 4 
-        ? '$intake-$program-$semesterText-$section'
-        : '$intake-$program-$section';
+    // Case 1: 4-part batch e.g. "FA25-BCS-2-C" -> intake="FA25", prog="BCS", sem=2, sec="C"
+    if (parts.length >= 4) {
+      final semParsed = int.tryParse(parts[2]) ?? calculateSemester(intake);
+      final rawSec = parts[3];
+      final secMatch = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(rawSec);
+      final section = secMatch != null ? secMatch.group(0)!.toUpperCase() : rawSec.toUpperCase();
+      final canonical = '$intake-$program-$semParsed-$section';
+      return BatchKey(
+        batch: canonical,
+        program: program,
+        semester: semParsed,
+        section: section,
+        intake: intake,
+        department: dept,
+      );
+    }
 
+    // Case 2: 3-part batch e.g. "FA24-BSE-A" or "SP23-FSN-B" -> calculate semester dynamically
+    final lastPart = parts[2];
+    final semMatch = RegExp(r'^\d+').firstMatch(lastPart);
+    int semParsed = calculateSemester(intake);
+    String section = 'A';
+
+    if (semMatch != null) {
+      semParsed = int.tryParse(semMatch.group(0)!) ?? semParsed;
+      final secRem = lastPart.substring(semMatch.group(0)!.length);
+      if (secRem.isNotEmpty) {
+        section = secRem.toUpperCase();
+      }
+    } else {
+      final secMatch = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(lastPart);
+      section = secMatch != null ? secMatch.group(0)!.toUpperCase() : lastPart.toUpperCase();
+    }
+
+    final canonical = '$intake-$program-$section';
     return BatchKey(
-      batch: canonicalBatch,
+      batch: canonical,
       program: program,
-      semester: semester,
+      semester: semParsed,
       section: section,
       intake: intake,
+      department: dept,
     );
   }
 }

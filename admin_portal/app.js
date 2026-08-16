@@ -2736,6 +2736,65 @@ function splitCombinedBatches(raw) {
   return s.split(/[\/,]+/).map(b => b.trim()).filter(Boolean);
 }
 
+function parseBatchTaxonomy(raw) {
+  if (!raw) return { raw: "", session: "", year: 2025, program: "", department: "General", semester: 1, section: "A", fullTitle: "" };
+  const s = String(raw).trim().toUpperCase();
+  const parts = s.split('-');
+  
+  let intake = parts[0] || "FA25";
+  let session = intake.startsWith("FA") ? "Fall" : (intake.startsWith("SP") ? "Spring" : intake);
+  let yearNum = 2000 + (parseInt(intake.replace(/^[A-Z]+/, ''), 10) || 25);
+  
+  let program = parts.length > 1 ? parts[1] : "BCS";
+  let deptMap = {
+    'BCS': 'Computer Science', 'CS': 'Computer Science', 'MCS': 'Computer Science', 'MSCS': 'Computer Science',
+    'BSE': 'Software Engineering', 'SE': 'Software Engineering', 'MSSE': 'Software Engineering',
+    'BEE': 'Electrical Engineering', 'EE': 'Electrical Engineering', 'MSEE': 'Electrical Engineering',
+    'BME': 'Mechanical Engineering', 'ME': 'Mechanical Engineering', 'MSME': 'Mechanical Engineering',
+    'CVE': 'Civil Engineering', 'BCE': 'Civil Engineering', 'CE': 'Civil Engineering', 'MSCE': 'Civil Engineering',
+    'BBA': 'Management Sciences', 'BBS': 'Management Sciences', 'AF': 'Management Sciences', 'MS': 'Management Sciences', 'MBA': 'Management Sciences', 'MSMS': 'Management Sciences',
+    'BTY': 'Biotechnology', 'BBC': 'Biochemistry', 'BCH': 'Biochemistry', 'FSN': 'Food Science & Nutrition', 'HND': 'Human Nutrition & Dietetics', 'RBS': 'Remote Sensing & GIS', 'BI': 'Biosciences',
+    'BEN': 'Humanities', 'ENG': 'Humanities', 'HUM': 'Humanities',
+    'MT': 'Mathematics', 'MTH': 'Mathematics',
+    'VS': 'Visiting Faculty'
+  };
+  let department = deptMap[program] || "General";
+  
+  let semester = 1;
+  let section = "A";
+  
+  if (parts.length >= 4) {
+    semester = parseInt(parts[2], 10) || 1;
+    section = parts[3] || "A";
+  } else if (parts.length === 3) {
+    let last = parts[2];
+    let m = last.match(/^(\d+)?([A-Za-z]+)?$/);
+    if (m && m[1]) {
+      semester = parseInt(m[1], 10);
+      section = m[2] || "A";
+    } else {
+      section = last;
+      // Calculate dynamic semester from intake
+      let curYear = new Date().getFullYear();
+      let curMonth = new Date().getMonth() + 1;
+      let intakeIdx = yearNum * 2 + (intake.startsWith("FA") ? 1 : 0);
+      let curIdx = curYear * 2 + (curMonth >= 8 ? 1 : 0);
+      semester = Math.max(1, Math.min(8, curIdx - intakeIdx + 1));
+    }
+  }
+  
+  return {
+    raw: s,
+    session,
+    year: yearNum,
+    program,
+    department,
+    semester,
+    section,
+    fullTitle: `${session} ${yearNum} - ${program} (Semester ${semester}, Section ${section})`
+  };
+}
+
 function cleanRoomName(raw) {
   if (!raw) return "";
   let r = String(raw).trim();
