@@ -878,6 +878,7 @@ function syncActivePeriodState() {
       // Update switcher description copy
       const descs = {
         classes: 'Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.',
+        ramadan: '🌙 Ramadan Timing Mode: Compressed lecture periods and adjusted prayer intervals in effect.',
         midterms: 'Midterm testing mode: interim assessments, mid-semester testing logs, and check schedules.',
         finals: 'Final examination mode: core semester finals, grade evaluation compiles, and term closeout.',
         sports_week: 'Athletic Sports Week: campus extracurricular activities, sports day schedules, and session breaks.'
@@ -891,7 +892,6 @@ function syncActivePeriodState() {
         metricModeVal.innerText = currentPeriod.toUpperCase().replace('_', ' ');
       }
 
-
       // Update Mockup period card theme
       const mockCard = document.getElementById('mock-period-card');
       const mockBadge = document.getElementById('mock-period-badge');
@@ -904,6 +904,11 @@ function syncActivePeriodState() {
           mockBadge.innerHTML = '<i class="fa-solid fa-graduation-cap"></i> CLASSES MODE';
           mockTitle.innerText = 'CLASSES IN SESSION';
           mockSubtitle.innerText = 'Regular academic lecturing track';
+        } else if (currentPeriod === 'ramadan') {
+          mockCard.classList.add('theme-ramadan');
+          mockBadge.innerHTML = '<i class="fa-solid fa-moon"></i> RAMADAN MODE';
+          mockTitle.innerText = 'RAMADAN TIMINGS ACTIVE';
+          mockSubtitle.innerText = 'Compressed 1-hr lecture slots';
         } else if (currentPeriod === 'midterms') {
           mockCard.classList.add('theme-midterms');
           mockBadge.innerHTML = '<i class="fa-solid fa-pen-clip"></i> MIDTERMS MODE';
