@@ -2716,6 +2716,57 @@ window.revertTimetableVersion = async function(id) {
 // DATE SHEET EXCEL PARSER AND DEPLOYMENT CORE
 // ==========================================================================
 
+function splitCombinedBatches(raw) {
+  if (!raw) return [];
+  const s = String(raw).trim();
+  if (s === '' || s.toLowerCase() === 'none' || s.toLowerCase() === 'date' || s.toLowerCase() === 'time') return [];
+  
+  // 1. Check if contains standard batch pattern like FA24-BCS-A, SP23-FSN
+  const batchMatches = s.match(/(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)*/gi);
+  if (batchMatches && batchMatches.length > 0) {
+    let results = [];
+    for (let bm of batchMatches) {
+      const sub = bm.split(/(?=(?:FA|SP)\d{2}-)/i).map(b => b.replace(/^[-/, ]+|[-/, ]+$/g, '').trim()).filter(Boolean);
+      results.push(...sub);
+    }
+    return results;
+  }
+  
+  // 2. Fallback split on slash or comma
+  return s.split(/[\/,]+/).map(b => b.trim()).filter(Boolean);
+}
+
+function cleanRoomName(raw) {
+  if (!raw) return "";
+  let r = String(raw).trim();
+  r = r.replace(/\s*\(\d+\)\s*/g, '');
+  r = r.replace(/\s*-\s*/g, '-');
+  r = r.replace(/\s+/g, '-');
+  return r.trim();
+}
+
+function formatExamTime(raw) {
+  if (!raw) return "";
+  let t = String(raw).trim();
+  const m = t.match(/^(\d{2})(\d{2})\s*-\s*(\d{2})(\d{2})$/);
+  if (m) {
+    let sh = parseInt(m[1], 10);
+    let sm = m[2];
+    let eh = parseInt(m[3], 10);
+    let em = m[4];
+    
+    let sPeriod = (sh >= 8 && sh <= 11) ? "AM" : "PM";
+    let ePeriod = (eh >= 8 && eh <= 11) ? "AM" : "PM";
+    if (sh >= 1 && sh <= 5) sPeriod = "PM";
+    if ((eh >= 1 && eh <= 5) || eh === 12) ePeriod = "PM";
+    
+    let sDisp = sh.toString().padStart(2, '0');
+    let eDisp = eh.toString().padStart(2, '0');
+    return `${sDisp}:${sm} ${sPeriod} - ${eDisp}:${em} ${ePeriod}`;
+  }
+  return t;
+}
+
 function handleExamsFileSelect(file) {
   parsedExams = [];
   examsFileInfo.innerText = `Parsing: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
@@ -2734,116 +2785,104 @@ function handleExamsFileSelect(file) {
       const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
       
       if (rows.length < 4) {
-        throw new Error("Excel sheet contains too few rows. Header row 3 expected.");
+        throw new Error("Excel sheet contains too few rows. Header row expected.");
       }
       
       // Dynamically locate the header row containing "Date", "Time", or room columns
       let headerRowIdx = -1;
       for (let rIdx = 0; rIdx < Math.min(rows.length, 10); rIdx++) {
         const row = rows[rIdx] || [];
-        const hasDateTime = row.some(cell => cell && /\b(date|time)\b/i.test(String(cell)));
-        const roomCount = row.filter(cell => cell && /\b([A-Z]\d+|Lab|Hall|Auditorium|Room)\b/i.test(String(cell))).length;
-        if (hasDateTime || roomCount >= 3) {
+        const dateCount = row.filter(c => c && String(c).trim().toLowerCase() === 'date').length;
+        if (dateCount >= 2) {
           headerRowIdx = rIdx;
           break;
         }
       }
       if (headerRowIdx === -1) headerRowIdx = 2; // Fallback to index 2
-
+      
       const headerRow = rows[headerRowIdx] || [];
-      const rooms = [];
-      for (let c = 2; c < headerRow.length; c++) {
+      
+      // Identify all 4 campus blocks across the 53-column matrix
+      const blocks = [];
+      for (let c = 0; c < headerRow.length; c++) {
         const val = headerRow[c];
-        if (val !== undefined && val !== null) {
-          rooms.push({ colIdx: c, name: String(val).trim() });
+        if (val && String(val).trim().toLowerCase() === 'date') {
+          blocks.push({ dateCol: c, timeCol: c + 1, startCol: c + 2, endCol: headerRow.length });
+        }
+      }
+      for (let i = 0; i < blocks.length; i++) {
+        if (i + 1 < blocks.length) {
+          blocks[i].endCol = blocks[i + 1].dateCol;
         }
       }
       
-      if (rooms.length === 0) {
-        throw new Error(`No exam rooms/venues detected on row ${headerRowIdx + 1}.`);
+      if (blocks.length === 0) {
+        // Fallback single block
+        blocks.push({ dateCol: 0, timeCol: 1, startCol: 2, endCol: headerRow.length });
       }
       
-      logTerminal(`Detected ${rooms.length} exam rooms/venues on header row ${headerRowIdx + 1}.`, 'info');
+      let totalRooms = 0;
+      blocks.forEach(b => {
+        const rooms = [];
+        for (let c = b.startCol; c < b.endCol; c++) {
+          if (headerRow[c]) rooms.push({ colIdx: c, name: cleanRoomName(headerRow[c]) });
+        }
+        b.rooms = rooms;
+        totalRooms += rooms.length;
+      });
       
+      logTerminal(`Detected ${blocks.length} Campus Building Blocks with ${totalRooms} examination venues.`, 'info');
+      
+      const currentDates = Array(blocks.length).fill(null);
       let r = headerRowIdx + 1;
-      let currentDate = null;
-      let currentTime = null;
       
       while (r < rows.length) {
         const row = rows[r] || [];
         const nextRow = rows[r + 1] || [];
         
-        const rowDate = row[0];
-        const rowTime = row[1];
-        
-        const rowDateStr = (rowDate !== undefined && rowDate !== null) ? String(rowDate).trim() : "";
-        const rowTimeStr = (rowTime !== undefined && rowTime !== null) ? String(rowTime).trim() : "";
-        
-        // Skip header/subheader rows
-        if (rowDateStr.toLowerCase() === "date" || rowTimeStr.toLowerCase() === "time") {
+        if (!row.some(Boolean) && !nextRow.some(Boolean)) {
           r += 1;
           continue;
         }
         
-        // Skip empty rows
-        if (!rowTimeStr) {
-          r += 1;
-          continue;
-        }
-        
-        if (rowDateStr) {
-          currentDate = rowDateStr;
-        }
-        currentTime = rowTimeStr;
-        
-        for (const room of rooms) {
-          const batchCell = row[room.colIdx];
-          const subjectCell = nextRow[room.colIdx];
+        for (let bIdx = 0; bIdx < blocks.length; bIdx++) {
+          const b = blocks[bIdx];
+          const rawDate = row[b.dateCol];
+          const rawTime = row[b.timeCol];
           
-          if (batchCell !== undefined && batchCell !== null && 
-              subjectCell !== undefined && subjectCell !== null) {
-            const batchStr = String(batchCell).trim();
-            const subjectStr = String(subjectCell).trim();
+          const dateStr = rawDate ? String(rawDate).trim() : "";
+          const timeStr = rawTime ? String(rawTime).trim() : "";
+          
+          if (dateStr && dateStr.toLowerCase() !== 'date') {
+            currentDates[bIdx] = dateStr;
+          }
+          
+          const activeDate = currentDates[bIdx] || currentDates[0] || "Unknown Date";
+          const activeTime = formatExamTime(timeStr);
+          
+          if (!timeStr || timeStr.toLowerCase() === 'time') {
+            continue;
+          }
+          
+          for (const room of b.rooms) {
+            const batchCell = row[room.colIdx];
+            const subjectCell = nextRow[room.colIdx];
             
-            if (batchStr === "" || subjectStr === "") {
-              continue;
-            }
+            if (batchCell === null || batchCell === undefined) continue;
+            const bStr = String(batchCell).trim();
+            if (bStr === '' || bStr.toLowerCase() === 'none' || bStr.toLowerCase() === 'date' || bStr.toLowerCase() === 'time') continue;
             
-            if (batchStr.toLowerCase() === "date" || batchStr.toLowerCase() === "time" || 
-                subjectStr.toLowerCase() === "date" || subjectStr.toLowerCase() === "time") {
-              continue;
-            }
-            if (batchStr === room.name) {
-              continue;
-            }
-            if (rooms.some(rm => rm.name === batchStr)) {
-              continue;
-            }
+            const sStr = subjectCell !== null && subjectCell !== undefined ? String(subjectCell).trim() : "";
+            const batches = splitCombinedBatches(bStr);
+            if (batches.length === 0) continue;
             
-            const batches = splitCombinedCell(batchStr);
-            const subjects = splitCombinedCell(subjectStr);
-            
-            const maxLen = Math.max(batches.length, subjects.length);
-            for (let idx = 0; idx < maxLen; idx++) {
-              let b = idx < batches.length ? batches[idx] : batches[batches.length - 1];
-              let s = idx < subjects.length ? subjects[idx] : subjects[subjects.length - 1];
-              
-              // Smart separation if course name was embedded in batch cell
-              if (b.includes(' - ') && (!s || s === b)) {
-                const parts = b.split(/\s*-\s*/);
-                b = parts[0].trim();
-                s = parts.slice(1).join(' - ').trim();
-              }
-              
-              // Clean course subject from batch codes and extra symbols
-              s = cleanSubject(s);
-
+            for (const batch of batches) {
               parsedExams.push({
-                date: currentDate || "Unknown Date",
-                time: currentTime,
+                date: activeDate,
+                time: activeTime,
                 room: room.name,
-                batch: b,
-                subject: s
+                batch: batch,
+                subject: sStr || "EXAM"
               });
             }
           }
@@ -2855,7 +2894,7 @@ function handleExamsFileSelect(file) {
         throw new Error("No exam entries extracted. Check format of sheet.");
       }
       
-      logTerminal(`Successfully extracted ${parsedExams.length} individual exam slots.`, 'success');
+      logTerminal(`Successfully extracted ${parsedExams.length} individual cohort exam records across ${totalRooms} venues.`, 'success');
       
       // Compile stats
       const uniqueBatches = new Set();
