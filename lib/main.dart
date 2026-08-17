@@ -5072,6 +5072,14 @@ class _DashboardState extends State<Dashboard>
                             children: [
                               lgw.GlassMenu(
                                 menuWidth: 220,
+                                menuBorderRadius: 20.0,
+                                settings: IrisGlass.widgetsSettings(
+                                  context,
+                                  blur: 16.0,
+                                  ambientStrength: 0.7,
+                                  lightAngle: 0.15 * math.pi,
+                                  thickness: 18.0,
+                                ),
                                 triggerBuilder: (context, toggleMenu) {
                                   return GestureDetector(
                                     onTap: toggleMenu,
@@ -5892,7 +5900,15 @@ class _DashboardState extends State<Dashboard>
               duration: const Duration(milliseconds: 220),
               opacity: pillOpacity,
               child: lgw.GlassMenu(
-                menuWidth: 200,
+                menuWidth: 210,
+                menuBorderRadius: 20.0,
+                settings: IrisGlass.widgetsSettings(
+                  context,
+                  blur: 16.0,
+                  ambientStrength: 0.7,
+                  lightAngle: 0.15 * math.pi,
+                  thickness: 18.0,
+                ),
                 triggerBuilder: (context, toggleMenu) {
                   return GestureDetector(
                     onTap: toggleMenu,

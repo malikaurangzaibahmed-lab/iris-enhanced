@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../core/tokens.dart';
+import '../core/glass.dart';
 import '../core/models.dart';
 import '../services/ui_feedback.dart';
 
@@ -489,21 +490,21 @@ class _HorizontalChipSelector extends StatelessWidget {
                 ),
               )
             : lgw.GlassMenu(
-                menuWidth: MediaQuery.of(context).size.width - 48,
-                menuHeight: math.min(items.length * 52.0 + 16.0, 240.0),
+                menuWidth: MediaQuery.sizeOf(context).width - 48,
+                menuHeight: math.min(items.length * 52.0 + 16.0, 320.0),
                 menuBorderRadius: 20.0,
-                settings: lgw.LiquidGlassSettings(
-                  blur: 20,
+                settings: IrisGlass.widgetsSettings(
+                  context,
+                  blur: 16.0,
                   ambientStrength: 0.7,
                   lightAngle: 0.15 * math.pi,
-                  glassColor: (isDark ? IrisTokens.surfaceDarkElevated : Colors.white)
-                      .withValues(alpha: isDark ? 0.45 : 0.5),
-                  thickness: 18,
+                  thickness: 18.0,
                 ),
                 triggerBuilder: (context, toggleMenu) {
                   final displayText = selectedValue != null
                       ? (itemLabelBuilder != null ? itemLabelBuilder!(selectedValue!) : selectedValue!)
                       : 'Select $label';
+                  final hasValue = selectedValue != null;
                   return InkWell(
                     onTap: () {
                       IrisHaptics.actionSoft();
@@ -514,15 +515,15 @@ class _HorizontalChipSelector extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.04)
-                            : Colors.black.withValues(alpha: 0.02),
+                        color: hasValue
+                            ? IrisTokens.brand.withValues(alpha: isDark ? 0.12 : 0.06)
+                            : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02)),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.08),
-                          width: 1.2,
+                          color: hasValue
+                              ? IrisTokens.brand.withValues(alpha: isDark ? 0.40 : 0.30)
+                              : (isDark ? Colors.white.withValues(alpha: 0.10) : Colors.black.withValues(alpha: 0.08)),
+                          width: hasValue ? 1.4 : 1.0,
                         ),
                       ),
                       child: Row(
@@ -536,15 +537,15 @@ class _HorizontalChipSelector extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w800,
-                                color: selectedValue != null 
+                                color: hasValue 
                                   ? (isDark ? Colors.white : Colors.black87)
-                                  : (isDark ? Colors.white30 : Colors.black38),
+                                  : (isDark ? Colors.white38 : Colors.black38),
                               ),
                             ),
                           ),
                           Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: isDark ? Colors.white54 : Colors.black45,
+                            color: hasValue ? IrisTokens.brand : (isDark ? Colors.white54 : Colors.black45),
                             size: 20,
                           ),
                         ],
@@ -554,8 +555,15 @@ class _HorizontalChipSelector extends StatelessWidget {
                 },
                 items: items.map((String val) {
                   final title = itemLabelBuilder != null ? itemLabelBuilder!(val) : val;
+                  final isSelected = val == selectedValue;
                   return lgw.GlassMenuItem(
                     title: title,
+                    isSelected: isSelected,
+                    icon: Icon(
+                      isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                      size: 16,
+                      color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                    ),
                     onTap: () {
                       IrisHaptics.chipSelect();
                       onSelected(val);

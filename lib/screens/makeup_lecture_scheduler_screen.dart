@@ -1092,9 +1092,17 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                               // Day Filter
                               Expanded(
                                 child: lgw.GlassMenu(
-                                  menuWidth: 160,
+                                  menuWidth: 175,
                                   menuHeight: 330.0,
+                                  menuBorderRadius: 18.0,
                                   menuAlignment: lgw.GlassMenuAlignment.bottomCenter,
+                                  settings: IrisGlass.widgetsSettings(
+                                    context,
+                                    blur: 16.0,
+                                    ambientStrength: 0.7,
+                                    lightAngle: 0.15 * math.pi,
+                                    thickness: 18.0,
+                                  ),
                                   triggerBuilder: (context, toggleMenu) {
                                     return _buildFilterChip(
                                       icon: Icons.calendar_today_rounded,
@@ -1119,7 +1127,14 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                   items: [
                                     lgw.GlassMenuItem(
                                       title: 'All Days',
+                                      isSelected: _filterDayIndex == null,
+                                      icon: Icon(
+                                        Icons.calendar_month_rounded,
+                                        size: 16,
+                                        color: _filterDayIndex == null ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                      ),
                                       onTap: () {
+                                        IrisHaptics.chipSelect();
                                         setState(() {
                                           _filterDayIndex = null;
                                           _applyFiltersAndSort();
@@ -1136,9 +1151,17 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                         'Saturday',
                                         'Sunday',
                                       ];
+                                      final isSelected = _filterDayIndex == i + 1;
                                       return lgw.GlassMenuItem(
                                         title: days[i],
+                                        isSelected: isSelected,
+                                        icon: Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 16,
+                                          color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                        ),
                                         onTap: () {
+                                          IrisHaptics.chipSelect();
                                           setState(() {
                                             _filterDayIndex = i + 1;
                                             _applyFiltersAndSort();
@@ -1153,9 +1176,17 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                               // Sort
                               Expanded(
                                 child: lgw.GlassMenu(
-                                  menuWidth: 180,
-                                  menuHeight: 142.0,
+                                  menuWidth: 195,
+                                  menuHeight: 165.0,
+                                  menuBorderRadius: 18.0,
                                   menuAlignment: lgw.GlassMenuAlignment.bottomCenter,
+                                  settings: IrisGlass.widgetsSettings(
+                                    context,
+                                    blur: 16.0,
+                                    ambientStrength: 0.7,
+                                    lightAngle: 0.15 * math.pi,
+                                    thickness: 18.0,
+                                  ),
                                   triggerBuilder: (context, toggleMenu) {
                                     return _buildFilterChip(
                                       icon: Icons.sort_rounded,
@@ -1174,7 +1205,14 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                   items: [
                                     lgw.GlassMenuItem(
                                       title: 'Earliest First',
+                                      isSelected: _sortBy == 'earliest',
+                                      icon: Icon(
+                                        Icons.access_time_rounded,
+                                        size: 16,
+                                        color: _sortBy == 'earliest' ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                      ),
                                       onTap: () {
+                                        IrisHaptics.chipSelect();
                                         setState(() {
                                           _sortBy = 'earliest';
                                           _applyFiltersAndSort();
@@ -1183,7 +1221,14 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                     ),
                                     lgw.GlassMenuItem(
                                       title: 'Longest Duration',
+                                      isSelected: _sortBy == 'duration',
+                                      icon: Icon(
+                                        Icons.hourglass_bottom_rounded,
+                                        size: 16,
+                                        color: _sortBy == 'duration' ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                      ),
                                       onTap: () {
+                                        IrisHaptics.chipSelect();
                                         setState(() {
                                           _sortBy = 'duration';
                                           _applyFiltersAndSort();
@@ -1192,7 +1237,14 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                     ),
                                     lgw.GlassMenuItem(
                                       title: 'Most Rooms Available',
+                                      isSelected: _sortBy == 'rooms',
+                                      icon: Icon(
+                                        Icons.meeting_room_rounded,
+                                        size: 16,
+                                        color: _sortBy == 'rooms' ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                      ),
                                       onTap: () {
+                                        IrisHaptics.chipSelect();
                                         setState(() {
                                           _sortBy = 'rooms';
                                           _applyFiltersAndSort();

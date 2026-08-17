@@ -1,35 +1,46 @@
 import 'package:flutter/material.dart';
 import '../core/tokens.dart';
-import '../core/animations.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
-import '../widgets/smooth_scroll.dart';
-import '../services/ui_feedback.dart';
 import '../core/vital_theme.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
-  const PrivacyPolicyScreen({super.key});
+  final VoidCallback? onBackPressed;
+  final bool? isDark;
+
+  const PrivacyPolicyScreen({
+    super.key,
+    this.onBackPressed,
+    this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveIsDark = isDark ?? (Theme.of(context).brightness == Brightness.dark);
     const purple = IrisTokens.purple;
     const purpleLight = IrisTokens.purpleLight;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: effectiveIsDark ? IrisTokens.surfaceDark : IrisTokens.surfaceLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         forceMaterialTransparency: true,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        leading: AppBackButton(isDark: isDark),
+        scrolledUnderElevation: 0,
+        leading: AppBackButton(
+          isDark: effectiveIsDark,
+          onPressed: onBackPressed,
+        ),
       ),
       body: Stack(
         children: [
-          ObsidianPulse(isDark: isDark),
+          ObsidianPulse(isDark: effectiveIsDark),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+              physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -44,6 +55,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
                             colors: [purple, purpleLight],
                           ),
                           borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: purple.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: const Icon(
                           Icons.security_rounded,
@@ -61,7 +79,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
-                                color: isDark ? Colors.white : Colors.black,
+                                color: effectiveIsDark ? Colors.white : const Color(0xFF0F172A),
                                 letterSpacing: 0.2,
                               ),
                             ),
@@ -71,7 +89,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                                color: effectiveIsDark
+                                    ? Colors.white.withValues(alpha: 0.55)
+                                    : const Color(0xFF64748B),
                               ),
                             ),
                           ],
@@ -85,42 +105,42 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle(context, '1. DATA CONTROLLER', isDark),
+                        _buildSectionTitle(context, '1. DATA CONTROLLER', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'Nexsync (IRIS) operates as a localized intelligence companion. All data sync mechanisms are run locally on your device. We do not operate remote centralized database clusters for profiling, meaning your data remains solely in your custody.',
-                          isDark,
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '2. INFORMATION PROCESSING', isDark),
+                        _buildSectionTitle(context, '2. INFORMATION PROCESSING', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'We collect and store local preferences using secure key-value stores (SharedPreferences):\n'
                           '• Identity telemetry: Display Name, User Role (Student/Faculty), and Academic Batch Key.\n'
                           '• Hyper-Sync timetable metadata: Class schedule details, course timings, located teacher identifiers, and room allocations.\n'
                           '• Sensor configurations: Audio switches and haptic profile parameters.',
-                          isDark,
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '3. TIMETABLE SYNCHRONIZATION', isDark),
+                        _buildSectionTitle(context, '3. TIMETABLE SYNCHRONIZATION', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'The timetable scraper operates client-side on your device. Timetable data is downloaded directly from official university systems to your local memory cache. No scheduling information or authentication tokens are ever transmitted to third-party endpoints or stored outside your device.',
-                          isDark,
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '4. SECURITY STANDARDS', isDark),
+                        _buildSectionTitle(context, '4. SECURITY STANDARDS', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'We apply strict device-level formatting bounds to ensure no SQL injections or memory buffer overflow leaks can trigger code execution vulnerabilities. Local cache encryption layers protect persistent session variables from unauthorized access.',
-                          isDark,
+                          effectiveIsDark,
                         ),
                         const SizedBox(height: 20),
-                        _buildSectionTitle(context, '5. CONTACT & AUDIT', isDark),
+                        _buildSectionTitle(context, '5. CONTACT & AUDIT', effectiveIsDark),
                         _buildSectionBody(
                           context,
                           'For questions regarding security audits or local storage keys, contact the development group:\nmalikaurangzaibahmed@gmail.com',
-                          isDark,
+                          effectiveIsDark,
                         ),
                       ],
                     ),
@@ -139,7 +159,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
@@ -155,8 +175,10 @@ class PrivacyPolicyScreen extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w500,
-        height: 1.5,
-        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.75),
+        height: 1.55,
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.85)
+            : const Color(0xFF334155),
       ),
     );
   }
@@ -177,21 +199,24 @@ class TermsOfServiceScreen extends StatelessWidget {
     final effectiveIsDark = isDark ?? (Theme.of(context).brightness == Brightness.dark);
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: effectiveIsDark ? IrisTokens.surfaceDark : IrisTokens.surfaceLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         forceMaterialTransparency: true,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: AppBackButton(
           isDark: effectiveIsDark,
           onPressed: onBackPressed,
         ),
       ),
-      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          Positioned.fill(
+          ObsidianPulse(isDark: effectiveIsDark),
+          SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 100, 20, 40),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,13 +226,23 @@ class TermsOfServiceScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: IrisTokens.brand.withValues(alpha: 0.12),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: IrisTokens.brandGradient,
+                          ),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: IrisTokens.brand.withValues(alpha: 0.2)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: IrisTokens.brand.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.gavel_rounded, color: IrisTokens.brand, size: 24),
+                        child: const Icon(Icons.gavel_rounded, color: Colors.white, size: 24),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,8 +251,8 @@ class TermsOfServiceScreen extends StatelessWidget {
                               'Terms of Service',
                               style: TextStyle(
                                 fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: effectiveIsDark ? Colors.white : Colors.black,
+                                fontWeight: FontWeight.w900,
+                                color: effectiveIsDark ? Colors.white : const Color(0xFF0F172A),
                                 letterSpacing: 0.2,
                               ),
                             ),
@@ -227,7 +262,9 @@ class TermsOfServiceScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: (effectiveIsDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                                color: effectiveIsDark
+                                    ? Colors.white.withValues(alpha: 0.55)
+                                    : const Color(0xFF64748B),
                               ),
                             ),
                           ],
@@ -292,7 +329,7 @@ class TermsOfServiceScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
@@ -308,8 +345,10 @@ class TermsOfServiceScreen extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w500,
-        height: 1.5,
-        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.75),
+        height: 1.55,
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.85)
+            : const Color(0xFF334155),
       ),
     );
   }

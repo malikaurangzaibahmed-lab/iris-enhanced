@@ -9,6 +9,7 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import '../core/tokens.dart';
+import '../core/glass.dart';
 import '../core/models.dart';
 import '../services/ui_feedback.dart';
 import '../services/cover_page_generator.dart';
@@ -2324,7 +2325,15 @@ Summarize key findings, experimental outcomes, and list project references...
               ),
               child: lgw.GlassMenu(
                 menuWidth: 280,
-                menuHeight: 186.0,
+                menuHeight: 200.0,
+                menuBorderRadius: 18.0,
+                settings: IrisGlass.widgetsSettings(
+                  context,
+                  blur: 16.0,
+                  ambientStrength: 0.7,
+                  lightAngle: 0.15 * math.pi,
+                  thickness: 18.0,
+                ),
                 triggerBuilder: (context, toggleMenu) {
                   return InkWell(
                     onTap: _isConverting
@@ -2358,9 +2367,23 @@ Summarize key findings, experimental outcomes, and list project references...
                   );
                 },
                 items: <String>['PDF (.pdf)', 'Word (.docx)', 'Images (.jpg)', 'Text (.txt)'].map((String value) {
+                  final isSelected = value == _targetFormat;
+                  IconData iconData = Icons.description_rounded;
+                  if (value.contains('PDF')) iconData = Icons.picture_as_pdf_rounded;
+                  else if (value.contains('Word')) iconData = Icons.article_rounded;
+                  else if (value.contains('Images')) iconData = Icons.image_rounded;
+                  else if (value.contains('Text')) iconData = Icons.text_snippet_rounded;
+
                   return lgw.GlassMenuItem(
                     title: value,
+                    isSelected: isSelected,
+                    icon: Icon(
+                      iconData,
+                      size: 16,
+                      color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                    ),
                     onTap: () {
+                      IrisHaptics.chipSelect();
                       setState(() => _targetFormat = value);
                     },
                   );

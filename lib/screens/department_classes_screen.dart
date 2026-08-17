@@ -385,16 +385,24 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasValue = value != 'None';
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        IrisHaptics.actionSoft();
+        onTap();
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.04),
+          color: hasValue
+              ? IrisTokens.brand.withValues(alpha: isDark ? 0.12 : 0.06)
+              : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02)),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
-            width: 0.8,
+            color: hasValue
+                ? IrisTokens.brand.withValues(alpha: isDark ? 0.35 : 0.25)
+                : (isDark ? Colors.white.withValues(alpha: 0.10) : Colors.black.withValues(alpha: 0.08)),
+            width: hasValue ? 1.0 : 0.8,
           ),
         ),
         child: Column(
@@ -405,8 +413,10 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
               style: TextStyle(
                 fontSize: 8.5,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.4),
+                letterSpacing: 0.6,
+                color: hasValue
+                    ? IrisTokens.brand
+                    : (isDark ? Colors.white.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.45)),
               ),
             ),
             const SizedBox(height: 4),
@@ -416,17 +426,20 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                 Expanded(
                   child: Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
+                      color: hasValue
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : (isDark ? Colors.white38 : Colors.black38),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  size: 14,
-                  color: (isDark ? Colors.white54 : Colors.black54),
+                  size: 16,
+                  color: hasValue ? IrisTokens.brand : (isDark ? Colors.white54 : Colors.black54),
                 ),
               ],
             ),
@@ -853,9 +866,16 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                   children: [
                                     Expanded(
                                       child: lgw.GlassMenu(
-                                        menuWidth: 180,
-                                        menuHeight: math.min(validPrograms.length * 48.0 + 16.0, 220.0),
+                                        menuWidth: math.min(MediaQuery.sizeOf(context).width - 32, 260.0),
+                                        menuHeight: math.min(validPrograms.length * 48.0 + 16.0, 320.0),
                                         menuBorderRadius: 18.0,
+                                        settings: IrisGlass.widgetsSettings(
+                                          context,
+                                          blur: 16.0,
+                                          ambientStrength: 0.7,
+                                          lightAngle: 0.15 * math.pi,
+                                          thickness: 18.0,
+                                        ),
                                         triggerBuilder: (context, toggleMenu) {
                                           return _buildGlassInputPill(
                                             title: 'PROGRAM',
@@ -865,10 +885,18 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                         },
                                         items: validPrograms.map((p) {
                                           final isSelected = p == selectedProgram;
+                                          final dept = BatchKey.resolveDepartment(p);
+                                          final label = dept.isNotEmpty && dept != 'Unknown' ? '$p • $dept' : p;
                                           return lgw.GlassMenuItem(
-                                            title: p,
+                                            title: label,
                                             isSelected: isSelected,
+                                            icon: Icon(
+                                              Icons.school_rounded,
+                                              size: 16,
+                                              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                            ),
                                             onTap: () {
+                                              IrisHaptics.chipSelect();
                                               setState(() {
                                                 selectedProgram = p;
                                                 final newSemesters = widget.memory.semesters(p);
@@ -893,9 +921,16 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: lgw.GlassMenu(
-                                        menuWidth: 150,
-                                        menuHeight: math.min(semesters.length * 48.0 + 16.0, 220.0),
+                                        menuWidth: math.min(MediaQuery.sizeOf(context).width - 32, 175.0),
+                                        menuHeight: math.min(semesters.length * 48.0 + 16.0, 260.0),
                                         menuBorderRadius: 18.0,
+                                        settings: IrisGlass.widgetsSettings(
+                                          context,
+                                          blur: 16.0,
+                                          ambientStrength: 0.7,
+                                          lightAngle: 0.15 * math.pi,
+                                          thickness: 18.0,
+                                        ),
                                         triggerBuilder: (context, toggleMenu) {
                                           return _buildGlassInputPill(
                                             title: 'SEMESTER',
@@ -908,7 +943,13 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                           return lgw.GlassMenuItem(
                                             title: 'Semester $s',
                                             isSelected: isSelected,
+                                            icon: Icon(
+                                              Icons.auto_stories_rounded,
+                                              size: 16,
+                                              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                            ),
                                             onTap: () {
+                                              IrisHaptics.chipSelect();
                                               setState(() {
                                                 selectedSemester = s;
                                                 if (selectedProgram != null) {
@@ -928,9 +969,16 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: lgw.GlassMenu(
-                                        menuWidth: 140,
-                                        menuHeight: math.min(sections.length * 48.0 + 16.0, 220.0),
+                                        menuWidth: math.min(MediaQuery.sizeOf(context).width - 32, 175.0),
+                                        menuHeight: math.min(sections.length * 48.0 + 16.0, 260.0),
                                         menuBorderRadius: 18.0,
+                                        settings: IrisGlass.widgetsSettings(
+                                          context,
+                                          blur: 16.0,
+                                          ambientStrength: 0.7,
+                                          lightAngle: 0.15 * math.pi,
+                                          thickness: 18.0,
+                                        ),
                                         triggerBuilder: (context, toggleMenu) {
                                           return _buildGlassInputPill(
                                             title: 'SECTION',
@@ -943,7 +991,13 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                           return lgw.GlassMenuItem(
                                             title: 'Section $sec',
                                             isSelected: isSelected,
+                                            icon: Icon(
+                                              Icons.group_rounded,
+                                              size: 16,
+                                              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                                            ),
                                             onTap: () {
+                                              IrisHaptics.chipSelect();
                                               setState(() {
                                                 selectedSection = sec;
                                               });

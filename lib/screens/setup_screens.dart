@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/tokens.dart';
+import '../core/glass.dart';
 import '../core/models.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
@@ -1455,14 +1456,14 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
               )
             : lgw.GlassMenu(
                 menuWidth: MediaQuery.sizeOf(context).width - 48,
-                menuHeight: math.min(items.length * 52.0 + 16.0, 240.0),
+                menuHeight: math.min(items.length * 52.0 + 16.0, 320.0),
                 menuBorderRadius: 20.0,
-                settings: lgw.LiquidGlassSettings(
-                  blur: 16,
+                settings: IrisGlass.widgetsSettings(
+                  context,
+                  blur: 16.0,
                   ambientStrength: 0.7,
-                  glassColor: (isDark ? const Color(0xFF0F172A) : Colors.white)
-                      .withValues(alpha: isDark ? 0.6 : 0.7),
-                  thickness: 18,
+                  lightAngle: 0.15 * math.pi,
+                  thickness: 18.0,
                 ),
                 triggerBuilder: (context, toggleMenu) {
                   final displayText = selectedValue != null
@@ -1470,6 +1471,7 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                           ? itemLabelBuilder!(selectedValue!)
                           : selectedValue!)
                       : 'Select $label';
+                  final hasValue = selectedValue != null;
                   return InkWell(
                     onTap: () {
                       IrisHaptics.actionSoft();
@@ -1483,17 +1485,19 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.03),
+                        color: hasValue
+                            ? IrisTokens.brand.withValues(alpha: isDark ? 0.12 : 0.06)
+                            : (isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.03)),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: selectedValue != null
+                          color: hasValue
                               ? IrisTokens.brand
                               : (isDark
                                     ? Colors.white.withValues(alpha: 0.1)
                                     : Colors.black.withValues(alpha: 0.1)),
-                          width: selectedValue != null ? 1.5 : 1.0,
+                          width: hasValue ? 1.5 : 1.0,
                         ),
                       ),
                       child: Row(
@@ -1507,7 +1511,7 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
-                                color: selectedValue != null
+                                color: hasValue
                                     ? (isDark ? Colors.white : Colors.black)
                                     : (isDark ? Colors.white38 : Colors.black38),
                               ),
@@ -1515,7 +1519,7 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                           ),
                           Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: selectedValue != null
+                            color: hasValue
                                 ? IrisTokens.brand
                                 : (isDark ? Colors.white54 : Colors.black45),
                             size: 20,
@@ -1529,9 +1533,15 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                   final itemTitle = itemLabelBuilder != null
                       ? itemLabelBuilder!(val)
                       : val;
+                  final isSelected = val == selectedValue;
                   return lgw.GlassMenuItem(
                     title: itemTitle,
-                    icon: Icon(icon, size: 18, color: IrisTokens.brand),
+                    isSelected: isSelected,
+                    icon: Icon(
+                      icon,
+                      size: 18,
+                      color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                    ),
                     onTap: () {
                       IrisHaptics.selectionClick();
                       onSelected(val);

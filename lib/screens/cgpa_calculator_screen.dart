@@ -1,6 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import '../core/glass.dart';
 import '../core/tokens.dart';
 import '../widgets/glass_card.dart';
 import '../services/ui_feedback.dart';
@@ -448,24 +450,33 @@ class CgpaRowCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: lgw.GlassMenu(
-                    menuWidth: 180,
+                    menuWidth: 190,
                     menuHeight: 280.0,
+                    menuBorderRadius: 18.0,
+                    settings: IrisGlass.widgetsSettings(
+                      context,
+                      blur: 16.0,
+                      ambientStrength: 0.7,
+                      lightAngle: 0.15 * math.pi,
+                      thickness: 18.0,
+                    ),
                     triggerBuilder: (context, toggleMenu) {
                       return InkWell(
                         onTap: () {
                           IrisHaptics.actionSoft();
                           toggleMenu();
                         },
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(12),
                         child: Container(
                           height: 56,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: isDark ? Colors.white30 : Colors.black26,
+                              color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.12),
                               width: 1.0,
                             ),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(12),
+                            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -478,6 +489,7 @@ class CgpaRowCard extends StatelessWidget {
                                     'Grade',
                                     style: TextStyle(
                                       fontSize: 10,
+                                      fontWeight: FontWeight.w700,
                                       color: isDark ? Colors.white70 : Colors.black54,
                                     ),
                                   ),
@@ -486,7 +498,7 @@ class CgpaRowCard extends StatelessWidget {
                                     row.grade,
                                     style: TextStyle(
                                       fontSize: 14.5,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w800,
                                       color: isDark ? Colors.white : Colors.black87,
                                     ),
                                   ),
@@ -502,9 +514,17 @@ class CgpaRowCard extends StatelessWidget {
                       );
                     },
                     items: row.gradeOptions.map((g) {
+                      final isSelected = g == row.grade;
                       return lgw.GlassMenuItem(
                         title: '$g (${CgpaCourseRow.gradePoints[g]})',
+                        isSelected: isSelected,
+                        icon: Icon(
+                          Icons.grade_rounded,
+                          size: 16,
+                          color: isSelected ? IrisTokens.brand : (isDark ? Colors.white70 : Colors.black54),
+                        ),
                         onTap: () {
+                          IrisHaptics.chipSelect();
                           row.grade = g;
                           onChanged();
                         },
