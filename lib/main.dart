@@ -3129,6 +3129,7 @@ class _DashboardState extends State<Dashboard>
                                   title: 'COMSATS Student Portal',
                                   sessionScope: 'student',
                                 ),
+                                accentColor: const Color(0xFF3B82F6),
                               );
                             },
                             borderRadius: BorderRadius.circular(16),
@@ -3161,6 +3162,7 @@ class _DashboardState extends State<Dashboard>
                                 context,
                                 originKey: _studentPortalNavKey,
                                 page: AcademicsHubScreen(brain: widget.brain),
+                                accentColor: const Color(0xFF8B5CF6),
                               );
                             },
                             borderRadius: BorderRadius.circular(16),
@@ -4481,6 +4483,7 @@ class _DashboardState extends State<Dashboard>
                           title: 'COMSATS Student Portal',
                           sessionScope: 'student',
                         ),
+                        accentColor: const Color(0xFF3B82F6),
                       );
                     },
                   ),
@@ -4493,6 +4496,7 @@ class _DashboardState extends State<Dashboard>
                         context,
                         originKey: _studentPortalNavKey,
                         page: AcademicsHubScreen(brain: widget.brain),
+                        accentColor: const Color(0xFF8B5CF6),
                       );
                     },
                   ),

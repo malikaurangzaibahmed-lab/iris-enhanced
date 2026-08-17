@@ -6,10 +6,10 @@ import '../core/tokens.dart';
 import '../services/ui_feedback.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
+import '../core/vital_theme.dart';
 
 /// Ultra-Streamlined In-App User Feedback Transceiver for IRIS Mobile Client.
-/// Pre-fills ALL user profile details, role, batch, roll number, and hardware telemetry.
-/// ASKS THE USER ONLY FOR THEIR FEEDBACK NOTE.
+/// Pre-fills user profile details, role, batch, roll number, and hardware telemetry.
 class FeedbackScreen extends StatefulWidget {
   final VoidCallback? onBackPressed;
   final bool? isDark;
@@ -35,6 +35,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   String _category = 'General Feedback';
   int _selectedRating = 5;
   bool _isSubmitting = false;
+
+  static const List<String> _categories = [
+    'General Feedback',
+    'Bug Report',
+    'Feature Request',
+    'Timetable Issue',
+    'UI & Theme',
+  ];
 
   @override
   void initState() {
@@ -88,14 +96,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     'SP26-BCS-1-A';
 
       roll = prefs.getString('student_roll_no') ??
-                   prefs.getString('roll_no') ??
-                   prefs.getString('student_id') ??
-                   prefs.getString('roll_number') ??
-                   'SP26-BCS-001';
+                    prefs.getString('roll_no') ??
+                    prefs.getString('student_id') ??
+                    prefs.getString('roll_number') ??
+                    'SP26-BCS-001';
     }
 
     // Auto-detect device hardware specs
-    String specs = 'REALME RMX3840 • Android 15 (SDK 35)';
+    String specs = 'Android Device';
     try {
       final deviceInfo = DeviceInfoPlugin();
       final androidInfo = await deviceInfo.androidInfo;
@@ -180,284 +188,360 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   @override
   Widget build(BuildContext context) {
     final effectiveIsDark = widget.isDark ?? (Theme.of(context).brightness == Brightness.dark);
-    final textColor = effectiveIsDark ? Colors.white : Colors.black;
-    final mutedTextColor = (effectiveIsDark ? Colors.white : Colors.black).withValues(alpha: 0.6);
+    final textColor = effectiveIsDark ? Colors.white : const Color(0xFF0F172A);
+    final mutedTextColor = effectiveIsDark ? Colors.white.withValues(alpha: 0.6) : const Color(0xFF64748B);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: effectiveIsDark ? IrisTokens.surfaceDark : IrisTokens.surfaceLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         forceMaterialTransparency: true,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: AppBackButton(
           isDark: effectiveIsDark,
           onPressed: widget.onBackPressed,
         ),
       ),
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
+      body: Stack(
+        children: [
+          ObsidianPulse(isDark: effectiveIsDark),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: IrisTokens.brand.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: IrisTokens.brand.withValues(alpha: 0.3)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: IrisTokens.brand.withValues(alpha: 0.15),
-                          blurRadius: 16,
-                          spreadRadius: 2,
+                  // Header
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: IrisTokens.brandGradient,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: IrisTokens.brand.withValues(alpha: 0.3),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.rate_review_rounded, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Send Feedback',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: textColor,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Share your thoughts with the IRIS team',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: mutedTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Auto-Prefilled Telemetry Identity Badge
+                  GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: IrisTokens.brand.withValues(alpha: 0.2),
+                          child: Text(
+                            _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: IrisTokens.brand,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      _userName,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _userRole == 'Faculty'
+                                          ? (effectiveIsDark ? Colors.purple.withValues(alpha: 0.25) : const Color(0xFFF3E8FF))
+                                          : IrisTokens.brand.withValues(alpha: effectiveIsDark ? 0.2 : 0.12),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: _userRole == 'Faculty'
+                                            ? Colors.purple.withValues(alpha: 0.4)
+                                            : IrisTokens.brand.withValues(alpha: 0.3),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      _userRole.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 8.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: _userRole == 'Faculty'
+                                            ? (effectiveIsDark ? Colors.purpleAccent : const Color(0xFF7C3AED))
+                                            : IrisTokens.brand,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '$_userBatch • $_deviceSpecs',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: mutedTextColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.verified_user_rounded,
+                          size: 18,
+                          color: IrisTokens.brand,
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.rate_review_rounded, color: IrisTokens.brand, size: 26),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
+                  const SizedBox(height: 20),
+
+                  // Category Selector
+                  Text(
+                    'FEEDBACK CATEGORY',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      color: IrisTokens.brand,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: _categories.map((cat) {
+                        final isSelected = cat == _category;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: GestureDetector(
+                            onTap: () {
+                              IrisHaptics.chipSelect();
+                              setState(() => _category = cat);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? IrisTokens.brand.withValues(alpha: effectiveIsDark ? 0.22 : 0.14)
+                                    : (effectiveIsDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? IrisTokens.brand
+                                      : (effectiveIsDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08)),
+                                  width: isSelected ? 1.4 : 1.0,
+                                ),
+                              ),
+                              child: Text(
+                                cat,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  color: isSelected
+                                      ? IrisTokens.brand
+                                      : (effectiveIsDark ? Colors.white70 : const Color(0xFF475569)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 5-Star Rating Bar
+                  GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Send Feedback',
+                          'RATE YOUR EXPERIENCE',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w900,
-                            color: textColor,
-                            letterSpacing: 0.2,
+                            color: IrisTokens.brand,
+                            letterSpacing: 0.8,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Share your thoughts with the IRIS team',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: mutedTextColor,
-                          ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(5, (index) {
+                            final starRating = index + 1;
+                            final isFilled = starRating <= _selectedRating;
+                            return IconButton(
+                              iconSize: 32,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              icon: Icon(
+                                isFilled ? Icons.star_rounded : Icons.star_outline_rounded,
+                                color: isFilled ? const Color(0xFFF59E0B) : (effectiveIsDark ? Colors.white24 : Colors.black26),
+                              ),
+                              onPressed: () {
+                                IrisHaptics.selectionClick();
+                                setState(() => _selectedRating = starRating);
+                              },
+                            );
+                          }),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Feedback / Suggestions Text Field
+                  Text(
+                    'YOUR FEEDBACK / SUGGESTION',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      color: IrisTokens.brand,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GlassCard(
+                    padding: const EdgeInsets.all(4),
+                    child: TextFormField(
+                      controller: _commentController,
+                      maxLines: 5,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Type your feedback, bug report, or feature request here...',
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: mutedTextColor.withValues(alpha: 0.6),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.all(14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Glowing Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting ? null : _submitFeedback,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: IrisTokens.brand,
+                        foregroundColor: Colors.white,
+                        elevation: 6,
+                        shadowColor: IrisTokens.brand.withValues(alpha: 0.35),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: _isSubmitting
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Text(
+                                  'TRANSMITTING...',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 13,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.send_rounded, size: 20),
+                                SizedBox(width: 10),
+                                Text(
+                                  'TRANSMIT FEEDBACK TO ADMIN',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 13,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-
-              // Auto-Prefilled Telemetry Identity Badge
-              GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: IrisTokens.brand.withValues(alpha: 0.2),
-                      child: Text(
-                        _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: textColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                _userName,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: textColor,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: _userRole == 'Faculty'
-                                      ? Colors.purple.withValues(alpha: 0.2)
-                                      : IrisTokens.brand.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  _userRole.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w900,
-                                    color: _userRole == 'Faculty' ? Colors.purpleAccent : IrisTokens.brand,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$_userBatch • $_deviceSpecs',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: mutedTextColor,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.check_circle_rounded,
-                      size: 18,
-                      color: IrisTokens.brand,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-
-              // 5-Star Rating Bar
-              GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Column(
-                  children: [
-                    Text(
-                      'RATE YOUR EXPERIENCE',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        color: IrisTokens.brand,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        final starRating = index + 1;
-                        final isFilled = starRating <= _selectedRating;
-                        return IconButton(
-                          iconSize: 30,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          icon: Icon(
-                            isFilled ? Icons.star_rounded : Icons.star_outline_rounded,
-                            color: isFilled ? Colors.amber : mutedTextColor,
-                          ),
-                          onPressed: () {
-                            IrisHaptics.selectionClick();
-                            setState(() => _selectedRating = starRating);
-                          },
-                        );
-                      }),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // THE ONLY INPUT FIELD: Feedback / Suggestions Text
-              Text(
-                'YOUR FEEDBACK / SUGGESTION',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: IrisTokens.brand,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 8),
-              GlassCard(
-                padding: const EdgeInsets.all(4),
-                child: TextFormField(
-                  controller: _commentController,
-                  maxLines: 5,
-                  autofocus: true,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Type your feedback, bug report, or feature request here...',
-                    hintStyle: TextStyle(
-                      fontSize: 13,
-                      color: mutedTextColor.withValues(alpha: 0.5),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(14),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Glowing Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitFeedback,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: IrisTokens.brand,
-                    foregroundColor: Colors.white,
-                    elevation: 8,
-                    shadowColor: IrisTokens.brand.withValues(alpha: 0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: _isSubmitting
-                      ? const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'TRANSMITTING...',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 13,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.send_rounded, size: 20),
-                            SizedBox(width: 10),
-                            Text(
-                              'TRANSMIT FEEDBACK TO ADMIN',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 13,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

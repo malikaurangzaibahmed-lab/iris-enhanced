@@ -27,7 +27,7 @@ class GlassOpenContainer extends StatelessWidget {
     this.closedColor,
     this.openColor,
     this.accentColor,
-    this.transitionDuration = const Duration(milliseconds: 450),
+    this.transitionDuration = const Duration(milliseconds: 460),
     this.tappable = true,
   });
 
@@ -62,8 +62,8 @@ class GlassOpenContainer extends StatelessWidget {
 }
 
 /// Ultra-Premium Liquid Glass Container Transform Route.
-/// Mimics iOS 18 / Android 15 OS-level container morphing with specular edge glow,
-/// true physical geometric scaling, backdrop blur scrim, and zero-jump pop collapse.
+/// Mimics iOS 18 / VisionOS elastic container morphing with bouncy physical springs,
+/// continuous specular edge shimmer, true geometric rect interpolation, and zero-jump collapse.
 class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
   final Widget destinationPage;
   final Widget? originWidget;
@@ -80,15 +80,15 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
     this.originRadius = 24.0,
     this.accentColor,
   }) : super(
-          transitionDuration: const Duration(milliseconds: 420),
-          reverseTransitionDuration: const Duration(milliseconds: 340),
+          transitionDuration: const Duration(milliseconds: 460),
+          reverseTransitionDuration: const Duration(milliseconds: 360),
           opaque: false,
           barrierDismissible: false,
           barrierColor: Colors.transparent,
           pageBuilder: (context, animation, secondaryAnimation) => destinationPage,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
-            final screenSize = MediaQuery.of(context).size;
+            final screenSize = MediaQuery.sizeOf(context);
             final fullScreenRect = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
 
             // Compute exact origin start rect once
@@ -104,34 +104,33 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
               if (startRect == Rect.zero) {
                 startRect = Rect.fromCenter(
                   center: Offset(screenSize.width / 2, screenSize.height / 2),
-                  width: screenSize.width * 0.60,
+                  width: screenSize.width * 0.65,
                   height: 140,
                 );
               }
             }
 
-            // Liquid OS Spring Curve (iOS 18 Elastic Glide Physics)
+            // Bouncy Tactile Spring Curve (iOS 18 Elastic Bloom Physics)
             final curve = CurvedAnimation(
               parent: animation,
-              curve: const Cubic(0.08, 0.95, 0.12, 1.0),
-              reverseCurve: const Cubic(0.24, 0.0, 0.70, 0.20),
+              curve: const Cubic(0.16, 1.14, 0.24, 1.0),
+              reverseCurve: const Cubic(0.34, 0.0, 0.20, 1.0),
             );
 
-            // True Geometric Rect, Corner Radius, and Continuous Specular Glow
-            final currentRect = Rect.lerp(startRect, fullScreenRect, curve.value) ?? fullScreenRect;
-            final currentRadius = lerpDouble(originRadius, 0.0, curve.value) ?? 0.0;
-            final scrimOpacity = (curve.value * 0.50).clamp(0.0, 0.50);
-            final edgeSpecularGlow = (math.sin(curve.value * math.pi) * 0.70).clamp(0.0, 0.70);
+            final t = curve.value.clamp(0.0, 1.05);
 
-            // Continuous physical scale factor from origin card dimensions to fullscreen
-            final widthScale = startRect.width / math.max(1.0, fullScreenRect.width);
-            final heightScale = startRect.height / math.max(1.0, fullScreenRect.height);
-            final baseScale = math.min(widthScale, heightScale).clamp(0.2, 1.0);
-            final innerContentScale = lerpDouble(baseScale, 1.0, curve.value) ?? 1.0;
+            // True Geometric Rect, Corner Radius, and Continuous Specular Glow
+            final currentRect = Rect.lerp(startRect, fullScreenRect, math.min(1.0, t)) ?? fullScreenRect;
+            final currentRadius = lerpDouble(originRadius, 0.0, math.min(1.0, t)) ?? 0.0;
+            final scrimOpacity = (t * 0.52).clamp(0.0, 0.52);
+            final edgeSpecularGlow = (math.sin(math.min(1.0, t) * math.pi) * 0.85).clamp(0.0, 0.85);
+
+            // Smooth physical parallax scale factor
+            final innerContentScale = lerpDouble(0.92, 1.0, math.min(1.0, t)) ?? 1.0;
 
             // Seamless crossfade thresholds
-            final startOpacity = (1.0 - (curve.value / 0.25)).clamp(0.0, 1.0);
-            final endOpacity = ((curve.value - 0.04) / 0.96).clamp(0.0, 1.0);
+            final startOpacity = (1.0 - (t / 0.28)).clamp(0.0, 1.0);
+            final endOpacity = ((t - 0.05) / 0.95).clamp(0.0, 1.0);
 
             final glow = accentColor ?? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6));
 
@@ -141,11 +140,11 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                 if (scrimOpacity > 0.005)
                   Positioned.fill(
                     child: Opacity(
-                      opacity: (curve.value * 2.2).clamp(0.0, 1.0),
+                      opacity: (t * 2.2).clamp(0.0, 1.0),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(
-                          sigmaX: 20.0 * curve.value,
-                          sigmaY: 20.0 * curve.value,
+                          sigmaX: 18.0 * math.min(1.0, t),
+                          sigmaY: 18.0 * math.min(1.0, t),
                         ),
                         child: Container(
                           color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
@@ -160,25 +159,25 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                   child: PhysicalModel(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(currentRadius),
-                    elevation: lerpDouble(8.0, 0.0, curve.value) ?? 0.0,
-                    shadowColor: glow.withValues(alpha: 0.35),
+                    elevation: lerpDouble(12.0, 0.0, math.min(1.0, t)) ?? 0.0,
+                    shadowColor: glow.withValues(alpha: 0.40),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(currentRadius),
                       child: Container(
                         decoration: BoxDecoration(
                           color: isDark
-                              ? Color.lerp(const Color(0xFF0F172A), const Color(0xFF030712), curve.value)
-                              : Color.lerp(const Color(0xFFF1F5F9), const Color(0xFFF8FAFC), curve.value),
+                              ? Color.lerp(const Color(0xFF0F172A), const Color(0xFF030712), math.min(1.0, t))
+                              : Color.lerp(const Color(0xFFF1F5F9), const Color(0xFFF8FAFC), math.min(1.0, t)),
                           borderRadius: BorderRadius.circular(currentRadius),
                           border: Border.all(
                             color: glow.withValues(alpha: edgeSpecularGlow),
-                            width: lerpDouble(2.0, 0.0, curve.value) ?? 0.0,
+                            width: lerpDouble(2.2, 0.0, math.min(1.0, t)) ?? 0.0,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: glow.withValues(alpha: (0.35 * (1.0 - curve.value)).clamp(0.0, 0.35)),
-                              blurRadius: lerpDouble(24.0, 0.0, curve.value) ?? 0.0,
-                              spreadRadius: lerpDouble(2.0, 0.0, curve.value) ?? 0.0,
+                              color: glow.withValues(alpha: (0.40 * (1.0 - math.min(1.0, t))).clamp(0.0, 0.40)),
+                              blurRadius: lerpDouble(28.0, 0.0, math.min(1.0, t)) ?? 0.0,
+                              spreadRadius: lerpDouble(2.5, 0.0, math.min(1.0, t)) ?? 0.0,
                             ),
                           ],
                         ),
@@ -190,7 +189,7 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                               Opacity(
                                 opacity: startOpacity,
                                 child: Transform.scale(
-                                  scale: lerpDouble(1.0, 1.25, curve.value) ?? 1.0,
+                                  scale: lerpDouble(1.0, 1.25, math.min(1.0, t)) ?? 1.0,
                                   alignment: Alignment.center,
                                   child: FittedBox(
                                     fit: BoxFit.cover,
@@ -203,7 +202,7 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
                                 ),
                               ),
 
-                            // Destination Page (Physically blooms from center of morphing bounds)
+                            // Destination Page (Physically blooms with bouncy elastic parallax)
                             if (endOpacity > 0.01)
                               Opacity(
                                 opacity: endOpacity,

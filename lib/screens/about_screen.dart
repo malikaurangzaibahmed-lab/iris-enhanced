@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart'
     hide NotificationVisibility;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,13 +11,13 @@ import '../services/ui_feedback.dart';
 import '../services/notification_service.dart';
 import '../services/timetable_ota_service.dart';
 import '../services/widget_service.dart';
-import '../widgets/smooth_scroll.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/batch_selector.dart';
 import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/vital_card.dart';
+import '../widgets/glass_container_transform.dart';
 import '../services/remote_config_service.dart';
 import 'legal_screens.dart';
 import 'feedback_screen.dart';
@@ -306,23 +304,29 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   void _openPrivacy() {
-    IrisHaptics.actionSoft();
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    pushGlassContainerMorphRoute(
+      context,
+      page: PrivacyPolicyScreen(isDark: isDark),
+      accentColor: const Color(0xFF8B5CF6),
     );
   }
 
   void _openTerms() {
-    IrisHaptics.actionSoft();
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    pushGlassContainerMorphRoute(
+      context,
+      page: TermsOfServiceScreen(isDark: isDark),
+      accentColor: IrisTokens.brand,
     );
   }
 
   void _openFeedback() {
-    IrisHaptics.actionSoft();
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const FeedbackScreen()),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    pushGlassContainerMorphRoute(
+      context,
+      page: FeedbackScreen(isDark: isDark),
+      accentColor: const Color(0xFF10B981),
     );
   }
 
