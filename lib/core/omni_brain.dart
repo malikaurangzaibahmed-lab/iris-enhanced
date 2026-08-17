@@ -444,15 +444,22 @@ class OmniBrain {
     final weekday = now.weekday;
     final currentT = now.hour + (now.minute / 60.0);
 
-    // Gather ALL sessions for matching teachers
+    // Fast O(1) lookup via byTeacher index, fallback to unique teacher name keys
+    final teacherIndex = memory.byTeacher();
     final matchedSessions = <ClassSession>[];
     String? resolvedName;
 
-    for (final session in memory.activeSessions()) {
-      if (_matchesTeacher(session.teacher, search)) {
-        matchedSessions.add(session);
-        // Keep the most common full name
-        resolvedName ??= session.teacher;
+    final exactSessions = teacherIndex[search];
+    if (exactSessions != null && exactSessions.isNotEmpty) {
+      matchedSessions.addAll(exactSessions);
+      resolvedName = exactSessions.first.teacher;
+    } else {
+      // Search only among unique teacher keys (50-100 entries) rather than thousands of sessions
+      for (final entry in teacherIndex.entries) {
+        if (_matchesTeacher(entry.key, search)) {
+          matchedSessions.addAll(entry.value);
+          resolvedName ??= entry.value.first.teacher;
+        }
       }
     }
 

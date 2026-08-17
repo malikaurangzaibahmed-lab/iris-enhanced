@@ -44,8 +44,6 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
   List<RoomAvailability> _allAvailability = [];
   List<RoomAvailability> _filteredRooms = [];
   RoomRecommendation _recommendation = RoomRecommendation(recommended: null, reason: '', alternatives: const []);
-  String? _likelyBuilding;
-  int _likelyBuildingCount = 0;
   List<String> _buildings = ['All'];
   bool _showExamSlots = false;
 
@@ -78,18 +76,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
     }
   }
 
-  String? _bestBuildingSuggestion(List<RoomAvailability> availability) {
-    final counts = <String, int>{};
-    for (final room in availability) {
-      if (!room.isAvailable) continue;
-      if (room.building == 'Other' || room.building == 'Academic Block') continue;
-      counts[room.building] = (counts[room.building] ?? 0) + 1;
-    }
-    if (counts.isEmpty) return null;
-    final ranked = counts.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return ranked.first.key;
-  }
+
 
   @override
   void initState() {
@@ -145,12 +132,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
       _recommendation = RoomRecommendation(recommended: null, reason: '', alternatives: const []);
     }
 
-    _likelyBuilding = _bestBuildingSuggestion(_allAvailability);
-    _likelyBuildingCount = _likelyBuilding == null
-        ? 0
-        : _allAvailability
-            .where((a) => a.isAvailable && a.building == _likelyBuilding)
-            .length;
+
 
     final baseBuildings = _allAvailability
         .map((e) => e.building)
@@ -830,7 +812,10 @@ class _OccupancyDonutPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _OccupancyDonutPainter oldDelegate) =>
+      oldDelegate.percent != percent ||
+      oldDelegate.color != color ||
+      oldDelegate.isDark != isDark;
 }
 
 // ==========================================================================
@@ -852,6 +837,33 @@ class RoomAvailabilityCard extends StatelessWidget {
   });
 
   Widget _buildOccupancyTimeline(String roomId, bool isDark) {
+    final cachedSlots = availability.slotOccupancy;
+    if (cachedSlots != null && cachedSlots.length == 5) {
+      return Row(
+        children: List.generate(5, (slotIndex) {
+          final isOccupied = cachedSlots[slotIndex];
+          return Expanded(
+            child: Container(
+              height: 7,
+              margin: const EdgeInsets.symmetric(horizontal: 2.5),
+              decoration: BoxDecoration(
+                color: isOccupied
+                    ? const Color(0xFFEF4444).withValues(alpha: 0.8)
+                    : const Color(0xFF10B981).withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(3.5),
+                border: Border.all(
+                  color: isOccupied
+                      ? const Color(0xFFEF4444).withValues(alpha: 0.3)
+                      : const Color(0xFF10B981).withValues(alpha: 0.3),
+                  width: 0.8,
+                ),
+              ),
+            ),
+          );
+        }),
+      );
+    }
+
     final slotStarts = [8.5, 9.916, 11.333, 13.666, 15.083];
     final slotEnds = [9.916, 11.333, 12.75, 15.083, 16.5];
 
@@ -892,6 +904,8 @@ class RoomAvailabilityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = availability.isAvailable ? IrisTokens.success : IrisTokens.error;
+    final locationText = availability.formattedLocation ??
+        RoomPersistenceService.parseRoomCode(availability.roomId).formattedLocation;
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -950,18 +964,13 @@ class RoomAvailabilityCard extends StatelessWidget {
                                 color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.4),
                               ),
                               const SizedBox(width: 6),
-                              Builder(
-                                builder: (_) {
-                                  final details = RoomPersistenceService.parseRoomCode(availability.roomId);
-                                  return Text(
-                                    details.formattedLocation,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: (isDark ? Colors.white70 : Colors.black87),
-                                    ),
-                                  );
-                                },
+                              Text(
+                                locationText,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: (isDark ? Colors.white70 : Colors.black87),
+                                ),
                               ),
                             ],
                           ),

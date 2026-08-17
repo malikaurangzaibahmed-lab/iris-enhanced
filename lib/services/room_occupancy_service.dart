@@ -1,9 +1,14 @@
 import 'package:iris/core/models.dart';
 import 'package:iris/core/format_guard.dart';
+import 'room_persistence_service.dart';
 
 class RoomOccupancyService {
   final Map<String, Room> _rooms = {};
   final Map<String, Department> _departments = {};
+  static final Map<String, RoomLocationDetails> _parsedLocationCache = {};
+
+  static const List<double> _slotStarts = [8.5, 9.916, 11.333, 13.666, 15.083];
+  static const List<double> _slotEnds = [9.916, 11.333, 12.75, 15.083, 16.5];
 
   void registerDepartment(String departmentId, String departmentName) {
     _departments[departmentId] = Department(
@@ -29,6 +34,36 @@ class RoomOccupancyService {
     _rooms[cleanId] = room;
   }
 
+  static String _getFormattedLocation(String roomId) {
+    return _parsedLocationCache.putIfAbsent(
+      roomId,
+      () => RoomPersistenceService.parseRoomCode(roomId),
+    ).formattedLocation;
+  }
+
+  /// Helper to index sessions by roomId + dayIndex
+  Map<String, List<ClassSession>> _indexSessionsByRoomDay(
+    List<ClassSession> allSessions,
+    int dayIndex,
+  ) {
+    final map = <String, List<ClassSession>>{};
+    for (final s in allSessions) {
+      if (s.dayIndex == dayIndex) {
+        final cleanRoom = FormatGuard.sanitizeRoom(s.room);
+        map.putIfAbsent(cleanRoom, () => []).add(s);
+      }
+    }
+    return map;
+  }
+
+  List<bool> _calculateSlotOccupancy(List<ClassSession> roomSessions) {
+    if (roomSessions.isEmpty) return const [false, false, false, false, false];
+    return List<bool>.generate(5, (slotIndex) {
+      final slotMiddle = _slotStarts[slotIndex] + (_slotEnds[slotIndex] - _slotStarts[slotIndex]) / 2;
+      return roomSessions.any((s) => s.safeStartVal <= slotMiddle && slotMiddle < s.actualEndVal);
+    });
+  }
+
   /// Get all available rooms right now
   List<RoomAvailability> getAvailableRoomsNow(
     List<ClassSession> allSessions,
@@ -37,18 +72,54 @@ class RoomOccupancyService {
     final currentHour = now.hour + (now.minute / 60.0);
     final dayIndex = now.weekday;
 
-    // First pass to build raw availability
+    return _computeRoomAvailability(allSessions, currentHour, dayIndex);
+  }
+
+  /// Get availability for a specific future time
+  List<RoomAvailability> getRoomAvailabilityAt(
+    List<ClassSession> allSessions,
+    double targetHour,
+    int dayIndex,
+  ) {
+    return _computeRoomAvailability(allSessions, targetHour, dayIndex);
+  }
+
+  List<RoomAvailability> _computeRoomAvailability(
+    List<ClassSession> allSessions,
+    double targetHour,
+    int dayIndex,
+  ) {
+    final indexedSessions = _indexSessionsByRoomDay(allSessions, dayIndex);
     final rawAvailability = <RoomAvailability>[];
+
     for (final room in _rooms.values) {
       final cleanRoomId = FormatGuard.sanitizeRoom(room.id);
-      final occupyingSessions = allSessions.where((s) =>
-          FormatGuard.sanitizeRoom(s.room) == cleanRoomId &&
-          s.dayIndex == dayIndex &&
-          s.safeStartVal <= currentHour &&
-          currentHour < s.actualEndVal);
+      final roomSessions = indexedSessions[cleanRoomId] ?? const <ClassSession>[];
 
-      if (occupyingSessions.isEmpty) {
-        final nextSession = _getNextSession(room.id, allSessions, dayIndex, currentHour);
+      ClassSession? occupyingSession;
+      for (final s in roomSessions) {
+        if (s.safeStartVal <= targetHour && targetHour < s.actualEndVal) {
+          occupyingSession = s;
+          break;
+        }
+      }
+
+      final isAvailable = occupyingSession == null;
+      ClassSession? nextSession;
+      if (isAvailable && roomSessions.isNotEmpty) {
+        for (final s in roomSessions) {
+          if (s.safeStartVal > targetHour) {
+            if (nextSession == null || s.safeStartVal < nextSession.safeStartVal) {
+              nextSession = s;
+            }
+          }
+        }
+      }
+
+      final slotOccupancy = _calculateSlotOccupancy(roomSessions);
+      final formattedLoc = _getFormattedLocation(room.id);
+
+      if (isAvailable) {
         rawAvailability.add(RoomAvailability(
           roomId: room.id,
           building: room.building,
@@ -59,91 +130,44 @@ class RoomOccupancyService {
           nextSessionAt: nextSession?.safeStartVal,
           nextSessionSubject: nextSession?.subject,
           minulesFreeUntilNextSession: nextSession != null
-              ? ((nextSession.safeStartVal - currentHour) * 60).toInt()
+              ? ((nextSession.safeStartVal - targetHour) * 60).toInt()
               : null,
-          studyScore: 0, // Placeholder
+          studyScore: 0,
+          slotOccupancy: slotOccupancy,
+          formattedLocation: formattedLoc,
         ));
       } else {
-        final session = occupyingSessions.first;
         rawAvailability.add(RoomAvailability(
           roomId: room.id,
           building: room.building,
           capacity: room.capacity,
           amenities: room.amenities,
           isAvailable: false,
-          occupiedUntil: session.actualEndVal,
-          occupiedBy: session.subject,
-          occupiedByTeacher: session.teacher,
-          minulesFreeUntilNextSession: ((session.actualEndVal - currentHour) * 60).toInt(),
+          occupiedUntil: occupyingSession.actualEndVal,
+          occupiedBy: occupyingSession.subject,
+          occupiedByTeacher: occupyingSession.teacher,
+          minulesFreeUntilNextSession: ((occupyingSession.actualEndVal - targetHour) * 60).toInt(),
           studyScore: 0,
+          slotOccupancy: slotOccupancy,
+          formattedLocation: formattedLoc,
         ));
       }
     }
 
-    // Second pass to calculate study score with building context
     final availability = rawAvailability.map((a) {
       if (!a.isAvailable) return a;
       final room = _rooms[a.roomId]!;
-      final nextSession = _getNextSession(room.id, allSessions, dayIndex, currentHour);
-      return RoomAvailability(
-        roomId: a.roomId,
-        building: a.building,
-        capacity: a.capacity,
-        amenities: a.amenities,
-        isAvailable: true,
-        occupiedUntil: null,
-        nextSessionAt: a.nextSessionAt,
-        nextSessionSubject: a.nextSessionSubject,
-        minulesFreeUntilNextSession: a.minulesFreeUntilNextSession,
-        studyScore: _calculateStudyScore(room, nextSession, rawAvailability),
-      );
-    }).toList();
-
-    // Sort by study score (best spaces first)
-    availability.sort((a, b) => b.studyScore.compareTo(a.studyScore));
-    return availability;
-  }
-
-  /// Get availability for a specific future time
-  List<RoomAvailability> getRoomAvailabilityAt(
-    List<ClassSession> allSessions,
-    double targetHour,
-    int dayIndex,
-  ) {
-    final rawAvailability = <RoomAvailability>[];
-    for (final room in _rooms.values) {
+      ClassSession? nextSession;
       final cleanRoomId = FormatGuard.sanitizeRoom(room.id);
-      final occupyingSessions = allSessions.where((s) =>
-          FormatGuard.sanitizeRoom(s.room) == cleanRoomId &&
-          s.dayIndex == dayIndex &&
-          s.safeStartVal <= targetHour &&
-          targetHour < s.actualEndVal);
+      final roomSessions = indexedSessions[cleanRoomId] ?? const <ClassSession>[];
+      for (final s in roomSessions) {
+        if (s.safeStartVal > targetHour) {
+          if (nextSession == null || s.safeStartVal < nextSession.safeStartVal) {
+            nextSession = s;
+          }
+        }
+      }
 
-      final isAvailable = occupyingSessions.isEmpty;
-      final nextSession = isAvailable
-          ? _getNextSession(room.id, allSessions, dayIndex, targetHour)
-          : null;
-
-      rawAvailability.add(RoomAvailability(
-        roomId: room.id,
-        building: room.building,
-        capacity: room.capacity,
-        amenities: room.amenities,
-        isAvailable: isAvailable,
-        occupiedUntil: isAvailable ? null : occupyingSessions.first.actualEndVal,
-        nextSessionAt: nextSession?.safeStartVal,
-        nextSessionSubject: nextSession?.subject,
-        minulesFreeUntilNextSession: nextSession != null
-            ? ((nextSession.safeStartVal - targetHour) * 60).toInt()
-            : null,
-        studyScore: 0,
-      ));
-    }
-
-    final availability = rawAvailability.map((a) {
-      if (!a.isAvailable) return a;
-      final room = _rooms[a.roomId]!;
-      final nextSession = _getNextSession(room.id, allSessions, dayIndex, targetHour);
       return RoomAvailability(
         roomId: a.roomId,
         building: a.building,
@@ -155,6 +179,8 @@ class RoomOccupancyService {
         nextSessionSubject: a.nextSessionSubject,
         minulesFreeUntilNextSession: a.minulesFreeUntilNextSession,
         studyScore: _calculateStudyScore(room, nextSession, rawAvailability),
+        slotOccupancy: a.slotOccupancy,
+        formattedLocation: a.formattedLocation,
       );
     }).toList();
 
@@ -317,25 +343,6 @@ class RoomOccupancyService {
       reason: reason,
       alternatives: alternatives,
     );
-  }
-
-  // Helper methods
-  ClassSession? _getNextSession(
-    String roomId,
-    List<ClassSession> allSessions,
-    int dayIndex,
-    double currentHour,
-  ) {
-    final cleanTarget = FormatGuard.sanitizeRoom(roomId);
-    final upcomingSessions = allSessions.where((s) =>
-        FormatGuard.sanitizeRoom(s.room) == cleanTarget &&
-        s.dayIndex == dayIndex &&
-        s.safeStartVal > currentHour).toList();
-
-    if (upcomingSessions.isEmpty) return null;
-
-    upcomingSessions.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-    return upcomingSessions.first;
   }
 
   double _calculateStudyScore(Room room, ClassSession? nextSession, List<RoomAvailability> allAvailability) {

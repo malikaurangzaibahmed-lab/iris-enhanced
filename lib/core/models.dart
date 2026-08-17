@@ -983,6 +983,8 @@ class RoomAvailability {
   final String? nextSessionSubject;
   final int? minulesFreeUntilNextSession;
   final double studyScore;
+  final List<bool>? slotOccupancy;
+  final String? formattedLocation;
 
   RoomAvailability({
     required this.roomId,
@@ -997,6 +999,8 @@ class RoomAvailability {
     this.nextSessionSubject,
     this.minulesFreeUntilNextSession,
     required this.studyScore,
+    this.slotOccupancy,
+    this.formattedLocation,
   });
 }
 

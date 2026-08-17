@@ -65,6 +65,8 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
   List<FacultyProfile> _filtered = const [];
   final Map<String, TeacherLocatorResult> _teacherInsightCache = {};
   final Map<String, GlobalKey> _cardKeys = {};
+  final Map<String, String> _profileSearchIndex = {};
+  final Map<String, String> _profileBlockIndex = {};
   bool _loading = true;
   String _error = '';
   String _query = '';
@@ -152,6 +154,18 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
       return;
     }
     helpdeskList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    _profileSearchIndex.clear();
+    _profileBlockIndex.clear();
+    for (final item in helpdeskList) {
+      final normalizedName = item.name.replaceAll('.', ' ').toLowerCase();
+      final block = _blockFromLocation(item.location);
+      _profileBlockIndex[item.id] = block;
+      _profileSearchIndex[item.id] =
+          '${item.name} $normalizedName ${item.department} ${item.location} $block ${item.email} ${item.contact}'
+              .toLowerCase();
+    }
+
     setState(() {
       _all = helpdeskList;
       _loading = false;
@@ -202,7 +216,7 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
 
   List<String> get _blocks {
     final items = _all
-        .map((e) => _blockFromLocation(e.location))
+        .map((e) => _profileBlockIndex[e.id] ?? _blockFromLocation(e.location))
         .where((e) => e.isNotEmpty)
         .toSet()
         .toList()
@@ -212,23 +226,35 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
 
   void _applyFilter() {
     final q = _query.toLowerCase().trim();
-    final qTokens = q.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
-    
-    final result = _all.where((item) {
-      final departmentOk = _selectedDepartment == 'All' ||
-          item.department.toLowerCase() == _selectedDepartment.toLowerCase();
-      final blockOk = _selectedBlock == 'All' ||
-          _blockFromLocation(item.location).toLowerCase() ==
-              _selectedBlock.toLowerCase();
+    final qTokens = q
+        .split(RegExp(r'\s+'))
+        .where((t) => t.isNotEmpty)
+        .map((t) => t.replaceAll('.', ''))
+        .toList();
 
-      if (!departmentOk || !blockOk) return false;
+    final selectedDeptLower = _selectedDepartment.toLowerCase();
+    final selectedBlockLower = _selectedBlock.toLowerCase();
+
+    final result = _all.where((item) {
+      if (_selectedDepartment != 'All' &&
+          item.department.toLowerCase() != selectedDeptLower) {
+        return false;
+      }
+      final block = _profileBlockIndex[item.id] ?? _blockFromLocation(item.location);
+      if (_selectedBlock != 'All' &&
+          block.toLowerCase() != selectedBlockLower) {
+        return false;
+      }
+
       if (qTokens.isEmpty) return true;
 
-      final normalizedName = item.name.replaceAll('.', ' ').toLowerCase();
-      final fullSearchText = '${item.name} $normalizedName ${item.department} ${item.location} ${item.email} ${item.contact}'.toLowerCase();
+      final searchIndex = _profileSearchIndex[item.id] ??
+          '${item.name} ${item.department} ${item.location}'.toLowerCase();
 
-      // Ensure every search token matches somewhere in the profile text
-      return qTokens.every((token) => fullSearchText.contains(token.replaceAll('.', '')));
+      for (final token in qTokens) {
+        if (!searchIndex.contains(token)) return false;
+      }
+      return true;
     }).toList();
 
     setState(() {
