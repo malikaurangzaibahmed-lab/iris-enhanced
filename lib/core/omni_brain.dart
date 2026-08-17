@@ -1,4 +1,5 @@
 import 'models.dart';
+import 'format_guard.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../services/remote_config_service.dart';
@@ -516,9 +517,9 @@ class OmniBrain {
 
     // Sort each day's sessions by start time
     for (final entries in weeklySchedule.values) {
-      entries.sort((a, b) => a.startTime.compareTo(b.startTime));
+      entries.sort((a, b) => FormatGuard.toDecimalTime(a.startTime).compareTo(FormatGuard.toDecimalTime(b.startTime)));
     }
-    todaySessions.sort((a, b) => a.startTime.compareTo(b.startTime));
+    todaySessions.sort((a, b) => FormatGuard.toDecimalTime(a.startTime).compareTo(FormatGuard.toDecimalTime(b.startTime)));
 
     // Determine status
     String status;

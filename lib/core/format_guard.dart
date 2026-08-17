@@ -4,35 +4,103 @@ class FormatGuard {
   static final RegExp _timeSplit = RegExp(r'[:.]');
   static final RegExp _roomNoise = RegExp(r'\(\d+\)');
   static final RegExp _roomParen = RegExp(r'\s*\([^)]*\)');
+  static final RegExp _alphaOnly = RegExp(r'[A-Z]');
+  static final RegExp _multiSpace = RegExp(r'\s{2,}');
+
+  static final RegExp _roomDashRegex = RegExp(r'^([A-Za-z]+)\s*-\s*([0-9.]+)$');
+  static final RegExp _wcrRegex = RegExp(r'^(WCR)\s*(\d+)$', caseSensitive: false);
+  static final RegExp _dRegex = RegExp(r'^([D])\s*(\d+)$', caseSensitive: false);
+  static final RegExp _clabRegex = RegExp(r'^(?:C-Lab|CLab|Computer\s*Lab)\s*[- ]?(\d+)$', caseSensitive: false);
+
+  static final RegExp _weekdayPrefixRegex = RegExp(
+    r'^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Mon|Tue|Wed|Thu|Fri|Sat|Sun)[,\s]+',
+    caseSensitive: false,
+  );
+  static final RegExp _isoDateRegex = RegExp(r'^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$');
+  static final RegExp _namedDateRegex = RegExp(r'^(\d{1,2})[-/\s]([A-Za-z]{3,9})[-/\s](\d{2,4})$');
+  static final RegExp _dmyDateRegex = RegExp(r'^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$');
+  static final RegExp _embeddedDateRegex = RegExp(r'(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})');
+
+  static final RegExp _batchPrefixRegex = RegExp(
+    r'^(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA|BSCS|BSSE|BSAI|BSDS|BSEE|BSME)-?\d*[A-Z]?)\s*[-/:]?\s*',
+    caseSensitive: false,
+  );
+  static final RegExp _batchSuffixRegex = RegExp(
+    r'\s*[-/:]?\s*(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA)-?\d*[A-Z]?)$',
+    caseSensitive: false,
+  );
+  static final RegExp _parenthesizedTeacherRegex = RegExp(
+    r'\s*\([^)]*(?:Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*\)',
+    caseSensitive: false,
+  );
+  static final RegExp _durationNoiseRegex = RegExp(
+    r'\s*\(\s*\d+\s*(?:hrs?|hours?)\s*\)\s*',
+    caseSensitive: false,
+  );
+  static final RegExp _teacherHonorificDotRegex = RegExp(
+    r'^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)\.([A-Za-z])',
+    caseSensitive: false,
+  );
+  static final RegExp _teacherHonorificNoSpaceRegex = RegExp(
+    r'^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)([A-Z])',
+    caseSensitive: false,
+  );
+
+  static final Set<String> _deptPrefixes = {
+    'CS', 'SE', 'AI', 'DS', 'CYS', 'BCS', 'BSE', 'BAI', 'BDS', 'BCY',
+    'EE', 'BEE', 'BSEE', 'CE', 'BCE', 'TE', 'BTE', 'PTE',
+    'ME', 'BME', 'BSME', 'CVE', 'BCVE', 'BSCE',
+    'MS', 'BBA', 'MBA', 'AF', 'BAF', 'BBS', 'EC', 'BEC', 'MGT', 'HRM',
+    'MT', 'MTH', 'BMT', 'HUM', 'ENG', 'BEN', 'PSY', 'BPS', 'MCM', 'IR', 'BIR',
+    'FSN', 'BTY', 'BCH', 'HND', 'RBS', 'BIO', 'BBI', 'MB', 'PHY', 'CHM', 'VS'
+  };
+
+  static const Map<String, int> _monthMap = {
+    'jan': 1, 'january': 1, 'feb': 2, 'february': 2, 'mar': 3, 'march': 3,
+    'apr': 4, 'april': 4, 'may': 5, 'jun': 6, 'june': 6, 'jul': 7, 'july': 7,
+    'aug': 8, 'august': 8, 'sep': 9, 'september': 9, 'oct': 10, 'october': 10,
+    'nov': 11, 'november': 11, 'dec': 12, 'december': 12
+  };
+
+  // Memoization Caches
+  static final Map<String, String> _roomSanitizeCache = {};
+  static final Map<String, double> _decimalTimeCache = {};
+  static final Map<String, String> _teacherFormatCache = {};
+  static final Map<String, String> _subjectSanitizeCache = {};
 
   /// Canonicalize room name across PDF timetables and Excel date sheets
   static String sanitizeRoom(String raw) {
     if (raw.isEmpty) return 'TBA';
+    final cached = _roomSanitizeCache[raw];
+    if (cached != null) return cached;
+
     var cleaned = raw.replaceAll(_roomNoise, '').replaceAll(_roomParen, '').trim();
     
     // Normalize dashes and spaces: "A - 3" -> "A-3", "C - 1.1" -> "C-1.1"
     cleaned = cleaned.replaceAllMapped(
-      RegExp(r'^([A-Za-z]+)\s*-\s*([0-9.]+)$'),
+      _roomDashRegex,
       (m) => '${m[1]!.toUpperCase()}-${m[2]}',
     );
 
     // Normalize "WCR 1" -> "WCR-1", "D 1" -> "D1"
     cleaned = cleaned.replaceAllMapped(
-      RegExp(r'^(WCR)\s*(\d+)$', caseSensitive: false),
+      _wcrRegex,
       (m) => 'WCR-${m[2]}',
     );
     cleaned = cleaned.replaceAllMapped(
-      RegExp(r'^([D])\s*(\d+)$', caseSensitive: false),
+      _dRegex,
       (m) => 'D${m[2]}',
     );
 
     // Normalize "C-Lab 3", "CLab 3", "Computer Lab 3" -> "CLab-3"
     cleaned = cleaned.replaceAllMapped(
-      RegExp(r'^(?:C-Lab|CLab|Computer\s*Lab)\s*[- ]?(\d+)$', caseSensitive: false),
+      _clabRegex,
       (m) => 'CLab-${m[1]}',
     );
 
-    return cleaned.isEmpty ? raw.trim() : cleaned;
+    final result = cleaned.isEmpty ? raw.trim() : cleaned;
+    _roomSanitizeCache[raw] = result;
+    return result;
   }
 
   /// Comprehensive date parser handling all university date sheet variations:
@@ -43,11 +111,10 @@ class FormatGuard {
     var s = raw.trim();
 
     // Strip weekday prefix e.g. "Monday 08-12-2025" or "Mon, 08-12-2025"
-    s = s.replaceAll(RegExp(r'^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Mon|Tue|Wed|Thu|Fri|Sat|Sun)[,\s]+', caseSensitive: false), '').trim();
+    s = s.replaceAll(_weekdayPrefixRegex, '').trim();
 
     // 1. ISO format: YYYY-MM-DD
-    final isoRegex = RegExp(r'^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$');
-    var match = isoRegex.firstMatch(s);
+    var match = _isoDateRegex.firstMatch(s);
     if (match != null) {
       final y = int.parse(match.group(1)!);
       final m = int.parse(match.group(2)!);
@@ -56,27 +123,19 @@ class FormatGuard {
     }
 
     // 2. Named Month: DD-MMM-YYYY or DD-MMM-YY (e.g. 08-Dec-2025, 25-Mar-26)
-    final namedRegex = RegExp(r'^(\d{1,2})[-/\s]([A-Za-z]{3,9})[-/\s](\d{2,4})$');
-    match = namedRegex.firstMatch(s);
+    match = _namedDateRegex.firstMatch(s);
     if (match != null) {
       final d = int.parse(match.group(1)!);
       final monthStr = match.group(2)!.toLowerCase();
       var y = int.parse(match.group(3)!);
       if (y < 100) y += 2000;
 
-      const months = {
-        'jan': 1, 'january': 1, 'feb': 2, 'february': 2, 'mar': 3, 'march': 3,
-        'apr': 4, 'april': 4, 'may': 5, 'jun': 6, 'june': 6, 'jul': 7, 'july': 7,
-        'aug': 8, 'august': 8, 'sep': 9, 'september': 9, 'oct': 10, 'october': 10,
-        'nov': 11, 'november': 11, 'dec': 12, 'december': 12
-      };
-      final m = months[monthStr] ?? 1;
+      final m = _monthMap[monthStr] ?? 1;
       return DateTime(y, m, d);
     }
 
     // 3. Numeric DMY: DD-MM-YYYY or DD-MM-YY or DD/MM/YYYY or DD/MM/YY
-    final dmyRegex = RegExp(r'^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$');
-    match = dmyRegex.firstMatch(s);
+    match = _dmyDateRegex.firstMatch(s);
     if (match != null) {
       final d = int.parse(match.group(1)!);
       final m = int.parse(match.group(2)!);
@@ -86,8 +145,7 @@ class FormatGuard {
     }
 
     // Fallback: search anywhere in string for DD-MM-YYYY or DD-MM-YY
-    final embeddedRegex = RegExp(r'(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})');
-    match = embeddedRegex.firstMatch(raw);
+    match = _embeddedDateRegex.firstMatch(raw);
     if (match != null) {
       final d = int.parse(match.group(1)!);
       final m = int.parse(match.group(2)!);
@@ -133,10 +191,14 @@ class FormatGuard {
   }
 
   static double toDecimalTime(String raw) {
+    if (raw.isEmpty) return 8.5;
+    final cached = _decimalTimeCache[raw];
+    if (cached != null) return cached;
+
     var s = raw.trim().toUpperCase();
     final isPM = s.contains('PM');
     final isAM = s.contains('AM');
-    s = s.replaceAll(RegExp(r'[A-Z]'), '').trim();
+    s = s.replaceAll(_alphaOnly, '').trim();
 
     final parts = s.split(_timeSplit);
     if (parts.isEmpty) return 0.0;
@@ -154,7 +216,9 @@ class FormatGuard {
       }
     }
 
-    return hour + (minute / 60.0);
+    final result = hour + (minute / 60.0);
+    _decimalTimeCache[raw] = result;
+    return result;
   }
 
   static int dayIndex(String dayName) {
@@ -205,33 +269,11 @@ class FormatGuard {
     return '${hour.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')} $period';
   }
 
-  static final RegExp _batchPrefixRegex = RegExp(
-    r'^(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA|BSCS|BSSE|BSAI|BSDS|BSEE|BSME)-?\d*[A-Z]?)\s*[-/:]?\s*',
-    caseSensitive: false,
-  );
-  static final RegExp _batchSuffixRegex = RegExp(
-    r'\s*[-/:]?\s*(?:(?:FA|SP)\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)?|[A-Z]{2,4}-\d+[A-Z]?|(?:BCS|BSE|BAI|BDS|BEE|BME|BBA)-?\d*[A-Z]?)$',
-    caseSensitive: false,
-  );
-  static final RegExp _parenthesizedTeacherRegex = RegExp(
-    r'\s*\([^)]*(?:Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*\)',
-    caseSensitive: false,
-  );
-  static final RegExp _durationNoiseRegex = RegExp(
-    r'\s*\(\s*\d+\s*(?:hrs?|hours?)\s*\)\s*',
-    caseSensitive: false,
-  );
-  static final Set<String> _deptPrefixes = {
-    'CS', 'SE', 'AI', 'DS', 'CYS', 'BCS', 'BSE', 'BAI', 'BDS', 'BCY',
-    'EE', 'BEE', 'BSEE', 'CE', 'BCE', 'TE', 'BTE', 'PTE',
-    'ME', 'BME', 'BSME', 'CVE', 'BCVE', 'BSCE',
-    'MS', 'BBA', 'MBA', 'AF', 'BAF', 'BBS', 'EC', 'BEC', 'MGT', 'HRM',
-    'MT', 'MTH', 'BMT', 'HUM', 'ENG', 'BEN', 'PSY', 'BPS', 'MCM', 'IR', 'BIR',
-    'FSN', 'BTY', 'BCH', 'HND', 'RBS', 'BIO', 'BBI', 'MB', 'PHY', 'CHM', 'VS'
-  };
-
   static String sanitizeSubject(String raw) {
     if (raw.isEmpty || raw.toLowerCase() == 'unknown') return 'Unknown';
+    final cached = _subjectSanitizeCache[raw];
+    if (cached != null) return cached;
+
     var cleaned = raw.trim();
     
     // Strip parenthesized teacher
@@ -241,12 +283,17 @@ class FormatGuard {
     // Strip leading/trailing batch identifiers
     cleaned = cleaned.replaceAll(_batchPrefixRegex, '').replaceAll(_batchSuffixRegex, '');
     // Normalize spaces
-    cleaned = cleaned.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+    cleaned = cleaned.replaceAll(_multiSpace, ' ').trim();
     
-    return cleaned.isEmpty ? raw.trim() : cleaned;
+    final result = cleaned.isEmpty ? raw.trim() : cleaned;
+    _subjectSanitizeCache[raw] = result;
+    return result;
   }
 
   static String formatTeacherName(String name) {
+    final cached = _teacherFormatCache[name];
+    if (cached != null) return cached;
+
     var raw = name.trim();
     if (raw.isEmpty || raw.toLowerCase() == 'unknown' || raw.toLowerCase() == 'tbd' || raw.toLowerCase() == 'none') {
       return 'Staff';
@@ -266,16 +313,18 @@ class FormatGuard {
 
     // Normalize missing space after honorific title e.g. "Dr.Saqib" -> "Dr. Saqib", "Engr.Hafiz" -> "Engr. Hafiz"
     raw = raw.replaceAllMapped(
-      RegExp(r'^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)\.([A-Za-z])', caseSensitive: false),
+      _teacherHonorificDotRegex,
       (m) => '${m[1]}. ${m[2]}',
     );
     raw = raw.replaceAllMapped(
-      RegExp(r'^(Dr|Prof|Engr|Mr|Ms|Mrs|Sir|Mam)([A-Z])', caseSensitive: false),
+      _teacherHonorificNoSpaceRegex,
       (m) => '${m[1]} ${m[2]}',
     );
 
     // Clean multiple consecutive spaces and preserve authentic timetable casing & initials exactly as in university source
-    return raw.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+    final result = raw.replaceAll(_multiSpace, ' ').trim();
+    _teacherFormatCache[name] = result;
+    return result;
   }
 
   static String truncateTeacherName(String name, {int maxLength = 18}) {

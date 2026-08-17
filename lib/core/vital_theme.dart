@@ -225,8 +225,10 @@ class _ObsidianPulseState extends State<ObsidianPulse>
           // Clean Professional Dot Grid Overlay
           Positioned.fill(
             child: IgnorePointer(
-              child: CustomPaint(
-                painter: _DotGridPainter(color: dotColor),
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: _DotGridPainter(color: dotColor),
+                ),
               ),
             ),
           ),
