@@ -133,16 +133,27 @@ class FormatGuard {
   }
 
   static double toDecimalTime(String raw) {
-    final parts = raw.trim().split(_timeSplit);
-    if (parts.length < 2) return 0.0;
-    var hour = int.tryParse(parts[0]) ?? 0;
-    final minute = int.tryParse(parts[1]) ?? 0;
-    
-    // Handle 12-hour format: times 1:00-4:30 are PM (university hours 8:30 AM - 4:30 PM)
-    if (hour >= 1 && hour <= 4) {
+    var s = raw.trim().toUpperCase();
+    final isPM = s.contains('PM');
+    final isAM = s.contains('AM');
+    s = s.replaceAll(RegExp(r'[A-Z]'), '').trim();
+
+    final parts = s.split(_timeSplit);
+    if (parts.isEmpty) return 0.0;
+    var hour = int.tryParse(parts[0].trim()) ?? 0;
+    final minute = parts.length > 1 ? (int.tryParse(parts[1].trim()) ?? 0) : 0;
+
+    if (isPM && hour < 12) {
       hour += 12;
+    } else if (isAM && hour == 12) {
+      hour = 0;
+    } else if (!isPM && !isAM) {
+      // University timetable fallback heuristic: times 1:00-5:30 are PM
+      if (hour >= 1 && hour <= 5) {
+        hour += 12;
+      }
     }
-    
+
     return hour + (minute / 60.0);
   }
 

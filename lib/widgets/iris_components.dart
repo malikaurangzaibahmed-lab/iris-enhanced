@@ -1194,18 +1194,22 @@ class _ClassCardState extends State<ClassCard>
                     : isUpcoming
                         ? Border.all(color: IrisTokens.brand.withValues(alpha: 0.3), width: 1.2)
                         : null,
-                padding: const EdgeInsets.all(22),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Top Row: Subject Title + Action / Status Badges
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (isCompleted) ...[
-                          Icon(
-                            Icons.check_circle_rounded,
-                            size: 18,
-                            color: VitalTokens.green,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Icon(
+                              Icons.check_circle_rounded,
+                              size: 18,
+                              color: VitalTokens.green,
+                            ),
                           ),
                           const SizedBox(width: 8),
                         ],
@@ -1213,8 +1217,9 @@ class _ClassCardState extends State<ClassCard>
                           child: Text(
                             widget.session.subject,
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 17,
                               fontWeight: FontWeight.w800,
+                              height: 1.25,
                               color: live
                                   ? VitalTokens.green
                                   : isUpcoming
@@ -1224,6 +1229,7 @@ class _ClassCardState extends State<ClassCard>
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
                         if (isMakeup) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1249,9 +1255,21 @@ class _ClassCardState extends State<ClassCard>
                               ],
                             ),
                           ),
-                          const SizedBox(width: 6),
-                        ],
-                        if (live) ...[
+                          if (widget.onRemoveMakeup != null) ...[
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                              color: IrisTokens.error,
+                              tooltip: 'Remove makeup class',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                              onPressed: () {
+                                IrisHaptics.actionMedium();
+                                widget.onRemoveMakeup!();
+                              },
+                            ),
+                          ],
+                        ] else if (live) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
@@ -1282,7 +1300,6 @@ class _ClassCardState extends State<ClassCard>
                               ],
                             ),
                           ),
-                          const SizedBox(width: 6),
                         ] else if (isUpcoming) ...[
                           Builder(
                             builder: (context) {
@@ -1305,58 +1322,58 @@ class _ClassCardState extends State<ClassCard>
                               );
                             },
                           ),
-                          const SizedBox(width: 6),
-                        ],
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: live
-                                ? VitalTokens.green
-                                : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
-                            borderRadius: BorderRadius.circular(VitalTokens.radiusFull),
-                          ),
-                          child: Text(
-                            timeLabel,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: live ? Colors.white : textSecondary,
-                            ),
-                          ),
-                        ),
-                        if (widget.onRemoveMakeup != null) ...[
-                          const SizedBox(width: 4),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                            color: IrisTokens.error,
-                            tooltip: 'Remove makeup class',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                            onPressed: () {
-                              IrisHaptics.actionMedium();
-                              widget.onRemoveMakeup!();
-                            },
-                          ),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    // Bottom Metadata Row: Time Capsule + Room + Teacher
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: live
+                                ? VitalTokens.green.withValues(alpha: 0.15)
+                                : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+                            borderRadius: BorderRadius.circular(VitalTokens.radiusFull),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.schedule_rounded, size: 12, color: live ? VitalTokens.green : textSecondary),
+                              const SizedBox(width: 5),
+                              Text(
+                                timeLabel,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: live ? VitalTokens.green : textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Row(
                           children: [
-                            Icon(Icons.location_on_rounded, size: 16, color: accentColor.withValues(alpha: 0.6)),
-                            const SizedBox(width: 6),
+                            Icon(Icons.location_on_rounded, size: 14, color: accentColor.withValues(alpha: 0.7)),
+                            const SizedBox(width: 4),
                             Text(
                               widget.session.room,
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: textPrimary),
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textPrimary),
                             ),
                           ],
                         ),
-                        Text(
-                          widget.isFacultyView ? widget.session.batchKey.batch : widget.session.teacher,
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textSecondary),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            widget.isFacultyView ? widget.session.batchKey.batch : widget.session.teacher,
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textSecondary),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
                       ],
                     ),
@@ -1388,7 +1405,7 @@ class _ClassCardState extends State<ClassCard>
                     enableBlur: true,
                     enableShadow: true,
                     enableOverlay: true,
-                    padding: const EdgeInsets.all(22),
+                    padding: const EdgeInsets.all(20),
                     borderRadius: 32.0,
                     elevation: live ? 4 : (isUpcoming ? 3 : 2),
                     accentColor: accentColor,
@@ -1407,32 +1424,32 @@ class _ClassCardState extends State<ClassCard>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Top Row: Subject Title + Status Badges
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (isCompleted) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 18,
+                                  color: IrisTokens.success.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
                             Expanded(
-                              child: Row(
-                                children: [
-                                  if (isCompleted) ...[
-                                    Icon(
-                                      Icons.check_circle_rounded,
-                                      size: 18,
-                                      color: IrisTokens.success.withValues(alpha: 0.8),
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                  Expanded(
-                                    child: Text(
-                                      widget.session.subject.replaceAll('[EXAM]', '').trim(),
-                                      style: IrisTextStyles.classSubject(context).copyWith(
-                                        color: widget.session.subject.contains('[EXAM]')
-                                            ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
-                                            : (live ? IrisTokens.success : textPrimary),
-                                        decoration: isCompleted ? TextDecoration.lineThrough : null,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                widget.session.subject.replaceAll('[EXAM]', '').trim(),
+                                style: IrisTextStyles.classSubject(context).copyWith(
+                                  fontSize: 17,
+                                  height: 1.25,
+                                  color: widget.session.subject.contains('[EXAM]')
+                                      ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
+                                      : (live ? IrisTokens.success : textPrimary),
+                                  decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1454,7 +1471,45 @@ class _ClassCardState extends State<ClassCard>
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 6),
+                            ] else if (isMakeup) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: IrisTokens.warning.withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(color: IrisTokens.warning.withValues(alpha: 0.4), width: 1),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.event_repeat_rounded, size: 10, color: IrisTokens.warning),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'MAKEUP',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        color: IrisTokens.warning,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (widget.onRemoveMakeup != null) ...[
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                                  color: IrisTokens.error,
+                                  tooltip: 'Remove makeup class',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                  onPressed: () {
+                                    IrisHaptics.actionMedium();
+                                    widget.onRemoveMakeup!();
+                                  },
+                                ),
+                              ],
                             ] else if (live) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1487,7 +1542,6 @@ class _ClassCardState extends State<ClassCard>
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 6),
                             ] else if (isUpcoming) ...[
                               Builder(
                                 builder: (context) {
@@ -1511,39 +1565,19 @@ class _ClassCardState extends State<ClassCard>
                                   );
                                 },
                               ),
-                              const SizedBox(width: 6),
                             ],
-                            if (isMakeup) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: IrisTokens.warning.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(99),
-                                  border: Border.all(color: IrisTokens.warning.withValues(alpha: 0.4), width: 1),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.event_repeat_rounded, size: 11, color: IrisTokens.warning),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'MAKEUP',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        color: IrisTokens.warning,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        // Metadata Row: Time Capsule + Room + Teacher
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 7,
+                                horizontal: 10,
+                                vertical: 5,
                               ),
                               decoration: BoxDecoration(
                                 color: live
@@ -1551,74 +1585,65 @@ class _ClassCardState extends State<ClassCard>
                                     : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
                                 borderRadius: BorderRadius.circular(99),
                               ),
-                              child: Text(
-                                timeLabel,
-                                style: IrisTextStyles.badgeText(context).copyWith(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: live ? Colors.white : textSecondary,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.schedule_rounded, size: 12, color: live ? Colors.white : textSecondary),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    timeLabel,
+                                    style: IrisTextStyles.badgeText(context).copyWith(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: live ? Colors.white : textSecondary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            if (widget.onRemoveMakeup != null) ...[
-                              const SizedBox(width: 4),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                                color: IrisTokens.error,
-                                tooltip: 'Remove makeup class',
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                onPressed: () {
-                                  IrisHaptics.actionMedium();
-                                  widget.onRemoveMakeup!();
-                                },
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 18),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
+                            const SizedBox(width: 8),
                             Row(
                               children: [
                                 Icon(
                                   widget.session.subject.contains('[EXAM]')
                                       ? Icons.account_balance_rounded
                                       : Icons.location_on_rounded,
-                                  size: 16,
+                                  size: 15,
                                   color: widget.session.subject.contains('[EXAM]')
                                       ? const Color(0xFFF59E0B)
                                       : (live ? IrisTokens.success : textSecondary.withValues(alpha: 0.6)),
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 4),
                                 Text(
                                   widget.session.subject.contains('[EXAM]')
                                       ? 'Hall: ${widget.session.room}'
                                       : widget.session.room,
                                   style: IrisTextStyles.classSessionMeta(context).copyWith(
-                                    fontSize: 15,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w700,
                                     color: textPrimary.withValues(alpha: 0.85),
                                   ),
                                 ),
                               ],
                             ),
-                            Text(
-                              widget.isFacultyView
-                                  ? widget.session.batchKey.batch
-                                  : (widget.session.subject.contains('[EXAM]')
-                                      ? 'Invigilator: ${widget.session.teacher}'
-                                      : widget.session.teacher),
-                              style: IrisTextStyles.metaInfo(context).copyWith(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: widget.session.subject.contains('[EXAM]')
-                                    ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155))
-                                    : textSecondary.withValues(alpha: 0.7),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                widget.isFacultyView
+                                    ? widget.session.batchKey.batch
+                                    : (widget.session.subject.contains('[EXAM]')
+                                        ? 'Invigilator: ${widget.session.teacher}'
+                                        : widget.session.teacher),
+                                style: IrisTextStyles.metaInfo(context).copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: widget.session.subject.contains('[EXAM]')
+                                      ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155))
+                                      : textSecondary.withValues(alpha: 0.7),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
