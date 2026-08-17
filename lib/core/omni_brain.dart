@@ -387,64 +387,38 @@ class OmniBrain {
   }
 
   List<String> findEmptyRooms(DateTime now) {
-    final rooms = <String>{};
-    for (final session in memory.activeSessions()) {
-      rooms.add(session.room);
-    }
-
+    final allRoomsList = memory.allRooms();
     final occupied = <String>{};
     final currentT = now.hour + (now.minute / 60.0);
     for (final session in memory.activeSessions()) {
-      final actualEnd = _getActualEndTime(session);
-      if (session.dayIndex == now.weekday && currentT >= session.safeStartVal && currentT < actualEnd) {
+      if (session.dayIndex == now.weekday && currentT >= session.safeStartVal && currentT < _getActualEndTime(session)) {
         occupied.add(session.room);
       }
     }
 
-    final available = rooms.difference(occupied).toList()..sort();
+    final available = allRoomsList.where((r) => !occupied.contains(r)).toList()..sort();
     return available;
   }
 
   /// Find empty rooms for a specific time slot (used for makeup scheduling)
   List<String> findEmptyRoomsForSlot(int dayIndex, double startTime, double endTime) {
-    // Get all unique rooms
-    final allRooms = <String>{};
-    for (final session in memory.activeSessions()) {
-      if (session.room.isNotEmpty && session.room.toLowerCase() != 'unknown') {
-        allRooms.add(session.room);
-      }
-    }
-
-    // Find occupied rooms during this slot
+    final allRoomsList = memory.allRooms();
     final occupied = <String>{};
     for (final session in memory.activeSessions()) {
       if (session.dayIndex == dayIndex) {
-        // Check if there's any overlap
-        final sessionEnd = session.safeEndVal;
-        final sessionStart = session.safeStartVal;
-        
-        // Overlap if: session starts before slot ends AND session ends after slot starts
-        if (sessionStart < endTime && sessionEnd > startTime) {
+        if (session.safeStartVal < endTime && session.safeEndVal > startTime) {
           occupied.add(session.room);
         }
       }
     }
 
-    // Return available rooms, sorted
-    final available = allRooms.difference(occupied).toList()..sort();
+    final available = allRoomsList.where((r) => !occupied.contains(r)).toList()..sort();
     return available;
   }
 
   /// Get all unique teacher names from the registry
   List<String> allTeachers() {
-    final names = <String>{};
-    for (final session in memory.activeSessions()) {
-      if (session.teacher.isNotEmpty && session.teacher != 'Unknown') {
-        names.add(session.teacher);
-      }
-    }
-    final sorted = names.toList()..sort();
-    return sorted;
+    return memory.allTeachers();
   }
 
   /// Smart fuzzy-ish search: matches if all search words appear in the name

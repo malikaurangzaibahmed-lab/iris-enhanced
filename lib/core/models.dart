@@ -553,6 +553,8 @@ class UniversityMemory {
   final Map<String, Map<String, List<ClassSession>>> _cachedByProgramMap = {};
   List<String>? _cachedAllBatches;
   List<String>? _cachedPrograms;
+  final Map<String, List<String>> _cachedAllRooms = {};
+  final Map<String, List<String>> _cachedAllTeachers = {};
   final Map<String, List<int>> _cachedSemesters = {};
   final Map<String, List<String>> _cachedIntakes = {};
   final Map<String, List<String>> _cachedSectionsForIntake = {};
@@ -567,6 +569,8 @@ class UniversityMemory {
     _cachedByProgramMap.clear();
     _cachedAllBatches = null;
     _cachedPrograms = null;
+    _cachedAllRooms.clear();
+    _cachedAllTeachers.clear();
     _cachedSemesters.clear();
     _cachedIntakes.clear();
     _cachedSectionsForIntake.clear();
@@ -797,6 +801,40 @@ class UniversityMemory {
     items.sort();
     _cachedSections[cacheKey] = items;
     return items;
+  }
+
+  List<String> allRooms({String? overridePeriod}) {
+    final periodKey = overridePeriod ?? 'default';
+    final cached = _cachedAllRooms[periodKey];
+    if (cached != null) return cached;
+
+    final rooms = <String>{};
+    for (final session in activeSessions(overridePeriod: overridePeriod)) {
+      final r = session.room.trim();
+      if (r.isNotEmpty && r.toLowerCase() != 'unknown' && r.toLowerCase() != 'na') {
+        rooms.add(r);
+      }
+    }
+    final sorted = rooms.toList()..sort();
+    _cachedAllRooms[periodKey] = sorted;
+    return sorted;
+  }
+
+  List<String> allTeachers({String? overridePeriod}) {
+    final periodKey = overridePeriod ?? 'default';
+    final cached = _cachedAllTeachers[periodKey];
+    if (cached != null) return cached;
+
+    final names = <String>{};
+    for (final session in activeSessions(overridePeriod: overridePeriod)) {
+      final t = session.teacher.trim();
+      if (t.isNotEmpty && t.toLowerCase() != 'unknown' && t.toLowerCase() != 'na') {
+        names.add(t);
+      }
+    }
+    final sorted = names.toList()..sort();
+    _cachedAllTeachers[periodKey] = sorted;
+    return sorted;
   }
 }
 
