@@ -338,7 +338,17 @@ class ClassNotificationTaskHandler extends TaskHandler {
           await HomeWidget.saveWidgetData<String>('flutter.time_info', displayTime);
           await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', isUrgent);
         } else {
-          if (dayIndex == 6 || dayIndex == 7) {
+          if (dayIndex == 5) {
+            // Friday mode with Darood & Jummah recognition
+            final isJummahWindow = currentTime >= 11.5 && currentTime <= 14.5;
+            if (isJummahWindow) {
+              notifTitle = '🕌 Jummah Mubarak · Darood e Pak';
+              notifBody = 'Send blessings upon Prophet Muhammad ﷺ';
+            } else {
+              notifTitle = '✓ All done for today';
+              notifBody = 'No more classes scheduled · Jummah Mubarak';
+            }
+          } else if (dayIndex == 6 || dayIndex == 7) {
             notifTitle = '🎉 Weekend Mode';
             notifBody = 'No classes — enjoy your break!';
           } else {
@@ -348,8 +358,8 @@ class ClassNotificationTaskHandler extends TaskHandler {
 
           // Update ClassTrackerWidget homescreen widget to idle in background
           await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
-          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', 'System Idle');
-          await HomeWidget.saveWidgetData<String>('flutter.widget_subline', 'No active class');
+          await HomeWidget.saveWidgetData<String>('flutter.widget_headline', dayIndex == 5 ? 'Jummah Mubarak' : 'System Idle');
+          await HomeWidget.saveWidgetData<String>('flutter.widget_subline', dayIndex == 5 ? 'Darood e Pak 🕌' : 'No active class');
           await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', '');
           await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
           await HomeWidget.saveWidgetData<String>('flutter.time_info', 'Ready');

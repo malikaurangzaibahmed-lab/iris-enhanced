@@ -350,9 +350,52 @@ String _extractIrisSnackText(Widget widget) {
   }
   if (widget is Padding) {
     final child = widget.child;
-    if (child != null) {
-      return _extractIrisSnackText(child);
-    }
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is Container) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is Center) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is Align) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is DecoratedBox) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is ClipRRect) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is Material) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is InkWell) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is GestureDetector) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
+    return '';
+  }
+  if (widget is Opacity) {
+    final child = widget.child;
+    if (child != null) return _extractIrisSnackText(child);
     return '';
   }
   if (widget is SizedBox && widget.child != null) {

@@ -637,10 +637,14 @@ class _AppRootState extends State<_AppRoot> {
       _requestForegroundNotificationPermission();
     });
 
-    // Show Darood e Pak reminder on app boot with haptic pulse
+    // Show Darood e Pak reminder on app boot with haptic pulse after UI layout settles
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      IrisHaptics.actionSoft();
-      _showDaroodePakDialog();
+      Future.delayed(const Duration(milliseconds: 900), () {
+        if (mounted) {
+          IrisHaptics.actionSoft();
+          _showDaroodePakDialog();
+        }
+      });
     });
   }
 
@@ -697,81 +701,24 @@ class _AppRootState extends State<_AppRoot> {
   }
 
   void _showDaroodePakDialog() {
-    // Pick a contextual Islamic greeting based on time of day
-    final hour = DateTime.now().hour;
-    final greeting = hour >= 5 && hour < 12
-        ? 'Start your morning with blessings'
-        : hour >= 12 && hour < 17
-        ? 'Afternoon reminder for Darood'
-        : hour >= 17 && hour < 21
-        ? 'Evening blessings upon the Prophet'
-        : 'Night reminder — send Darood e Pak';
+    final now = DateTime.now();
+    final hour = now.hour;
+    final isFriday = now.weekday == DateTime.friday;
+    final greeting = isFriday
+        ? 'Jummah Mubarak — Send Darood upon the Prophet ﷺ'
+        : (hour >= 5 && hour < 12
+            ? 'Start your morning with blessings · Darood e Pak'
+            : hour >= 12 && hour < 17
+                ? 'Afternoon reminder for Darood e Pak'
+                : hour >= 17 && hour < 21
+                    ? 'Evening blessings upon the Prophet ﷺ'
+                    : 'Night reminder — Send Darood e Pak');
 
-    final bottomSafeSpace = MediaQuery.of(context).padding.bottom + 108;
-    showIrisFrostedSnackBar(
-      context,
-      dedupeKey: 'startup_darood_reminder',
-      dedupeWindow: const Duration(seconds: 10),
-      content: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: IrisTokens.successGradient),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: IrisTokens.success.withValues(alpha: 0.4),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.mosque_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Darood e Pak',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    greeting,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.80),
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.favorite_rounded,
-              size: 16,
-              color: Colors.white.withValues(alpha: 0.5),
-            ),
-          ],
-        ),
-      ),
-      tint: IrisTokens.success,
+    SystemBroadcastService().triggerLocalOverride(
+      'Darood e Pak 🕌',
+      greeting,
+      isUrgent: false,
       duration: const Duration(seconds: 5),
-      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomSafeSpace),
     );
   }
 
