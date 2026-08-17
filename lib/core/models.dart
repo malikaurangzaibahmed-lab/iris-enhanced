@@ -548,6 +548,30 @@ class UniversityMemory {
   List<ClassSession>? _cachedActiveSessions;
   String? _cachedPeriodKey;
   int? _cachedExamsHash;
+  final Map<String, Map<String, List<ClassSession>>> _cachedByBatchMap = {};
+  final Map<String, Map<String, List<ClassSession>>> _cachedByTeacherMap = {};
+  final Map<String, Map<String, List<ClassSession>>> _cachedByProgramMap = {};
+  List<String>? _cachedAllBatches;
+  List<String>? _cachedPrograms;
+  final Map<String, List<int>> _cachedSemesters = {};
+  final Map<String, List<String>> _cachedIntakes = {};
+  final Map<String, List<String>> _cachedSectionsForIntake = {};
+  final Map<String, List<String>> _cachedSections = {};
+
+  void clearCaches() {
+    _cachedActiveSessions = null;
+    _cachedPeriodKey = null;
+    _cachedExamsHash = null;
+    _cachedByBatchMap.clear();
+    _cachedByTeacherMap.clear();
+    _cachedByProgramMap.clear();
+    _cachedAllBatches = null;
+    _cachedPrograms = null;
+    _cachedSemesters.clear();
+    _cachedIntakes.clear();
+    _cachedSectionsForIntake.clear();
+    _cachedSections.clear();
+  }
 
   List<ClassSession> _toRamadanSessions(List<ClassSession> regularSessions) {
     return regularSessions.map((s) {
@@ -624,43 +648,80 @@ class UniversityMemory {
     _cachedActiveSessions = result;
     _cachedPeriodKey = periodKey;
     _cachedExamsHash = examsHash;
+    _cachedByBatchMap.remove(periodKey);
+    _cachedByTeacherMap.remove(periodKey);
+    _cachedByProgramMap.remove(periodKey);
     return result;
   }
 
   List<String> get allBatches {
+    if (_cachedAllBatches != null) return _cachedAllBatches!;
     final batches = sessions.map((s) => s.batchKey.batch).toSet().toList();
     batches.sort();
+    _cachedAllBatches = batches;
     return batches;
   }
 
   Map<String, List<ClassSession>> byBatch({String? overridePeriod}) {
+    final periodKey = overridePeriod ?? 'default';
+    final cached = _cachedByBatchMap[periodKey];
+    if (cached != null) return cached;
+
     final map = <String, List<ClassSession>>{};
     for (final session in activeSessions(overridePeriod: overridePeriod)) {
       map.putIfAbsent(session.batchKey.batch, () => []).add(session);
     }
+    _cachedByBatchMap[periodKey] = map;
+    return map;
+  }
+
+  Map<String, List<ClassSession>> byTeacher({String? overridePeriod}) {
+    final periodKey = overridePeriod ?? 'default';
+    final cached = _cachedByTeacherMap[periodKey];
+    if (cached != null) return cached;
+
+    final map = <String, List<ClassSession>>{};
+    for (final session in activeSessions(overridePeriod: overridePeriod)) {
+      final key = session.teacher.trim().toLowerCase();
+      if (key.isNotEmpty && key != 'unknown' && key != 'na') {
+        map.putIfAbsent(key, () => []).add(session);
+      }
+    }
+    _cachedByTeacherMap[periodKey] = map;
     return map;
   }
 
   Map<String, List<ClassSession>> byProgram(String program, {String? overridePeriod}) {
+    final progUpper = program.toUpperCase().trim();
+    final periodKey = '${overridePeriod ?? "default"}_$progUpper';
+    final cached = _cachedByProgramMap[periodKey];
+    if (cached != null) return cached;
+
     final map = <String, List<ClassSession>>{};
-    for (final session in activeSessions(overridePeriod: overridePeriod).where((s) => s.batchKey.program == program)) {
+    for (final session in activeSessions(overridePeriod: overridePeriod).where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)) {
       map.putIfAbsent(session.batchKey.batch, () => []).add(session);
     }
+    _cachedByProgramMap[periodKey] = map;
     return map;
   }
 
   List<String> programs() {
+    if (_cachedPrograms != null) return _cachedPrograms!;
     final items = sessions
         .map((s) => s.batchKey.program.toUpperCase().trim())
         .where((p) => p.isNotEmpty && p != 'UNKNOWN' && p != 'NA' && !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p))
         .toSet()
         .toList();
     items.sort();
+    _cachedPrograms = items;
     return items;
   }
 
   List<int> semesters(String program) {
     final progUpper = program.toUpperCase().trim();
+    final cached = _cachedSemesters[progUpper];
+    if (cached != null) return cached;
+
     final items = sessions
         .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)
         .map((s) => s.batchKey.semester)
@@ -668,11 +729,15 @@ class UniversityMemory {
         .toSet()
         .toList();
     items.sort();
+    _cachedSemesters[progUpper] = items;
     return items;
   }
 
   List<String> intakes(String program) {
     final progUpper = program.toUpperCase().trim();
+    final cached = _cachedIntakes[progUpper];
+    if (cached != null) return cached;
+
     final items = sessions
         .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)
         .map((s) => s.batchKey.intake.toUpperCase().trim())
@@ -685,12 +750,17 @@ class UniversityMemory {
       if (aYear != bYear) return bYear.compareTo(aYear);
       return b.compareTo(a);
     });
+    _cachedIntakes[progUpper] = items;
     return items;
   }
 
   List<String> sectionsForIntake(String program, String intake) {
     final progUpper = program.toUpperCase().trim();
     final intakeUpper = intake.toUpperCase().trim();
+    final cacheKey = '${progUpper}_$intakeUpper';
+    final cached = _cachedSectionsForIntake[cacheKey];
+    if (cached != null) return cached;
+
     final items = sessions
         .where((s) =>
             s.batchKey.program.toUpperCase().trim() == progUpper &&
@@ -704,11 +774,16 @@ class UniversityMemory {
         .toSet()
         .toList();
     items.sort();
+    _cachedSectionsForIntake[cacheKey] = items;
     return items;
   }
 
   List<String> sections(String program, int semester) {
     final progUpper = program.toUpperCase().trim();
+    final cacheKey = '${progUpper}_$semester';
+    final cached = _cachedSections[cacheKey];
+    if (cached != null) return cached;
+
     final items = sessions
         .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper && s.batchKey.semester == semester)
         .map((s) {
@@ -720,6 +795,7 @@ class UniversityMemory {
         .toSet()
         .toList();
     items.sort();
+    _cachedSections[cacheKey] = items;
     return items;
   }
 }

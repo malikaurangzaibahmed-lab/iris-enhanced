@@ -19,6 +19,7 @@ class GlassCard extends StatelessWidget {
   final Color? backgroundColor;
   final BoxBorder? border;
   final bool tilt;
+  final bool animate;
   final VoidCallback? onTap;
 
   const GlassCard({
@@ -34,6 +35,7 @@ class GlassCard extends StatelessWidget {
     this.accentColor,
     this.backgroundColor,
     this.tilt = false,
+    this.animate = false,
     this.onTap,
     this.border,
     super.key,
@@ -73,6 +75,7 @@ class GlassCard extends StatelessWidget {
         final cardBody = Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(effectiveRadius),
+            border: border,
             boxShadow: enableShadow
                 ? [
                     if (!isDark)
@@ -114,21 +117,23 @@ class GlassCard extends StatelessWidget {
           ),
         );
 
-        if (IrisMotion.reduceMotion || useMinimal) {
-          return Transform.rotate(angle: tiltAngle, child: cardBody);
+        Widget result = cardBody;
+        if (tilt) {
+          result = Transform.rotate(angle: tiltAngle, child: result);
         }
 
-        return Transform.rotate(
-          angle: tiltAngle,
-          child: TweenAnimationBuilder<double>(
+        if (animate && !IrisMotion.reduceMotion && !useMinimal) {
+          result = TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.0, end: 1.0),
             duration: IrisMotion.medium,
             curve: IrisMotion.entrance,
             builder: (context, animValue, child) =>
                 Transform.scale(scale: 0.97 + (animValue * 0.03), child: child),
-            child: cardBody,
-          ),
-        );
+            child: result,
+          );
+        }
+
+        return RepaintBoundary(child: result);
       },
     );
   }

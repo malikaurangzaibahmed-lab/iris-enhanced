@@ -178,9 +178,7 @@ class OmniBrain {
 
   List<ClassSession> scheduleForTeacher(String teacherName, {String? overridePeriod}) {
     final name = teacherName.trim().toLowerCase();
-    return memory.activeSessions(overridePeriod: overridePeriod)
-        .where((s) => s.teacher.trim().toLowerCase() == name)
-        .toList();
+    return memory.byTeacher(overridePeriod: overridePeriod)[name] ?? [];
   }
 
   // Get merged lecture sessions (consecutive slots of same lecture)

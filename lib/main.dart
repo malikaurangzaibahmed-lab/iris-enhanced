@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart'
-  hide NotificationVisibility;
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,6 +45,7 @@ import 'services/app_update_service.dart';
 import 'services/helpdesk_schedule_data_service.dart';
 import 'services/headless_portal_sync.dart';
 import 'services/notification_service.dart';
+import 'services/system_broadcast_service.dart';
 import 'services/ui_feedback.dart';
 import 'services/session_refresher_service.dart';
 import 'services/widget_service.dart';
@@ -100,8 +100,6 @@ Future<void> main() async {
         channelDescription: 'Shows your current and upcoming classes',
         channelImportance: NotificationChannelImportance.MAX,
         priority: NotificationPriority.MAX,
-        isSticky: true,
-        visibility: NotificationVisibility.VISIBILITY_PUBLIC,
         enableVibration: false,
         playSound: false,
         showWhen: true,

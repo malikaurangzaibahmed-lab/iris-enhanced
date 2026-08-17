@@ -1079,6 +1079,13 @@ class _ClassCardState extends State<ClassCard>
   }
 
   @override
+  void didUpdateWidget(ClassCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final now = DateTime.now();
+    _syncPulse(widget.session.isLive(now));
+  }
+
+  @override
   void dispose() {
     _pulseController.dispose();
     super.dispose();
