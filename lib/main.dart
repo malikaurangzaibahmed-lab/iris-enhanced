@@ -98,15 +98,23 @@ Future<void> main() async {
         channelId: 'persistent_class_foreground',
         channelName: 'IRIS Class Tracker',
         channelDescription: 'Shows your current and upcoming classes',
+        channelImportance: NotificationChannelImportance.MAX,
+        priority: NotificationPriority.MAX,
+        isSticky: true,
+        visibility: NotificationVisibility.VISIBILITY_PUBLIC,
+        enableVibration: false,
+        playSound: false,
+        showWhen: true,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(30000),
+        eventAction: ForegroundTaskEventAction.repeat(15000),
         autoRunOnBoot: true,
         autoRunOnMyPackageReplaced: true,
         allowWakeLock: true,
+        allowWifiLock: true,
       ),
     );
   } catch (e) {
@@ -749,6 +757,14 @@ class _AppRootState extends State<_AppRoot> {
     final permission = await FlutterForegroundTask.checkNotificationPermission();
     if (permission != NotificationPermission.granted) {
       await FlutterForegroundTask.requestNotificationPermission();
+    }
+
+    try {
+      if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
+        await FlutterForegroundTask.requestIgnoreBatteryOptimization();
+      }
+    } catch (e) {
+      debugPrint('Battery optimization ignore error: $e');
     }
   }
 
