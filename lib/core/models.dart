@@ -36,7 +36,9 @@ class BatchKey {
 
   /// Full descriptive title e.g. "Fall 2025 - BS Computer Science (Semester 2, Section C)"
   String get fullDescription {
-    final semStr = semester > 0 ? 'Semester $semester' : 'Semester $dynamicSemester';
+    final semStr = semester > 0
+        ? 'Semester $semester'
+        : 'Semester $dynamicSemester';
     final secStr = section.isNotEmpty ? ', Section $section' : '';
     return '$intakeSeason $intakeYear - $programFullName ($semStr$secStr)';
   }
@@ -189,11 +191,17 @@ class BatchKey {
 
   factory BatchKey.parse(String batch) {
     var raw = batch.trim();
-    final fullBatchMatch = RegExp(r'^(?:FA|SP)\d{2}-[A-Za-z]+(?:-\d+)?-[A-Za-z0-9]{1,3}', caseSensitive: false).firstMatch(raw);
+    final fullBatchMatch = RegExp(
+      r'^(?:FA|SP)\d{2}-[A-Za-z]+(?:-\d+)?-[A-Za-z0-9]{1,3}',
+      caseSensitive: false,
+    ).firstMatch(raw);
     if (fullBatchMatch != null) {
       raw = fullBatchMatch.group(0)!;
     } else {
-      final shortBatchMatch = RegExp(r'^[A-Za-z]{2,4}-(?:\d+-)?[A-Za-z0-9]{1,3}', caseSensitive: false).firstMatch(raw);
+      final shortBatchMatch = RegExp(
+        r'^[A-Za-z]{2,4}-(?:\d+-)?[A-Za-z0-9]{1,3}',
+        caseSensitive: false,
+      ).firstMatch(raw);
       if (shortBatchMatch != null) {
         raw = shortBatchMatch.group(0)!;
       }
@@ -221,7 +229,9 @@ class BatchKey {
       final semParsed = int.tryParse(parts[2]) ?? calculateSemester(intake);
       final rawSec = parts[3];
       final secMatch = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(rawSec);
-      final section = secMatch != null ? secMatch.group(0)!.toUpperCase() : rawSec.toUpperCase();
+      final section = secMatch != null
+          ? secMatch.group(0)!.toUpperCase()
+          : rawSec.toUpperCase();
       final canonical = '$intake-$program-$semParsed-$section';
       return BatchKey(
         batch: canonical,
@@ -247,7 +257,9 @@ class BatchKey {
       }
     } else {
       final secMatch = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(lastPart);
-      section = secMatch != null ? secMatch.group(0)!.toUpperCase() : lastPart.toUpperCase();
+      section = secMatch != null
+          ? secMatch.group(0)!.toUpperCase()
+          : lastPart.toUpperCase();
     }
 
     final canonical = '$intake-$program-$section';
@@ -288,8 +300,8 @@ class ClassSession {
 
   bool get isOneHourLecture {
     return subject.toLowerCase().contains('(1 hr)') ||
-           subject.toLowerCase().contains('(1hr)') ||
-           subject.toLowerCase().contains('1 hr)');
+        subject.toLowerCase().contains('(1hr)') ||
+        subject.toLowerCase().contains('1 hr)');
   }
 
   double get actualEndVal {
@@ -301,45 +313,51 @@ class ClassSession {
 
   bool isLive(DateTime now) {
     final currentT = now.hour + (now.minute / 60.0);
-    return dayIndex == now.weekday && currentT >= safeStartVal && currentT < actualEndVal;
+    return dayIndex == now.weekday &&
+        currentT >= safeStartVal &&
+        currentT < actualEndVal;
   }
 
   // Check if this session is consecutive with another
   bool isConsecutiveWith(ClassSession other) {
     return dayIndex == other.dayIndex &&
-           subject.trim().toLowerCase() == other.subject.trim().toLowerCase() &&
-           teacher.trim().toLowerCase() == other.teacher.trim().toLowerCase() &&
-           FormatGuard.sanitizeRoom(room) == FormatGuard.sanitizeRoom(other.room) &&
-           ((actualEndVal - other.safeStartVal).abs() < 0.1 || (safeEndVal - other.safeStartVal).abs() < 0.1);
+        subject.trim().toLowerCase() == other.subject.trim().toLowerCase() &&
+        teacher.trim().toLowerCase() == other.teacher.trim().toLowerCase() &&
+        FormatGuard.sanitizeRoom(room) ==
+            FormatGuard.sanitizeRoom(other.room) &&
+        ((actualEndVal - other.safeStartVal).abs() < 0.1 ||
+            (safeEndVal - other.safeStartVal).abs() < 0.1);
   }
 
   // Check if two sessions are the same lecture (for merging)
   bool isSameLectureAs(ClassSession other) {
     return dayIndex == other.dayIndex &&
-           subject.trim().toLowerCase() == other.subject.trim().toLowerCase() &&
-           teacher.trim().toLowerCase() == other.teacher.trim().toLowerCase() &&
-           FormatGuard.sanitizeRoom(room) == FormatGuard.sanitizeRoom(other.room);
+        subject.trim().toLowerCase() == other.subject.trim().toLowerCase() &&
+        teacher.trim().toLowerCase() == other.teacher.trim().toLowerCase() &&
+        FormatGuard.sanitizeRoom(room) == FormatGuard.sanitizeRoom(other.room);
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'batch': batchKey.batch,
-        'day': FormatGuard.normalizeDay(dayIndex),
-        'start': startTime,
-        'end': endTime,
-        'subject': subject,
-        'teacher': teacher,
-        'room': room,
-      };
+    'id': id,
+    'batch': batchKey.batch,
+    'day': FormatGuard.normalizeDay(dayIndex),
+    'start': startTime,
+    'end': endTime,
+    'subject': subject,
+    'teacher': teacher,
+    'room': room,
+  };
 
   static ClassSession fromJson(Map<String, dynamic> json) {
-    final batchStr = (json['batch'] ?? json['class_name'] ?? json['section'] ?? 'UNKNOWN').toString();
+    final batchStr =
+        (json['batch'] ?? json['class_name'] ?? json['section'] ?? 'UNKNOWN')
+            .toString();
     final batchKey = BatchKey.parse(batchStr);
-    
+
     // Parse start and end times, supporting 'period' or 'time' splits
     String start = '00:00';
     String end = '00:00';
-    
+
     if (json['start'] != null && json['end'] != null) {
       start = json['start'].toString();
       end = json['end'].toString();
@@ -355,22 +373,34 @@ class ClassSession {
         }
       }
     }
-    
+
     final dayStr = (json['day'] ?? json['weekday'] ?? 'Monday').toString();
-    var subjectStr = (json['subject'] ?? json['course'] ?? json['title'] ?? 'Unknown').toString();
-    var teacherStr = (json['teacher'] ?? json['instructor'] ?? json['staff'] ?? 'Unknown').toString();
+    var subjectStr =
+        (json['subject'] ?? json['course'] ?? json['title'] ?? 'Unknown')
+            .toString();
+    var teacherStr =
+        (json['teacher'] ?? json['instructor'] ?? json['staff'] ?? 'Unknown')
+            .toString();
     final roomStr = (json['room'] ?? json['location'] ?? 'TBD').toString();
 
     // If teacher is unknown/staff but subject has parenthesized instructor e.g. "CS314 AI (Dr. Shahzad Ali)"
-    if ((teacherStr.toLowerCase() == 'unknown' || teacherStr.toLowerCase() == 'staff') && subjectStr.contains('(')) {
-      final parenMatch = RegExp(r'\(((?:Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*)\)', caseSensitive: false).firstMatch(subjectStr);
+    if ((teacherStr.toLowerCase() == 'unknown' ||
+            teacherStr.toLowerCase() == 'staff') &&
+        subjectStr.contains('(')) {
+      final parenMatch = RegExp(
+        r'\(((?:Dr\.?|Prof\.?|Engr\.?|Mr\.?|Ms\.?|Mrs\.?|Sir|Mam|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[^)]*)\)',
+        caseSensitive: false,
+      ).firstMatch(subjectStr);
       if (parenMatch != null) {
         teacherStr = parenMatch.group(1)!.trim();
       }
     }
 
     // If subject indicates (1 hr) and duration exceeds 1 hour (e.g. regular 1.5-hr slot), clamp duration to 1 hour
-    if (RegExp(r'\(1\s*(?:hr|hour)\)', caseSensitive: false).hasMatch(subjectStr)) {
+    if (RegExp(
+      r'\(1\s*(?:hr|hour)\)',
+      caseSensitive: false,
+    ).hasMatch(subjectStr)) {
       final startDec = FormatGuard.toDecimalTime(start);
       final endDec = FormatGuard.toDecimalTime(end);
       if (endDec - startDec > 1.05) {
@@ -379,7 +409,8 @@ class ClassSession {
         final endM = ((newEndDec - endH) * 60).round();
         final origH = int.tryParse(start.split(RegExp(r'[:.]'))[0]) ?? 0;
         final adjustedH = origH + 1;
-        end = '${adjustedH.toString().padLeft(2, '0')}:${endM.toString().padLeft(2, '0')}';
+        end =
+            '${adjustedH.toString().padLeft(2, '0')}:${endM.toString().padLeft(2, '0')}';
       }
     }
 
@@ -398,7 +429,10 @@ class ClassSession {
   }
 
   static final RegExp _examTagRegex = RegExp(r'\[EXAM\]', caseSensitive: false);
-  static final RegExp _parenthesesRegex = RegExp(r'\(.*?\)', caseSensitive: false);
+  static final RegExp _parenthesesRegex = RegExp(
+    r'\(.*?\)',
+    caseSensitive: false,
+  );
 
   static String _resolveExamInvigilator(
     Map<String, dynamic> json,
@@ -406,18 +440,19 @@ class ClassSession {
     String rawSubject,
     UniversityMemory? memory,
   ) {
-    var rawTeacher = (json['invigilator'] ??
-            json['invigilator_name'] ??
-            json['invigilators'] ??
-            json['teacher'] ??
-            json['instructor'] ??
-            json['faculty'] ??
-            json['duty'] ??
-            json['supervised_by'] ??
-            json['supervisor'] ??
-            '')
-        .toString()
-        .trim();
+    var rawTeacher =
+        (json['invigilator'] ??
+                json['invigilator_name'] ??
+                json['invigilators'] ??
+                json['teacher'] ??
+                json['instructor'] ??
+                json['faculty'] ??
+                json['duty'] ??
+                json['supervised_by'] ??
+                json['supervisor'] ??
+                '')
+            .toString()
+            .trim();
 
     if (rawTeacher.isNotEmpty &&
         rawTeacher.toLowerCase() != 'invigilator assigned' &&
@@ -440,7 +475,8 @@ class ClassSession {
 
         for (final session in memory.sessions) {
           final sBatch = session.batchKey.batch.toLowerCase();
-          final bMatch = sBatch == targetBatch ||
+          final bMatch =
+              sBatch == targetBatch ||
               (session.batchKey.program.toLowerCase() == targetProg &&
                   session.batchKey.semester == batchKey.semester &&
                   session.batchKey.section.toLowerCase() == targetSec);
@@ -471,7 +507,9 @@ class ClassSession {
       }
     }
 
-    return rawTeacher.isNotEmpty ? FormatGuard.formatTeacherName(rawTeacher) : 'Invigilator Assigned';
+    return rawTeacher.isNotEmpty
+        ? FormatGuard.formatTeacherName(rawTeacher)
+        : 'Invigilator Assigned';
   }
 
   static ClassSession fromExamJson(
@@ -479,7 +517,9 @@ class ClassSession {
     int index = 0,
     UniversityMemory? memory,
   }) {
-    final batchStr = (json['batch'] ?? json['session'] ?? json['class_name'] ?? 'ALL').toString();
+    final batchStr =
+        (json['batch'] ?? json['session'] ?? json['class_name'] ?? 'ALL')
+            .toString();
     final batchKey = BatchKey.parse(batchStr);
 
     String start = '09:00 AM';
@@ -523,8 +563,15 @@ class ClassSession {
     }
 
     final rawSubject = (json['subject'] ?? json['course'] ?? 'EXAM').toString();
-    final subjectStr = rawSubject.startsWith('[EXAM]') ? rawSubject : '[EXAM] $rawSubject';
-    final teacherStr = _resolveExamInvigilator(json, batchKey, rawSubject, memory);
+    final subjectStr = rawSubject.startsWith('[EXAM]')
+        ? rawSubject
+        : '[EXAM] $rawSubject';
+    final teacherStr = _resolveExamInvigilator(
+      json,
+      batchKey,
+      rawSubject,
+      memory,
+    );
     final roomStr = (json['room'] ?? json['hall'] ?? 'Exam Hall').toString();
 
     return ClassSession(
@@ -591,10 +638,12 @@ class UniversityMemory {
       } else if (s.startTime.contains('11:30')) {
         newStart = '10:30 AM';
         newEnd = '11:30 AM';
-      } else if (s.startTime.contains('01:30') || s.startTime.contains('1:30')) {
+      } else if (s.startTime.contains('01:30') ||
+          s.startTime.contains('1:30')) {
         newStart = '11:30 AM';
         newEnd = '12:30 PM';
-      } else if (s.startTime.contains('03:00') || s.startTime.contains('3:00')) {
+      } else if (s.startTime.contains('03:00') ||
+          s.startTime.contains('3:00')) {
         newStart = '12:30 PM';
         newEnd = '01:30 PM';
       }
@@ -617,12 +666,17 @@ class UniversityMemory {
     List<dynamic>? customMidterms,
     List<dynamic>? customFinals,
   }) {
-    final period = overridePeriod ?? RemoteConfigService.activeAcademicPeriod.value;
+    final period =
+        overridePeriod ?? RemoteConfigService.activeAcademicPeriod.value;
     final rawExams = period == 'midterms'
         ? (customMidterms ?? RemoteConfigService.midtermExams.value)
-        : (period == 'finals' ? (customFinals ?? RemoteConfigService.finalExams.value) : null);
+        : (period == 'finals'
+              ? (customFinals ?? RemoteConfigService.finalExams.value)
+              : null);
 
-    final examsHash = rawExams != null ? Object.hash(rawExams.length, rawExams.hashCode) : 0;
+    final examsHash = rawExams != null
+        ? Object.hash(rawExams.length, rawExams.hashCode)
+        : 0;
     final periodKey = '${period}_$overridePeriod';
 
     if (_cachedActiveSessions != null &&
@@ -632,14 +686,22 @@ class UniversityMemory {
     }
 
     List<ClassSession> result;
-    if ((period == 'midterms' || period == 'finals') && rawExams != null && rawExams.isNotEmpty) {
+    if ((period == 'midterms' || period == 'finals') &&
+        rawExams != null &&
+        rawExams.isNotEmpty) {
       final parsed = <ClassSession>[];
       for (int i = 0; i < rawExams.length; i++) {
         final item = rawExams[i];
         if (item is Map<String, dynamic>) {
           parsed.add(ClassSession.fromExamJson(item, index: i, memory: this));
         } else if (item is Map) {
-          parsed.add(ClassSession.fromExamJson(Map<String, dynamic>.from(item), index: i, memory: this));
+          parsed.add(
+            ClassSession.fromExamJson(
+              Map<String, dynamic>.from(item),
+              index: i,
+              memory: this,
+            ),
+          );
         }
       }
       result = parsed.isNotEmpty ? parsed : sessions;
@@ -695,14 +757,19 @@ class UniversityMemory {
     return map;
   }
 
-  Map<String, List<ClassSession>> byProgram(String program, {String? overridePeriod}) {
+  Map<String, List<ClassSession>> byProgram(
+    String program, {
+    String? overridePeriod,
+  }) {
     final progUpper = program.toUpperCase().trim();
     final periodKey = '${overridePeriod ?? "default"}_$progUpper';
     final cached = _cachedByProgramMap[periodKey];
     if (cached != null) return cached;
 
     final map = <String, List<ClassSession>>{};
-    for (final session in activeSessions(overridePeriod: overridePeriod).where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)) {
+    for (final session in activeSessions(
+      overridePeriod: overridePeriod,
+    ).where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)) {
       map.putIfAbsent(session.batchKey.batch, () => []).add(session);
     }
     _cachedByProgramMap[periodKey] = map;
@@ -713,7 +780,13 @@ class UniversityMemory {
     if (_cachedPrograms != null) return _cachedPrograms!;
     final items = sessions
         .map((s) => s.batchKey.program.toUpperCase().trim())
-        .where((p) => p.isNotEmpty && p != 'UNKNOWN' && p != 'NA' && !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p))
+        .where(
+          (p) =>
+              p.isNotEmpty &&
+              p != 'UNKNOWN' &&
+              p != 'NA' &&
+              !RegExp(r'^(FA|SP)\d{2}$').hasMatch(p),
+        )
         .toSet()
         .toList();
     items.sort();
@@ -745,12 +818,17 @@ class UniversityMemory {
     final items = sessions
         .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper)
         .map((s) => s.batchKey.intake.toUpperCase().trim())
-        .where((intake) => intake.isNotEmpty && intake != 'UNKNOWN' && intake != 'NA')
+        .where(
+          (intake) =>
+              intake.isNotEmpty && intake != 'UNKNOWN' && intake != 'NA',
+        )
         .toSet()
         .toList();
     items.sort((a, b) {
-      final aYear = int.tryParse(RegExp(r'\d+').firstMatch(a)?.group(0) ?? '') ?? 0;
-      final bYear = int.tryParse(RegExp(r'\d+').firstMatch(b)?.group(0) ?? '') ?? 0;
+      final aYear =
+          int.tryParse(RegExp(r'\d+').firstMatch(a)?.group(0) ?? '') ?? 0;
+      final bYear =
+          int.tryParse(RegExp(r'\d+').firstMatch(b)?.group(0) ?? '') ?? 0;
       if (aYear != bYear) return bYear.compareTo(aYear);
       return b.compareTo(a);
     });
@@ -766,9 +844,11 @@ class UniversityMemory {
     if (cached != null) return cached;
 
     final items = sessions
-        .where((s) =>
-            s.batchKey.program.toUpperCase().trim() == progUpper &&
-            s.batchKey.intake.toUpperCase().trim() == intakeUpper)
+        .where(
+          (s) =>
+              s.batchKey.program.toUpperCase().trim() == progUpper &&
+              s.batchKey.intake.toUpperCase().trim() == intakeUpper,
+        )
         .map((s) {
           final sec = s.batchKey.section.trim();
           final m = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(sec);
@@ -789,7 +869,11 @@ class UniversityMemory {
     if (cached != null) return cached;
 
     final items = sessions
-        .where((s) => s.batchKey.program.toUpperCase().trim() == progUpper && s.batchKey.semester == semester)
+        .where(
+          (s) =>
+              s.batchKey.program.toUpperCase().trim() == progUpper &&
+              s.batchKey.semester == semester,
+        )
         .map((s) {
           final sec = s.batchKey.section.trim();
           final m = RegExp(r'^[A-Za-z0-9]{1,3}').firstMatch(sec);
@@ -811,7 +895,9 @@ class UniversityMemory {
     final rooms = <String>{};
     for (final session in activeSessions(overridePeriod: overridePeriod)) {
       final r = session.room.trim();
-      if (r.isNotEmpty && r.toLowerCase() != 'unknown' && r.toLowerCase() != 'na') {
+      if (r.isNotEmpty &&
+          r.toLowerCase() != 'unknown' &&
+          r.toLowerCase() != 'na') {
         rooms.add(r);
       }
     }
@@ -828,7 +914,9 @@ class UniversityMemory {
     final names = <String>{};
     for (final session in activeSessions(overridePeriod: overridePeriod)) {
       final t = session.teacher.trim();
-      if (t.isNotEmpty && t.toLowerCase() != 'unknown' && t.toLowerCase() != 'na') {
+      if (t.isNotEmpty &&
+          t.toLowerCase() != 'unknown' &&
+          t.toLowerCase() != 'na') {
         names.add(t);
       }
     }
@@ -854,20 +942,20 @@ class Room {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'building': building,
-        'capacity': capacity,
-        'amenities': amenities,
-        'registeredAt': registeredAt.toIso8601String(),
-      };
+    'id': id,
+    'building': building,
+    'capacity': capacity,
+    'amenities': amenities,
+    'registeredAt': registeredAt.toIso8601String(),
+  };
 
   factory Room.fromJson(Map<String, dynamic> json) => Room(
-        id: json['id'] as String,
-        building: json['building'] as String,
-        capacity: json['capacity'] as int,
-        amenities: List<String>.from(json['amenities'] as List),
-        registeredAt: DateTime.parse(json['registeredAt'] as String),
-      );
+    id: json['id'] as String,
+    building: json['building'] as String,
+    capacity: json['capacity'] as int,
+    amenities: List<String>.from(json['amenities'] as List),
+    registeredAt: DateTime.parse(json['registeredAt'] as String),
+  );
 }
 
 class Department {
@@ -945,6 +1033,7 @@ class LectureDuration {
   static double getActualDuration(ClassSession session) {
     return (session.safeEndVal - session.safeStartVal).abs();
   }
+
   static double getActualEndTime(ClassSession session) {
     return session.safeEndVal;
   }

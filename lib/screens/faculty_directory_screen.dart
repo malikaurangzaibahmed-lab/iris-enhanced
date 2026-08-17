@@ -594,196 +594,217 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _loadFaculty,
-                    child: ListView(
+                    child: CustomScrollView(
                       controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
-                      children: [
-                        DirectoryAnimationWidget(
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [IrisTokens.brand, IrisTokens.purple],
-                                  ),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Icon(
-                                  Icons.badge_rounded,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Faculty Directory',
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.2,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Live source with backup fallback',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: IrisTokens.brand.withValues(alpha: 0.14),
-                                        borderRadius: BorderRadius.circular(999),
-                                        border: Border.all(
-                                          color: IrisTokens.brand.withValues(alpha: 0.24),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        _sourceLabel(_source),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 0.7,
-                                          color: IrisTokens.brand.withValues(alpha: 0.9),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        GlassCard(
-                          enableOverlay: false,
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (value) {
-                              _query = value;
-                              _searchDebounce?.cancel();
-                              _searchDebounce = Timer(
-                                const Duration(milliseconds: 120),
-                                () {
-                                  if (!mounted) return;
-                                  _applyFilter();
-                                },
-                              );
-                            },
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Search faculty by name, dept, location...',
-                              hintStyle: TextStyle(
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                              ),
-                              prefixIcon: const Icon(Icons.search_rounded),
-                              suffixIcon: _searchController.text.trim().isEmpty
-                                  ? null
-                                  : IconButton(
-                                      onPressed: () {
-                                        IrisHaptics.actionSoft();
-                                        _searchController.clear();
-                                        _query = '';
-                                        _applyFilter();
-                                      },
-                                      icon: const Icon(Icons.clear_rounded),
-                                    ),
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildFilterStrip(
-                          title: 'DEPARTMENT',
-                          options: _departments,
-                          selected: _selectedDepartment,
-                          onChanged: (value) {
-                            setState(() => _selectedDepartment = value);
-                            _applyFilter();
-                          },
-                          isDark: isDark,
-                        ),
-                        const SizedBox(height: 10),
-                        _buildFilterStrip(
-                          title: 'BLOCK',
-                          options: _blocks,
-                          selected: _selectedBlock,
-                          onChanged: (value) {
-                            setState(() => _selectedBlock = value);
-                            _applyFilter();
-                          },
-                          isDark: isDark,
-                        ),
-                        const SizedBox(height: 12),
-                        if (_loading)
-                          const Padding(
-                            padding: EdgeInsets.only(top: 24),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else if (_error.isNotEmpty)
-                          GlassCard(
-                            enableOverlay: false,
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                          sliver: SliverToBoxAdapter(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Directory unavailable',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
+                                DirectoryAnimationWidget(
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [IrisTokens.brand, IrisTokens.purple],
+                                          ),
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        child: const Icon(
+                                          Icons.badge_rounded,
+                                          color: Colors.white,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Faculty Directory',
+                                              style: TextStyle(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 0.2,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Live source with backup fallback',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: IrisTokens.brand.withValues(alpha: 0.14),
+                                                borderRadius: BorderRadius.circular(999),
+                                                border: Border.all(
+                                                  color: IrisTokens.brand.withValues(alpha: 0.24),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                _sourceLabel(_source),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w800,
+                                                  letterSpacing: 0.7,
+                                                  color: IrisTokens.brand.withValues(alpha: 0.9),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _error,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.65),
+                                const SizedBox(height: 16),
+                                GlassCard(
+                                  enableOverlay: false,
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: (value) {
+                                      _query = value;
+                                      _searchDebounce?.cancel();
+                                      _searchDebounce = Timer(
+                                        const Duration(milliseconds: 120),
+                                        () {
+                                          if (!mounted) return;
+                                          _applyFilter();
+                                        },
+                                      );
+                                    },
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: 'Search faculty by name, dept, location...',
+                                      hintStyle: TextStyle(
+                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                                      ),
+                                      prefixIcon: const Icon(Icons.search_rounded),
+                                      suffixIcon: _searchController.text.trim().isEmpty
+                                          ? null
+                                          : IconButton(
+                                              onPressed: () {
+                                                IrisHaptics.actionSoft();
+                                                _searchController.clear();
+                                                _query = '';
+                                                _applyFilter();
+                                              },
+                                              icon: const Icon(Icons.clear_rounded),
+                                            ),
+                                      border: InputBorder.none,
+                                    ),
                                   ),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildFilterStrip(
+                                  title: 'DEPARTMENT',
+                                  options: _departments,
+                                  selected: _selectedDepartment,
+                                  onChanged: (value) {
+                                    setState(() => _selectedDepartment = value);
+                                    _applyFilter();
+                                  },
+                                  isDark: isDark,
                                 ),
                                 const SizedBox(height: 10),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: ElevatedButton.icon(
-                                    onPressed: _loadFaculty,
-                                    icon: const Icon(Icons.refresh_rounded),
-                                    label: const Text('Try again'),
-                                  ),
+                                _buildFilterStrip(
+                                  title: 'BLOCK',
+                                  options: _blocks,
+                                  selected: _selectedBlock,
+                                  onChanged: (value) {
+                                    setState(() => _selectedBlock = value);
+                                    _applyFilter();
+                                  },
+                                  isDark: isDark,
                                 ),
+                                const SizedBox(height: 12),
+                                if (_loading)
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 24),
+                                    child: Center(child: CircularProgressIndicator()),
+                                  )
+                                else if (_error.isNotEmpty)
+                                  GlassCard(
+                                    enableOverlay: false,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Directory unavailable',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          _error,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.65),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: ElevatedButton.icon(
+                                            onPressed: _loadFaculty,
+                                            icon: const Icon(Icons.refresh_rounded),
+                                            label: const Text('Try again'),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      '${_filtered.length} result${_filtered.length == 1 ? '' : 's'}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.48),
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
-                          )
-                        else ...[
-                          Text(
-                            '${_filtered.length} result${_filtered.length == 1 ? '' : 's'}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.48),
+                          ),
+                        ),
+                        if (!_loading && _error.isEmpty)
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                            sliver: SliverList.builder(
+                              itemCount: _filtered.length,
+                              itemBuilder: (context, index) {
+                                final item = _filtered[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _buildFacultyTile(item, isDark),
+                                );
+                              },
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          ..._filtered.map(
-                            (item) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _buildFacultyTile(item, isDark),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),

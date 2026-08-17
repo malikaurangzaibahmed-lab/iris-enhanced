@@ -294,10 +294,14 @@ class _AnimatedListItemState extends State<AnimatedListItem> with SingleTickerPr
     _slideAnimation = Tween<Offset>(begin: const Offset(0.0, 0.15), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
-    final delay = (widget.index % 12) * 35;
-    Future.delayed(Duration(milliseconds: delay), () {
-      if (mounted) _controller.forward();
-    });
+    if (widget.index < 8) {
+      final delay = widget.index * 25;
+      Future.delayed(Duration(milliseconds: delay), () {
+        if (mounted) _controller.forward();
+      });
+    } else {
+      _controller.value = 1.0;
+    }
   }
 
   @override
