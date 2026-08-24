@@ -185,12 +185,10 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Future<void> _toggleWidgetDarkMode(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('widget_dark_mode', enabled);
     setState(() {
       _widgetDarkMode = enabled;
     });
-    await WidgetService.setWidgetDarkMode(enabled);
+    await WidgetService.syncThemeMode(enabled);
   }
 
   void _toggleRole() {

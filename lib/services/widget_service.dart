@@ -92,6 +92,30 @@ class WidgetService {
     }
   }
 
+  /// Fuses Android/iOS Home Screen Widget theme with the app's overall Light/Dark mode
+  static Future<void> syncThemeMode(bool isDark) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('widget_dark_mode', isDark);
+      await prefs.setBool(_prefWidgetDarkMode, isDark);
+      await HomeWidget.saveWidgetData<bool>('widget_dark_mode', isDark);
+      await HomeWidget.saveWidgetData<bool>(_prefWidgetDarkMode, isDark);
+      await HomeWidget.updateWidget(
+        name: 'ClassTrackerWidget',
+        iOSName: 'OmniFlowWidget',
+        androidName: 'ClassTrackerWidget',
+      );
+      await HomeWidget.updateWidget(
+        name: 'PortalTasksWidget',
+        iOSName: 'OmniFlowWidget',
+        androidName: 'PortalTasksWidget',
+      );
+      debugPrint('🌓 HomeWidget theme fused with app: isDark=$isDark');
+    } catch (e) {
+      debugPrint('⚠️ syncThemeMode failed: $e');
+    }
+  }
+
   static const String _widgetGroupId = 'com.iris.app';
 
   static Future<void> initialize() async {

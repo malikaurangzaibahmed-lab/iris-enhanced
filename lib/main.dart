@@ -539,6 +539,12 @@ class _IrisAppState extends State<_IrisApp> {
     _loadThemeMode();
   }
 
+  bool _isDarkForMode(ThemeMode mode) {
+    if (mode == ThemeMode.dark) return true;
+    if (mode == ThemeMode.light) return false;
+    return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+  }
+
   Future<void> _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     final savedMode = prefs.getString('theme_mode') ?? 'system';
@@ -546,11 +552,13 @@ class _IrisAppState extends State<_IrisApp> {
     final useVital = prefs.getBool('use_vital_theme') ?? true;
     ThemeSignals.useMinimalTheme.value = useMinimal;
     ThemeSignals.useVitalTheme.value = useVital;
+    final resolvedMode = _themeModeFromString(savedMode);
+    WidgetService.syncThemeMode(_isDarkForMode(resolvedMode));
     if (!mounted) {
       return;
     }
     setState(() {
-      _themeMode = _themeModeFromString(savedMode);
+      _themeMode = resolvedMode;
     });
   }
 
@@ -580,6 +588,7 @@ class _IrisAppState extends State<_IrisApp> {
     final nextMode = _themeModeFromString(mode);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('theme_mode', _themeModeToString(nextMode));
+    WidgetService.syncThemeMode(_isDarkForMode(nextMode));
     if (!mounted) {
       return;
     }
@@ -592,6 +601,7 @@ class _IrisAppState extends State<_IrisApp> {
     final nextMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('theme_mode', _themeModeToString(nextMode));
+    WidgetService.syncThemeMode(_isDarkForMode(nextMode));
     if (!mounted) {
       return;
     }

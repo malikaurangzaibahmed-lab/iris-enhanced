@@ -839,8 +839,7 @@ class _IrisHubScreenState extends State<IrisHubScreen> {
             value: _widgetDarkMode,
             onChanged: (v) async {
               setState(() => _widgetDarkMode = v);
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('widget_dark_mode', v);
+              await WidgetService.syncThemeMode(v);
             }
           ),
         ],

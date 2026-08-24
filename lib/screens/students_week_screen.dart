@@ -33,20 +33,24 @@ class StudentsWeekHeaderCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                    color: isDark
+                        ? const Color(0xFF10B981).withValues(alpha: 0.16)
+                        : const Color(0xFFECFDF5),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                      color: isDark
+                          ? const Color(0xFF10B981).withValues(alpha: 0.35)
+                          : const Color(0xFF10B981).withValues(alpha: 0.45),
                       width: 1,
                     ),
                   ),
                   child: Text(
-                    "STUDENTS' WEEK ${DateTime.now().year}",
-                    style: const TextStyle(
+                    "🏆 STUDENTS' GALA ${DateTime.now().year}",
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF10B981),
-                      letterSpacing: 1.5,
+                      color: isDark ? const Color(0xFF10B981) : const Color(0xFF047857),
+                      letterSpacing: 1.2,
                     ),
                   ),
                 ),
@@ -58,16 +62,18 @@ class StudentsWeekHeaderCard extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
                     height: 1.1,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  "No normal classes this week! Athletic, cultural & sports gala events active across campus.",
+                  "Sports gala events active across campus! Timetables and scheduled classes running smoothly.",
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.70)
+                        : const Color(0xFF334155).withValues(alpha: 0.90),
                     height: 1.35,
                   ),
                 ),
@@ -113,7 +119,7 @@ class HeaderImageCard extends StatelessWidget {
         borderRadius: borderRadius,
         accentColor: accentColor,
         border: Border.all(
-          color: accentColor.withValues(alpha: isDark ? 0.22 : 0.15),
+          color: accentColor.withValues(alpha: isDark ? 0.25 : 0.35),
           width: 1.2,
         ),
         glow: true,
@@ -139,9 +145,12 @@ class HeaderImageCard extends StatelessWidget {
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        (isDark ? const Color(0xFF030712) : Colors.white).withValues(alpha: isDark ? 0.90 : 0.84),
-                        (isDark ? const Color(0xFF030712) : Colors.white).withValues(alpha: isDark ? 0.75 : 0.65),
-                        (isDark ? const Color(0xFF030712) : Colors.white).withValues(alpha: isDark ? 0.25 : 0.15),
+                        (isDark ? const Color(0xFF030712) : Colors.white)
+                            .withValues(alpha: isDark ? 0.92 : 0.96),
+                        (isDark ? const Color(0xFF030712) : Colors.white)
+                            .withValues(alpha: isDark ? 0.78 : 0.88),
+                        (isDark ? const Color(0xFF030712) : Colors.white)
+                            .withValues(alpha: isDark ? 0.25 : 0.35),
                       ],
                       stops: const [0.0, 0.58, 1.0],
                     ),

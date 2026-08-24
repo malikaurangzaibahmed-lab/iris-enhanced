@@ -229,15 +229,24 @@ class SportsWeekStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                               ),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? Colors.black.withValues(alpha: 0.55)
-                                    : Colors.white.withValues(alpha: 0.75),
+                                    ? Colors.black.withValues(alpha: 0.60)
+                                    : Colors.white.withValues(alpha: 0.92),
                                 borderRadius: BorderRadius.circular(22),
                                 border: Border.all(
                                   color: isDark
                                       ? accentColor.withValues(alpha: 0.45)
-                                      : Colors.white.withValues(alpha: 0.9),
+                                      : accentColor.withValues(alpha: 0.35),
                                   width: 1.2,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isDark
+                                        ? Colors.black.withValues(alpha: 0.50)
+                                        : Colors.black.withValues(alpha: 0.08),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -249,20 +258,20 @@ class SportsWeekStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                                       vertical: 3.5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: accentColor.withValues(
-                                        alpha: isDark ? 0.25 : 0.15,
-                                      ),
+                                      color: isDark
+                                          ? accentColor.withValues(alpha: 0.25)
+                                          : const Color(0xFFECFDF5),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         color: accentColor.withValues(alpha: 0.5),
                                       ),
                                     ),
                                     child: Text(
-                                      'STUDENTS\' GALA ${DateTime.now().year}',
-                                      style: const TextStyle(
+                                      '🏆 STUDENTS\' GALA ${DateTime.now().year}',
+                                      style: TextStyle(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w900,
-                                        color: accentColor,
+                                        color: isDark ? accentColor : const Color(0xFF047857),
                                         letterSpacing: 0.8,
                                       ),
                                     ),
@@ -284,13 +293,13 @@ class SportsWeekStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        'Zero Regular Classes',
+                                        'Campus Gala Active',
                                         style: TextStyle(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
                                           color: isDark
                                               ? Colors.white70
-                                              : const Color(0xFF475569),
+                                              : const Color(0xFF334155),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -303,11 +312,13 @@ class SportsWeekStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Tournament Fixtures Active',
+                                        'Timetables & Lectures Open',
                                         style: TextStyle(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w600,
-                                          color: isDark ? Colors.white60 : Colors.black54,
+                                          color: isDark
+                                              ? Colors.white60
+                                              : const Color(0xFF475569),
                                         ),
                                       ),
                                     ],

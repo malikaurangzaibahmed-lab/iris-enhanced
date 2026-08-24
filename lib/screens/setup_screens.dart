@@ -65,8 +65,6 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
   // Notification Toggles (First-Time Setup)
   bool _notifClassAlerts = true;
-  bool _notifExamAlerts = true;
-  bool _notifCampusBroadcasts = true;
 
   // Sync state
   double _syncProgress = 0.0;
@@ -434,6 +432,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           await prefs.setString('student_roll_no', _rollNo);
         }
 
+        await prefs.setBool('notifications_enabled', _notifClassAlerts);
+        await prefs.setBool('class_alerts_enabled', _notifClassAlerts);
+        await prefs.setBool('class_reminders', _notifClassAlerts);
         await prefs.setBool('is_first_time', false);
         await prefs.setBool('setup_completed', true);
 
@@ -1091,7 +1092,7 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           Padding(
             padding: const EdgeInsets.only(left: 44),
             child: Text(
-              'Configure your alerts for classes, exams and broadcasts',
+              'Never miss a lecture with intelligent 10-minute reminders',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -1104,47 +1105,71 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           const SizedBox(height: 24),
 
           GlassCard(
-            padding: const EdgeInsets.all(18),
-            child: Column(
+            padding: const EdgeInsets.all(20),
+            accentColor: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
+            child: Row(
               children: [
-                _buildNotificationToggleRow(
-                  title: 'Live Class Schedule Alerts',
-                  subtitle: 'Get notified 10 mins before your upcoming classes',
-                  icon: Icons.notifications_active_rounded,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: (_role == 'faculty' ? IrisTokens.blue : IrisTokens.brand)
+                        .withValues(alpha: isDark ? 0.20 : 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    Icons.notifications_active_rounded,
+                    color: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Live Class Reminders',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Get notified 10 minutes before every lecture begins',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                          color: (isDark ? Colors.white : Colors.black).withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                lgw.GlassSwitch(
+                  useOwnLayer: true,
+                  settings: IrisGlass.widgetsSettings(
+                    context,
+                    blur: 16.0,
+                    thickness: 12.0,
+                    ambientStrength: isDark ? 0.65 : 0.72,
+                    lightAngle: 1.5,
+                  ),
                   value: _notifClassAlerts,
-                  onChanged: (val) => setState(() => _notifClassAlerts = val),
-                  isDark: isDark,
-                ),
-                Divider(
-                  height: 24,
-                  color: isDark ? Colors.white10 : Colors.black12,
-                ),
-                _buildNotificationToggleRow(
-                  title: 'Exam & Date Sheet Reminders',
-                  subtitle: 'Timely reminders for midterm & final exam dates',
-                  icon: Icons.edit_calendar_rounded,
-                  value: _notifExamAlerts,
-                  onChanged: (val) => setState(() => _notifExamAlerts = val),
-                  isDark: isDark,
-                ),
-                Divider(
-                  height: 24,
-                  color: isDark ? Colors.white10 : Colors.black12,
-                ),
-                _buildNotificationToggleRow(
-                  title: 'Emergency Campus Broadcasts',
-                  subtitle: 'Real-time announcements & sports week updates',
-                  icon: Icons.campaign_rounded,
-                  value: _notifCampusBroadcasts,
-                  onChanged: (val) =>
-                      setState(() => _notifCampusBroadcasts = val),
-                  isDark: isDark,
+                  onChanged: (val) {
+                    IrisHaptics.selectionClick();
+                    setState(() => _notifClassAlerts = val);
+                  },
                 ),
               ],
             ),
           ),
           const Spacer(),
-
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -1180,59 +1205,6 @@ class _OnboardingWizardState extends State<OnboardingWizard>
           const SizedBox(height: 12),
         ],
       ),
-    );
-  }
-
-  Widget _buildNotificationToggleRow({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required bool isDark,
-  }) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
-          size: 22,
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: (isDark ? Colors.white : Colors.black).withValues(
-                    alpha: 0.6,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Switch(
-          value: value,
-          activeColor: _role == 'faculty' ? IrisTokens.blue : IrisTokens.brand,
-          onChanged: (val) {
-            IrisHaptics.selectionClick();
-            onChanged(val);
-          },
-        ),
-      ],
     );
   }
 
