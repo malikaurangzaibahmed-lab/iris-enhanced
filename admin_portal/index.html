@@ -193,6 +193,16 @@
         </div>
         
         <div class="topbar-right">
+          <!-- Multi-Track Staging Switcher -->
+          <div class="channel-toggle-wrapper" style="display: inline-flex; align-items: center; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 2px; margin-right: 6px;">
+            <button id="btn-channel-prod" class="btn-channel" style="padding: 4px 11px; border-radius: 16px; border: none; font-size: 11px; font-weight: 800; cursor: pointer; background: var(--accent-emerald); color: white; transition: all 0.2s ease;" title="Production Channel (config/global)">
+              <i class="fa-solid fa-satellite-dish"></i> PROD
+            </button>
+            <button id="btn-channel-beta" class="btn-channel" style="padding: 4px 11px; border-radius: 16px; border: none; font-size: 11px; font-weight: 800; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;" title="Beta Staging Channel (config/beta)">
+              <i class="fa-solid fa-flask-vial"></i> BETA
+            </button>
+          </div>
+
           <span class="badge badge-connected" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald);">
             <span class="status-dot"></span> <span class="badge-text">CONNECTED</span>
           </span>

@@ -863,18 +863,65 @@ saveConfigBtn.addEventListener('click', () => {
 
 
 
+let activeConfigTarget = 'global'; // 'global' (Production) or 'beta' (Staging)
+let unsubscribeConfigListener = null;
+
+function getConfigDoc() {
+  return db.collection('config').doc(activeConfigTarget);
+}
+
+function setAdminTargetChannel(target) {
+  if (activeConfigTarget === target) return;
+  activeConfigTarget = target;
+  const isBeta = target === 'beta';
+  const prodBtn = document.getElementById('btn-channel-prod');
+  const betaBtn = document.getElementById('btn-channel-beta');
+  if (prodBtn && betaBtn) {
+    if (isBeta) {
+      betaBtn.style.background = '#8B5CF6';
+      betaBtn.style.color = 'white';
+      prodBtn.style.background = 'transparent';
+      prodBtn.style.color = 'var(--text-muted)';
+    } else {
+      prodBtn.style.background = 'var(--accent-emerald)';
+      prodBtn.style.color = 'white';
+      betaBtn.style.background = 'transparent';
+      betaBtn.style.color = 'var(--text-muted)';
+    }
+  }
+  logTerminal(`⚡ Admin Target Channel switched to: <strong>${target.toUpperCase()}</strong> (config/${target})`, isBeta ? 'warn' : 'info');
+  syncActivePeriodState();
+}
+
 function syncActivePeriodState() {
   if (!isConnected) return;
   
-  logTerminal('Establishing real-time cloud database synchronization...', 'info');
+  logTerminal(`Establishing real-time cloud database synchronization (Channel: ${activeConfigTarget.toUpperCase()})...`, 'info');
   initFirestoreFeedbackStream();
   
-  db.collection('config').doc('global').onSnapshot(doc => {
+  if (unsubscribeConfigListener) {
+    unsubscribeConfigListener();
+    unsubscribeConfigListener = null;
+  }
+
+  // Setup channel buttons
+  const prodBtn = document.getElementById('btn-channel-prod');
+  const betaBtn = document.getElementById('btn-channel-beta');
+  if (prodBtn && !prodBtn.dataset.bound) {
+    prodBtn.dataset.bound = 'true';
+    prodBtn.addEventListener('click', () => setAdminTargetChannel('global'));
+  }
+  if (betaBtn && !betaBtn.dataset.bound) {
+    betaBtn.dataset.bound = 'true';
+    betaBtn.addEventListener('click', () => setAdminTargetChannel('beta'));
+  }
+  
+  unsubscribeConfigListener = db.collection('config').doc(activeConfigTarget).onSnapshot(doc => {
     if (doc.exists) {
       const data = doc.data();
       const currentPeriod = data.academic_period || 'classes';
       
-      logTerminal(`Sync Telemetry: Operational period mode: <strong>${currentPeriod}</strong>`, 'success');
+      logTerminal(`Sync Telemetry [${activeConfigTarget.toUpperCase()}]: Operational period mode: <strong>${currentPeriod}</strong>`, 'success');
       
       // Update tactile Segmented Switcher state
       ribbonSegments.forEach(seg => {
@@ -1006,7 +1053,7 @@ function syncActivePeriodState() {
       }
     } else {
       logTerminal('Operational config document empty. Initializing defaults.', 'warning');
-      db.collection('config').doc('global').set({
+      db.collection('config').doc(activeConfigTarget).set({
         academic_period: 'classes',
         active_timetable_version: Date.now(),
         latest_apk_update: {
@@ -1098,7 +1145,7 @@ ribbonSegments.forEach(seg => {
     
     // 2. Fire the database update asynchronously in background
     try {
-      await db.collection('config').doc('global').update({
+      await db.collection('config').doc(activeConfigTarget).update({
         academic_period: targetPeriod,
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -1211,7 +1258,7 @@ if (broadcastSwitchVisible) {
     logTerminal(`Updating broadcast transmission link state: ${enabled ? 'ACTIVE' : 'STANDBY'}...`, 'info');
     
     try {
-      await db.collection('config').doc('global').set({
+      await db.collection('config').doc(activeConfigTarget).set({
         broadcast_enabled: enabled,
         broadcast_updated_at: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
@@ -1244,7 +1291,7 @@ if (btnBroadcastPush) {
     if (btnSpan) btnSpan.innerText = 'TRANSMITTING EMISSION WAVE...';
     
     try {
-      await db.collection('config').doc('global').set({
+      await db.collection('config').doc(activeConfigTarget).set({
         broadcast_message: msg,
         broadcast_enabled: true, // Always force enable ON upon explicit dispatch
         broadcast_updated_at: firebase.firestore.FieldValue.serverTimestamp()
@@ -2261,7 +2308,7 @@ deployTimetableBtn.addEventListener('click', async () => {
     const classesCount = stagedTimetablePayload.length;
     const payload = JSON.stringify(stagedTimetablePayload);
 
-    await db.collection('config').doc('global').update({
+    await db.collection('config').doc(activeConfigTarget).update({
       active_timetable_version: Date.now(),
       active_timetable_url: "", 
       active_timetable_json: payload,
@@ -2323,7 +2370,7 @@ deployApkBtn.addEventListener('click', async () => {
     if (pastedUrl) {
       logTerminal('Staging update package mapping direct external CDN link...', 'info');
       
-      await db.collection('config').doc('global').update({
+      await db.collection('config').doc(activeConfigTarget).update({
         latest_apk_update: {
           version_name: vName,
           version_code: vCode,
@@ -2378,7 +2425,7 @@ deployApkBtn.addEventListener('click', async () => {
         const downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
         logTerminal(`APK Binary stored securely. Path: updates/${filename}`, 'success');
         
-        await db.collection('config').doc('global').update({
+        await db.collection('config').doc(activeConfigTarget).update({
           latest_apk_update: {
             version_name: vName,
             version_code: vCode,
@@ -2415,13 +2462,13 @@ if (apkSwitchVisible) {
     logTerminal(`Updating app update card visibility: ${enabled ? 'VISIBLE' : 'HIDDEN'}...`, 'info');
     
     try {
-      const doc = await db.collection('config').doc('global').get();
+      const doc = await db.collection('config').doc(activeConfigTarget).get();
       if (doc.exists) {
         const data = doc.data();
         const currentUpdate = data.latest_apk_update || {};
         currentUpdate.show_update_card = enabled;
         
-        await db.collection('config').doc('global').update({
+        await db.collection('config').doc(activeConfigTarget).update({
           latest_apk_update: currentUpdate,
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -2530,7 +2577,7 @@ function startLatencySimulator() {
     if (isConnected && db) {
       const startTime = Date.now();
       try {
-        await db.collection('config').doc('global').get();
+        await db.collection('config').doc(activeConfigTarget).get();
         const latency = Date.now() - startTime;
         if (valEl) valEl.innerText = `${latency}ms`;
         if (telemetryHealth) telemetryHealth.innerText = 'OPTIMAL';
@@ -2647,7 +2694,7 @@ async function loadTimetableHistory() {
     // Fallback: If database has no history records yet, populate with a record representing the current active configuration
     if (timetableHistory.length === 0) {
       logTerminal('History ledger empty. Creating initial seed record...', 'warning');
-      const globalDoc = await db.collection('config').doc('global').get();
+      const globalDoc = await db.collection('config').doc(activeConfigTarget).get();
       if (globalDoc.exists) {
         const data = globalDoc.data();
         const activeVer = data.active_timetable_version || Date.now();
@@ -2714,7 +2761,7 @@ window.revertTimetableVersion = async function(id) {
   
   try {
     if (isConnected && db) {
-      await db.collection('config').doc('global').update({
+      await db.collection('config').doc(activeConfigTarget).update({
         active_timetable_version: Date.now(),
         active_timetable_url: "",
         active_timetable_json: version.json,
@@ -3106,7 +3153,7 @@ btnDeployMidterms.addEventListener('click', async () => {
   
   try {
     const payload = JSON.stringify(parsedExams);
-    await db.collection('config').doc('global').update({
+    await db.collection('config').doc(activeConfigTarget).update({
       active_midterm_json: payload,
       active_midterm_version: Date.now(),
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
@@ -3136,7 +3183,7 @@ btnDeployFinals.addEventListener('click', async () => {
   
   try {
     const payload = JSON.stringify(parsedExams);
-    await db.collection('config').doc('global').update({
+    await db.collection('config').doc(activeConfigTarget).update({
       active_finals_json: payload,
       active_finals_version: Date.now(),
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
@@ -3352,7 +3399,7 @@ async function refreshLiveClassesInspector() {
 
   if (isConnected && db) {
     try {
-      const doc = await db.collection('config').doc('global').get();
+      const doc = await db.collection('config').doc(activeConfigTarget).get();
       if (doc.exists && doc.data().active_timetable_json) {
         const parsed = JSON.parse(doc.data().active_timetable_json);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -3404,7 +3451,7 @@ async function refreshLiveExamsInspector() {
 
   if (isConnected && db) {
     try {
-      const doc = await db.collection('config').doc('global').get();
+      const doc = await db.collection('config').doc(activeConfigTarget).get();
       if (doc.exists) {
         const data = doc.data();
         const jsonStr = data.active_midterm_json || data.active_finals_json;
@@ -3466,7 +3513,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnWipeClasses) btnWipeClasses.addEventListener('click', async () => {
     if (!confirm("Are you sure you want to clear active classes timetable from the live database?")) return;
     if (isConnected && db) {
-      await db.collection('config').doc('global').update({
+      await db.collection('config').doc(activeConfigTarget).update({
         active_timetable_json: "[]",
         active_timetable_version: Date.now(),
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
@@ -3492,7 +3539,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnWipeExams) btnWipeExams.addEventListener('click', async () => {
     if (!confirm("Are you sure you want to clear active exam date sheets from the live database?")) return;
     if (isConnected && db) {
-      await db.collection('config').doc('global').update({
+      await db.collection('config').doc(activeConfigTarget).update({
         active_midterm_json: "[]",
         active_finals_json: "[]",
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
@@ -3608,7 +3655,7 @@ async function refreshLiveClassesInspector() {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Offline: Cannot query live database.</td></tr>`;
       return;
     }
-    const doc = await db.collection('config').doc('global').get();
+    const doc = await db.collection('config').doc(activeConfigTarget).get();
     if (doc.exists) {
       const data = doc.data();
       const jsonStr = data.active_timetable_json || '[]';
@@ -3685,7 +3732,7 @@ async function wipeLiveClasses() {
   logTerminal("Wiping live active daily class timetable...", "warning");
   
   try {
-    await db.collection('config').doc('global').update({
+    await db.collection('config').doc(activeConfigTarget).update({
       active_timetable_json: '[]',
       active_timetable_version: Date.now(),
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
@@ -3713,7 +3760,7 @@ async function refreshLiveExamsInspector() {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Offline: Cannot query live database.</td></tr>`;
       return;
     }
-    const doc = await db.collection('config').doc('global').get();
+    const doc = await db.collection('config').doc(activeConfigTarget).get();
     if (doc.exists) {
       const data = doc.data();
       let jsonStr = '[]';
@@ -3798,7 +3845,7 @@ async function wipeLiveExams() {
     }
     updateObj.updated_at = firebase.firestore.FieldValue.serverTimestamp();
     
-    await db.collection('config').doc('global').update(updateObj);
+    await db.collection('config').doc(activeConfigTarget).update(updateObj);
     incrementDatabaseOps();
     
     logTerminal(`Live Wipe Success: Cleared active ${activeInspectorExamPeriod} exams schedule database payload.`, 'success');
@@ -4338,7 +4385,7 @@ async function fetchLiveCloudSchedule() {
 
   try {
     logTerminal('Querying live semester milestones from Firestore...', 'info');
-    const doc = await db.collection('config').doc('global').get();
+    const doc = await db.collection('config').doc(activeConfigTarget).get();
     
     if (doc.exists && doc.data().semester_schedule && Array.isArray(doc.data().semester_schedule)) {
       stagedSemesterMilestones = JSON.parse(JSON.stringify(doc.data().semester_schedule));
@@ -4599,7 +4646,7 @@ async function deploySemesterScheduleToFirestore() {
 
     // Write to Firestore global config and dedicated semester_schedule document
     await Promise.all([
-      db.collection('config').doc('global').set(updatePayload, { merge: true }),
+      db.collection('config').doc(activeConfigTarget).set(updatePayload, { merge: true }),
       db.collection('config').doc('semester_schedule').set({
         milestones: stagedSemesterMilestones,
         version: Date.now(),
@@ -5524,7 +5571,7 @@ function setupSemesterScheduleHandlers() {
       }
       try {
         logTerminal('Fetching live semester schedule from Firestore...', 'info');
-        const doc = await db.collection('config').doc('global').get();
+        const doc = await db.collection('config').doc(activeConfigTarget).get();
         if (!doc.exists) {
           showMossToast('Global config document not found in Firestore', 'warning');
           return;
@@ -5594,7 +5641,7 @@ function setupSemesterScheduleHandlers() {
           milestones: stagedMilestones
         };
 
-        await db.collection('config').doc('global').update({
+        await db.collection('config').doc(activeConfigTarget).update({
           vacation_schedule: schedulePayload,
           semester_milestones: stagedMilestones,
           semester_schedule: stagedMilestones,
@@ -6026,7 +6073,7 @@ async function fetchLiveInspectorExams() {
   if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;"><i class="fa-solid fa-spinner fa-spin"></i> Querying live ${activeInspectorExamPeriod} records from Firestore...</td></tr>`;
 
   try {
-    const doc = await db.collection('config').doc('global').get();
+    const doc = await db.collection('config').doc(activeConfigTarget).get();
     if (!doc.exists) {
       if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Global config document not found in database.</td></tr>`;
       return;
@@ -6088,7 +6135,7 @@ function setupExamsManager() {
 
       try {
         logTerminal(`Deploying <strong>${stagedExams.length} Midterm exam records</strong> to Firestore...`, 'info');
-        await db.collection('config').doc('global').update({
+        await db.collection('config').doc(activeConfigTarget).update({
           active_midterm_json: JSON.stringify(stagedExams),
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -6122,7 +6169,7 @@ function setupExamsManager() {
 
       try {
         logTerminal(`Deploying <strong>${stagedExams.length} Final exam records</strong> to Firestore...`, 'info');
-        await db.collection('config').doc('global').update({
+        await db.collection('config').doc(activeConfigTarget).update({
           active_finals_json: JSON.stringify(stagedExams),
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -6178,7 +6225,7 @@ function setupExamsManager() {
       try {
         const fieldKey = activeInspectorExamPeriod === 'midterms' ? 'active_midterm_json' : 'active_finals_json';
         logTerminal(`Wiping ${activeInspectorExamPeriod} records from Firestore...`, 'warning');
-        await db.collection('config').doc('global').update({
+        await db.collection('config').doc(activeConfigTarget).update({
           [fieldKey]: '',
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
