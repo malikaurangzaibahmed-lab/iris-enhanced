@@ -1016,71 +1016,83 @@ class _AboutScreenState extends State<AboutScreen> {
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: IrisTokens.brand.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: IrisTokens.brand.withValues(alpha: 0.2),
+              GestureDetector(
+                onTap: _handleDevTap,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: IrisTokens.brand.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: IrisTokens.brand.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.system_update_rounded,
+                        color: IrisTokens.brand,
+                        size: 22,
                       ),
                     ),
-                    child: const Icon(
-                      Icons.system_update_rounded,
-                      color: IrisTokens.brand,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              "IRIS v${RemoteConfigService.CURRENT_VERSION_NAME}",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                                color: isDark ? Colors.white : Colors.black87,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: (hasUpdate ? Colors.amber : IrisTokens.brand).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: (hasUpdate ? Colors.amber : IrisTokens.brand).withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Text(
-                                hasUpdate ? 'v$newVersionName Available' : 'Latest Build',
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "IRIS v${RemoteConfigService.CURRENT_VERSION_NAME}",
                                 style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: hasUpdate ? Colors.amber : IrisTokens.brand,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                  letterSpacing: 0.3,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "Package: com.iris.app • Build ${RemoteConfigService.CURRENT_VERSION_CODE}",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                              const SizedBox(width: 8),
+                              ValueListenableBuilder<String>(
+                                valueListenable: RemoteConfigService.activeTrack,
+                                builder: (context, track, _) {
+                                  final isBeta = track == 'beta';
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: (isBeta ? const Color(0xFF8B5CF6) : (hasUpdate ? Colors.amber : IrisTokens.brand)).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: (isBeta ? const Color(0xFF8B5CF6) : (hasUpdate ? Colors.amber : IrisTokens.brand)).withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      isBeta ? 'BETA TRACK' : (hasUpdate ? 'v$newVersionName Available' : 'STABLE'),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: isBeta ? const Color(0xFF8B5CF6) : (hasUpdate ? Colors.amber : IrisTokens.brand),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          Text(
+                            "Package: com.iris.app • Build ${RemoteConfigService.CURRENT_VERSION_CODE}",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               Divider(
@@ -1126,6 +1138,199 @@ class _AboutScreenState extends State<AboutScreen> {
           ),
         );
       },
+    );
+  }
+
+  int _devTapCount = 0;
+  Timer? _devTapResetTimer;
+
+  void _handleDevTap() {
+    _devTapCount++;
+    _devTapResetTimer?.cancel();
+    _devTapResetTimer = Timer(const Duration(seconds: 3), () {
+      _devTapCount = 0;
+    });
+
+    if (_devTapCount >= 7) {
+      _devTapCount = 0;
+      _showBetaChannelDialog();
+    } else if (_devTapCount >= 3) {
+      final remaining = 7 - _devTapCount;
+      showIrisFrostedSnackBar(
+        context,
+        content: Text('Tap $remaining more times to open Developer & Beta Channel Selector'),
+        duration: const Duration(milliseconds: 900),
+      );
+    }
+  }
+
+  void _showBetaChannelDialog() {
+    IrisHaptics.actionHeavy();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final currentTrack = RemoteConfigService.activeTrack.value;
+            return Container(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.3 : 0.2),
+                  width: 1.2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.tune_rounded, color: Color(0xFF8B5CF6), size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Release Channel & Staging',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Select which remote configuration and Shorebird code push channel this device subscribes to:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _buildChannelOption(
+                    ctx: ctx,
+                    trackId: 'stable',
+                    title: 'Production Stable Channel',
+                    subline: 'Official university releases (config/global)',
+                    isSelected: currentTrack == 'stable',
+                    accentColor: const Color(0xFF10B981),
+                    icon: Icons.verified_rounded,
+                    onSelect: () {
+                      RemoteConfigService.switchReleaseTrack(context, 'stable');
+                      Navigator.pop(ctx);
+                      setState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildChannelOption(
+                    ctx: ctx,
+                    trackId: 'beta',
+                    title: 'Beta Staging Channel',
+                    subline: 'Pre-release timetable & exam date sheets (config/beta)',
+                    isSelected: currentTrack == 'beta',
+                    accentColor: const Color(0xFF8B5CF6),
+                    icon: Icons.science_rounded,
+                    onSelect: () {
+                      RemoteConfigService.switchReleaseTrack(context, 'beta');
+                      Navigator.pop(ctx);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildChannelOption({
+    required BuildContext ctx,
+    required String trackId,
+    required String title,
+    required String subline,
+    required bool isSelected,
+    required Color accentColor,
+    required IconData icon,
+    required VoidCallback onSelect,
+  }) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    return InkWell(
+      onTap: onSelect,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? accentColor.withValues(alpha: isDark ? 0.18 : 0.08)
+              : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? accentColor.withValues(alpha: 0.6)
+                : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? accentColor : (isDark ? Colors.white60 : Colors.black45), size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subline,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white60 : Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle_rounded, color: accentColor, size: 20),
+          ],
+        ),
+      ),
     );
   }
 }

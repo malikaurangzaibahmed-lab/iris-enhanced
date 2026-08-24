@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,6 +14,8 @@ class RemoteConfigService {
   static const int CURRENT_VERSION_CODE = 4;
   static const String CURRENT_VERSION_NAME = '1.0.3';
 
+  static final ValueNotifier<String> activeTrack =
+      ValueNotifier<String>('stable');
   static final ValueNotifier<String> activeAcademicPeriod =
       ValueNotifier<String>('classes');
   static final ValueNotifier<Map<String, dynamic>?> latestApkUpdate =
@@ -29,6 +32,8 @@ class RemoteConfigService {
       ValueNotifier<List<dynamic>>([]);
   static final ValueNotifier<Map<String, dynamic>?> vacationSchedule =
       ValueNotifier<Map<String, dynamic>?>(null);
+
+  static StreamSubscription<DocumentSnapshot>? _configSubscription;
 
   /// Dismisses an admin update banner for a specific version/keyword tag
   static Future<void> dismissAdminUpdateBanner(String versionOrKeyword) async {
@@ -74,6 +79,7 @@ class RemoteConfigService {
   static Future<void> preWarmLocalCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      activeTrack.value = prefs.getString('app_release_track') ?? 'stable';
       final cachedPeriod = prefs.getString('active_academic_period') ?? 'classes';
       activeAcademicPeriod.value = cachedPeriod;
 
@@ -107,6 +113,27 @@ class RemoteConfigService {
 
   static bool _isListening = false;
 
+  /// Switches active release track between stable and beta
+  static Future<void> switchReleaseTrack(BuildContext context, String track) async {
+    if (activeTrack.value == track && _isListening) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('app_release_track', track);
+    activeTrack.value = track;
+
+    _configSubscription?.cancel();
+    _isListening = false;
+    startRemoteListener(context);
+
+    IrisHaptics.actionHeavy();
+    if (context.mounted) {
+      showIrisFrostedSnackBar(
+        context,
+        content: Text('Switched to ${track.toUpperCase()} Track (${track == 'beta' ? 'config/beta' : 'config/global'})'),
+        tint: track == 'beta' ? const Color(0xFF8B5CF6) : const Color(0xFF10B981),
+      );
+    }
+  }
+
   /// Start real-time Firestore stream to listen for remote administration config changes
   static void startRemoteListener(BuildContext context) {
     if (_isListening) return;
@@ -115,17 +142,19 @@ class RemoteConfigService {
     // Load cached exams and mode from local storage for offline resiliency
     preWarmLocalCache();
 
-    debugPrint('📡 IRIS Remote Engine: Connecting Firestore streams...');
+    final docId = activeTrack.value == 'beta' ? 'beta' : 'global';
+    debugPrint('📡 IRIS Remote Engine: Connecting Firestore streams (Track: ${activeTrack.value}, Doc: $docId)...');
 
-    FirebaseFirestore.instance
+    _configSubscription?.cancel();
+    _configSubscription = FirebaseFirestore.instance
         .collection('config')
-        .doc('global')
+        .doc(docId)
         .snapshots()
         .listen(
           (DocumentSnapshot doc) async {
             if (!doc.exists) {
               debugPrint(
-                '⚠️ IRIS Remote Engine: Global remote config document not found.',
+                '⚠️ IRIS Remote Engine: Remote config document ($docId) not found.',
               );
               return;
             }
