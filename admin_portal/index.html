@@ -699,9 +699,12 @@
                     </div>
                   </div>
                   
-                  <div style="display: flex; gap: 6px;" id="date-single-container">
-                    <input type="date" id="input-milestone-date-picker" style="width: 46px; height: 46px; padding: 0 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-title); cursor: pointer;" title="Open Date Picker">
-                    <input type="text" id="input-milestone-date" placeholder="e.g. Sep 7, 2026 (Mon)" style="flex: 1; height: 46px; padding: 0 16px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);">
+                  <div style="display: flex; gap: 6px; position: relative;" id="date-single-container">
+                    <input type="text" id="input-milestone-date" placeholder="e.g. Sep 7, 2026 (Mon)" style="width: 100%; height: 46px; padding: 0 46px 0 16px; font-size: 12px; font-family: var(--font-body); background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 9999px; color: var(--text-title);">
+                    <input type="date" id="input-milestone-date-picker" style="position: absolute; right: 6px; top: 6px; width: 34px; height: 34px; opacity: 0; cursor: pointer; z-index: 2;" title="Choose Date">
+                    <button type="button" class="btn-icon" style="position: absolute; right: 6px; top: 6px; width: 34px; height: 34px; pointer-events: none; border-radius: 50%; font-size: 13px;" tabindex="-1">
+                      <i class="fa-solid fa-calendar-days" style="color: var(--accent-cyan);"></i>
+                    </button>
                   </div>
 
                   <div style="display: none; gap: 6px;" id="date-range-container">

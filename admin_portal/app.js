@@ -14,6 +14,16 @@ let app, auth, db, storage;
 let isConnected = false;
 let logHistory = [];
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // DOM Bindings
 const authOverlay = document.getElementById('auth-overlay');
 const dashboardContainer = document.getElementById('dashboard-container');
