@@ -1,43 +1,99 @@
-﻿{
+{
     "captured_at":  "2026-04-14T00:09:34Z",
     "captured_from":  "authenticated_helpdesk_schedule_tab",
-    "semester_schedule":  [
-                              {
-                                  "title":  "REGISTRATION WEEK",
-                                  "date":  "2026-01-26",
-                                  "status":  "expired"
-                              },
-                              {
-                                  "title":  "COMMENCEMENT OF CLASSES",
-                                  "date":  "2026-02-02",
-                                  "status":  "expired"
-                              },
-                              {
-                                  "title":  "LAST DATE FOR DROP COURSE",
-                                  "date":  "2026-03-06",
-                                  "status":  "expired"
-                              },
-                              {
-                                  "title":  "MID EXAMS",
-                                  "date":  "2026-04-13",
-                                  "status":  "expired"
-                              },
-                              {
-                                  "title":  "LAST DAY OF CLASSES",
-                                  "date":  "2026-05-22",
-                                  "status":  "upcoming"
-                              },
-                              {
-                                  "title":  "TERMINAL EXAMS",
-                                  "date":  "2026-06-03",
-                                  "status":  "upcoming"
-                              },
-                              {
-                                  "title":  "RESULT OF TERMINAL EXAMS",
-                                  "date":  "2026-07-06",
-                                  "status":  "upcoming"
-                              }
-                          ],
+    "semester_schedule": [
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Registration Week",
+            "date": "Aug 31 – Sep 4, 2026 (Mon–Fri)",
+            "category": "Registration",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Commencement of Classes",
+            "date": "Sep 7, 2026 (Mon)",
+            "category": "Classes",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Last Date for Drop of Courses",
+            "date": "Oct 2, 2026 (Fri)",
+            "category": "Classes",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Last Date for Withdrawal",
+            "date": "Oct 23, 2026 (Fri)",
+            "category": "Classes",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Mid-Term Examination Start Date",
+            "date": "Nov 2, 2026 (Mon)",
+            "category": "Exams",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Student Week",
+            "date": "Nov 9–14, 2026 (Mon–Sat)",
+            "category": "Events",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate",
+            "title": "Final Year Project Submission",
+            "date": "Dec 28, 2026 (Mon)",
+            "category": "Classes",
+            "status": "upcoming"
+        },
+        {
+            "level": "Graduate",
+            "title": "MS Thesis Submission",
+            "date": "Dec 28, 2026 (Mon)",
+            "category": "Classes",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Last Day for Classes",
+            "date": "Dec 28, 2026 (Mon)",
+            "category": "Classes",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Terminal Exam Start Date",
+            "date": "Dec 31, 2026 (Thu)",
+            "category": "Exams",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Declaration of Results",
+            "date": "Jan 28, 2027 (Thu)",
+            "category": "Registration",
+            "status": "upcoming"
+        },
+        {
+            "level": "Graduate",
+            "title": "PhD Thesis Submission",
+            "date": "One week before Spring 2027",
+            "category": "Registration",
+            "status": "upcoming"
+        },
+        {
+            "level": "Undergraduate & Graduate",
+            "title": "Final Result Notification",
+            "date": "Feb 15, 2027 (Mon)",
+            "category": "Registration",
+            "status": "upcoming"
+        }
+    ],
     "deadlines":  [
                       {
                           "title":  "Assignment # 1",

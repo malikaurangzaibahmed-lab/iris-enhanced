@@ -5597,8 +5597,10 @@ function setupSemesterScheduleHandlers() {
         await db.collection('config').doc('global').update({
           vacation_schedule: schedulePayload,
           semester_milestones: stagedMilestones,
+          semester_schedule: stagedMilestones,
           target_semester: targetSem,
           resumption_date: resumptionDate,
+          semester_schedule_updated_at: firebase.firestore.FieldValue.serverTimestamp(),
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
 

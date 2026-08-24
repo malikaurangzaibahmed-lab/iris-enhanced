@@ -282,56 +282,44 @@ class HelpdeskScheduleDataService {
     List<SemesterMilestoneData> resolvedSemesterMilestones = [];
     DateTime? capturedTime;
 
-    // 1. First, attempt live fetch from Firestore Admin Portal schedule
+    // 1. First, check if RemoteConfigService already has live vacation/milestones payload
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('config')
-          .doc('global')
-          .get()
-          .timeout(const Duration(seconds: 5));
-
-      if (doc.exists && doc.data() != null) {
-        final data = doc.data()!;
-        final rawSchedule = data['semester_schedule'];
-        if (rawSchedule is List && rawSchedule.isNotEmpty) {
-          resolvedSemesterMilestones = rawSchedule
+      final remoteVacation = RemoteConfigService.vacationSchedule.value;
+      if (remoteVacation != null) {
+        final remoteMilestones = remoteVacation['milestones'];
+        if (remoteMilestones is List && remoteMilestones.isNotEmpty) {
+          resolvedSemesterMilestones = remoteMilestones
               .where((item) => item is Map)
               .map((item) => SemesterMilestoneData.fromJson(
                   Map<String, dynamic>.from(item as Map)))
               .where((m) => m.title.isNotEmpty)
               .toList(growable: false);
-
           if (resolvedSemesterMilestones.isNotEmpty) {
             scheduleSource = CampusScheduleSource.live;
-            final rawTime = data['semester_schedule_updated_at'] ??
-                data['active_semester_version'] ??
-                data['updated_at'];
-            if (rawTime is Timestamp) {
-              capturedTime = rawTime.toDate();
-            } else if (rawTime is int) {
-              capturedTime = DateTime.fromMillisecondsSinceEpoch(rawTime);
-            } else if (rawTime is String) {
-              capturedTime = DateTime.tryParse(rawTime);
-            }
-            // Cache to local storage for instant offline access
-            _cacheRemoteSchedule(rawSchedule);
           }
         }
       }
+    } catch (_) {}
 
-      // Fallback check on dedicated 'semester_schedule' document if global was empty
-      if (resolvedSemesterMilestones.isEmpty) {
-        final scheduleDoc = await FirebaseFirestore.instance
+    // 2. Query Firestore global document for live admin schedule updates
+    if (resolvedSemesterMilestones.isEmpty) {
+      try {
+        final doc = await FirebaseFirestore.instance
             .collection('config')
-            .doc('semester_schedule')
+            .doc('global')
             .get()
-            .timeout(const Duration(seconds: 4));
+            .timeout(const Duration(seconds: 5));
 
-        if (scheduleDoc.exists && scheduleDoc.data() != null) {
-          final sData = scheduleDoc.data()!;
-          final milestonesRaw = sData['milestones'] ?? sData['semester_schedule'];
-          if (milestonesRaw is List && milestonesRaw.isNotEmpty) {
-            resolvedSemesterMilestones = milestonesRaw
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data()!;
+          final dynamic rawSchedule = data['semester_schedule'] ??
+              data['semester_milestones'] ??
+              (data['vacation_schedule'] is Map
+                  ? data['vacation_schedule']['milestones']
+                  : null);
+
+          if (rawSchedule is List && rawSchedule.isNotEmpty) {
+            resolvedSemesterMilestones = rawSchedule
                 .where((item) => item is Map)
                 .map((item) => SemesterMilestoneData.fromJson(
                     Map<String, dynamic>.from(item as Map)))
@@ -340,19 +328,57 @@ class HelpdeskScheduleDataService {
 
             if (resolvedSemesterMilestones.isNotEmpty) {
               scheduleSource = CampusScheduleSource.live;
-              final rawTime = sData['updated_at'] ?? sData['version'];
+              final rawTime = data['semester_schedule_updated_at'] ??
+                  data['active_semester_version'] ??
+                  data['updated_at'];
               if (rawTime is Timestamp) {
                 capturedTime = rawTime.toDate();
               } else if (rawTime is int) {
                 capturedTime = DateTime.fromMillisecondsSinceEpoch(rawTime);
+              } else if (rawTime is String) {
+                capturedTime = DateTime.tryParse(rawTime);
               }
-              _cacheRemoteSchedule(milestonesRaw);
+              // Cache to local storage for instant offline access
+              _cacheRemoteSchedule(rawSchedule);
             }
           }
         }
+
+        // Fallback check on dedicated 'semester_schedule' document if global was empty
+        if (resolvedSemesterMilestones.isEmpty) {
+          final scheduleDoc = await FirebaseFirestore.instance
+              .collection('config')
+              .doc('semester_schedule')
+              .get()
+              .timeout(const Duration(seconds: 4));
+
+          if (scheduleDoc.exists && scheduleDoc.data() != null) {
+            final sData = scheduleDoc.data()!;
+            final milestonesRaw = sData['milestones'] ?? sData['semester_schedule'];
+            if (milestonesRaw is List && milestonesRaw.isNotEmpty) {
+              resolvedSemesterMilestones = milestonesRaw
+                  .where((item) => item is Map)
+                  .map((item) => SemesterMilestoneData.fromJson(
+                      Map<String, dynamic>.from(item as Map)))
+                  .where((m) => m.title.isNotEmpty)
+                  .toList(growable: false);
+
+              if (resolvedSemesterMilestones.isNotEmpty) {
+                scheduleSource = CampusScheduleSource.live;
+                final rawTime = sData['updated_at'] ?? sData['version'];
+                if (rawTime is Timestamp) {
+                  capturedTime = rawTime.toDate();
+                } else if (rawTime is int) {
+                  capturedTime = DateTime.fromMillisecondsSinceEpoch(rawTime);
+                }
+                _cacheRemoteSchedule(milestonesRaw);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('ℹ️ Live semester schedule query failed (offline or timeout): $e');
       }
-    } catch (e) {
-      debugPrint('ℹ️ Live semester schedule query failed (offline or timeout): $e');
     }
 
     // 2. If live query was unavailable, check SharedPreferences cache
