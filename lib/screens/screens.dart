@@ -2,7 +2,6 @@
 // 🎓 ACADEMICS & TIMETABLES
 // ==========================================
 export 'academics_hub_screen.dart';
-export 'intelligent_insight_screen.dart';
 export 'students_week_screen.dart';
 export 'department_classes_screen.dart';
 export 'exam_grid_dashboard_screen.dart';

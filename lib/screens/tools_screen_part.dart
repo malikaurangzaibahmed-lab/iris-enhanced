@@ -83,14 +83,6 @@ class ToolsScreenState extends State<ToolsScreen> {
         description: 'Search all faculty profiles, office locations, and live timetables',
       ),
       _ToolItem(
-        id: 'intelligent_insight',
-        title: 'Intelligent Insight & Mascot',
-        subtitle: '3D mascot, attendance warning & semester events',
-        icon: Icons.auto_awesome_rounded,
-        color: IrisTokens.brand,
-        description: 'Bento-grid overview of tasks, attendance, mascot companion, & semester events',
-      ),
-      _ToolItem(
         id: 'browse_classes',
         title: 'Browse Classes',
         subtitle: 'Open all batch classes and schedules',
@@ -347,10 +339,13 @@ class ToolsScreenState extends State<ToolsScreen> {
     required List<_ToolItem> tools,
     required String department,
     required String recommendedId,
+    bool isCuratedMode = false,
   }) {
     if (tools.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    final isFew = isCuratedMode || tools.length <= 3;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,42 +362,177 @@ class ToolsScreenState extends State<ToolsScreen> {
             ),
           ),
         ),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final availableWidth = constraints.maxWidth;
-            final crossAxisCount = availableWidth >= 800
-                ? 4
-                : availableWidth >= 520
-                    ? 3
-                    : 2;
-            final childAspectRatio = availableWidth >= 800
-                ? 1.25
-                : availableWidth >= 520
-                    ? 1.18
-                    : 1.12;
+        if (isFew)
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: tools.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
+            itemBuilder: (context, index) {
+              final tool = tools[index];
+              return _buildProminentToolCard(
+                context: context,
+                isDark: isDark,
+                item: tool,
+                department: department,
+                isRecommended: tool.id == recommendedId,
+              );
+            },
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth;
+              final crossAxisCount = availableWidth >= 800
+                  ? 4
+                  : availableWidth >= 520
+                      ? 3
+                      : 2;
+              final childAspectRatio = availableWidth >= 800
+                  ? 1.25
+                  : availableWidth >= 520
+                      ? 1.18
+                      : 1.12;
 
-            return GridView.count(
-              crossAxisCount: crossAxisCount,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 12,
-              childAspectRatio: childAspectRatio,
-              children: tools
-                  .map(
-                    (tool) => _buildToolCard(
-                      context: context,
-                      isDark: isDark,
-                      item: tool,
-                      department: department,
-                      isRecommended: tool.id == recommendedId,
-                    ),
-                  )
-                  .toList(growable: false),
+              return GridView.count(
+                crossAxisCount: crossAxisCount,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 12,
+                childAspectRatio: childAspectRatio,
+                children: tools
+                    .map(
+                      (tool) => _buildToolCard(
+                        context: context,
+                        isDark: isDark,
+                        item: tool,
+                        department: department,
+                        isRecommended: tool.id == recommendedId,
+                      ),
+                    )
+                    .toList(growable: false),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildProminentToolCard({
+    required BuildContext context,
+    required bool isDark,
+    required _ToolItem item,
+    required String department,
+    required bool isRecommended,
+  }) {
+    return Builder(
+      builder: (cardCtx) {
+        return GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          borderRadius: 26,
+          glow: isRecommended,
+          shimmer: isRecommended,
+          accentColor: item.color,
+          backgroundColor: item.color.withValues(alpha: isDark ? 0.10 : 0.05),
+          border: Border.all(
+            color: item.color.withValues(alpha: isDark ? 0.28 : 0.20),
+            width: 1.2,
+          ),
+          onTap: () {
+            Rect? bounds;
+            try {
+              final box = cardCtx.findRenderObject() as RenderBox?;
+              if (box != null && box.hasSize) {
+                bounds = box.localToGlobal(Offset.zero) & box.size;
+              }
+            } catch (_) {}
+            _handleToolTap(
+              cardCtx,
+              item.id,
+              department,
+              initialBounds: bounds,
             );
           },
-        ),
-      ],
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      item.color.withValues(alpha: isDark ? 0.28 : 0.18),
+                      item.color.withValues(alpha: isDark ? 0.12 : 0.08),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: item.color.withValues(alpha: isDark ? 0.40 : 0.28),
+                    width: 1.2,
+                  ),
+                ),
+                child: Icon(item.icon, color: item.color, size: 26),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.2,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.subtitle,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.65),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      item.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: item.color.withValues(alpha: isDark ? 0.18 : 0.10),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: item.color.withValues(alpha: isDark ? 0.35 : 0.20),
+                    width: 1.0,
+                  ),
+                ),
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: item.color,
+                  size: 14,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -593,18 +723,6 @@ class ToolsScreenState extends State<ToolsScreen> {
           accentColor: const Color(0xFFF59E0B),
         );
         return;
-      case 'intelligent_insight':
-        pushGlassContainerMorphRoute(
-          context,
-          originKey: originKey,
-          initialBounds: initialBounds,
-          page: IntelligentInsightScreen(
-            brain: widget.brain,
-            memory: widget.memory,
-          ),
-          accentColor: IrisTokens.brand,
-        );
-        return;
       case 'transport_schedule':
         pushGlassContainerMorphRoute(
           context,
@@ -667,18 +785,34 @@ class ToolsScreenState extends State<ToolsScreen> {
     final next = widget.brain.getNextClass(widget.batch, now);
     final recommendedId = _recommendedToolId(department, now, current, next);
 
-    final allUniversal = _prioritizeTool(_getUniversalTools(), recommendedId);
-    
-    const utilityIds = {'cgpa_calculator', 'doc_workspace', 'intelligent_insight'};
+    final period = RemoteConfigService.activeAcademicPeriod.value;
+    final isMidterms = period == 'midterms';
+    final isFinals = period == 'finals';
+    final isVacation = period == 'vacation' || period == 'break';
+    final isCuratedMode = isMidterms || isFinals || isVacation;
+
+    List<_ToolItem> toolsSource = _getUniversalTools();
+    if (isMidterms || isFinals) {
+      const allowedIds = {'transport_schedule', 'faculty_directory', 'browse_classes'};
+      toolsSource = toolsSource.where((t) => allowedIds.contains(t.id)).toList();
+    } else if (isVacation) {
+      const allowedIds = {'faculty_directory', 'semester_schedule'};
+      toolsSource = toolsSource.where((t) => allowedIds.contains(t.id)).toList();
+    }
+
+    final allUniversal = _prioritizeTool(toolsSource, recommendedId);
+
+    const utilityIds = {'cgpa_calculator', 'doc_workspace'};
     const peopleIds = {'faculty_directory', 'teacher_locator', 'teacher_directory', 'browse_classes', 'find_rooms'};
-    const planningIds = {'makeup_scheduler', 'transport_schedule', 'library_schedule', 'semester_schedule', 'intelligent_insight'};
+    const planningIds = {'makeup_scheduler', 'transport_schedule', 'library_schedule', 'semester_schedule'};
 
     final filteredUniversal = allUniversal.where((t) {
       final matchesSearch = t.title.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                          t.subtitle.toLowerCase().contains(_searchQuery.toLowerCase());
+                          t.subtitle.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                          t.description.toLowerCase().contains(_searchQuery.toLowerCase());
       if (!matchesSearch) return false;
       
-      if (_activeCategory == 'All') return true;
+      if (isCuratedMode || _activeCategory == 'All') return true;
       if (_activeCategory == 'Utilities') return utilityIds.contains(t.id);
       if (_activeCategory == 'People') return peopleIds.contains(t.id);
       if (_activeCategory == 'Planning') return planningIds.contains(t.id);
@@ -794,55 +928,56 @@ class ToolsScreenState extends State<ToolsScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      
-                      // Horizontal Category Filter Pills
-                      SizedBox(
-                        height: 38,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _categories.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final cat = _categories[index];
-                            final isSelected = _activeCategory == cat;
-                            return InkWell(
-                              onTap: () {
-                                IrisHaptics.chipSelect();
-                                setState(() => _activeCategory = cat);
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? IrisTokens.brand.withValues(alpha: isDark ? 0.25 : 0.15)
-                                      : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03)),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
+                      if (!isCuratedMode) ...[
+                        const SizedBox(height: 14),
+                        // Horizontal Category Filter Pills
+                        SizedBox(
+                          height: 38,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: _categories.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            itemBuilder: (context, index) {
+                              final cat = _categories[index];
+                              final isSelected = _activeCategory == cat;
+                              return InkWell(
+                                onTap: () {
+                                  IrisHaptics.chipSelect();
+                                  setState(() => _activeCategory = cat);
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
                                     color: isSelected
-                                        ? IrisTokens.brand
-                                        : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08)),
-                                    width: isSelected ? 1.5 : 1.0,
+                                        ? IrisTokens.brand.withValues(alpha: isDark ? 0.25 : 0.15)
+                                        : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03)),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? IrisTokens.brand
+                                          : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08)),
+                                      width: isSelected ? 1.5 : 1.0,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    cat,
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                      color: isSelected
+                                          ? IrisTokens.brand
+                                          : (isDark ? Colors.white70 : Colors.black87),
+                                    ),
                                   ),
                                 ),
-                                child: Text(
-                                  cat,
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                                    color: isSelected
-                                        ? IrisTokens.brand
-                                        : (isDark ? Colors.white70 : Colors.black87),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -851,47 +986,61 @@ class ToolsScreenState extends State<ToolsScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    if (_searchQuery.isEmpty && _activeCategory == 'All') ...[
-                      _buildSmartInsightCard(
-                        context: context,
-                        isDark: isDark,
-                        department: department,
-                        recommendedId: recommendedId,
-                        current: current,
-                        next: next,
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                    if (_activeCategory == 'All' || _activeCategory == 'Utilities')
+                    if (isCuratedMode) ...[
                       _buildSection(
                         context: context,
                         isDark: isDark,
-                        title: 'Utilities',
-                        tools: filteredUniversal.where((t) => utilityIds.contains(t.id)).toList(),
+                        title: isVacation
+                            ? 'Vacation & Break Resources'
+                            : (isMidterms ? 'Midterm Exam Resources' : 'Final Exam Resources'),
+                        tools: filteredUniversal,
                         department: department,
                         recommendedId: recommendedId,
+                        isCuratedMode: true,
                       ),
-                    if (_activeCategory == 'All' || _activeCategory == 'People') ...[
-                      if (_activeCategory == 'All') const SizedBox(height: 32),
-                      _buildSection(
-                        context: context,
-                        isDark: isDark,
-                        title: 'People & Rooms',
-                        tools: filteredUniversal.where((t) => peopleIds.contains(t.id)).toList(),
-                        department: department,
-                        recommendedId: recommendedId,
-                      ),
-                    ],
-                    if (_activeCategory == 'All' || _activeCategory == 'Planning') ...[
-                      if (_activeCategory == 'All') const SizedBox(height: 32),
-                      _buildSection(
-                        context: context,
-                        isDark: isDark,
-                        title: 'Academic Planning',
-                        tools: filteredUniversal.where((t) => planningIds.contains(t.id)).toList(),
-                        department: department,
-                        recommendedId: recommendedId,
-                      ),
+                    ] else ...[
+                      if (_searchQuery.isEmpty && _activeCategory == 'All') ...[
+                        _buildSmartInsightCard(
+                          context: context,
+                          isDark: isDark,
+                          department: department,
+                          recommendedId: recommendedId,
+                          current: current,
+                          next: next,
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                      if (_activeCategory == 'All' || _activeCategory == 'Utilities')
+                        _buildSection(
+                          context: context,
+                          isDark: isDark,
+                          title: 'Utilities',
+                          tools: filteredUniversal.where((t) => utilityIds.contains(t.id)).toList(),
+                          department: department,
+                          recommendedId: recommendedId,
+                        ),
+                      if (_activeCategory == 'All' || _activeCategory == 'People') ...[
+                        if (_activeCategory == 'All') const SizedBox(height: 32),
+                        _buildSection(
+                          context: context,
+                          isDark: isDark,
+                          title: 'People & Rooms',
+                          tools: filteredUniversal.where((t) => peopleIds.contains(t.id)).toList(),
+                          department: department,
+                          recommendedId: recommendedId,
+                        ),
+                      ],
+                      if (_activeCategory == 'All' || _activeCategory == 'Planning') ...[
+                        if (_activeCategory == 'All') const SizedBox(height: 32),
+                        _buildSection(
+                          context: context,
+                          isDark: isDark,
+                          title: 'Academic Planning',
+                          tools: filteredUniversal.where((t) => planningIds.contains(t.id)).toList(),
+                          department: department,
+                          recommendedId: recommendedId,
+                        ),
+                      ],
                     ],
 
                     const SizedBox(height: 120),

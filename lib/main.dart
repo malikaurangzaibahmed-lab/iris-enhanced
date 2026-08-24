@@ -31,7 +31,6 @@ import 'widgets/glass_container_transform.dart';
 import 'screens/portal_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/academics_hub_screen.dart';
-import 'screens/intelligent_insight_screen.dart';
 import 'screens/faculty_dashboard_screen.dart';
 import 'screens/room_finder_screen.dart';
 import 'screens/document_workspace_screen.dart';
@@ -1362,35 +1361,6 @@ class _FacultyFullScheduleScreenState
         shadowColor: Colors.transparent,
         leading: AppBackButton(isDark: isDark),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark
-                    ? IrisTokens.brand.withValues(alpha: 0.2)
-                    : IrisTokens.brand.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                onPressed: () {
-                  IrisHaptics.actionMedium();
-                  pushGlassContainerMorphRoute(
-                    context,
-                    page: IntelligentInsightScreen(
-                      brain: widget.brain,
-                    ),
-                    accentColor: IrisTokens.brand,
-                  );
-                },
-                tooltip: 'Intelligent Insight & Mascot',
-                icon: const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 20,
-                  color: IrisTokens.brand,
-                ),
-              ),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: Container(
