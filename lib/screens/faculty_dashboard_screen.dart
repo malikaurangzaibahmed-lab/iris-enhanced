@@ -201,6 +201,11 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
           notifBody = '📝 Final Exams Mode · Finish strong!';
           headline = 'Final Exams';
           subline = 'Finish strong!';
+        } else if (academicPeriod == 'vacation' || academicPeriod == 'break') {
+          notifTitle = '🌴 Semester Break';
+          notifBody = '🏖️ Vacation Mode · Recharge & relax!';
+          headline = 'Semester Break';
+          subline = 'Recharge & relax!';
         }
         
         await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);

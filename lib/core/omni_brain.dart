@@ -670,7 +670,15 @@ class OmniBrain {
     final currentT = now.hour + (now.minute / 60.0);
     final schedule = scheduleFor(batch);
     final today = schedule
-        .where((s) => s.dayIndex == now.weekday)
+        .where((s) {
+          if (s.specificDate != null) {
+            final isSameDate = s.specificDate!.year == now.year &&
+                s.specificDate!.month == now.month &&
+                s.specificDate!.day == now.day;
+            if (!isSameDate) return false;
+          }
+          return s.dayIndex == now.weekday;
+        })
         .toList()
       ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
 
@@ -939,14 +947,37 @@ class OmniBrain {
 
   /// Builds intelligent temporal insight for Vacation / Semester Break mode
   TemporalInsight buildVacationTemporalInsight(String batch, DateTime now) {
-    // Default semester resumption target (e.g. 42 days or config target)
-    final targetDate = now.add(const Duration(days: 42));
-    final daysLeft = targetDate.difference(now).inDays.clamp(1, 120);
+    int daysLeft = -1;
+    final vacMap = RemoteConfigService.vacationSchedule.value;
+    if (vacMap != null) {
+      final rStr = vacMap['resumption_date']?.toString();
+      if (rStr != null && rStr.isNotEmpty) {
+        final dt = DateTime.tryParse(rStr);
+        if (dt != null) {
+          daysLeft = DateTime(dt.year, dt.month, dt.day)
+              .difference(DateTime(now.year, now.month, now.day))
+              .inDays;
+        }
+      }
+    }
+
+    String countdownText;
+    if (daysLeft > 1) {
+      countdownText = '$daysLeft DAYS LEFT';
+    } else if (daysLeft == 1) {
+      countdownText = '1 DAY LEFT';
+    } else if (daysLeft == 0) {
+      countdownText = 'RESUMES TODAY';
+    } else if (daysLeft < 0 && daysLeft != -1) {
+      countdownText = 'CLASSES RESUMED';
+    } else {
+      countdownText = 'RECESS';
+    }
 
     return TemporalInsight(
       headline: 'Vacation Mode',
       subline: 'Campus in Recess • Lectures Suspended',
-      timeInfo: '$daysLeft DAYS LEFT',
+      timeInfo: countdownText,
       isLive: false,
       subject: 'Semester Break',
       room: 'Campus in Recess',
@@ -960,7 +991,15 @@ class OmniBrain {
     final currentT = now.hour + (now.minute / 60.0);
     final schedule = scheduleForTeacher(teacherName);
     final today = schedule
-        .where((s) => s.dayIndex == now.weekday)
+        .where((s) {
+          if (s.specificDate != null) {
+            final isSameDate = s.specificDate!.year == now.year &&
+                s.specificDate!.month == now.month &&
+                s.specificDate!.day == now.day;
+            if (!isSameDate) return false;
+          }
+          return s.dayIndex == now.weekday;
+        })
         .toList()
       ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
 

@@ -32,6 +32,8 @@ class ClassNotificationTaskHandler extends TaskHandler {
           String subject = '';
           String room = '';
 
+          String timeInfoStr = 'Active';
+
           if (academicPeriod == 'vacation' || academicPeriod == 'break') {
             final cachedVac = prefs.getString('cached_vacation_schedule') ?? '';
             final now = DateTime.now();
@@ -54,20 +56,25 @@ class ClassNotificationTaskHandler extends TaskHandler {
                 }
               } catch (_) {}
             }
-            notifTitle = '🌴 Semester Break Active';
+            notifTitle = '🌴 Semester Break';
             if (daysLeft > 1) {
               notifBody = '$daysLeft Days Until $targetSem Resumes';
+              timeInfoStr = '$daysLeft DAYS LEFT';
             } else if (daysLeft == 1) {
               notifBody = '1 Day Until $targetSem Resumes';
+              timeInfoStr = '1 DAY LEFT';
             } else if (daysLeft == 0) {
               notifBody = 'Resumes Today • Welcome back to $targetSem!';
+              timeInfoStr = 'RESUMES TODAY';
             } else if (daysLeft < 0 && daysLeft != -1) {
               notifBody = 'Classes Resumed • Welcome to $targetSem';
+              timeInfoStr = 'CLASSES RESUMED';
             } else {
               notifBody = 'Campus in Recess • Enjoy Your Break';
+              timeInfoStr = 'RECESS';
             }
-            headline = 'Semester Break';
-            subline = 'Zero Active Classes • Enjoy Your Break';
+            headline = 'Vacation Mode';
+            subline = 'Campus in Recess • Lectures Suspended';
             subject = 'Semester Break';
             room = 'Campus in Recess';
           } else if (academicPeriod == 'sports_week') {
@@ -77,20 +84,17 @@ class ClassNotificationTaskHandler extends TaskHandler {
             subline = 'Enjoy matches & events!';
             subject = 'Campus Sports Week';
             room = 'Sports Complex';
-          } else if (academicPeriod == 'midterms') {
-            notifTitle = '✍️ Midterm Exams Active';
-            notifBody = '📝 Check your date sheet & exam halls';
-            headline = 'Midterm Exams';
+            timeInfoStr = 'GALA ACTIVE';
+          } else if (academicPeriod == 'midterms' || academicPeriod == 'finals') {
+            final isMid = academicPeriod == 'midterms';
+            final examLabel = isMid ? 'Midterm Exam' : 'Final Exam';
+            notifTitle = isMid ? '✍️ Midterm Exams Active' : '🎓 Terminal Exams Active';
+            notifBody = '📝 $examLabel Schedule · Check exam halls';
+            headline = isMid ? 'Midterm Exams' : 'Final Exams';
             subline = 'Examination Hall';
-            subject = 'Midterm Exams';
+            subject = isMid ? 'Midterm Exams' : 'Final Exams';
             room = 'Examination Hall';
-          } else if (academicPeriod == 'finals') {
-            notifTitle = '🎓 Terminal Exams Active';
-            notifBody = '📝 Final Examination in session';
-            headline = 'Final Exams';
-            subline = 'Examination Hall';
-            subject = 'Final Exams';
-            room = 'Examination Hall';
+            timeInfoStr = 'UPCOMING';
           }
 
           await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
@@ -102,7 +106,7 @@ class ClassNotificationTaskHandler extends TaskHandler {
           await HomeWidget.saveWidgetData<String>('flutter.current_class_room', room);
           await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', '');
           await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
-          await HomeWidget.saveWidgetData<String>('flutter.time_info', academicPeriod == 'vacation' || academicPeriod == 'break' ? 'Recess' : 'Active');
+          await HomeWidget.saveWidgetData<String>('flutter.time_info', timeInfoStr);
           await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
           await HomeWidget.saveWidgetData<String>('flutter.active_mode', academicPeriod);
 

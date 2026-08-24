@@ -1016,20 +1016,4 @@ class _IrisHubScreenState extends State<IrisHubScreen> {
       }
     }
   }
-
-
-}
-
-// Background Task Entry Point
-@pragma('vm:entry-point')
-void startClassNotificationTask() {
-  FlutterForegroundTask.setTaskHandler(ClassTrackerHandler());
-}
-class ClassTrackerHandler extends TaskHandler {
-  @override
-  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {}
-  @override
-  Future<void> onRepeatEvent(DateTime timestamp) async {}
-  @override
-  Future<void> onDestroy(DateTime timestamp) async {}
 }
