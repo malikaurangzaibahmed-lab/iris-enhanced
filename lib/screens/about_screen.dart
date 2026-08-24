@@ -1014,8 +1014,6 @@ class _AboutScreenState extends State<AboutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
               GestureDetector(
                 onTap: _handleDevTap,
                 child: Row(
