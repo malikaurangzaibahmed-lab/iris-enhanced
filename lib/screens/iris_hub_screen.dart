@@ -16,6 +16,7 @@ import '../core/theme_signals.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/batch_selector.dart';
 import '../services/system_broadcast_service.dart';
+import '../services/widget_service.dart';
 import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
 import '../widgets/vital_card.dart';
