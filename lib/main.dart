@@ -61,6 +61,8 @@ import 'widgets/smart_pill_overlay.dart';
 import 'widgets/smooth_scroll.dart';
 import 'widgets/vacation_sticky_header.dart';
 import 'widgets/vacation_schedule_view.dart';
+import 'widgets/exam_sticky_header.dart';
+import 'widgets/exam_schedule_view.dart';
 
 import 'widgets/live_class_hub_sheet.dart';
 import 'screens/cgpa_calculator_screen.dart';
@@ -5134,9 +5136,167 @@ class _DashboardState extends State<Dashboard>
     List<ClassSession> filteredSchedule,
     List<ClassSession> schedule,
   ) {
-    final isStudentsWeek = RemoteConfigService.activeAcademicPeriod.value == 'sports_week';
-    final isVacation = RemoteConfigService.activeAcademicPeriod.value == 'vacation' || 
-                       RemoteConfigService.activeAcademicPeriod.value == 'break';
+    final activePeriod = RemoteConfigService.activeAcademicPeriod.value;
+    final isStudentsWeek = activePeriod == 'sports_week';
+    final isVacation = activePeriod == 'vacation' || activePeriod == 'break';
+    final isMidterms = activePeriod == 'midterms';
+    final isFinals = activePeriod == 'finals';
+    final isExamPeriod = isMidterms || isFinals;
+
+    if (isExamPeriod) {
+      final periodKey = isMidterms ? 'midterms' : 'finals';
+      final accentColor = isMidterms ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6);
+
+      return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: accentColor,
+          backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollUpdateNotification) {
+                final delta = notification.scrollDelta?.abs() ?? 0.0;
+                final fast = delta > 16.0;
+                if (IrisGlass.isFastScrolling.value != fast) {
+                  IrisGlass.isFastScrolling.value = fast;
+                }
+              } else if (notification is ScrollEndNotification) {
+                if (IrisGlass.isFastScrolling.value) {
+                  IrisGlass.isFastScrolling.value = false;
+                }
+              }
+              return false;
+            },
+            child: ValueListenableBuilder<List<dynamic>>(
+              valueListenable: isMidterms
+                  ? RemoteConfigService.midtermExams
+                  : RemoteConfigService.finalExams,
+              builder: (context, rawExams, _) {
+                final matchedExams = rawExams.where((exam) {
+                  final examBatchRaw = (exam['batch'] ?? '').toString();
+                  return BatchKey.isBatchMatch(widget.batch, examBatchRaw);
+                }).toList();
+
+                final Map<String, Map<String, dynamic>> grouped = {};
+                for (final exam in matchedExams) {
+                  final date = (exam['date'] ?? '').toString();
+                  final time = (exam['time'] ?? '').toString();
+                  final subject = (exam['subject'] ?? '').toString();
+                  final room = (exam['room'] ?? '').toString();
+
+                  final key = '${date}_${time}_$subject';
+                  if (grouped.containsKey(key)) {
+                    final existingRooms = grouped[key]!['rooms'] as List<String>;
+                    if (!existingRooms.contains(room)) {
+                      existingRooms.add(room);
+                    }
+                  } else {
+                    grouped[key] = {
+                      'date': date,
+                      'time': time,
+                      'subject': subject,
+                      'rooms': [room],
+                    };
+                  }
+                }
+
+                var allExamsList = grouped.values.toList();
+                allExamsList.sort((a, b) {
+                  final dateA = FormatGuard.parseDate(a['date'] ?? '') ?? DateTime(3000);
+                  final dateB = FormatGuard.parseDate(b['date'] ?? '') ?? DateTime(3000);
+                  if (dateA != dateB) {
+                    return dateA.compareTo(dateB);
+                  }
+                  final timeA = (a['time'] ?? '').toString();
+                  final timeB = (b['time'] ?? '').toString();
+                  return timeA.compareTo(timeB);
+                });
+
+                final totalExams = allExamsList.length;
+                int completedExams = 0;
+                int todayExams = 0;
+                Map<String, dynamic>? nextExam;
+                int daysToNextExam = -1;
+
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
+
+                for (final exam in allExamsList) {
+                  final parsedDate = FormatGuard.parseDate(exam['date'] ?? '');
+                  if (parsedDate != null) {
+                    final examDay = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+                    if (examDay.isBefore(today)) {
+                      completedExams++;
+                    } else if (examDay.isAtSameMomentAs(today)) {
+                      todayExams++;
+                      if (nextExam == null) {
+                        nextExam = exam;
+                        daysToNextExam = 0;
+                      }
+                    } else {
+                      if (nextExam == null) {
+                        nextExam = exam;
+                        daysToNextExam = examDay.difference(today).inDays;
+                      }
+                    }
+                  }
+                }
+
+                return CustomScrollView(
+                  controller: _scrollController,
+                  physics: const ButterScrollPhysics(),
+                  slivers: [
+                    if (_pendingTimetableChanges.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: _buildTimetableDiffCard(isDark),
+                        ),
+                      ),
+                    ValueListenableBuilder<Map<String, dynamic>?>(
+                      valueListenable: RemoteConfigService.latestApkUpdate,
+                      builder: (context, updateInfo, _) {
+                        if (updateInfo == null) {
+                          return const SliverToBoxAdapter(child: SizedBox.shrink());
+                        }
+                        return SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                            child: _buildSystemUpdateBanner(context, updateInfo),
+                          ),
+                        );
+                      },
+                    ),
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: ExamStickyHeaderDelegate(
+                        batch: widget.batch,
+                        period: periodKey,
+                        daysToNextExam: daysToNextExam,
+                        nextExamSubject: nextExam?['subject']?.toString(),
+                        totalExams: totalExams,
+                        completedExams: completedExams,
+                        todayExams: todayExams,
+                        onRefresh: () => _handleRefresh(),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: ExamScheduleView(
+                        period: periodKey,
+                        batch: widget.batch,
+                        showHeroBanner: true,
+                        onToggleTheme: widget.onToggleTheme,
+                      ),
+                    ),
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 60)),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
 
     if (isVacation) {
       return SafeArea(
