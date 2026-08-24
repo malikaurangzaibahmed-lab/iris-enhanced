@@ -331,8 +331,9 @@ class _OnboardingWizardState extends State<OnboardingWizard>
 
     // Save Notification Preferences
     await prefs.setBool('notif_class_alerts', _notifClassAlerts);
-    await prefs.setBool('notif_exam_alerts', _notifExamAlerts);
-    await prefs.setBool('notif_campus_broadcasts', _notifCampusBroadcasts);
+    await prefs.setBool('notifications_enabled', _notifClassAlerts);
+    await prefs.setBool('class_alerts_enabled', _notifClassAlerts);
+    await prefs.setBool('class_reminders', _notifClassAlerts);
 
     setState(() {
       _syncProgress = 0.0;
