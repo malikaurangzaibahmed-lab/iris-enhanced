@@ -26,8 +26,8 @@ class FacultyVacationView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const accentColor = Color(0xFFF43F5E);
     final vacationSchedule = RemoteConfigService.vacationSchedule.value;
-    final resumptionDateStr = vacationSchedule['resumption_date']?.toString() ?? '2026-09-01';
-    final targetSemester = vacationSchedule['target_semester']?.toString() ?? 'Fall 2026';
+    final resumptionDateStr = vacationSchedule?['resumption_date']?.toString() ?? '2026-09-01';
+    final targetSemester = vacationSchedule?['target_semester']?.toString() ?? 'Fall 2026';
 
     int daysLeft = 0;
     try {
@@ -352,7 +352,7 @@ class FacultyExamPeriodView extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) => RoomFinderScreen(
                           brain: brain,
-                          showBackButton: true,
+                          memory: brain.memory,
                         ),
                       ),
                     );
