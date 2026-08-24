@@ -1,6 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/ui_feedback.dart';
 
+/// Delegate for the Huge Collapsing Sticky Hero Card during Midterm & Final Examination Modes.
+/// Smoothly compresses from a grand 340dp vertical card with full high-res background artwork
+/// into a sleek, frosted 88dp sticky header on scroll.
 class ExamStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String batch;
   final String period; // 'midterms' or 'finals'
@@ -27,10 +31,10 @@ class ExamStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  double get minExtent => 82.0;
+  double get minExtent => 88.0;
 
   @override
-  double get maxExtent => 130.0;
+  double get maxExtent => 340.0;
 
   @override
   Widget build(
@@ -38,11 +42,20 @@ class ExamStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final topPadding = MediaQuery.of(context).padding.top;
     final isMidterms = period == 'midterms';
     final accentColor = isMidterms ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6);
     final periodTitle = isMidterms ? 'MIDTERM EXAMS' : 'FINAL EXAMS';
+    final assetImage = isMidterms
+        ? 'assets/headers/header_midterms_mode.jpg'
+        : 'assets/headers/header_finals_week.jpg';
+
+    // Progress from 0.0 (fully expanded) to 1.0 (fully collapsed)
+    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final expandedOpacity = (1.0 - (progress * 1.8)).clamp(0.0, 1.0);
+    final collapsedOpacity = ((progress - 0.5) * 2.0).clamp(0.0, 1.0);
 
     String countdownBadge;
     if (totalExams == 0) {
@@ -61,247 +74,467 @@ class ExamStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
       countdownBadge = 'UPCOMING';
     }
 
-    return RepaintBoundary(
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark
-              ? const Color(0xFF090D16).withValues(alpha: 0.94)
-              : const Color(0xFFF8FAFC).withValues(alpha: 0.94),
-          border: Border(
-            bottom: BorderSide(
-              color: accentColor.withValues(
-                alpha: 0.12 + 0.18 * progress,
-              ),
-              width: 1.0,
-            ),
-          ),
-          boxShadow: [
-            if (shrinkOffset > 4)
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.08),
-                blurRadius: 14 * progress,
-                offset: Offset(0, 4 * progress),
-              ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Main Top Bar
-            Row(
-              children: [
-                // Glowing Mode Icon Capsule
-                Container(
-                  padding: const EdgeInsets.all(9),
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: isDark ? 0.18 : 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: accentColor.withValues(alpha: 0.35),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Icon(
-                    isMidterms ? Icons.edit_note_rounded : Icons.workspace_premium_rounded,
-                    color: accentColor,
-                    size: 22,
-                  ),
+    return Container(
+      height: maxExtent - shrinkOffset,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF090D16) : const Color(0xFFF8FAFC),
+        boxShadow: progress > 0.8
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                )
+              ]
+            : null,
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1. Full Expansive Hero Notice Card (Visible when expanded)
+          if (expandedOpacity > 0.01)
+            Opacity(
+              opacity: expandedOpacity,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16 * (1.0 - progress),
+                  topPadding + 8,
+                  16 * (1.0 - progress),
+                  12,
                 ),
-                const SizedBox(width: 12),
-
-                // Title & Batch Capsule
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    lerpDouble(28.0, 16.0, progress) ?? 24.0,
+                  ),
+                  child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            periodTitle,
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w900,
-                              color: accentColor,
-                              letterSpacing: 0.8,
+                      // High-Res Exam Background Artwork Image
+                      Image.asset(
+                        assetImage,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isMidterms
+                                  ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
+                                  : [const Color(0xFF8B5CF6), const Color(0xFF6D28D9)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                        ),
+                      ),
+
+                      // Vignette Scrim Gradient
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black.withValues(alpha: 0.15),
+                              Colors.black.withValues(alpha: 0.78),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                      ),
+
+                      // Glowing Top Rim Border
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: accentColor.withValues(alpha: 0.6),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+
+                      // Top Row: Mode Badge + Batch + Quick Actions
+                      Positioned(
+                        top: 14,
+                        left: 16,
+                        right: 16,
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.45),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: accentColor.withValues(alpha: 0.4),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        isMidterms
+                                            ? Icons.edit_note_rounded
+                                            : Icons.workspace_premium_rounded,
+                                        size: 14,
+                                        color: accentColor,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        periodTitle,
+                                        style: TextStyle(
+                                          color: accentColor,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                            decoration: BoxDecoration(
-                              color: accentColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(5),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Text(
+                                batch,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ),
-                            child: Text(
-                              batch,
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: accentColor,
+                            const Spacer(),
+                            if (onShareTap != null)
+                              InkWell(
+                                onTap: () {
+                                  IrisHaptics.selectionClick();
+                                  onShareTap!();
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.4),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.share_rounded,
+                                    size: 15,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            if (onGuidelinesTap != null) ...[
+                              const SizedBox(width: 6),
+                              InkWell(
+                                onTap: () {
+                                  IrisHaptics.selectionClick();
+                                  onGuidelinesTap!();
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: accentColor.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: accentColor.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.fact_check_rounded,
+                                    size: 15,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      // Floating Frosted Glass Countdown & Next Exam Box in Center-Bottom
+                      Positioned(
+                        left: 16,
+                        right: 16,
+                        bottom: 14,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(22),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.black.withValues(alpha: 0.55)
+                                    : Colors.white.withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: isDark
+                                      ? accentColor.withValues(alpha: 0.45)
+                                      : Colors.white.withValues(alpha: 0.9),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 3.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: (todayExams > 0
+                                          ? const Color(0xFFF43F5E)
+                                          : accentColor).withValues(
+                                        alpha: isDark ? 0.25 : 0.15,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: (todayExams > 0
+                                            ? const Color(0xFFF43F5E)
+                                            : accentColor).withValues(alpha: 0.5),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      countdownBadge,
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: todayExams > 0
+                                            ? const Color(0xFFF43F5E)
+                                            : accentColor,
+                                        letterSpacing: 0.6,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    nextExamSubject != null && completedExams < totalExams
+                                        ? nextExamSubject!
+                                        : (completedExams >= totalExams && totalExams > 0
+                                            ? 'All Examinations Complete!'
+                                            : 'Examination Hub'),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.3,
+                                      height: 1.15,
+                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        '$completedExams of $totalExams Completed',
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : const Color(0xFF475569),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '•',
+                                        style: TextStyle(
+                                          color: accentColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Official Date Sheet',
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark ? Colors.white60 : Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        nextExamSubject != null && completedExams < totalExams
-                            ? (todayExams > 0 ? 'Today: $nextExamSubject' : 'Next: $nextExamSubject')
-                            : (completedExams >= totalExams && totalExams > 0
-                                ? 'All $totalExams examinations completed'
-                                : 'COMSATS Examination Hub'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14.5 - (1.5 * progress),
-                          fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          letterSpacing: -0.2,
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                // Right Quick Action Buttons
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (onShareTap != null)
-                      IconButton(
-                        tooltip: 'Share Date Sheet',
-                        onPressed: () {
-                          IrisHaptics.selectionClick();
-                          onShareTap!();
-                        },
-                        icon: Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.share_rounded,
-                            size: 16,
-                            color: isDark ? Colors.white70 : const Color(0xFF334155),
-                          ),
-                        ),
-                      ),
-                    if (onGuidelinesTap != null)
-                      IconButton(
-                        tooltip: 'Exam Hall Guidelines',
-                        onPressed: () {
-                          IrisHaptics.selectionClick();
-                          onGuidelinesTap!();
-                        },
-                        icon: Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: accentColor.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.fact_check_rounded,
-                            size: 16,
-                            color: accentColor,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
+              ),
             ),
 
-            // Secondary Progress Banner (Collapsed dynamically on scroll)
-            if (progress < 0.8)
-              Opacity(
-                opacity: (1.0 - (progress * 1.25)).clamp(0.0, 1.0),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 6.0),
-                  child: Row(
-                    children: [
-                      // Countdown Pill
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: (todayExams > 0
-                              ? const Color(0xFFF43F5E)
-                              : accentColor).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: (todayExams > 0
-                                ? const Color(0xFFF43F5E)
-                                : accentColor).withValues(alpha: 0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          countdownBadge,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: todayExams > 0 ? const Color(0xFFF43F5E) : accentColor,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
+          // 2. Compact Sticky Top Header Bar (Visible when scrolled)
+          if (collapsedOpacity > 0.01)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: minExtent,
+              child: Opacity(
+                opacity: collapsedOpacity,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20),
+                  ),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                    child: Container(
+                      padding: EdgeInsets.only(
+                        top: topPadding + 4,
+                        left: 16,
+                        right: 16,
+                        bottom: 8,
                       ),
-                      const SizedBox(width: 8),
-
-                      // Metric Pill
-                      Text(
-                        '$completedExams / $totalExams Done',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDark
+                              ? [
+                                  accentColor.withValues(alpha: 0.92),
+                                  (isMidterms ? const Color(0xFFB45309) : const Color(0xFF5B21B6)).withValues(alpha: 0.95),
+                                ]
+                              : [
+                                  accentColor,
+                                  isMidterms ? const Color(0xFFD97706) : const Color(0xFF7C3AED),
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(20),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accentColor.withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      const Spacer(),
-
-                      // Sync / Refresh
-                      if (onRefresh != null)
-                        InkWell(
-                          onTap: onRefresh,
-                          borderRadius: BorderRadius.circular(6),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            child: Row(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isMidterms
+                                  ? Icons.edit_note_rounded
+                                  : Icons.workspace_premium_rounded,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.sync_rounded,
-                                  size: 12,
-                                  color: (isDark ? Colors.white54 : Colors.black45),
-                                ),
-                                const SizedBox(width: 3),
                                 Text(
-                                  'Live Cloud',
+                                  nextExamSubject != null && completedExams < totalExams
+                                      ? (todayExams > 0 ? 'Today: $nextExamSubject' : 'Next: $nextExamSubject')
+                                      : periodTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                                Text(
+                                  '$batch • $countdownBadge ($completedExams/$totalExams)',
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: (isDark ? Colors.white54 : Colors.black45),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                    ],
+                          if (onRefresh != null)
+                            InkWell(
+                              onTap: () {
+                                IrisHaptics.chipSelect();
+                                onRefresh?.call();
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.22),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.35),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.sync_rounded, size: 13, color: Colors.white),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      'Sync',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
