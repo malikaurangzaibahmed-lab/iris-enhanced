@@ -19,6 +19,7 @@ import '../core/vital_motion.dart';
 import '../widgets/iris_components.dart';
 import '../widgets/vital_card.dart';
 import '../widgets/glass_container_transform.dart';
+import '../widgets/developer_card.dart';
 import '../services/remote_config_service.dart';
 import 'legal_screens.dart';
 import 'feedback_screen.dart';
@@ -1352,84 +1353,6 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Widget _buildDeveloperCard(bool isDark) {
-    const accentColor = IrisTokens.brand;
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      borderRadius: 24,
-      accentColor: accentColor,
-      backgroundColor: accentColor.withValues(alpha: isDark ? 0.08 : 0.04),
-      border: Border.all(
-        color: accentColor.withValues(alpha: isDark ? 0.22 : 0.15),
-        width: 1.2,
-      ),
-      glow: true,
-      onTap: () => _openUrl('mailto:malikaurangzaibahmed@gmail.com?subject=IRIS%20Inquiry'),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  accentColor.withValues(alpha: isDark ? 0.25 : 0.15),
-                  accentColor.withValues(alpha: isDark ? 0.10 : 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: accentColor.withValues(alpha: isDark ? 0.35 : 0.20),
-                width: 1.0,
-              ),
-            ),
-            child: const Icon(Icons.person_rounded, color: accentColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Malik Aurangzaib Ahmed',
-                  style: TextStyle(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.2,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  'malikaurangzaibahmed@gmail.com',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white60 : Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: isDark ? 0.15 : 0.08),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: accentColor.withValues(alpha: isDark ? 0.30 : 0.15),
-                width: 1.0,
-              ),
-            ),
-            child: const Icon(
-              Icons.mail_outline_rounded,
-              color: accentColor,
-              size: 17,
-            ),
-          ),
-        ],
-      ),
-    );
+    return DeveloperCard(isDark: isDark);
   }
 }
