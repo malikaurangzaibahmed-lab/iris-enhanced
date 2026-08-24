@@ -51,6 +51,7 @@ class TeacherScheduleEntry {
   final String batch;
   final bool isLive;
   final bool isUpcoming; // today but hasn't started
+  final DateTime? specificDate;
 
   const TeacherScheduleEntry({
     required this.dayIndex,
@@ -61,6 +62,7 @@ class TeacherScheduleEntry {
     required this.batch,
     this.isLive = false,
     this.isUpcoming = false,
+    this.specificDate,
   });
 
   static const List<String> dayNames = [
@@ -330,6 +332,12 @@ class OmniBrain {
     final schedule = scheduleFor(batch);
     
     for (final s in schedule) {
+      if (s.specificDate != null) {
+        final isSameDate = s.specificDate!.year == now.year &&
+            s.specificDate!.month == now.month &&
+            s.specificDate!.day == now.day;
+        if (!isSameDate) continue;
+      }
       final actualEnd = _getActualEndTime(s);
       if (s.dayIndex == now.weekday && currentT >= s.safeStartVal && currentT < actualEnd) {
         // Return merged session to handle consecutive slots
@@ -344,7 +352,15 @@ class OmniBrain {
     final schedule = scheduleFor(batch);
 
     final today = schedule
-        .where((s) => s.dayIndex == now.weekday && s.safeStartVal > currentT)
+        .where((s) {
+          if (s.specificDate != null) {
+            final isSameDate = s.specificDate!.year == now.year &&
+                s.specificDate!.month == now.month &&
+                s.specificDate!.day == now.day;
+            if (!isSameDate) return false;
+          }
+          return s.dayIndex == now.weekday && s.safeStartVal > currentT;
+        })
         .toList()
       ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
 
@@ -355,7 +371,16 @@ class OmniBrain {
 
     for (int daysAhead = 1; daysAhead <= 6; daysAhead++) {
       final nextDay = ((now.weekday + daysAhead - 1) % 7) + 1;
-      final candidates = schedule.where((s) => s.dayIndex == nextDay).toList()
+      final targetDate = now.add(Duration(days: daysAhead));
+      final candidates = schedule.where((s) {
+        if (s.specificDate != null) {
+          final isSameDate = s.specificDate!.year == targetDate.year &&
+              s.specificDate!.month == targetDate.month &&
+              s.specificDate!.day == targetDate.day;
+          if (!isSameDate) return false;
+        }
+        return s.dayIndex == nextDay;
+      }).toList()
         ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
       if (candidates.isNotEmpty) {
         // Return merged session to handle consecutive slots
@@ -371,6 +396,12 @@ class OmniBrain {
     final schedule = scheduleForTeacher(teacherName);
 
     for (final s in schedule) {
+      if (s.specificDate != null) {
+        final isSameDate = s.specificDate!.year == now.year &&
+            s.specificDate!.month == now.month &&
+            s.specificDate!.day == now.day;
+        if (!isSameDate) continue;
+      }
       final actualEnd = _getActualEndTime(s);
       if (s.dayIndex == now.weekday && currentT >= s.safeStartVal && currentT < actualEnd) {
         return getMergedSession(s, schedule);
@@ -384,7 +415,15 @@ class OmniBrain {
     final schedule = scheduleForTeacher(teacherName);
 
     final today = schedule
-        .where((s) => s.dayIndex == now.weekday && s.safeStartVal > currentT)
+        .where((s) {
+          if (s.specificDate != null) {
+            final isSameDate = s.specificDate!.year == now.year &&
+                s.specificDate!.month == now.month &&
+                s.specificDate!.day == now.day;
+            if (!isSameDate) return false;
+          }
+          return s.dayIndex == now.weekday && s.safeStartVal > currentT;
+        })
         .toList()
       ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
 
@@ -394,7 +433,16 @@ class OmniBrain {
 
     for (int daysAhead = 1; daysAhead <= 6; daysAhead++) {
       final nextDay = ((now.weekday + daysAhead - 1) % 7) + 1;
-      final candidates = schedule.where((s) => s.dayIndex == nextDay).toList()
+      final targetDate = now.add(Duration(days: daysAhead));
+      final candidates = schedule.where((s) {
+        if (s.specificDate != null) {
+          final isSameDate = s.specificDate!.year == targetDate.year &&
+              s.specificDate!.month == targetDate.month &&
+              s.specificDate!.day == targetDate.day;
+          if (!isSameDate) return false;
+        }
+        return s.dayIndex == nextDay;
+      }).toList()
         ..sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
       if (candidates.isNotEmpty) {
         return getMergedSession(candidates.first, schedule);
@@ -409,6 +457,12 @@ class OmniBrain {
     final occupied = <String>{};
     final currentT = now.hour + (now.minute / 60.0);
     for (final session in memory.activeSessions()) {
+      if (session.specificDate != null) {
+        final isSameDate = session.specificDate!.year == now.year &&
+            session.specificDate!.month == now.month &&
+            session.specificDate!.day == now.day;
+        if (!isSameDate) continue;
+      }
       if (session.dayIndex == now.weekday && currentT >= session.safeStartVal && currentT < _getActualEndTime(session)) {
         occupied.add(session.room);
       }
@@ -528,10 +582,17 @@ class OmniBrain {
       allRooms.add(session.room);
       allSubjects.add(session.subject);
 
-      final isLive = session.dayIndex == weekday &&
+      final isDateValid = session.specificDate == null ||
+          (session.specificDate!.year == now.year &&
+              session.specificDate!.month == now.month &&
+              session.specificDate!.day == now.day);
+
+      final isLive = isDateValid &&
+          session.dayIndex == weekday &&
           currentT >= session.safeStartVal &&
           currentT < _getActualEndTime(session);
-      final isUpcoming = session.dayIndex == weekday &&
+      final isUpcoming = isDateValid &&
+          session.dayIndex == weekday &&
           session.safeStartVal > currentT;
 
       final entry = TeacherScheduleEntry(
@@ -543,12 +604,13 @@ class OmniBrain {
         batch: session.batchKey.batch,
         isLive: isLive,
         isUpcoming: isUpcoming,
+        specificDate: session.specificDate,
       );
 
       weeklySchedule.putIfAbsent(session.dayIndex, () => []).add(entry);
 
       if (isLive) liveSession = entry;
-      if (session.dayIndex == weekday) todaySessions.add(entry);
+      if (session.dayIndex == weekday && isDateValid) todaySessions.add(entry);
     }
 
     // Sort each day's sessions by start time

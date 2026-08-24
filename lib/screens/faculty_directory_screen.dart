@@ -1291,8 +1291,8 @@ class _FacultyDetailScreenState extends State<FacultyDetailScreen> {
                                             Text(
                                               s.room,
                                               style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
+                                              fontSize: 12,
+                                            fontWeight: FontWeight.w600,
                                                 color: textSecondary,
                                               ),
                                             ),

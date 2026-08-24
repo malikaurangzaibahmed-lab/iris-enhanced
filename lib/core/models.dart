@@ -388,6 +388,7 @@ class ClassSession {
   final String subject;
   final String teacher;
   final String room;
+  final DateTime? specificDate;
 
   const ClassSession({
     required this.id,
@@ -398,6 +399,7 @@ class ClassSession {
     required this.subject,
     required this.teacher,
     required this.room,
+    this.specificDate,
   });
 
   double get safeStartVal => FormatGuard.toDecimalTime(startTime);
@@ -417,6 +419,12 @@ class ClassSession {
   }
 
   bool isLive(DateTime now) {
+    if (specificDate != null) {
+      final isSameDay = specificDate!.year == now.year &&
+          specificDate!.month == now.month &&
+          specificDate!.day == now.day;
+      if (!isSameDay) return false;
+    }
     final currentT = now.hour + (now.minute / 60.0);
     return dayIndex == now.weekday &&
         currentT >= safeStartVal &&
@@ -451,6 +459,7 @@ class ClassSession {
     'subject': subject,
     'teacher': teacher,
     'room': room,
+    if (specificDate != null) 'date': specificDate!.toIso8601String(),
   };
 
   static ClassSession fromJson(Map<String, dynamic> json) {
@@ -567,49 +576,7 @@ class ClassSession {
     }
 
     if (memory != null) {
-      final cleanSubject = rawSubject
-          .replaceAll(_examTagRegex, '')
-          .replaceAll(_parenthesesRegex, '')
-          .trim()
-          .toLowerCase();
-
-      if (cleanSubject.isNotEmpty) {
-        final targetBatch = batchKey.batch.toLowerCase();
-        final targetProg = batchKey.program.toLowerCase();
-        final targetSec = batchKey.section.toLowerCase();
-
-        for (final session in memory.sessions) {
-          final sBatch = session.batchKey.batch.toLowerCase();
-          final bMatch =
-              sBatch == targetBatch ||
-              (session.batchKey.program.toLowerCase() == targetProg &&
-                  session.batchKey.semester == batchKey.semester &&
-                  session.batchKey.section.toLowerCase() == targetSec);
-          if (bMatch) {
-            final sSub = session.subject
-                .replaceAll(_parenthesesRegex, '')
-                .trim()
-                .toLowerCase();
-            if (sSub.contains(cleanSubject) || cleanSubject.contains(sSub)) {
-              if (session.teacher.isNotEmpty && session.teacher != 'Unknown') {
-                return FormatGuard.formatTeacherName(session.teacher);
-              }
-            }
-          }
-        }
-
-        for (final session in memory.sessions) {
-          final sSub = session.subject
-              .replaceAll(_parenthesesRegex, '')
-              .trim()
-              .toLowerCase();
-          if (sSub.contains(cleanSubject) || cleanSubject.contains(sSub)) {
-            if (session.teacher.isNotEmpty && session.teacher != 'Unknown') {
-              return FormatGuard.formatTeacherName(session.teacher);
-            }
-          }
-        }
-      }
+      return memory.resolveTeacherForSubject(batchKey, rawSubject, rawTeacher);
     }
 
     return rawTeacher.isNotEmpty
@@ -685,6 +652,7 @@ class ClassSession {
       subject: subjectStr,
       teacher: teacherStr,
       room: FormatGuard.sanitizeRoom(roomStr),
+      specificDate: parsedDt,
     );
   }
 }
@@ -697,6 +665,9 @@ class UniversityMemory {
   List<ClassSession>? _cachedActiveSessions;
   String? _cachedPeriodKey;
   int? _cachedExamsHash;
+  Map<String, String>? _teacherByBatchSubjectMap;
+  Map<String, String>? _teacherBySubjectMap;
+
   final Map<String, Map<String, List<ClassSession>>> _cachedByBatchMap = {};
   final Map<String, Map<String, List<ClassSession>>> _cachedByTeacherMap = {};
   final Map<String, Map<String, List<ClassSession>>> _cachedByProgramMap = {};
@@ -709,10 +680,60 @@ class UniversityMemory {
   final Map<String, List<String>> _cachedSectionsForIntake = {};
   final Map<String, List<String>> _cachedSections = {};
 
+  void _initTeacherLookups() {
+    if (_teacherByBatchSubjectMap != null) return;
+    final bMap = <String, String>{};
+    final sMap = <String, String>{};
+
+    for (final s in sessions) {
+      if (s.teacher.isEmpty || s.teacher.toLowerCase() == 'unknown') continue;
+      final cleanSub = s.subject
+          .replaceAll(ClassSession._parenthesesRegex, '')
+          .trim()
+          .toLowerCase();
+      if (cleanSub.isEmpty) continue;
+
+      final formatted = FormatGuard.formatTeacherName(s.teacher);
+      final bKey = s.batchKey.batch.toLowerCase();
+      bMap['${bKey}_$cleanSub'] = formatted;
+      sMap[cleanSub] = formatted;
+    }
+    _teacherByBatchSubjectMap = bMap;
+    _teacherBySubjectMap = sMap;
+  }
+
+  String resolveTeacherForSubject(BatchKey batchKey, String rawSubject, String rawTeacher) {
+    if (rawTeacher.isNotEmpty &&
+        rawTeacher.toLowerCase() != 'invigilator assigned' &&
+        rawTeacher.toLowerCase() != 'tbd' &&
+        rawTeacher.toLowerCase() != 'unknown') {
+      return FormatGuard.formatTeacherName(rawTeacher);
+    }
+
+    _initTeacherLookups();
+    final cleanSubject = rawSubject
+        .replaceAll(ClassSession._examTagRegex, '')
+        .replaceAll(ClassSession._parenthesesRegex, '')
+        .trim()
+        .toLowerCase();
+
+    if (cleanSubject.isNotEmpty) {
+      final key = '${batchKey.batch.toLowerCase()}_$cleanSubject';
+      final match = _teacherByBatchSubjectMap![key] ?? _teacherBySubjectMap![cleanSubject];
+      if (match != null) return match;
+    }
+
+    return rawTeacher.isNotEmpty
+        ? FormatGuard.formatTeacherName(rawTeacher)
+        : 'Invigilator Assigned';
+  }
+
   void clearCaches() {
     _cachedActiveSessions = null;
     _cachedPeriodKey = null;
     _cachedExamsHash = null;
+    _teacherByBatchSubjectMap = null;
+    _teacherBySubjectMap = null;
     _cachedByBatchMap.clear();
     _cachedByTeacherMap.clear();
     _cachedByProgramMap.clear();
