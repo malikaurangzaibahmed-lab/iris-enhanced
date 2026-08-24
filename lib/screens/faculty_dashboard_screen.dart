@@ -767,8 +767,8 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
 
         if (isVacation) {
           final vacationSchedule = RemoteConfigService.vacationSchedule.value;
-          final resumptionDateStr = vacationSchedule['resumption_date']?.toString() ?? '2026-09-01';
-          final targetSemester = vacationSchedule['target_semester']?.toString() ?? 'Fall 2026';
+          final resumptionDateStr = vacationSchedule?['resumption_date']?.toString() ?? '2026-09-01';
+          final targetSemester = vacationSchedule?['target_semester']?.toString() ?? 'Fall 2026';
           int daysLeft = 0;
           try {
             final targetDate = DateTime.parse(resumptionDateStr);
