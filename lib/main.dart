@@ -63,6 +63,8 @@ import 'widgets/vacation_sticky_header.dart';
 import 'widgets/vacation_schedule_view.dart';
 import 'widgets/exam_sticky_header.dart';
 import 'widgets/exam_schedule_view.dart';
+import 'widgets/sports_week_sticky_header.dart';
+import 'widgets/sports_gala_view.dart';
 
 import 'widgets/live_class_hub_sheet.dart';
 import 'screens/cgpa_calculator_screen.dart';
@@ -5420,10 +5422,63 @@ class _DashboardState extends State<Dashboard>
           );
         }
 
+        // 3. STUDENTS' WEEK / SPORTS GALA MODE
+        if (isStudentsWeek) {
+          return SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _handleRefresh,
+              color: const Color(0xFF10B981),
+              backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const ButterScrollPhysics(),
+                slivers: [
+                  if (_pendingTimetableChanges.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                        child: _buildTimetableDiffCard(isDark),
+                      ),
+                    ),
+                  ValueListenableBuilder<Map<String, dynamic>?>(
+                    valueListenable: RemoteConfigService.latestApkUpdate,
+                    builder: (context, updateInfo, _) {
+                      if (updateInfo == null) {
+                        return const SliverToBoxAdapter(child: SizedBox.shrink());
+                      }
+                      return SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: _buildSystemUpdateBanner(context, updateInfo),
+                        ),
+                      );
+                    },
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: SportsWeekStickyHeaderDelegate(
+                      userName: widget.userName ?? 'Student',
+                      batch: widget.batch,
+                      onRefresh: () => _handleRefresh(),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(
+                    child: StudentsWeekInfoCard(
+                      isFaculty: false,
+                    ),
+                  ),
+                  const SliverPadding(padding: EdgeInsets.only(bottom: 60)),
+                ],
+              ),
+            ),
+          );
+        }
+
         return SafeArea(
           child: RefreshIndicator(
             onRefresh: _handleRefresh,
-            color: isStudentsWeek ? const Color(0xFF10B981) : IrisTokens.brand,
+            color: IrisTokens.brand,
             backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
         child: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
@@ -5466,19 +5521,6 @@ class _DashboardState extends State<Dashboard>
                 );
               },
             ),
-            if (isStudentsWeek) ...[
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                  child: StudentsWeekHeaderCard(
-                    userName: widget.userName ?? 'Student',
-                    batch: widget.batch,
-                    onToggleTheme: widget.onToggleTheme,
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            ],
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),

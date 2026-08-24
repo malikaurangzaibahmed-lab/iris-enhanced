@@ -28,6 +28,11 @@ import '../services/analytics_manager.dart';
 import '../services/remote_config_service.dart';
 import '../services/widget_service.dart';
 import '../widgets/glass_container_transform.dart';
+import '../widgets/vacation_sticky_header.dart';
+import '../widgets/exam_sticky_header.dart';
+import '../widgets/sports_week_sticky_header.dart';
+import '../widgets/sports_gala_view.dart';
+import '../widgets/faculty_mode_views.dart';
 
 class FacultyDashboard extends SmartStatefulWidget {
   final OmniBrain brain;
@@ -750,55 +755,199 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
       }
     }
 
-    return RefreshIndicator(
-      onRefresh: _handleRefresh,
-      color: IrisTokens.brand,
-      backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-      child: CustomScrollView(
-        controller: _scrollController,
-        physics: const ButterScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 60, 20, 0),
-              child: ClassesAnimationWidget(
-                child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+    return ValueListenableBuilder<String>(
+      valueListenable: RemoteConfigService.activeAcademicPeriod,
+      builder: (context, period, _) {
+        final isVacation = period == 'vacation' || period == 'break';
+        final isMidterms = period == 'midterms';
+        final isFinals = period == 'finals';
+        final isExamPeriod = isMidterms || isFinals;
+        final isStudentsWeek = period == 'sports_week';
+        final isRamadan = period == 'ramadan';
+
+        if (isVacation) {
+          final vacationSchedule = RemoteConfigService.vacationSchedule.value;
+          final resumptionDateStr = vacationSchedule['resumption_date']?.toString() ?? '2026-09-01';
+          final targetSemester = vacationSchedule['target_semester']?.toString() ?? 'Fall 2026';
+          int daysLeft = 0;
+          try {
+            final targetDate = DateTime.parse(resumptionDateStr);
+            daysLeft = targetDate.difference(DateTime(now.year, now.month, now.day)).inDays;
+          } catch (_) {
+            daysLeft = 7;
+          }
+
+          return RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: const Color(0xFFF43F5E),
+            backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const ButterScrollPhysics(),
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: VacationStickyHeaderDelegate(
+                    batch: 'Faculty Member',
+                    daysLeft: daysLeft,
+                    targetSemester: targetSemester,
+                    onNoticeTap: () {},
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                SliverToBoxAdapter(
+                  child: FacultyVacationView(
+                    teacherName: teacher,
+                    onRefresh: _handleRefresh,
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 110)),
+              ],
+            ),
+          );
+        }
+
+        if (isExamPeriod) {
+          return RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: isMidterms ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6),
+            backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const ButterScrollPhysics(),
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: ExamStickyHeaderDelegate(
+                    batch: 'Faculty',
+                    period: period,
+                    daysToNextExam: 0,
+                    nextExamSubject: 'Official Examination Period Active',
+                    totalExams: 0,
+                    completedExams: 0,
+                    todayExams: 0,
+                    onGuidelinesTap: () {},
+                    onShareTap: () {},
+                    onRefresh: _handleRefresh,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                SliverToBoxAdapter(
+                  child: FacultyExamPeriodView(
+                    teacherName: teacher,
+                    period: period,
+                    brain: widget.brain,
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 110)),
+              ],
+            ),
+          );
+        }
+
+        if (isStudentsWeek) {
+          return RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: const Color(0xFF10B981),
+            backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const ButterScrollPhysics(),
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: SportsWeekStickyHeaderDelegate(
+                    userName: teacher,
+                    batch: 'Faculty',
+                    onRefresh: _handleRefresh,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                const SliverToBoxAdapter(
+                  child: StudentsWeekInfoCard(
+                    isFaculty: true,
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 110)),
+              ],
+            ),
+          );
+        }
+
+        // Regular & Ramadan classes mode
+        return RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: isRamadan ? const Color(0xFF10B981) : IrisTokens.brand,
+          backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const ButterScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 60, 20, 0),
+                  child: isRamadan
+                      ? RamadanAnimationWidget(
+                          child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+                        )
+                      : ClassesAnimationWidget(
+                          child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+                        ),
+                ),
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: _buildStatsCard(schedule, dateLabel, isDark),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: _buildInsightCard(insight, isDark),
-            ),
-          ),
-          if (heroSession != null)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                child: _buildHeroClassCard(heroSession, heroNextSession, isDark),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: _buildStatsCard(schedule, dateLabel, isDark),
+                ),
               ),
-            ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildDaySelector(now, isDark),
-            ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: _buildInsightCard(insight, isDark),
+                ),
+              ),
+              if (heroSession != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: _buildHeroClassCard(heroSession, heroNextSession, isDark),
+                  ),
+                ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildDaySelector(now, isDark),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 110),
+                sliver: SliverToBoxAdapter(
+                  child: _buildFacultyTimeline(schedule, isDark, now),
+                ),
+              ),
+            ],
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 110),
-            sliver: SliverToBoxAdapter(
-              child: _buildFacultyTimeline(schedule, isDark, now),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
