@@ -5182,25 +5182,58 @@ class _DashboardState extends State<Dashboard>
                       return BatchKey.isBatchMatch(widget.batch, examBatchRaw);
                     }).toList();
 
+                    List<String> extractRooms(dynamic roomData) {
+                      if (roomData == null) return [];
+                      final List<String> result = [];
+                      if (roomData is List) {
+                        for (final item in roomData) {
+                          final s = item?.toString().trim() ?? '';
+                          if (s.isNotEmpty) {
+                            final parts = s.split(RegExp(r'[,/&+;\n]'));
+                            for (final p in parts) {
+                              final clean = p.trim();
+                              if (clean.isNotEmpty && !result.contains(clean)) {
+                                result.add(clean);
+                              }
+                            }
+                          }
+                        }
+                      } else {
+                        final s = roomData.toString().trim();
+                        if (s.isNotEmpty) {
+                          final parts = s.split(RegExp(r'[,/&+;\n]'));
+                          for (final p in parts) {
+                            final clean = p.trim();
+                            if (clean.isNotEmpty && !result.contains(clean)) {
+                              result.add(clean);
+                            }
+                          }
+                        }
+                      }
+                      return result;
+                    }
+
                     final Map<String, Map<String, dynamic>> grouped = {};
                     for (final exam in matchedExams) {
-                      final date = (exam['date'] ?? '').toString();
-                      final time = (exam['time'] ?? '').toString();
-                      final subject = (exam['subject'] ?? '').toString();
-                      final room = (exam['room'] ?? '').toString();
+                      final date = (exam['date'] ?? '').toString().trim();
+                      final time = (exam['time'] ?? '').toString().trim();
+                      final subject = (exam['subject'] ?? '').toString().trim();
+                      final extracted = extractRooms(exam['rooms'] ?? exam['room']);
 
                       final key = '${date}_${time}_$subject';
                       if (grouped.containsKey(key)) {
                         final existingRooms = grouped[key]!['rooms'] as List<String>;
-                        if (!existingRooms.contains(room)) {
-                          existingRooms.add(room);
+                        for (final r in extracted) {
+                          if (!existingRooms.contains(r)) {
+                            existingRooms.add(r);
+                          }
                         }
                       } else {
                         grouped[key] = {
                           'date': date,
                           'time': time,
                           'subject': subject,
-                          'rooms': [room],
+                          'rooms': extracted.isEmpty ? ['Main Hall'] : extracted,
                         };
                       }
                     }
@@ -5422,63 +5455,10 @@ class _DashboardState extends State<Dashboard>
           );
         }
 
-        // 3. STUDENTS' WEEK / SPORTS GALA MODE
-        if (isStudentsWeek) {
-          return SafeArea(
-            child: RefreshIndicator(
-              onRefresh: _handleRefresh,
-              color: const Color(0xFF10B981),
-              backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-              child: CustomScrollView(
-                controller: _scrollController,
-                physics: const ButterScrollPhysics(),
-                slivers: [
-                  if (_pendingTimetableChanges.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                        child: _buildTimetableDiffCard(isDark),
-                      ),
-                    ),
-                  ValueListenableBuilder<Map<String, dynamic>?>(
-                    valueListenable: RemoteConfigService.latestApkUpdate,
-                    builder: (context, updateInfo, _) {
-                      if (updateInfo == null) {
-                        return const SliverToBoxAdapter(child: SizedBox.shrink());
-                      }
-                      return SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                          child: _buildSystemUpdateBanner(context, updateInfo),
-                        ),
-                      );
-                    },
-                  ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: SportsWeekStickyHeaderDelegate(
-                      userName: widget.userName ?? 'Student',
-                      batch: widget.batch,
-                      onRefresh: () => _handleRefresh(),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                  const SliverToBoxAdapter(
-                    child: StudentsWeekInfoCard(
-                      isFaculty: false,
-                    ),
-                  ),
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 60)),
-                ],
-              ),
-            ),
-          );
-        }
-
         return SafeArea(
           child: RefreshIndicator(
             onRefresh: _handleRefresh,
-            color: IrisTokens.brand,
+            color: isStudentsWeek ? const Color(0xFF10B981) : IrisTokens.brand,
             backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
         child: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
@@ -5529,6 +5509,8 @@ class _DashboardState extends State<Dashboard>
                   builder: (context, period, _) {
                     Widget wrapHeader(Widget child) {
                       switch (period) {
+                        case 'sports_week':
+                          return StudentsWeekAnimationWidget(child: child);
                         case 'ramadan':
                           return RamadanAnimationWidget(child: child);
                         case 'midterms':

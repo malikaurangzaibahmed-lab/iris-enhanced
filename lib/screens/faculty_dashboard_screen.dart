@@ -857,45 +857,11 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
           );
         }
 
-        if (isStudentsWeek) {
-          return RefreshIndicator(
-            onRefresh: _handleRefresh,
-            color: const Color(0xFF10B981),
-            backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-            child: CustomScrollView(
-              controller: _scrollController,
-              physics: const ButterScrollPhysics(),
-              slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: SportsWeekStickyHeaderDelegate(
-                    userName: teacher,
-                    batch: 'Faculty',
-                    onRefresh: _handleRefresh,
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                    child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
-                  ),
-                ),
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                const SliverToBoxAdapter(
-                  child: StudentsWeekInfoCard(
-                    isFaculty: true,
-                  ),
-                ),
-                const SliverToBoxAdapter(child: SizedBox(height: 110)),
-              ],
-            ),
-          );
-        }
-
-        // Regular & Ramadan classes mode
+        // Regular, Ramadan & Students Week classes mode
+        final isThemeGreen = isRamadan || isStudentsWeek;
         return RefreshIndicator(
           onRefresh: _handleRefresh,
-          color: isRamadan ? const Color(0xFF10B981) : IrisTokens.brand,
+          color: isThemeGreen ? const Color(0xFF10B981) : IrisTokens.brand,
           backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
           child: CustomScrollView(
             controller: _scrollController,
@@ -904,13 +870,17 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 60, 20, 0),
-                  child: isRamadan
-                      ? RamadanAnimationWidget(
+                  child: isStudentsWeek
+                      ? StudentsWeekAnimationWidget(
                           child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
                         )
-                      : ClassesAnimationWidget(
-                          child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
-                        ),
+                      : isRamadan
+                          ? RamadanAnimationWidget(
+                              child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+                            )
+                          : ClassesAnimationWidget(
+                              child: _buildUnifiedFacultyHeader(teacher, profile, isDark, isCompactCard),
+                            ),
                 ),
               ),
               SliverToBoxAdapter(

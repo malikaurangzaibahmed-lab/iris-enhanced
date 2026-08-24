@@ -121,12 +121,12 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
       final date = _formatExamDate(e['date'] ?? '');
       final time = _formatExamTime(e['time'] ?? '');
       final subject = e['subject'] ?? 'Exam';
-      final rooms = (e['rooms'] as List?)?.join(', ') ?? 'TBD';
+      final rooms = (e['rooms'] as List?)?.join(', ') ?? '';
 
       buffer.writeln('${i + 1}. *$subject*');
       buffer.writeln('   📆 Date: $date');
       buffer.writeln('   ⏰ Time: $time');
-      buffer.writeln('   🏛️ Hall: $rooms');
+      if (rooms.isNotEmpty) buffer.writeln('   🏛️ Hall: $rooms');
       if (i < allExams.length - 1) buffer.writeln('────────────────────');
     }
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
@@ -320,7 +320,7 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
 
     final displayDate = _formatExamDate(dateStr);
     final displayTime = _formatExamTime(timeStr);
-    final displayRooms = roomsList.isEmpty ? 'TBD' : roomsList.join(', ');
+    final displayRooms = roomsList.join(', ');
 
     String countdownBadge = status;
     if (status == 'COMPLETED') {
@@ -424,6 +424,33 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
                     _buildDetailRow(Icons.schedule_rounded, 'Time Slot', displayTime, isDark, accentColor),
                     const Divider(height: 18),
                     _buildDetailRow(Icons.meeting_room_rounded, 'Allocated Halls', displayRooms, isDark, accentColor),
+                    if (roomsList.length > 1) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline_rounded, size: 14, color: accentColor),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Split Seating: ${widget.batch} is divided across ${roomsList.length} halls. Check roll number list at entrance.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: accentColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const Divider(height: 18),
                     _buildDetailRow(Icons.groups_rounded, 'Batch Code', widget.batch, isDark, accentColor),
                   ],
@@ -716,25 +743,58 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
           return BatchKey.isBatchMatch(widget.batch, examBatchRaw);
         }).toList();
 
+        List<String> extractRooms(dynamic roomData) {
+          if (roomData == null) return [];
+          final List<String> result = [];
+          if (roomData is List) {
+            for (final item in roomData) {
+              final s = item?.toString().trim() ?? '';
+              if (s.isNotEmpty) {
+                final parts = s.split(RegExp(r'[,/&+;\n]'));
+                for (final p in parts) {
+                  final clean = p.trim();
+                  if (clean.isNotEmpty && !result.contains(clean)) {
+                    result.add(clean);
+                  }
+                }
+              }
+            }
+          } else {
+            final s = roomData.toString().trim();
+            if (s.isNotEmpty) {
+              final parts = s.split(RegExp(r'[,/&+;\n]'));
+              for (final p in parts) {
+                final clean = p.trim();
+                if (clean.isNotEmpty && !result.contains(clean)) {
+                  result.add(clean);
+                }
+              }
+            }
+          }
+          return result;
+        }
+
         final Map<String, Map<String, dynamic>> grouped = {};
         for (final exam in matchedExams) {
-          final date = (exam['date'] ?? '').toString();
-          final time = (exam['time'] ?? '').toString();
-          final subject = (exam['subject'] ?? '').toString();
-          final room = (exam['room'] ?? '').toString();
+          final date = (exam['date'] ?? '').toString().trim();
+          final time = (exam['time'] ?? '').toString().trim();
+          final subject = (exam['subject'] ?? '').toString().trim();
+          final extracted = extractRooms(exam['rooms'] ?? exam['room']);
 
           final key = '${date}_${time}_$subject';
           if (grouped.containsKey(key)) {
             final existingRooms = grouped[key]!['rooms'] as List<String>;
-            if (!existingRooms.contains(room)) {
-              existingRooms.add(room);
+            for (final r in extracted) {
+              if (!existingRooms.contains(r)) {
+                existingRooms.add(r);
+              }
             }
           } else {
             grouped[key] = {
               'date': date,
               'time': time,
               'subject': subject,
-              'rooms': [room],
+              'rooms': extracted.isEmpty ? ['TBD'] : extracted,
             };
           }
         }
@@ -1161,7 +1221,7 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
                                 child: Column(
                                   children: groupExams.map((exam) {
                                     final subject = exam['subject']?.toString() ?? 'Unknown Exam';
-                                    final timeStr = exam['time']?.toString() ?? 'TBD';
+                                    final timeStr = exam['time']?.toString() ?? '';
                                     final roomsList = List<String>.from(exam['rooms'] ?? []);
                                     final status = _getExamStatus(parsedDate);
 
@@ -1336,7 +1396,7 @@ class ExamTimelineCard extends StatelessWidget {
     }
 
     final displayTime = _formatExamTime(rawTime);
-    final displayRooms = rooms.isEmpty ? 'TBD' : rooms.join('  •  ');
+    final displayRooms = rooms.join('  •  ');
 
     return InkWell(
       onTap: onTap,
@@ -1447,10 +1507,14 @@ class ExamTimelineCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                         decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                          color: rooms.length > 1
+                              ? statusColor.withValues(alpha: isDark ? 0.14 : 0.08)
+                              : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                            color: rooms.length > 1
+                                ? statusColor.withValues(alpha: 0.35)
+                                : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
                           ),
                         ),
                         child: Row(
@@ -1462,6 +1526,25 @@ class ExamTimelineCard extends StatelessWidget {
                               color: statusColor,
                             ),
                             const SizedBox(width: 6),
+                            if (rooms.length > 1) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                margin: const EdgeInsets.only(right: 6),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${rooms.length} Halls',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    color: statusColor,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                              ),
+                            ],
                             Flexible(
                               child: Text(
                                 displayRooms,
