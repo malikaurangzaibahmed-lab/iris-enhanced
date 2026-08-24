@@ -53,11 +53,11 @@ class DashboardDock extends StatefulWidget {
         ? (veryCompact ? 10.0 : (compact ? 12.0 : 20.0))
         : (veryCompact ? 8.0 : (compact ? 10.0 : 14.0));
     final radius = showFacultySet
-        ? (veryCompact ? 18.0 : (compact ? 22.0 : 28.0))
-        : (veryCompact ? 18.0 : (compact ? 20.0 : 24.0));
+        ? (veryCompact ? 28.0 : (compact ? 32.0 : 36.0))
+        : (veryCompact ? 28.0 : (compact ? 32.0 : 36.0));
     final itemCount = showStudentSet ? 4 : (showFacultySet ? 3 : 6);
     final safeSelected = state.displaySelectedIndex(itemCount, selectedIndex);
-    final activeColor = showFacultySet ? IrisTokens.purple : IrisTokens.brand;
+    final activeColor = isDark ? Colors.white : Colors.black;
     final pillAccent = IrisTokens.brand;
     final glassSettings = IrisGlass.settings(
       context,
@@ -98,43 +98,8 @@ class DashboardDock extends StatefulWidget {
                         ),
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              AnimatedPositioned(
-                                duration: state.isDragging
-                                    ? Duration.zero
-                                    : const Duration(milliseconds: 250),
-                                curve: IrisMotion.spring,
-                                top: 4,
-                                bottom: 4,
-                                left: state.interactionPosition(itemCount, selectedIndex) *
-                                        (constraints.maxWidth / itemCount) +
-                                    4,
-                                width: (constraints.maxWidth / itemCount) - 8,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: activeColor.withValues(alpha: isDark ? 0.32 : 0.18),
-                                    borderRadius: BorderRadius.circular(radius - 4),
-                                    border: Border.all(
-                                      color: activeColor.withValues(alpha: isDark ? 0.65 : 0.45),
-                                      width: 1.2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: activeColor.withValues(alpha: isDark ? 0.35 : 0.15),
-                                        blurRadius: 12,
-                                        spreadRadius: 1,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
-                              ),
-                            ],
+                          child: Row(
+                            children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
                           ),
                         ),
                       ),
@@ -198,43 +163,9 @@ class DashboardDock extends StatefulWidget {
                                   veryCompact ? 3 : (compact ? 5 : 6),
                                   veryCompact ? 2 : (compact ? 3 : 4),
                                 ),
-                                child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      AnimatedPositioned(
-                                        duration: state.isDragging
-                                            ? Duration.zero
-                                            : const Duration(milliseconds: 250),
-                                        curve: IrisMotion.spring,
-                                        top: 3,
-                                        bottom: 3,
-                                        left: state.interactionPosition(itemCount, selectedIndex) *
-                                                (constraints.maxWidth / itemCount) +
-                                            3,
-                                        width: (constraints.maxWidth / itemCount) - 6,
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: activeColor.withValues(alpha: isDark ? 0.28 : 0.15),
-                                            borderRadius: BorderRadius.circular(radius - 4),
-                                            border: Border.all(
-                                              color: activeColor.withValues(alpha: isDark ? 0.55 : 0.35),
-                                              width: 1.0,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: activeColor.withValues(alpha: isDark ? 0.20 : 0.08),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 1),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Row(
-                                        children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
-                                      ),
-                                    ],
-                                  ),
+                                child: Row(
+                                  children: _buildNavButtons(context, isDark, safeSelected, activeColor, state, itemCount),
+                                ),
                               ),
                             );
                           },
@@ -252,9 +183,8 @@ class DashboardDock extends StatefulWidget {
               padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 6),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(radius),
-                child: RepaintBoundary(
-                  child: GlassSurface(
-                    settings: glassSettings,
+                child: GlassSurface(
+                  settings: glassSettings,
                     radius: radius,
                     child: CustomPaint(
                       foregroundPainter: ChromaticBorderPainter(
@@ -330,20 +260,6 @@ class DashboardDock extends StatefulWidget {
                                               color: activeColor.withValues(alpha: isDark ? 0.65 : 0.45),
                                               width: 1.2,
                                             ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: activeColor.withValues(alpha: isDark ? 0.35 : 0.15),
-                                                blurRadius: 10,
-                                                spreadRadius: 1,
-                                                offset: const Offset(0, 1),
-                                              ),
-                                              BoxShadow(
-                                                color: (showFacultySet ? IrisTokens.purple : IrisTokens.brand).withValues(alpha: isDark ? 0.25 : 0.12),
-                                                blurRadius: 20,
-                                                spreadRadius: -2,
-                                                offset: const Offset(0, 4),
-                                              ),
-                                            ],
                                           ),
                                         ),
                                       ),
@@ -361,7 +277,6 @@ class DashboardDock extends StatefulWidget {
                     ),
                   ),
                 ),
-              ),
             );
           },
         );
@@ -671,24 +586,16 @@ class NavActiveHalo extends StatefulWidget {
 }
 
 class _NavActiveHaloState extends State<NavActiveHalo>
-    with TickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _pulse;
+    with SingleTickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
   late final Animation<double> _entrance;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1536),
-    )..repeat(reverse: true);
-    _pulse = CurvedAnimation(parent: _controller, curve: IrisMotion.standard);
-
     _entranceCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 576),
+      duration: const Duration(milliseconds: 400),
     );
     _entrance = CurvedAnimation(
       parent: _entranceCtrl,
@@ -699,7 +606,6 @@ class _NavActiveHaloState extends State<NavActiveHalo>
 
   @override
   void dispose() {
-    _controller.dispose();
     _entranceCtrl.dispose();
     super.dispose();
   }
@@ -707,12 +613,11 @@ class _NavActiveHaloState extends State<NavActiveHalo>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_pulse, _entrance]),
+      animation: _entrance,
       builder: (context, _) {
-        final t = _pulse.value;
         final e = _entrance.value;
         return Transform.scale(
-          scale: e * (0.97 + (t * 0.04)),
+          scale: e,
           child: Opacity(
             opacity: e.clamp(0.0, 1.0),
             child: Container(
@@ -722,8 +627,8 @@ class _NavActiveHaloState extends State<NavActiveHalo>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    widget.color.withValues(alpha: 0.22 + (t * 0.06)),
-                    widget.color.withValues(alpha: 0.10 + (t * 0.03)),
+                    widget.color.withValues(alpha: 0.24),
+                    widget.color.withValues(alpha: 0.10),
                     widget.color.withValues(alpha: 0.02),
                     Colors.transparent,
                   ],
@@ -871,19 +776,6 @@ class _BouncyNavButtonState extends State<BouncyNavButton>
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            if (widget.isSelected)
-              Positioned(
-                left: -size * 0.6,
-                top: -size * 0.6,
-                right: -size * 0.6,
-                bottom: -size * 0.6,
-                child: Center(
-                  child: NavActiveHalo(
-                    size: size * 2.2,
-                    color: widget.activeColor,
-                  ),
-                ),
-              ),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 192),
               switchInCurve: IrisMotion.entrance,

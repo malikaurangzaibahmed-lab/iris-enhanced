@@ -121,7 +121,7 @@ ThemeData buildVitalTheme({required Brightness brightness}) {
 }
 
 /// A premium, hardware-accelerated animated background for the Vital UI.
-class ObsidianPulse extends StatefulWidget {
+class ObsidianPulse extends StatelessWidget {
   final bool isDark;
   final List<Color>? pulseColors;
 
@@ -132,31 +132,7 @@ class ObsidianPulse extends StatefulWidget {
   });
 
   @override
-  State<ObsidianPulse> createState() => _ObsidianPulseState();
-}
-
-class _ObsidianPulseState extends State<ObsidianPulse>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 24),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isDark = widget.isDark;
     final dotColor = isDark 
         ? Colors.white.withValues(alpha: 0.05) 
         : Colors.black.withValues(alpha: 0.04);
@@ -164,62 +140,9 @@ class _ObsidianPulseState extends State<ObsidianPulse>
     return RepaintBoundary(
       child: Stack(
         children: [
-          // Base Background
+          // Base Background Canvas
           Container(
             color: isDark ? VitalTokens.obsidian : VitalTokens.offWhite,
-          ),
-          
-          // Soft Animated Ambient Blobs (Drifting slowly)
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              final t = _controller.value;
-              final angle = t * 2 * math.pi;
-              
-              // Blob 1: Top-Right / Center-Right area
-              final blob1X = 0.25 * math.sin(angle);
-              final blob1Y = 0.18 * math.cos(angle);
-              
-              // Blob 2: Bottom-Left / Center-Left area
-              final blob2X = 0.25 * math.cos(angle + math.pi);
-              final blob2Y = 0.18 * math.sin(angle + math.pi);
-              
-              return Stack(
-                children: [
-                  // Blue Blob (Top Right)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: Alignment(0.4 + blob1X, -0.3 + blob1Y),
-                          radius: 1.5,
-                          colors: [
-                            VitalTokens.blue.withValues(alpha: isDark ? 0.06 : 0.04),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  // Purple/Indigo Blob (Bottom Left)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: Alignment(-0.4 + blob2X, 0.3 + blob2Y),
-                          radius: 1.5,
-                          colors: [
-                            VitalTokens.purple.withValues(alpha: isDark ? 0.05 : 0.03),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
           ),
           
           // Clean Professional Dot Grid Overlay

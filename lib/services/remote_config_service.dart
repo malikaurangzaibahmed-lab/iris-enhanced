@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'timetable_ota_service.dart';
+import 'notification_service.dart';
 import '../services/ui_feedback.dart';
 
 /// Central Remote Synchronization Engine for IRIS Enhanced.
@@ -26,6 +27,8 @@ class RemoteConfigService {
       ValueNotifier<List<dynamic>>([]);
   static final ValueNotifier<List<dynamic>> finalExams =
       ValueNotifier<List<dynamic>>([]);
+  static final ValueNotifier<Map<String, dynamic>?> vacationSchedule =
+      ValueNotifier<Map<String, dynamic>?>(null);
 
   /// Dismisses an admin update banner for a specific version/keyword tag
   static Future<void> dismissAdminUpdateBanner(String versionOrKeyword) async {
@@ -67,6 +70,41 @@ class RemoteConfigService {
     return '$month $day, $hourVal:$minuteVal $period';
   }
 
+  /// Pre-warms remote config values from SharedPreferences synchronously during app startup before UI mounts
+  static Future<void> preWarmLocalCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedPeriod = prefs.getString('active_academic_period') ?? 'classes';
+      activeAcademicPeriod.value = cachedPeriod;
+
+      final cachedMidterms = prefs.getString('cached_midterm_exams') ?? '';
+      if (cachedMidterms.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(cachedMidterms);
+          if (decoded is List) midtermExams.value = decoded;
+        } catch (_) {}
+      }
+
+      final cachedFinals = prefs.getString('cached_finals_exams') ?? '';
+      if (cachedFinals.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(cachedFinals);
+          if (decoded is List) finalExams.value = decoded;
+        } catch (_) {}
+      }
+
+      final cachedVacation = prefs.getString('cached_vacation_schedule') ?? '';
+      if (cachedVacation.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(cachedVacation);
+          if (decoded is Map) vacationSchedule.value = Map<String, dynamic>.from(decoded);
+        } catch (_) {}
+      }
+    } catch (e) {
+      debugPrint('⚠️ preWarmLocalCache error: $e');
+    }
+  }
+
   static bool _isListening = false;
 
   /// Start real-time Firestore stream to listen for remote administration config changes
@@ -75,30 +113,7 @@ class RemoteConfigService {
     _isListening = true;
 
     // Load cached exams and mode from local storage for offline resiliency
-    SharedPreferences.getInstance().then((prefs) {
-      final cachedPeriod =
-          prefs.getString('active_academic_period') ?? 'classes';
-      activeAcademicPeriod.value = cachedPeriod;
-
-      final cachedMidterms = prefs.getString('cached_midterm_exams') ?? '';
-      if (cachedMidterms.isNotEmpty) {
-        try {
-          final decoded = jsonDecode(cachedMidterms);
-          if (decoded is List) {
-            midtermExams.value = decoded;
-          }
-        } catch (_) {}
-      }
-      final cachedFinals = prefs.getString('cached_finals_exams') ?? '';
-      if (cachedFinals.isNotEmpty) {
-        try {
-          final decoded = jsonDecode(cachedFinals);
-          if (decoded is List) {
-            finalExams.value = decoded;
-          }
-        } catch (_) {}
-      }
-    });
+    preWarmLocalCache();
 
     debugPrint('📡 IRIS Remote Engine: Connecting Firestore streams...');
 
@@ -141,6 +156,11 @@ class RemoteConfigService {
                 '⚡ IRIS Remote Engine: Academic Period Swapped to: $remotePeriod',
               );
               IrisHaptics.actionHeavy();
+
+              // Instantly update foreground notification and homescreen widget
+              try {
+                ClassNotificationTaskHandler().onRepeatEvent(DateTime.now());
+              } catch (_) {}
 
               // Notify user about remote academic mode shift
               if (context.mounted) {
@@ -336,6 +356,28 @@ class RemoteConfigService {
                 prefs.remove('cached_finals_exams');
               });
             }
+
+            // 6. Process Vacation Schedule & Semester Milestones
+            final vacationScheduleRaw = data['vacation_schedule'];
+            if (vacationScheduleRaw is Map) {
+              final parsed = Map<String, dynamic>.from(vacationScheduleRaw);
+              vacationSchedule.value = parsed;
+              SharedPreferences.getInstance().then((prefs) {
+                prefs.setString('cached_vacation_schedule', jsonEncode(parsed));
+              });
+            } else if (data['semester_milestones'] is List) {
+              final now = DateTime.now();
+              final defaultTargetSem = now.month >= 8 ? 'Spring ${now.year + 1}' : 'Fall ${now.year}';
+              final parsed = {
+                'target_semester': data['target_semester']?.toString() ?? defaultTargetSem,
+                'resumption_date': data['resumption_date']?.toString() ?? '',
+                'milestones': data['semester_milestones'],
+              };
+              vacationSchedule.value = parsed;
+              SharedPreferences.getInstance().then((prefs) {
+                prefs.setString('cached_vacation_schedule', jsonEncode(parsed));
+              });
+            }
           },
           onError: (err) {
             debugPrint('⚠️ IRIS Remote Engine Stream Error: $err');
@@ -353,6 +395,9 @@ class RemoteConfigService {
         return const Color(0xFFF43F5E); // Rose
       case 'sports_week':
         return const Color(0xFF10B981); // Emerald
+      case 'vacation':
+      case 'break':
+        return const Color(0xFFF43F5E); // Rose/Coral for Vacation
       default:
         return const Color(0xFF3A86FF);
     }

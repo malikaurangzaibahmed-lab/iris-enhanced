@@ -1,14 +1,18 @@
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'animations.dart';
 import 'tokens.dart';
+import 'theme_signals.dart';
 
 class IrisGlass {
+  static final ValueNotifier<bool> isFastScrolling = ValueNotifier<bool>(false);
+
   static bool reduceEffects(BuildContext context) {
-    final disableAnimations = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    return IrisMotion.reduceBlur || disableAnimations;
+    return ThemeSignals.useMinimalTheme.value;
   }
 
   static double adaptiveBlur(
@@ -16,14 +20,15 @@ class IrisGlass {
     double base, {
     double min = 8.0,
   }) {
-    if (!reduceEffects(context)) return base;
-    final reduced = base * 0.7;
-    return reduced.clamp(min, base);
+    if (ThemeSignals.useMinimalTheme.value) {
+      return 0.0;
+    }
+    return base;
   }
 
   static double adaptiveAmbient(BuildContext context, double base) {
-    if (!reduceEffects(context)) return base;
-    return (base * 0.88).clamp(0.35, 0.9);
+    if (ThemeSignals.useMinimalTheme.value) return 0.5;
+    return base;
   }
 
   static double adaptiveThickness(
@@ -31,18 +36,20 @@ class IrisGlass {
     double base, {
     double min = 10.0,
   }) {
-    if (!reduceEffects(context)) return base;
-    final reduced = base * 0.85;
-    return reduced.clamp(min, base);
+    if (ThemeSignals.useMinimalTheme.value) return 0.0;
+    return base;
   }
 
   static Color adaptiveGlassColor(
     BuildContext context, {
     Color? dark,
     Color? light,
-    double darkAlpha = 0.42,
-    double lightAlpha = 0.45,
+    double darkAlpha = 0.0,
+    double lightAlpha = 0.0,
   }) {
+    if (darkAlpha == 0.0 && lightAlpha == 0.0 && dark == null && light == null) {
+      return Colors.transparent;
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark
         ? (dark ?? IrisTokens.surfaceDarkElevated)
@@ -64,7 +71,7 @@ class IrisGlass {
       blur: adaptiveBlur(context, blur, min: minBlur),
       ambientStrength: adaptiveAmbient(context, ambientStrength),
       lightAngle: lightAngle,
-      glassColor: glassColor ?? adaptiveGlassColor(context),
+      glassColor: glassColor ?? Colors.transparent,
       thickness: adaptiveThickness(context, thickness, min: minThickness),
     );
   }

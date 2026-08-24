@@ -878,6 +878,7 @@ function syncActivePeriodState() {
       // Update switcher description copy
       const descs = {
         classes: 'Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.',
+        vacation: '🏖️ Vacation Mode: Campus in recess, semester break notice, and upcoming milestones active.',
         ramadan: '🌙 Ramadan Timing Mode: Compressed lecture periods and adjusted prayer intervals in effect.',
         midterms: 'Midterm testing mode: interim assessments, mid-semester testing logs, and check schedules.',
         finals: 'Final examination mode: core semester finals, grade evaluation compiles, and term closeout.',
@@ -904,6 +905,11 @@ function syncActivePeriodState() {
           mockBadge.innerHTML = '<i class="fa-solid fa-graduation-cap"></i> CLASSES MODE';
           mockTitle.innerText = 'CLASSES IN SESSION';
           mockSubtitle.innerText = 'Regular academic lecturing track';
+        } else if (currentPeriod === 'vacation') {
+          mockCard.classList.add('theme-vacation');
+          mockBadge.innerHTML = '<i class="fa-solid fa-umbrella-beach"></i> VACATION MODE';
+          mockTitle.innerText = 'CAMPUS IN RECESS';
+          mockSubtitle.innerText = 'Semester break & milestones active';
         } else if (currentPeriod === 'ramadan') {
           mockCard.classList.add('theme-ramadan');
           mockBadge.innerHTML = '<i class="fa-solid fa-moon"></i> RAMADAN MODE';
@@ -1063,6 +1069,8 @@ ribbonSegments.forEach(seg => {
     // Update local text descriptions instantly
     const descs = {
       classes: 'Standard classes mode: regular curriculum sessions, lectures, and laboratory periods.',
+      vacation: '🏖️ Vacation Mode: Campus in recess, semester break notice, and upcoming milestones active.',
+      ramadan: '🌙 Ramadan Timing Mode: Compressed lecture periods and adjusted prayer intervals in effect.',
       midterms: 'Midterm testing mode: interim assessments, mid-semester testing logs, and check schedules.',
       finals: 'Final examination mode: core semester finals, grade evaluation compiles, and term closeout.',
       sports_week: 'Athletic Sports Week: campus extracurricular activities, sports day schedules, and session breaks.'
@@ -5014,8 +5022,1170 @@ function initGlassDropdowns() {
   });
 }
 
+// ==========================================================================
+// SEMESTER SCHEDULE & MILESTONES MANAGER
+// ==========================================================================
+
+let stagedMilestones = [];
+
+function getDefaultTargetSemester() {
+  const d = new Date();
+  const m = d.getMonth() + 1;
+  const y = d.getFullYear();
+  return m >= 8 ? `Spring ${y + 1}` : `Fall ${y}`;
+}
+
+function updateVacationCountdownDisplay() {
+  const resumptionInput = document.getElementById('input-semester-resumption-date');
+  const textElem = document.getElementById('vacation-countdown-text');
+  if (!resumptionInput || !textElem) return;
+
+  const dateVal = resumptionInput.value;
+  if (!dateVal) {
+    textElem.innerText = 'NO DATE SET';
+    return;
+  }
+
+  const targetDate = new Date(dateVal);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  targetDate.setHours(0, 0, 0, 0);
+
+  const diffTime = targetDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays > 1) {
+    textElem.innerText = `${diffDays} DAYS REMAINING`;
+  } else if (diffDays === 1) {
+    textElem.innerText = `1 DAY REMAINING`;
+  } else if (diffDays === 0) {
+    textElem.innerText = 'RESUMES TODAY!';
+  } else {
+    textElem.innerText = `${Math.abs(diffDays)} DAYS AGO`;
+  }
+}
+
+function evaluateMilestoneStatusJs(dateStr, explicitStatus) {
+  if (explicitStatus === 'expired' || explicitStatus === 'completed') return 'expired';
+  if (!dateStr) return explicitStatus || 'upcoming';
+
+  const clean = dateStr.replace(/–/g, '-').replace(/—/g, '-').trim();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const monthMap = {
+    jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+    jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
+  };
+
+  let startDate = null;
+  let endDate = null;
+
+  // 1. ISO date range
+  const isoRange = clean.match(/(\d{4})-(\d{1,2})-(\d{1,2})\s*(?:to|-)\s*(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoRange) {
+    startDate = new Date(parseInt(isoRange[1]), parseInt(isoRange[2]) - 1, parseInt(isoRange[3]));
+    endDate = new Date(parseInt(isoRange[4]), parseInt(isoRange[5]) - 1, parseInt(isoRange[6]), 23, 59, 59);
+  } else {
+    // 2. Single ISO date
+    const isoSingle = clean.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (isoSingle) {
+      startDate = new Date(parseInt(isoSingle[1]), parseInt(isoSingle[2]) - 1, parseInt(isoSingle[3]));
+      endDate = new Date(parseInt(isoSingle[1]), parseInt(isoSingle[2]) - 1, parseInt(isoSingle[3]), 23, 59, 59);
+    } else {
+      // 3. Multi-month range: Aug 31 - Sep 4, 2026
+      const multiMonth = clean.match(/([A-Za-z]{3,9})\s+(\d{1,2})\s*-\s*([A-Za-z]{3,9})\s+(\d{1,2})(?:[,\s]+(\d{4}))?/);
+      if (multiMonth) {
+        const m1 = monthMap[multiMonth[1].substring(0, 3).toLowerCase()];
+        const d1 = parseInt(multiMonth[2]);
+        const m2 = monthMap[multiMonth[3].substring(0, 3).toLowerCase()];
+        const d2 = parseInt(multiMonth[4]);
+        const year = multiMonth[5] ? parseInt(multiMonth[5]) : now.getFullYear();
+        if (m1 !== undefined && m2 !== undefined) {
+          const y2 = m2 < m1 ? year + 1 : year;
+          startDate = new Date(year, m1, d1);
+          endDate = new Date(y2, m2, d2, 23, 59, 59);
+        }
+      } else {
+        // 4. Same month range: Nov 9-14, 2026
+        const sameMonth = clean.match(/([A-Za-z]{3,9})\s+(\d{1,2})\s*-\s*(\d{1,2})(?:[,\s]+(\d{4}))?/);
+        if (sameMonth) {
+          const m = monthMap[sameMonth[1].substring(0, 3).toLowerCase()];
+          const d1 = parseInt(sameMonth[2]);
+          const d2 = parseInt(sameMonth[3]);
+          const year = sameMonth[4] ? parseInt(sameMonth[4]) : now.getFullYear();
+          if (m !== undefined) {
+            startDate = new Date(year, m, d1);
+            endDate = new Date(year, m, d2, 23, 59, 59);
+          }
+        } else {
+          // 5. Single month date: Sep 7, 2026
+          const singleMonth = clean.match(/([A-Za-z]{3,9})\s+(\d{1,2})(?:[,\s]+(\d{4}))?/);
+          if (singleMonth) {
+            const m = monthMap[singleMonth[1].substring(0, 3).toLowerCase()];
+            const d = parseInt(singleMonth[2]);
+            const year = singleMonth[3] ? parseInt(singleMonth[3]) : now.getFullYear();
+            if (m !== undefined) {
+              startDate = new Date(year, m, d);
+              endDate = new Date(year, m, d, 23, 59, 59);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!startDate || !endDate) return explicitStatus || 'upcoming';
+
+  if (now > endDate) return 'expired';
+  if (today >= startDate && today <= endDate) return 'active';
+  return 'upcoming';
+}
+
+function renderMilestonesTable() {
+  const tbody = document.getElementById('milestones-table-body');
+  const countElem = document.getElementById('milestone-count');
+  const summaryElem = document.getElementById('milestones-status-summary');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+  if (countElem) countElem.innerText = stagedMilestones.length;
+
+  if (stagedMilestones.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No milestones staged. Click "Fetch Live Cloud", "Load Template", or add milestones above.</td></tr>`;
+    if (summaryElem) summaryElem.innerText = '';
+    return;
+  }
+
+  let activeCount = 0;
+  let upcomingCount = 0;
+  let expiredCount = 0;
+
+  stagedMilestones.forEach((m, idx) => {
+    // Dynamic real-time auto calculation
+    const dynStatus = evaluateMilestoneStatusJs(m.date || m.timeline || '', m.status);
+    const effectiveStatus = m.statusManuallyOverridden ? m.status : dynStatus;
+    m.isDone = (effectiveStatus === 'expired');
+
+    if (effectiveStatus === 'active') activeCount++;
+    else if (effectiveStatus === 'expired') expiredCount++;
+    else upcomingCount++;
+
+    const tr = document.createElement('tr');
+
+    const statusBadges = {
+      active: `<span class="milestone-status-pill status-active" style="background: rgba(6, 182, 212, 0.18); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.4); padding: 4px 10px; border-radius: 9999px; font-size: 10px; font-weight: 700; cursor: pointer; box-shadow: 0 0 10px rgba(6,182,212,0.25);"><i class="fa-solid fa-circle-dot" style="font-size: 8px; margin-right: 4px;"></i> ACTIVE NOW</span>`,
+      upcoming: `<span class="milestone-status-pill status-upcoming" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 9999px; font-size: 10px; font-weight: 700; cursor: pointer;"><i class="fa-solid fa-clock" style="font-size: 8px; margin-right: 4px;"></i> UPCOMING</span>`,
+      expired: `<span class="milestone-status-pill status-expired" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 9999px; font-size: 10px; font-weight: 700; cursor: pointer;"><i class="fa-solid fa-check" style="font-size: 8px; margin-right: 4px;"></i> COMPLETED</span>`
+    };
+
+    const categoryIcons = {
+      Classes: 'fa-book-open',
+      Exams: 'fa-pen-clip',
+      Registration: 'fa-id-card',
+      Events: 'fa-trophy',
+      Holidays: 'fa-umbrella-beach'
+    };
+
+    const catIcon = categoryIcons[m.category] || 'fa-calendar-check';
+
+    const levelBadge = m.level ? `<span style="font-size: 9.5px; font-weight: 700; color: var(--accent-cyan); background: rgba(6,182,212,0.12); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(6,182,212,0.25); display: inline-block; margin-bottom: 3px;">${escapeHtml(m.level)}</span><br>` : '';
+
+    tr.innerHTML = `
+      <td style="text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">${idx + 1}</td>
+      <td style="font-size: 12px;">
+        ${levelBadge}
+        <strong style="color: ${effectiveStatus === 'expired' ? 'var(--text-muted)' : 'var(--text-title)'}; font-size: 12.5px; ${effectiveStatus === 'expired' ? 'text-decoration: line-through;' : ''}">${escapeHtml(m.title || '')}</strong>
+      </td>
+      <td style="font-family: var(--font-mono); color: ${effectiveStatus === 'expired' ? 'var(--text-muted)' : (effectiveStatus === 'active' ? 'var(--accent-cyan)' : '#fb7185')}; font-size: 11.5px; font-weight: 600;">${escapeHtml(m.date || m.timeline || '')}</td>
+      <td>
+        <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--text-title); background: var(--bg-surface); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-subtle);">
+          <i class="fa-solid ${catIcon}" style="color: var(--accent-indigo); font-size: 10px;"></i> ${escapeHtml(m.category || 'General')}
+        </span>
+      </td>
+      <td>${statusBadges[effectiveStatus] || statusBadges.upcoming}</td>
+      <td style="text-align: right;">
+        <div style="display: inline-flex; gap: 4px;">
+          <button type="button" class="btn-icon btn-move-up" data-idx="${idx}" title="Move Up" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''} style="width: 28px; height: 28px; font-size: 10px;">
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+          <button type="button" class="btn-icon btn-move-down" data-idx="${idx}" title="Move Down" ${idx === stagedMilestones.length - 1 ? 'disabled style="opacity:0.3;"' : ''} style="width: 28px; height: 28px; font-size: 10px;">
+            <i class="fa-solid fa-arrow-down"></i>
+          </button>
+          <button type="button" class="btn-icon btn-delete-milestone" data-idx="${idx}" title="Delete Milestone" style="width: 28px; height: 28px; font-size: 10px; color: var(--accent-rose);">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </td>
+    `;
+
+    // Status toggle on click
+    const statusPill = tr.querySelector('.milestone-status-pill');
+    if (statusPill) {
+      statusPill.addEventListener('click', () => {
+        const nextStatus = m.status === 'upcoming' ? 'active' : (m.status === 'active' ? 'expired' : 'upcoming');
+        m.statusManuallyOverridden = true;
+        m.status = nextStatus;
+        m.isDone = (nextStatus === 'expired');
+        renderMilestonesTable();
+      });
+    }
+
+    // Row Actions
+    const btnUp = tr.querySelector('.btn-move-up');
+    if (btnUp && idx > 0) {
+      btnUp.addEventListener('click', () => {
+        const temp = stagedMilestones[idx];
+        stagedMilestones[idx] = stagedMilestones[idx - 1];
+        stagedMilestones[idx - 1] = temp;
+        renderMilestonesTable();
+      });
+    }
+
+    const btnDown = tr.querySelector('.btn-move-down');
+    if (btnDown && idx < stagedMilestones.length - 1) {
+      btnDown.addEventListener('click', () => {
+        const temp = stagedMilestones[idx];
+        stagedMilestones[idx] = stagedMilestones[idx + 1];
+        stagedMilestones[idx + 1] = temp;
+        renderMilestonesTable();
+      });
+    }
+
+    const btnDel = tr.querySelector('.btn-delete-milestone');
+    if (btnDel) {
+      btnDel.addEventListener('click', () => {
+        stagedMilestones.splice(idx, 1);
+        renderMilestonesTable();
+        showMossToast('Milestone removed from staged timeline', 'info');
+      });
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  if (summaryElem) {
+    summaryElem.innerText = `• ${activeCount} Active • ${upcomingCount} Upcoming • ${expiredCount} Completed`;
+  }
+}
+
+function loadFall2026OfficialCalendar() {
+  const targetSemInput = document.getElementById('input-semester-target');
+  const resumptionInput = document.getElementById('input-semester-resumption-date');
+  if (targetSemInput) targetSemInput.value = 'Fall 2026';
+  if (resumptionInput) resumptionInput.value = '2026-09-07';
+
+  stagedMilestones = [
+    { level: 'Undergraduate & Graduate', title: 'Registration Week', date: 'Aug 31 – Sep 4, 2026 (Mon–Fri)', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Commencement of Classes', date: 'Sep 7, 2026 (Mon)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Last Date for Drop of Courses', date: 'Oct 2, 2026 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Last Date for Withdrawal', date: 'Oct 23, 2026 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Mid-Term Examination Start Date', date: 'Nov 2, 2026 (Mon)', category: 'Exams', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Student Week', date: 'Nov 9–14, 2026 (Mon–Sat)', category: 'Events', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Final Year Project Submission', date: 'Dec 28, 2026 (Mon)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Graduate', title: 'MS Thesis Submission', date: 'Dec 28, 2026 (Mon)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Last Day for Classes', date: 'Dec 28, 2026 (Mon)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Terminal Exam Start Date', date: 'Dec 31, 2026 (Thu)', category: 'Exams', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Declaration of Results', date: 'Jan 28, 2027 (Thu)', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Graduate', title: 'PhD Thesis Submission', date: 'One week before Spring 2027', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Final Result Notification', date: 'Feb 15, 2027 (Mon)', category: 'Registration', status: 'upcoming', isDone: false }
+  ];
+
+  renderMilestonesTable();
+  updateVacationCountdownDisplay();
+  showMossToast('Loaded Official COMSATS Fall 2026 Academic Calendar (13 events)!', 'success');
+  logTerminal('Loaded Official COMSATS <strong>Fall 2026 Calendar</strong> (Classes start: Sep 7, 2026).', 'info');
+}
+
+function loadSpring2027OfficialCalendar() {
+  const targetSemInput = document.getElementById('input-semester-target');
+  const resumptionInput = document.getElementById('input-semester-resumption-date');
+  if (targetSemInput) targetSemInput.value = 'Spring 2027';
+  if (resumptionInput) resumptionInput.value = '2027-02-08';
+
+  stagedMilestones = [
+    { level: 'Undergraduate & Graduate', title: 'Registration Week', date: 'Feb 1–5, 2027 (Mon–Fri)', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Commencement of Classes', date: 'Feb 8, 2027 (Mon)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Last Date for Drop of Courses', date: 'Mar 5, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Last Date for Withdrawal', date: 'Mar 26, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Mid-Term Examination Start Date', date: 'Apr 5, 2027 (Mon)', category: 'Exams', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Student Week', date: 'Apr 12–17, 2027 (Mon–Sat)', category: 'Events', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Final Year Project Submission', date: 'May 28, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Graduate', title: 'MS Thesis Submission', date: 'May 28, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Last Day for Classes', date: 'May 28, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Terminal Exam Start Date', date: 'May 31, 2027 (Mon)', category: 'Exams', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Declaration of Results', date: 'Jun 25, 2027 (Fri)', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Graduate', title: 'PhD Thesis Submission', date: 'One week before Fall 2027', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate & Graduate', title: 'Final Result Notification', date: 'Jul 16, 2027 (Fri)', category: 'Registration', status: 'upcoming', isDone: false }
+  ];
+
+  renderMilestonesTable();
+  updateVacationCountdownDisplay();
+  showMossToast('Loaded Official COMSATS Spring 2027 Academic Calendar (13 events)!', 'success');
+  logTerminal('Loaded Official COMSATS <strong>Spring 2027 Calendar</strong> (Classes start: Feb 8, 2027).', 'info');
+}
+
+function loadSummer2027OfficialCalendar() {
+  const targetSemInput = document.getElementById('input-semester-target');
+  const resumptionInput = document.getElementById('input-semester-resumption-date');
+  if (targetSemInput) targetSemInput.value = 'Summer 2027';
+  if (resumptionInput) resumptionInput.value = '2027-07-06';
+
+  stagedMilestones = [
+    { level: 'Undergraduate', title: 'Registration Week', date: 'Jul 1–5, 2027 (Thu–Mon)', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Commencement of Classes', date: 'Jul 6, 2027 (Tue)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Last Date for Drop of Courses', date: 'Jul 16, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Last Date for Withdrawal', date: 'Jul 30, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Midterm Examination', date: 'Aug 2, 2027 (Mon)', category: 'Exams', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Last Day for Classes', date: 'Aug 20, 2027 (Fri)', category: 'Classes', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Terminal Exam Start Date', date: 'Aug 21, 2027 (Sat)', category: 'Exams', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Declaration of Results', date: 'Aug 27, 2027 (Fri)', category: 'Registration', status: 'upcoming', isDone: false },
+    { level: 'Undergraduate', title: 'Final Result Notification', date: 'Sep 3, 2027 (Fri)', category: 'Registration', status: 'upcoming', isDone: false }
+  ];
+
+  renderMilestonesTable();
+  updateVacationCountdownDisplay();
+  showMossToast('Loaded Official COMSATS Summer 2027 Academic Calendar (9 events)!', 'success');
+  logTerminal('Loaded Official COMSATS <strong>Summer 2027 Calendar</strong> (Classes start: Jul 6, 2027).', 'info');
+}
+
+function setupSemesterScheduleHandlers() {
+  const targetSemInput = document.getElementById('input-semester-target');
+  const resumptionInput = document.getElementById('input-semester-resumption-date');
+  if (resumptionInput) {
+    resumptionInput.addEventListener('input', updateVacationCountdownDisplay);
+    resumptionInput.addEventListener('change', updateVacationCountdownDisplay);
+    updateVacationCountdownDisplay();
+  }
+
+  // Date Mode Toggle (Single / Range)
+  const singleRadio = document.querySelector('input[name="milestone-date-mode"][value="single"]');
+  const rangeRadio = document.querySelector('input[name="milestone-date-mode"][value="range"]');
+  const singleContainer = document.getElementById('date-single-container');
+  const rangeContainer = document.getElementById('date-range-container');
+
+  if (singleRadio && rangeRadio && singleContainer && rangeContainer) {
+    singleRadio.addEventListener('change', () => {
+      singleContainer.style.display = 'flex';
+      rangeContainer.style.display = 'none';
+    });
+    rangeRadio.addEventListener('change', () => {
+      singleContainer.style.display = 'none';
+      rangeContainer.style.display = 'flex';
+    });
+  }
+
+  // Date Picker sync
+  const datePicker = document.getElementById('input-milestone-date-picker');
+  const dateTextInput = document.getElementById('input-milestone-date');
+  if (datePicker && dateTextInput) {
+    datePicker.addEventListener('change', () => {
+      dateTextInput.value = datePicker.value;
+    });
+  }
+
+  // 1-Click Preset Chips
+  const presetChips = document.querySelectorAll('.milestone-preset-chip');
+  const titleInput = document.getElementById('input-milestone-title');
+  const levelSelect = document.getElementById('select-milestone-level');
+  const catSelect = document.getElementById('select-milestone-category');
+  const statusSelect = document.getElementById('select-milestone-status');
+
+  presetChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (titleInput) titleInput.value = chip.dataset.title || '';
+      if (levelSelect && chip.dataset.level) levelSelect.value = chip.dataset.level;
+      if (catSelect && chip.dataset.cat) catSelect.value = chip.dataset.cat;
+      if (statusSelect && chip.dataset.status) statusSelect.value = chip.dataset.status;
+      showMossToast(`Selected preset: ${chip.dataset.title}`, 'info');
+    });
+  });
+
+  // Add Milestone
+  const btnAdd = document.getElementById('btn-add-milestone');
+  if (btnAdd) {
+    btnAdd.addEventListener('click', () => {
+      const title = (titleInput ? titleInput.value : '').trim();
+      if (!title) {
+        showMossToast('Please enter a milestone event title', 'error');
+        return;
+      }
+
+      let dateStr = '';
+      const isRange = rangeRadio && rangeRadio.checked;
+      if (isRange) {
+        const start = (document.getElementById('input-milestone-start-date')?.value || '').trim();
+        const end = (document.getElementById('input-milestone-end-date')?.value || '').trim();
+        if (!start || !end) {
+          showMossToast('Please specify both start and end dates', 'error');
+          return;
+        }
+        dateStr = `${start} to ${end}`;
+      } else {
+        dateStr = (dateTextInput ? dateTextInput.value : '').trim();
+        if (!dateStr) {
+          showMossToast('Please enter or select a date', 'error');
+          return;
+        }
+      }
+
+      const level = levelSelect ? levelSelect.value : 'Undergraduate & Graduate';
+      const cat = catSelect ? catSelect.value : 'Classes';
+      const status = statusSelect ? statusSelect.value : 'upcoming';
+
+      stagedMilestones.push({
+        level: level,
+        title: title,
+        date: dateStr,
+        category: cat,
+        status: status,
+        isDone: (status === 'expired')
+      });
+
+      renderMilestonesTable();
+      showMossToast(`Added "${title}" to schedule!`, 'success');
+      logTerminal(`Staged milestone: <strong>${title}</strong> (${dateStr})`, 'info');
+
+      // Clear title input for next entry
+      if (titleInput) titleInput.value = '';
+    });
+  }
+
+  // Official Calendar Preset Buttons
+  const btnFall2026 = document.getElementById('btn-calendar-fall2026');
+  if (btnFall2026) btnFall2026.addEventListener('click', loadFall2026OfficialCalendar);
+
+  const btnSpring2027 = document.getElementById('btn-calendar-spring2027');
+  if (btnSpring2027) btnSpring2027.addEventListener('click', loadSpring2027OfficialCalendar);
+
+  const btnSummer2027 = document.getElementById('btn-calendar-summer2027');
+  if (btnSummer2027) btnSummer2027.addEventListener('click', loadSummer2027OfficialCalendar);
+
+  // Clear Milestones Button
+  const btnClear = document.getElementById('btn-clear-milestones');
+  if (btnClear) {
+    btnClear.addEventListener('click', () => {
+      if (confirm('Clear all staged milestones?')) {
+        stagedMilestones = [];
+        renderMilestonesTable();
+        showMossToast('Cleared all staged milestones', 'info');
+      }
+    });
+  }
+
+  // Auto-Sort Chronological Button
+  const btnSort = document.getElementById('btn-sort-chronological');
+  if (btnSort) {
+    btnSort.addEventListener('click', () => {
+      stagedMilestones.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      renderMilestonesTable();
+      showMossToast('Milestones sorted chronologically!', 'info');
+    });
+  }
+
+  // Backup JSON Export Button
+  const btnExport = document.getElementById('btn-export-milestones');
+  if (btnExport) {
+    btnExport.addEventListener('click', () => {
+      const payload = {
+        target_semester: (targetSemInput && targetSemInput.value ? targetSemInput.value : getDefaultTargetSemester()).trim(),
+        resumption_date: resumptionInput ? resumptionInput.value : '',
+        milestones: stagedMilestones,
+        exported_at: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `semester_schedule_${(payload.target_semester || 'export').replace(/\s+/g, '_').toLowerCase()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showMossToast('Exported schedule backup JSON!', 'success');
+    });
+  }
+
+  // Fetch Live Cloud Milestones Button
+  const btnFetchCloud = document.getElementById('btn-fetch-cloud-milestones');
+  if (btnFetchCloud) {
+    btnFetchCloud.addEventListener('click', async () => {
+      if (!isConnected) {
+        showMossToast('Database connection is offline', 'error');
+        return;
+      }
+      try {
+        logTerminal('Fetching live semester schedule from Firestore...', 'info');
+        const doc = await db.collection('config').doc('global').get();
+        if (!doc.exists) {
+          showMossToast('Global config document not found in Firestore', 'warning');
+          return;
+        }
+        const data = doc.data() || {};
+        const vacSchedule = data.vacation_schedule;
+        if (vacSchedule && typeof vacSchedule === 'object') {
+          if (targetSemInput && vacSchedule.target_semester) {
+            targetSemInput.value = vacSchedule.target_semester;
+          }
+          if (resumptionInput && vacSchedule.resumption_date) {
+            resumptionInput.value = vacSchedule.resumption_date;
+            updateVacationCountdownDisplay();
+          }
+          if (Array.isArray(vacSchedule.milestones)) {
+            stagedMilestones = vacSchedule.milestones;
+            renderMilestonesTable();
+            showMossToast(`Loaded ${stagedMilestones.length} live milestones from cloud!`, 'success');
+            logTerminal(`Live Schedule synced: <strong>${stagedMilestones.length} milestones</strong> for ${vacSchedule.target_semester || 'target semester'}.`, 'success');
+            return;
+          }
+        }
+        if (Array.isArray(data.semester_milestones)) {
+          stagedMilestones = data.semester_milestones;
+          if (targetSemInput && data.target_semester) targetSemInput.value = data.target_semester;
+          if (resumptionInput && data.resumption_date) resumptionInput.value = data.resumption_date;
+          renderMilestonesTable();
+          showMossToast(`Loaded ${stagedMilestones.length} milestones from cloud!`, 'success');
+          return;
+        }
+        showMossToast('No active semester schedule in cloud. Loading template...', 'info');
+        loadTemplateMilestones();
+      } catch (e) {
+        logTerminal(`Failed to fetch live schedule: ${e.message}`, 'error');
+        showMossToast(e.message, 'error');
+      }
+    });
+  }
+
+  // Deploy Button
+  const btnDeploy = document.getElementById('btn-deploy-semester');
+  if (btnDeploy) {
+    btnDeploy.addEventListener('click', async () => {
+      if (!isConnected) {
+        showMossToast('Database connection is offline', 'error');
+        return;
+      }
+
+      const targetSem = ((targetSemInput ? targetSemInput.value : '') || getDefaultTargetSemester()).trim();
+      const resumptionDate = (resumptionInput ? resumptionInput.value : '').trim();
+
+      if (stagedMilestones.length === 0) {
+        if (!confirm('No milestones are currently staged. Deploy target semester and empty milestone schedule?')) {
+          return;
+        }
+      }
+
+      btnDeploy.disabled = true;
+      btnDeploy.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> DEPLOYING SCHEDULE TO CLOUD...';
+
+      try {
+        logTerminal(`Deploying semester schedule for <strong>${targetSem}</strong> (${stagedMilestones.length} milestones)...`, 'info');
+
+        const schedulePayload = {
+          target_semester: targetSem,
+          resumption_date: resumptionDate,
+          milestones: stagedMilestones
+        };
+
+        await db.collection('config').doc('global').update({
+          vacation_schedule: schedulePayload,
+          semester_milestones: stagedMilestones,
+          target_semester: targetSem,
+          resumption_date: resumptionDate,
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        incrementDatabaseOps();
+        logTerminal(`Cloud Deployment Succeeded: <strong>${targetSem}</strong> schedule active in Firestore.`, 'success');
+        showMossToast(`Semester Schedule for ${targetSem} successfully deployed!`, 'success');
+      } catch (e) {
+        logTerminal(`Deployment failed: ${e.message}`, 'error');
+        showMossToast(e.message, 'error');
+      } finally {
+        btnDeploy.disabled = false;
+        btnDeploy.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px;"></i> <span>DEPLOY SEMESTER SCHEDULE TO IRIS (FIRESTORE)</span>';
+      }
+    });
+  }
+
+  // Initial load: Load template if empty
+  if (stagedMilestones.length === 0) {
+    loadTemplateMilestones();
+  }
+}
+
+// ==========================================================================
+// EXAM SCHEDULES & DATE SHEET MANAGER
+// ==========================================================================
+
+let stagedExams = [];
+activeInspectorExamPeriod = 'midterms';
+let liveLoadedExams = [];
+
+function renderExamsPreview(exams) {
+  const tbody = document.getElementById('exams-preview-body');
+  const statTotal = document.getElementById('exams-stat-total');
+  const statBatches = document.getElementById('exams-stat-batches');
+  const statSubjects = document.getElementById('exams-stat-subjects');
+  const deployMidtermsBtn = document.getElementById('btn-deploy-midterms');
+  const deployFinalsBtn = document.getElementById('btn-deploy-finals');
+
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!exams || exams.length === 0) {
+    if (statTotal) statTotal.innerText = '0';
+    if (statBatches) statBatches.innerText = '0';
+    if (statSubjects) statSubjects.innerText = '0';
+    if (deployMidtermsBtn) deployMidtermsBtn.disabled = true;
+    if (deployFinalsBtn) deployFinalsBtn.disabled = true;
+    return;
+  }
+
+  const uniqueBatches = new Set();
+  const uniqueSubjects = new Set();
+
+  exams.forEach(e => {
+    if (e.batch) uniqueBatches.add(e.batch);
+    if (e.subject) uniqueSubjects.add(e.subject);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 11.5px; font-weight: 600;">${escapeHtml(e.date || 'TBD')}</td>
+      <td style="font-family: var(--font-mono); font-size: 11px; color: var(--text-title);">${escapeHtml(e.time || '09:00 AM - 12:00 PM')}</td>
+      <td><span style="background: rgba(16, 185, 129, 0.12); color: #34d399; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">${escapeHtml(e.room || 'Exam Hall')}</span></td>
+      <td style="font-weight: 700; color: var(--accent-indigo);">${escapeHtml(e.batch || 'ALL')}</td>
+      <td style="font-weight: 600; color: var(--text-title);">${escapeHtml(e.subject || 'EXAM')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if (statTotal) statTotal.innerText = exams.length;
+  if (statBatches) statBatches.innerText = uniqueBatches.size;
+  if (statSubjects) statSubjects.innerText = uniqueSubjects.size;
+
+  const analyticsElem = document.getElementById('exams-analytics');
+  if (analyticsElem) analyticsElem.style.display = 'block';
+
+  if (deployMidtermsBtn) deployMidtermsBtn.disabled = false;
+  if (deployFinalsBtn) deployFinalsBtn.disabled = false;
+}
+
+async function handleExamFileSelect(file) {
+  if (!file) return;
+
+  const fileInfo = document.getElementById('exams-file-info');
+  if (fileInfo) {
+    fileInfo.innerText = `Selected Date Sheet: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    fileInfo.style.display = 'block';
+  }
+
+  logTerminal(`Processing Date Sheet: <strong>${file.name}</strong>...`, 'info');
+
+  if (file.name.endsWith('.json')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (Array.isArray(parsed)) {
+          stagedExams = parsed;
+        } else if (parsed.exams && Array.isArray(parsed.exams)) {
+          stagedExams = parsed.exams;
+        } else {
+          showMossToast('Invalid JSON structure. Expected array of exam records.', 'error');
+          return;
+        }
+        renderExamsPreview(stagedExams);
+        showMossToast(`Loaded ${stagedExams.length} exams from ${file.name}!`, 'success');
+        logTerminal(`Parsed <strong>${stagedExams.length} exams</strong> from JSON.`, 'success');
+      } catch (err) {
+        showMossToast(`JSON parse error: ${err.message}`, 'error');
+        logTerminal(`Failed to parse JSON: ${err.message}`, 'error');
+      }
+    };
+    reader.readAsText(file);
+  } else if (file.name.endsWith('.pdf')) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const extractedExams = [];
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const items = textContent.items.map(i => i.str).filter(s => s.trim().length > 0);
+        const fullText = items.join(" ");
+
+        // Regex heuristics for standard COMSATS date sheet tables
+        // Patterns: Date, Time, Room, Batch, Course
+        const lines = fullText.split(/\n|(?=(?:\d{1,2}[-/.]\d{1,2}[-/.]\d{4}|\d{4}[-/.]\d{1,2}[-/.]\d{1,2}))/i);
+        lines.forEach(line => {
+          const trimmed = line.trim();
+          if (trimmed.length < 10) return;
+          const dateMatch = trimmed.match(/(\d{1,2}[-/.]\d{1,2}[-/.]\d{4}|\d{4}[-/.]\d{1,2}[-/.]\d{1,2})/);
+          const timeMatch = trimmed.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?\s*-\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+          const batchMatch = trimmed.match(/\b((?:(?:FA|SP)\d{2}-[A-Za-z]+(?:-\d+)?[A-Za-z0-9]*|[A-Za-z]{2,4}-\d+[A-Za-z0-9]*)(?:\s*[,&/]\s*(?:(?:FA|SP)\d{2}-[A-Za-z]+(?:-\d+)?[A-Za-z0-9]*|[A-Za-z]{2,4}-\d+[A-Za-z0-9]*|\d+[A-Za-z0-9]*|[A-Za-z]))*)\b/i);
+
+          if (dateMatch && batchMatch) {
+            const date = dateMatch[0];
+            const time = timeMatch ? timeMatch[0] : '09:00 AM - 12:00 PM';
+            const batch = batchMatch[0].toUpperCase();
+            let subject = trimmed
+              .replace(date, '')
+              .replace(time, '')
+              .replace(batchMatch[0], '')
+              .replace(/\b(Room|Lab|Hall|LH)\s*[-_0-9A-Za-z]+/gi, '')
+              .replace(/[-|_|,|;]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+
+            if (!subject || subject.length < 3) subject = 'EXAM COURSE';
+
+            const roomMatch = trimmed.match(/\b(Room\s*\d+|Lab\s*\d+|LH\s*\d+|Hall\s*[A-Za-z0-9]+)\b/i);
+            const room = roomMatch ? roomMatch[0] : 'Exam Hall';
+
+            extractedExams.push({
+              date: date,
+              time: time,
+              room: room,
+              batch: batch,
+              subject: subject
+            });
+          }
+        });
+      }
+
+      if (extractedExams.length > 0) {
+        stagedExams = extractedExams;
+        renderExamsPreview(stagedExams);
+        showMossToast(`Extracted ${stagedExams.length} exams from PDF!`, 'success');
+        logTerminal(`Parsed <strong>${stagedExams.length} exams</strong> from PDF.`, 'success');
+      } else {
+        showMossToast('PDF parsed but no standard exam rows detected. Try JSON format for 100% precision.', 'warning');
+      }
+    } catch (err) {
+      showMossToast(`PDF parse error: ${err.message}`, 'error');
+      logTerminal(`PDF error: ${err.message}`, 'error');
+    }
+  } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: false, cellNF: true, cellText: true });
+      const extractedExams = [];
+
+      function formatSlotTime(raw) {
+        if (!raw) return '09:00 AM - 12:00 PM';
+        const clean = String(raw).trim();
+        if (clean.includes('-')) {
+          const parts = clean.split('-');
+          if (parts.length === 2 && parts[0].trim().length === 4 && parts[1].trim().length === 4) {
+            let sH = parseInt(parts[0].substring(0, 2), 10);
+            const sM = parts[0].substring(2);
+            let eH = parseInt(parts[1].substring(0, 2), 10);
+            const eM = parts[1].substring(2);
+
+            if (sH >= 1 && sH <= 5) sH += 12;
+            if (eH >= 1 && eH <= 5) eH += 12;
+
+            const sAmPm = sH >= 12 ? 'PM' : 'AM';
+            const eAmPm = eH >= 12 ? 'PM' : 'AM';
+            const sDisp = sH > 12 ? sH - 12 : (sH === 0 ? 12 : sH);
+            const eDisp = eH > 12 ? eH - 12 : (eH === 0 ? 12 : eH);
+
+            return `${String(sDisp).padStart(2, '0')}:${sM} ${sAmPm} - ${String(eDisp).padStart(2, '0')}:${eM} ${eAmPm}`;
+          }
+        }
+        return clean;
+      }
+
+      for (const sheetName of workbook.SheetNames) {
+        const worksheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: '' });
+        if (!rows || rows.length === 0) continue;
+
+        // 1. Check if sheet is Multi-Block Quad Matrix Layout (Row 2 or 3 has venues across columns)
+        let matrixHeaderRowIdx = -1;
+        let venueCols = {};
+        let curDateCol = -1;
+        let curTimeCol = -1;
+
+        for (let r = 0; r < Math.min(rows.length, 5); r++) {
+          const row = rows[r] || [];
+          let vCount = 0;
+          row.forEach(cell => {
+            const s = String(cell || '').trim();
+            if (s.match(/^[A-D]\s*[-_]?\s*\d+(\.\d+)?(\s*\(\d+\))?/i) || s.match(/^WCR\s*\d+(\s*\(\d+\))?/i) || s.match(/^LH\s*\d+(\s*\(\d+\))?/i)) {
+              vCount++;
+            }
+          });
+          if (vCount >= 3) {
+            matrixHeaderRowIdx = r;
+            break;
+          }
+        }
+
+        if (matrixHeaderRowIdx !== -1) {
+          // Quad-Matrix Layout Parser
+          const headerRow = rows[matrixHeaderRowIdx] || [];
+          headerRow.forEach((val, c) => {
+            const str = String(val || '').trim();
+            const u = str.toUpperCase();
+            if (u.includes('DATE')) curDateCol = c;
+            else if (u.includes('TIME') || u.includes('SLOT')) curTimeCol = c;
+            else if (str && !u.includes('DATE') && !u.includes('TIME')) {
+              const venue = str.replace(/\s*\(\d+\)/, '').trim();
+              venueCols[c] = { venue, dateCol: curDateCol, timeCol: curTimeCol };
+            }
+          });
+
+          const activeDates = {};
+          const activeTimes = {};
+
+          let r = matrixHeaderRowIdx + 1;
+          while (r < rows.length) {
+            const row = rows[r] || [];
+            const hasContent = row.some(c => String(c || '').trim().length > 0);
+            if (!hasContent) {
+              r++;
+              continue;
+            }
+
+            // Check repeated header in middle of sheet
+            const rowUpper = row.map(c => String(c || '').trim().toUpperCase());
+            if (rowUpper.some(c => c.includes('DATE')) && rowUpper.some(c => c.includes('TIME'))) {
+              row.forEach((val, c) => {
+                const str = String(val || '').trim();
+                const u = str.toUpperCase();
+                if (u.includes('DATE')) curDateCol = c;
+                else if (u.includes('TIME') || u.includes('SLOT')) curTimeCol = c;
+                else if (str && !u.includes('DATE') && !u.includes('TIME')) {
+                  const venue = str.replace(/\s*\(\d+\)/, '').trim();
+                  if (venueCols[c]) {
+                    venueCols[c].venue = venue;
+                    venueCols[c].dateCol = curDateCol;
+                    venueCols[c].timeCol = curTimeCol;
+                  }
+                }
+              });
+              r++;
+              continue;
+            }
+
+            // Update active dates & times
+            Object.values(venueCols).forEach(info => {
+              if (info.dateCol !== -1) {
+                const dVal = String(row[info.dateCol] || '').trim();
+                if (dVal && !dVal.toUpperCase().includes('DATE')) activeDates[info.dateCol] = dVal;
+              }
+              if (info.timeCol !== -1) {
+                const tVal = String(row[info.timeCol] || '').trim();
+                if (tVal && !tVal.toUpperCase().includes('TIME')) activeTimes[info.timeCol] = tVal;
+              }
+            });
+
+            const subjectRow = rows[r + 1] || [];
+
+            Object.entries(venueCols).forEach(([cStr, info]) => {
+              const c = parseInt(cStr, 10);
+              const bVal = String(row[c] || '').trim();
+              const sVal = String(subjectRow[c] || '').trim();
+
+              if (!bVal || !sVal) return;
+              const bU = bVal.toUpperCase();
+              const sU = sVal.toUpperCase();
+              if (['BATCH', 'CLASS', 'DATE', 'TIME'].includes(bU) || ['SUBJECT', 'COURSE', 'DATE', 'TIME'].includes(sU)) return;
+
+              const date = activeDates[info.dateCol] || 'TBD';
+              const rawTime = activeTimes[info.timeCol] || '0900-1200';
+              const formattedTime = formatSlotTime(rawTime);
+
+              extractedExams.push({
+                date: date,
+                time: formattedTime,
+                room: info.venue,
+                batch: bVal.toUpperCase(),
+                subject: sVal
+              });
+            });
+
+            r += 2;
+          }
+        } else {
+          // Standard Tabular Layout Parser
+          let dateCol = -1, timeCol = -1, batchCol = -1, subjectCol = -1, roomCol = -1, headerRowIdx = -1;
+          for (let r = 0; r < Math.min(rows.length, 15); r++) {
+            const row = rows[r];
+            for (let c = 0; c < row.length; c++) {
+              const cell = String(row[c] || '').toLowerCase().trim();
+              if (cell.includes('date') || cell.includes('day')) dateCol = c;
+              if (cell.includes('time') || cell.includes('slot') || cell.includes('timing')) timeCol = c;
+              if (cell.includes('batch') || cell.includes('class') || cell.includes('program') || cell.includes('section')) batchCol = c;
+              if (cell.includes('subject') || cell.includes('course') || cell.includes('paper') || cell.includes('title')) subjectCol = c;
+              if (cell.includes('room') || cell.includes('hall') || cell.includes('venue') || cell.includes('location')) roomCol = c;
+            }
+            if (batchCol !== -1 && (subjectCol !== -1 || dateCol !== -1)) {
+              headerRowIdx = r;
+              break;
+            }
+          }
+
+          if (headerRowIdx !== -1) {
+            let currentDate = '';
+            let currentTime = '09:00 AM - 12:00 PM';
+            for (let r = headerRowIdx + 1; r < rows.length; r++) {
+              const row = rows[r];
+              if (!row || row.length === 0) continue;
+
+              const dateVal = dateCol !== -1 ? String(row[dateCol] || '').trim() : '';
+              if (dateVal && !dateVal.toLowerCase().includes('date')) currentDate = dateVal;
+
+              const timeVal = timeCol !== -1 ? String(row[timeCol] || '').trim() : '';
+              if (timeVal && !timeVal.toLowerCase().includes('time')) currentTime = formatSlotTime(timeVal);
+
+              const batchVal = batchCol !== -1 ? String(row[batchCol] || '').trim() : '';
+              const subjectVal = subjectCol !== -1 ? String(row[subjectCol] || '').trim() : '';
+              const roomVal = roomCol !== -1 ? String(row[roomCol] || '').trim() : 'Exam Hall';
+
+              if (batchVal && subjectVal && subjectVal.toLowerCase() !== 'subject' && batchVal.toLowerCase() !== 'batch') {
+                extractedExams.push({
+                  date: currentDate || 'TBD',
+                  time: currentTime || '09:00 AM - 12:00 PM',
+                  room: roomVal || 'Exam Hall',
+                  batch: batchVal.toUpperCase(),
+                  subject: subjectVal
+                });
+              }
+            }
+          }
+        }
+      }
+
+      if (extractedExams.length > 0) {
+        stagedExams = extractedExams;
+        renderExamsPreview(stagedExams);
+        showMossToast(`Extracted ${stagedExams.length} exams from Excel (${file.name})!`, 'success');
+        logTerminal(`Parsed <strong>${stagedExams.length} exams</strong> with 100% precision from Excel spreadsheet.`, 'success');
+      } else {
+        showMossToast('Excel parsed but no exam records detected.', 'warning');
+      }
+    } catch (err) {
+      showMossToast(`Excel parse error: ${err.message}`, 'error');
+      logTerminal(`Excel error: ${err.message}`, 'error');
+    }
+  }
+}
+
+async function renderInspectorExamsTable(filterText = '') {
+  const tbody = document.getElementById('inspector-exams-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  const q = (filterText || '').toLowerCase().trim();
+  const filtered = liveLoadedExams.filter(e => {
+    if (!q) return true;
+    return (e.batch && e.batch.toLowerCase().includes(q)) ||
+           (e.subject && e.subject.toLowerCase().includes(q)) ||
+           (e.room && e.room.toLowerCase().includes(q)) ||
+           (e.date && e.date.toLowerCase().includes(q));
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No ${activeInspectorExamPeriod} records match "${escapeHtml(q)}".</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(e => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 11.5px;">${escapeHtml(e.date || 'TBD')}</td>
+      <td style="font-family: var(--font-mono); font-size: 11px;">${escapeHtml(e.time || '09:00 AM - 12:00 PM')}</td>
+      <td><span style="background: rgba(16, 185, 129, 0.12); color: #34d399; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">${escapeHtml(e.room || 'Exam Hall')}</span></td>
+      <td style="font-weight: 700; color: var(--accent-indigo);">${escapeHtml(e.batch || 'ALL')}</td>
+      <td style="font-weight: 600; color: var(--text-title);">${escapeHtml(e.subject || 'EXAM')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function fetchLiveInspectorExams() {
+  if (!isConnected) {
+    showMossToast('Database offline', 'error');
+    return;
+  }
+
+  const tbody = document.getElementById('inspector-exams-body');
+  if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;"><i class="fa-solid fa-spinner fa-spin"></i> Querying live ${activeInspectorExamPeriod} records from Firestore...</td></tr>`;
+
+  try {
+    const doc = await db.collection('config').doc('global').get();
+    if (!doc.exists) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Global config document not found in database.</td></tr>`;
+      return;
+    }
+
+    const data = doc.data() || {};
+    const fieldKey = activeInspectorExamPeriod === 'midterms' ? 'active_midterm_json' : 'active_finals_json';
+    const jsonStr = data[fieldKey] || '';
+
+    if (!jsonStr) {
+      liveLoadedExams = [];
+      if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No active ${activeInspectorExamPeriod} records in cloud.</td></tr>`;
+      return;
+    }
+
+    const parsed = JSON.parse(jsonStr);
+    liveLoadedExams = Array.isArray(parsed) ? parsed : [];
+    renderInspectorExamsTable(document.getElementById('inspector-exams-search')?.value || '');
+    logTerminal(`Loaded <strong>${liveLoadedExams.length} live ${activeInspectorExamPeriod} records</strong> from Firestore.`, 'success');
+  } catch (err) {
+    logTerminal(`Failed to query exams: ${err.message}`, 'error');
+    showMossToast(err.message, 'error');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-rose); padding: 24px;">Query Error: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function setupExamsManager() {
+  const examsDropzone = document.getElementById('exams-dropzone');
+  const examsFileInput = document.getElementById('file-exams');
+  const deployMidtermsBtn = document.getElementById('btn-deploy-midterms');
+  const deployFinalsBtn = document.getElementById('btn-deploy-finals');
+  const refreshInspectorBtn = document.getElementById('btn-refresh-inspector-exams');
+  const wipeInspectorBtn = document.getElementById('btn-wipe-exams');
+  const inspectorSearch = document.getElementById('inspector-exams-search');
+  const inspectorPeriodSwitcher = document.getElementById('inspector-exam-period-switcher');
+
+  if (examsDropzone && examsFileInput) {
+    setupDropzone(examsDropzone, examsFileInput, (files) => {
+      if (files.length > 0) {
+        handleExamFileSelect(files[0]);
+      }
+    });
+  }
+
+  // Deploy Midterms
+  if (deployMidtermsBtn) {
+    deployMidtermsBtn.addEventListener('click', async () => {
+      if (!isConnected) {
+        showMossToast('Database connection offline', 'error');
+        return;
+      }
+      if (stagedExams.length === 0) {
+        showMossToast('No exams staged to deploy', 'error');
+        return;
+      }
+
+      deployMidtermsBtn.disabled = true;
+      deployMidtermsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEPLOYING MIDTERMS...';
+
+      try {
+        logTerminal(`Deploying <strong>${stagedExams.length} Midterm exam records</strong> to Firestore...`, 'info');
+        await db.collection('config').doc('global').update({
+          active_midterm_json: JSON.stringify(stagedExams),
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        incrementDatabaseOps();
+        logTerminal(`Deployment Succeeded: <strong>${stagedExams.length} Midterms active</strong> in database.`, 'success');
+        showMossToast(`Successfully deployed ${stagedExams.length} Midterm exams to cloud!`, 'success');
+      } catch (err) {
+        logTerminal(`Deployment failed: ${err.message}`, 'error');
+        showMossToast(err.message, 'error');
+      } finally {
+        deployMidtermsBtn.disabled = false;
+        deployMidtermsBtn.innerHTML = '<i class="fa-solid fa-pen-clip" style="margin-right: 6px;"></i> DEPLOY MIDTERMS';
+      }
+    });
+  }
+
+  // Deploy Finals
+  if (deployFinalsBtn) {
+    deployFinalsBtn.addEventListener('click', async () => {
+      if (!isConnected) {
+        showMossToast('Database connection offline', 'error');
+        return;
+      }
+      if (stagedExams.length === 0) {
+        showMossToast('No exams staged to deploy', 'error');
+        return;
+      }
+
+      deployFinalsBtn.disabled = true;
+      deployFinalsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEPLOYING FINALS...';
+
+      try {
+        logTerminal(`Deploying <strong>${stagedExams.length} Final exam records</strong> to Firestore...`, 'info');
+        await db.collection('config').doc('global').update({
+          active_finals_json: JSON.stringify(stagedExams),
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        incrementDatabaseOps();
+        logTerminal(`Deployment Succeeded: <strong>${stagedExams.length} Finals active</strong> in database.`, 'success');
+        showMossToast(`Successfully deployed ${stagedExams.length} Final exams to cloud!`, 'success');
+      } catch (err) {
+        logTerminal(`Deployment failed: ${err.message}`, 'error');
+        showMossToast(err.message, 'error');
+      } finally {
+        deployFinalsBtn.disabled = false;
+        deployFinalsBtn.innerHTML = '<i class="fa-solid fa-award" style="margin-right: 6px;"></i> DEPLOY FINALS';
+      }
+    });
+  }
+
+  // Inspector Period Switcher
+  if (inspectorPeriodSwitcher) {
+    const segments = inspectorPeriodSwitcher.querySelectorAll('.ribbon-segment');
+    segments.forEach(seg => {
+      seg.addEventListener('click', () => {
+        segments.forEach(s => s.classList.remove('active'));
+        seg.classList.add('active');
+        activeInspectorExamPeriod = seg.dataset.inspectorPeriod || 'midterms';
+        fetchLiveInspectorExams();
+      });
+    });
+  }
+
+  // Refresh Inspector
+  if (refreshInspectorBtn) {
+    refreshInspectorBtn.addEventListener('click', fetchLiveInspectorExams);
+  }
+
+  // Search Filter
+  if (inspectorSearch) {
+    inspectorSearch.addEventListener('input', () => {
+      renderInspectorExamsTable(inspectorSearch.value);
+    });
+  }
+
+  // Wipe Live Exams
+  if (wipeInspectorBtn) {
+    wipeInspectorBtn.addEventListener('click', async () => {
+      if (!isConnected) {
+        showMossToast('Database connection offline', 'error');
+        return;
+      }
+      if (!confirm(`Are you sure you want to completely WIPE all live ${activeInspectorExamPeriod.toUpperCase()} exams from the database?`)) {
+        return;
+      }
+
+      try {
+        const fieldKey = activeInspectorExamPeriod === 'midterms' ? 'active_midterm_json' : 'active_finals_json';
+        logTerminal(`Wiping ${activeInspectorExamPeriod} records from Firestore...`, 'warning');
+        await db.collection('config').doc('global').update({
+          [fieldKey]: '',
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        incrementDatabaseOps();
+        liveLoadedExams = [];
+        renderInspectorExamsTable();
+        showMossToast(`All live ${activeInspectorExamPeriod.toUpperCase()} exams wiped from cloud!`, 'success');
+        logTerminal(`Wiped ${activeInspectorExamPeriod} records successfully.`, 'success');
+      } catch (err) {
+        logTerminal(`Wipe failed: ${err.message}`, 'error');
+        showMossToast(err.message, 'error');
+      }
+    });
+  }
+}
+
 // Auto-initialize handlers on document ready
 document.addEventListener('DOMContentLoaded', () => {
+  setupExamsManager();
   setupSemesterScheduleHandlers();
   renderFeedbackFeed();
   initGlassDropdowns();

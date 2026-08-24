@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Premium Background Card -->
+    <!-- Premium Background Card with Glowing Border -->
     <ImageView
         android:id="@+id/widget_glass_bg"
         android:layout_width="match_parent"
@@ -19,10 +19,10 @@
         android:layout_height="match_parent"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
         android:visibility="gone">
 
         <TextView
@@ -30,13 +30,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="LIVE"
-            android:textSize="8.5sp"
+            android:textSize="9.5sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:paddingLeft="6dp"
-            android:paddingRight="6dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:background="@drawable/widget_pill_badge_live" />
 
         <TextView
@@ -44,11 +44,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginLeft="6dp"
-            android:layout_marginRight="6dp"
-            android:text="CS-301 • Room C1.2"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="CS-301 • Room B7"
             android:textColor="#0F172A"
-            android:textSize="11.5sp"
+            android:textSize="12sp"
             android:textStyle="bold"
             android:singleLine="true"
             android:ellipsize="end" />
@@ -57,22 +57,22 @@
             android:id="@+id/widget_compact_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="45m left"
+            android:text="32m left"
             android:textColor="#4F46E5"
-            android:textSize="10.5sp"
+            android:textSize="11.5sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- 2. Standard / Full View (Active when height >= 105dp) -->
+    <!-- 2. Standard / Full Luxury View -->
     <LinearLayout
         android:id="@+id/widget_full_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp">
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
         <!-- Top Header Bar -->
         <LinearLayout
@@ -80,31 +80,31 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="3dp">
+            android:layout_marginBottom="7dp">
 
             <TextView
                 android:id="@+id/widget_status_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="NEXT CLASS"
-                android:textSize="8.5sp"
+                android:text="● LIVE LECTURE"
+                android:textSize="9.5sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:background="@drawable/widget_pill_badge_next" />
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="3.5dp"
+                android:paddingBottom="3.5dp"
+                android:background="@drawable/widget_pill_badge_live" />
 
             <TextView
                 android:id="@+id/widget_state_label"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginLeft="6dp"
-                android:text="TIMETABLE INSIGHT"
+                android:layout_marginLeft="8dp"
+                android:text=""
                 android:textColor="#64748B"
-                android:textSize="8.5sp"
+                android:textSize="9sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.04"
                 android:singleLine="true"
@@ -115,164 +115,99 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="↻"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#475569"
+                android:textColor="#64748B"
                 android:padding="2dp" />
         </LinearLayout>
 
-        <!-- Course Title Headline -->
-        <TextView
-            android:id="@+id/widget_headline"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="OBJECT ORIENTED PROGRAMMING"
-            android:textColor="#0F172A"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:layout_marginBottom="3dp" />
-
-        <!-- Details Capsule (Room & Start Time) -->
+        <!-- Inner Floating Frosted Hero Card -->
         <LinearLayout
-            android:id="@+id/widget_class_details_capsule"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/widget_details_capsule_v2"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:layout_marginBottom="3dp">
-
-            <TextView
-                android:id="@+id/widget_details_start_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="8:00 AM"
-                android:textColor="#0F172A"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-
-            <FrameLayout
-                android:id="@+id/widget_details_divider"
-                android:layout_width="1dp"
-                android:layout_height="10dp"
-                android:layout_marginLeft="6dp"
-                android:layout_marginRight="6dp"
-                android:background="#CBD5E1" />
-
-            <ImageView
-                android:id="@+id/widget_details_loc_icon"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:layout_marginRight="4dp"
-                android:src="@drawable/widget_ic_loc" />
-
-            <TextView
-                android:id="@+id/widget_details_room"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Room C1.2"
-                android:textColor="#0F172A"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Instructor Subcard -->
-        <LinearLayout
-            android:id="@+id/widget_teacher_card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/widget_subcard_v2"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:layout_marginBottom="3dp">
-
-            <ImageView
-                android:id="@+id/widget_teacher_avatar"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginRight="8dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/widget_ic_teacher_avatar" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/widget_teacher_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="INSTRUCTOR"
-                    android:textColor="#6D28D9"
-                    android:textSize="7.5sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_teacher_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Instructor Name"
-                    android:textColor="#1E293B"
-                    android:textSize="10.5sp"
-                    android:textStyle="bold"
-                    android:singleLine="true"
-                    android:ellipsize="end" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <FrameLayout
+            android:id="@+id/widget_hero_card"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/widget_hero_card_dark"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginBottom="8dp">
 
-        <!-- Live Progress Bar -->
-        <ProgressBar
-            android:id="@+id/widget_progress"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:progressDrawable="@drawable/widget_progress"
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:max="100"
-            android:progress="0"
-            android:visibility="gone"
-            android:layout_marginBottom="3dp" />
-
-        <!-- Time Info & Countdown -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/widget_clock_icon"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:layout_marginRight="4dp"
-                android:src="@drawable/widget_ic_clock" />
-
+            <!-- Big Bold Hero Number/Countdown -->
             <TextView
                 android:id="@+id/widget_time_info"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Starts in 15 mins"
+                android:text="32m REMAINING"
                 android:textColor="#4F46E5"
+                android:textSize="19sp"
                 android:textStyle="bold"
+                android:letterSpacing="0.02"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginBottom="3dp" />
+
+            <!-- Subject Headline -->
+            <TextView
+                android:id="@+id/widget_headline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CS301: Object Oriented Programming"
+                android:textColor="#0F172A"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginBottom="2dp" />
+
+            <!-- Subline: Instructor & Room -->
+            <TextView
+                android:id="@+id/widget_subline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Prof. Hamza Arif • Room B7"
+                android:textColor="#64748B"
                 android:textSize="11sp"
-                android:singleLine="true"
-                android:ellipsize="end" />
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Live Progress Bar -->
+            <ProgressBar
+                android:id="@+id/widget_progress"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:progressDrawable="@drawable/widget_progress"
+                android:layout_width="match_parent"
+                android:layout_height="3.5dp"
+                android:max="100"
+                android:progress="68"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Bottom Pill Action Button -->
+        <LinearLayout
+            android:id="@+id/widget_action_button"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/widget_action_pill_dark">
+
+            <TextView
+                android:id="@+id/widget_action_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Room Route Map"
+                android:textColor="#0F172A"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.01" />
         </LinearLayout>
 
     </LinearLayout>

@@ -34,9 +34,75 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
   String? _savedUserBatch;
   double _currentCgpa = 0.0;
   int _completedCredits = 0;
+  double _calculatedOverallAtt = 0.0;
+  int _semesterCredits = 15;
+  double _plannerRequiredGpa = 0.0;
+  double _plannerMaxPossibleCgpa = 0.0;
+  String _plannerResultDifficulty = 'moderate';
+  String _plannerResultMessage = '';
   
   late final AnimationController _syncAnimCtrl;
   late final AnimationController _auraAnimCtrl;
+
+  void _recalculateMetrics() {
+    final data = _academicsData ?? _getMockAcademicsData();
+    final coursesList = data['courses'] as List<dynamic>? ?? [];
+    if (coursesList.isNotEmpty) {
+      double totalAttPct = 0.0;
+      int validCourses = 0;
+      for (final course in coursesList) {
+        final attStr = course['attendance']?.toString() ?? '';
+        final pct = _parseAttendancePct(attStr);
+        totalAttPct += pct;
+        validCourses++;
+      }
+      _calculatedOverallAtt = validCourses > 0 ? totalAttPct / validCourses : 0.0;
+    } else {
+      final rawAttendanceAvg = data['semester_summary']?['overall_attendance_avg']?.toString() ?? '0%';
+      _calculatedOverallAtt = _parseAttendancePct(rawAttendanceAvg);
+    }
+
+    int semCredits = 0;
+    for (final course in coursesList) {
+      final cr = int.tryParse(course['credits']?.toString() ?? '3') ?? 3;
+      semCredits += cr;
+    }
+    _semesterCredits = semCredits > 0 ? semCredits : 15;
+
+    final plannerActive = _currentCgpa > 0.0 && _completedCredits > 0;
+    if (plannerActive) {
+      if (widget.brain != null) {
+        final res = widget.brain!.calculateRequiredSemesterGpa(
+          currentCgpa: _currentCgpa,
+          targetCgpa: _targetCgpa,
+          completedCredits: _completedCredits,
+          semesterCredits: _semesterCredits,
+        );
+        _plannerRequiredGpa = res.requiredSemesterGpa;
+        _plannerMaxPossibleCgpa = res.maxPossibleCgpa;
+        _plannerResultDifficulty = res.difficulty;
+        _plannerResultMessage = res.message;
+      } else {
+        final totalCredits = _completedCredits + _semesterCredits;
+        final requiredGpa = ((_targetCgpa * totalCredits) - (_currentCgpa * _completedCredits)) / _semesterCredits;
+        final maxCgpa = ((_currentCgpa * _completedCredits) + (4.0 * _semesterCredits)) / totalCredits;
+        _plannerRequiredGpa = requiredGpa;
+        _plannerMaxPossibleCgpa = maxCgpa;
+
+        if (requiredGpa <= 2.0) {
+          _plannerResultDifficulty = 'easy';
+          _plannerResultMessage = 'Comfortable target! You need an average GPA of ${requiredGpa.clamp(0.0, 4.0).toStringAsFixed(2)} to hit your target.';
+        } else if (requiredGpa > 4.00) {
+          _plannerResultDifficulty = 'impossible';
+          _plannerResultMessage = 'Target out of reach this semester. The highest CGPA you can achieve is ${maxCgpa.toStringAsFixed(2)} (with a perfect 4.00 GPA).';
+        } else {
+          _plannerResultDifficulty = requiredGpa > 3.5 ? 'challenging' : 'moderate';
+          final status = requiredGpa > 3.5 ? 'Challenging' : 'Achievable';
+          _plannerResultMessage = '$status target! You need a GPA of ${requiredGpa.toStringAsFixed(2)} in your current courses.';
+        }
+      }
+    }
+  }
 
   String _extractProgram(String? reg) {
     if (reg == null || reg.isEmpty) return 'BCS';
@@ -185,7 +251,8 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
     _auraAnimCtrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
     _loadLocalData();
     PortalSyncService.syncNotifier.addListener(_onPortalUpdated);
     PortalSyncService.isDeepSyncing.addListener(_onDeepSyncingChanged);
@@ -237,6 +304,7 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
         _savedUserBatch = userBatch;
         _currentCgpa = currentCgpa;
         _completedCredits = completedCredits;
+        _recalculateMetrics();
       });
 
       // Auto-trigger Deep Sync for first-time if no courses cached
@@ -254,6 +322,7 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
     await prefs.setDouble('iris_portal_target_cgpa', val);
     setState(() {
       _targetCgpa = val;
+      _recalculateMetrics();
     });
   }
 
@@ -688,73 +757,14 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
     final totalPendingTasks = data['semester_summary']?['total_pending_tasks'] ?? 0;
     final coursesList = data['courses'] as List<dynamic>? ?? [];
     
-    // Dynamically calculate the true overall attendance average from the actual course list records
-    double calculatedOverallAtt = 0.0;
-    if (coursesList.isNotEmpty) {
-      double totalAttPct = 0.0;
-      int validCourses = 0;
-      for (final course in coursesList) {
-        final attStr = course['attendance']?.toString() ?? '';
-        final pct = _parseAttendancePct(attStr);
-        totalAttPct += pct;
-        validCourses++;
-      }
-      if (validCourses > 0) {
-        calculatedOverallAtt = totalAttPct / validCourses;
-      }
-    } else {
-      final rawAttendanceAvg = data['semester_summary']?['overall_attendance_avg']?.toString() ?? '0%';
-      calculatedOverallAtt = _parseAttendancePct(rawAttendanceAvg);
-    }
-    
-    final attendanceAvg = '${calculatedOverallAtt.toInt()}%';
-    final rawAttendanceAvg = '${calculatedOverallAtt.toInt()}%';
-
-    int semesterCredits = 0;
-    for (final course in coursesList) {
-      final cr = int.tryParse(course['credits']?.toString() ?? '3') ?? 3;
-      semesterCredits += cr;
-    }
-    if (semesterCredits <= 0) semesterCredits = 15;
-
+    final attendanceAvg = '${_calculatedOverallAtt.toInt()}%';
+    final rawAttendanceAvg = '${_calculatedOverallAtt.toInt()}%';
+    final semesterCredits = _semesterCredits;
     final plannerActive = _currentCgpa > 0.0 && _completedCredits > 0;
-    double plannerRequiredGpa = 0.0;
-    double plannerMaxPossibleCgpa = 0.0;
-    String plannerResultDifficulty = 'moderate';
-    String plannerResultMessage = '';
-
-    if (plannerActive) {
-      if (widget.brain != null) {
-        final res = widget.brain!.calculateRequiredSemesterGpa(
-          currentCgpa: _currentCgpa,
-          targetCgpa: _targetCgpa,
-          completedCredits: _completedCredits,
-          semesterCredits: semesterCredits,
-        );
-        plannerRequiredGpa = res.requiredSemesterGpa;
-        plannerMaxPossibleCgpa = res.maxPossibleCgpa;
-        plannerResultDifficulty = res.difficulty;
-        plannerResultMessage = res.message;
-      } else {
-        final totalCredits = _completedCredits + semesterCredits;
-        final requiredGpa = ((_targetCgpa * totalCredits) - (_currentCgpa * _completedCredits)) / semesterCredits;
-        final maxCgpa = ((_currentCgpa * _completedCredits) + (4.0 * semesterCredits)) / totalCredits;
-        plannerRequiredGpa = requiredGpa;
-        plannerMaxPossibleCgpa = maxCgpa;
-
-        if (requiredGpa <= 2.0) {
-          plannerResultDifficulty = 'easy';
-          plannerResultMessage = 'Comfortable target! You need an average GPA of ${requiredGpa.clamp(0.0, 4.0).toStringAsFixed(2)} to hit your target.';
-        } else if (requiredGpa > 4.00) {
-          plannerResultDifficulty = 'impossible';
-          plannerResultMessage = 'Target out of reach this semester. The highest CGPA you can achieve is ${maxCgpa.toStringAsFixed(2)} (with a perfect 4.00 GPA).';
-        } else {
-          plannerResultDifficulty = requiredGpa > 3.5 ? 'challenging' : 'moderate';
-          final status = requiredGpa > 3.5 ? 'Challenging' : 'Achievable';
-          plannerResultMessage = '$status target! You need a GPA of ${requiredGpa.toStringAsFixed(2)} in your current courses.';
-        }
-      }
-    }
+    final plannerRequiredGpa = _plannerRequiredGpa;
+    final plannerMaxPossibleCgpa = _plannerMaxPossibleCgpa;
+    final plannerResultDifficulty = _plannerResultDifficulty;
+    final plannerResultMessage = _plannerResultMessage;
 
     final glassSettings = IrisGlass.settings(
       context,
@@ -1622,9 +1632,11 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
                           final attPct = _parseAttendancePct(attendance);
                           final attColor = _getAttendanceColor(attPct);
 
-                          return Stack(
-                            clipBehavior: Clip.none,
-                            children: [
+                          return RepaintBoundary(
+                            key: ValueKey('course_$courseCode'),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
                               if (isExpanded)
                                 Positioned.fill(
                                   child: Container(
@@ -1869,8 +1881,9 @@ class _AcademicsHubScreenState extends SmartState<AcademicsHubScreen> with Ticke
                             ),
                           ),
                         ],
-                      );
-                        },
+                      ),
+                    );
+                  },
                       ),
                   ],
                 );

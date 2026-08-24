@@ -13,6 +13,7 @@ import '../widgets/dashboard_dock.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../core/vital_theme.dart'; // For ObsidianPulse
+import '../services/helpdesk_faculty_service.dart';
 import '../main.dart'; // For ToolsScreen
 import 'teacher_locator_screen.dart';
 import 'portal_screen.dart';
@@ -98,9 +99,15 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
       return;
     }
     final q = query.toLowerCase().trim();
-    final matches = _allTeachers
-        .where((t) => t.toLowerCase().contains(q))
-        .toList();
+    final qTokens = HelpdeskFacultyService.extractCoreTokens(q);
+    final matches = _allTeachers.where((t) {
+      final tLower = t.toLowerCase();
+      if (tLower.contains(q)) return true;
+      if (HelpdeskFacultyService.isNameMatch(t, q, threshold: 0.65)) return true;
+      final tTokens = HelpdeskFacultyService.extractCoreTokens(t);
+      if (qTokens.isNotEmpty && qTokens.every((qt) => tTokens.contains(qt))) return true;
+      return false;
+    }).toList();
     setState(() => _filteredTeachers = matches);
   }
 
@@ -1092,9 +1099,12 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                               // Day Filter
                               Expanded(
                                 child: lgw.GlassMenu(
+                                  autoAdjustToScreen: true,
+                                  menuPadding: const EdgeInsets.all(16),
                                   menuWidth: 175,
                                   menuHeight: 330.0,
-                                  menuBorderRadius: 18.0,
+                                  menuBorderRadius: 28.0,
+                                  itemBorderRadius: 20.0,
                                   menuAlignment: lgw.GlassMenuAlignment.bottomCenter,
                                   settings: IrisGlass.widgetsSettings(
                                     context,
@@ -1127,6 +1137,11 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                   items: [
                                     lgw.GlassMenuItem(
                                       title: 'All Days',
+                                      titleStyle: TextStyle(
+                                        fontWeight: _filterDayIndex == null ? FontWeight.bold : FontWeight.w600,
+                                        fontSize: 14,
+                                        color: _filterDayIndex == null ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                      ),
                                       isSelected: _filterDayIndex == null,
                                       icon: Icon(
                                         Icons.calendar_month_rounded,
@@ -1154,6 +1169,11 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                       final isSelected = _filterDayIndex == i + 1;
                                       return lgw.GlassMenuItem(
                                         title: days[i],
+                                        titleStyle: TextStyle(
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                          fontSize: 14,
+                                          color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                        ),
                                         isSelected: isSelected,
                                         icon: Icon(
                                           Icons.calendar_today_rounded,
@@ -1176,9 +1196,12 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                               // Sort
                               Expanded(
                                 child: lgw.GlassMenu(
+                                  autoAdjustToScreen: true,
+                                  menuPadding: const EdgeInsets.all(16),
                                   menuWidth: 195,
                                   menuHeight: 165.0,
-                                  menuBorderRadius: 18.0,
+                                  menuBorderRadius: 28.0,
+                                  itemBorderRadius: 20.0,
                                   menuAlignment: lgw.GlassMenuAlignment.bottomCenter,
                                   settings: IrisGlass.widgetsSettings(
                                     context,
@@ -1205,6 +1228,11 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                   items: [
                                     lgw.GlassMenuItem(
                                       title: 'Earliest First',
+                                      titleStyle: TextStyle(
+                                        fontWeight: _sortBy == 'earliest' ? FontWeight.bold : FontWeight.w600,
+                                        fontSize: 14,
+                                        color: _sortBy == 'earliest' ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                      ),
                                       isSelected: _sortBy == 'earliest',
                                       icon: Icon(
                                         Icons.access_time_rounded,
@@ -1221,6 +1249,11 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                     ),
                                     lgw.GlassMenuItem(
                                       title: 'Longest Duration',
+                                      titleStyle: TextStyle(
+                                        fontWeight: _sortBy == 'duration' ? FontWeight.bold : FontWeight.w600,
+                                        fontSize: 14,
+                                        color: _sortBy == 'duration' ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                      ),
                                       isSelected: _sortBy == 'duration',
                                       icon: Icon(
                                         Icons.hourglass_bottom_rounded,
@@ -1237,6 +1270,11 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
                                     ),
                                     lgw.GlassMenuItem(
                                       title: 'Most Rooms Available',
+                                      titleStyle: TextStyle(
+                                        fontWeight: _sortBy == 'rooms' ? FontWeight.bold : FontWeight.w600,
+                                        fontSize: 14,
+                                        color: _sortBy == 'rooms' ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                      ),
                                       isSelected: _sortBy == 'rooms',
                                       icon: Icon(
                                         Icons.meeting_room_rounded,
@@ -1411,6 +1449,28 @@ class _MakeupLectureSchedulerState extends State<MakeupLectureScheduler> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (suggestion.slotName != null) ...[
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 13,
+                      color: IrisTokens.brand.withValues(alpha: 0.8),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      suggestion.slotName!,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
               // Day and Time
               Row(
                 children: [

@@ -90,6 +90,16 @@ class BatchKey {
     }
   }
 
+  static String normalizeProgram(String prog) {
+    final p = prog.toUpperCase().trim();
+    if (p == 'CS' || p == 'BCS' || p == 'BSCS') return 'BCS';
+    if (p == 'SE' || p == 'BSE' || p == 'BSSE') return 'BSE';
+    if (p == 'EE' || p == 'BEE' || p == 'BSEE') return 'BEE';
+    if (p == 'ME' || p == 'BME' || p == 'BSME') return 'BME';
+    if (p == 'CE' || p == 'BCE' || p == 'CVE') return 'CVE';
+    return p;
+  }
+
   static String resolveDepartment(String prog) {
     switch (prog.toUpperCase()) {
       case 'SE':
@@ -208,14 +218,57 @@ class BatchKey {
     }
 
     final parts = raw.split('-');
-    if (parts.length < 3) {
-      final prog = parts.isNotEmpty ? parts.first.toUpperCase() : 'UNKNOWN';
+    if (parts.length == 1) {
+      final prog = normalizeProgram(parts[0]);
       return BatchKey(
         batch: raw,
         program: prog,
         semester: 1,
-        section: parts.length > 1 ? parts[1].toUpperCase() : 'A',
-        intake: parts.isNotEmpty ? parts.first.toUpperCase() : 'NA',
+        section: 'A',
+        intake: '',
+        department: resolveDepartment(prog),
+      );
+    }
+
+    if (parts.length == 2) {
+      final p0 = parts[0].toUpperCase();
+      final p1 = parts[1].toUpperCase();
+
+      // Check if p0 is intake (e.g. FA21-BCS)
+      if (RegExp(r'^(?:FA|SP)\d{2}$').hasMatch(p0)) {
+        final prog = normalizeProgram(p1);
+        final sem = calculateSemester(p0);
+        return BatchKey(
+          batch: raw,
+          program: prog,
+          semester: sem,
+          section: 'A',
+          intake: p0,
+          department: resolveDepartment(prog),
+        );
+      }
+
+      // Short batch format e.g. BCS-6A or BCS-A or BCS-6
+      final prog = normalizeProgram(p0);
+      final semMatch = RegExp(r'^(\d+)').firstMatch(p1);
+      int sem = 1;
+      String sec = 'A';
+      if (semMatch != null) {
+        sem = int.tryParse(semMatch.group(1)!) ?? 1;
+        final remainder = p1.substring(semMatch.group(1)!.length).trim();
+        if (remainder.isNotEmpty) {
+          sec = remainder;
+        }
+      } else {
+        sec = p1.isNotEmpty ? p1 : 'A';
+      }
+
+      return BatchKey(
+        batch: raw,
+        program: prog,
+        semester: sem,
+        section: sec,
+        intake: '',
         department: resolveDepartment(prog),
       );
     }
@@ -271,6 +324,58 @@ class BatchKey {
       intake: intake,
       department: dept,
     );
+  }
+
+  /// Comprehensive, mistake-proof matching between a student's batch and an exam batch
+  static bool isBatchMatch(String studentBatchRaw, String examBatchRaw) {
+    if (studentBatchRaw.isEmpty || examBatchRaw.isEmpty) return false;
+    final sClean = studentBatchRaw.trim().toLowerCase();
+    final eClean = examBatchRaw.trim().toLowerCase();
+    if (sClean == eClean || sClean == 'all' || eClean == 'all') return true;
+
+    final expandedExamBatches = FormatGuard.expandBatchSections(examBatchRaw);
+    final expandedStudentBatches = FormatGuard.expandBatchSections(studentBatchRaw);
+
+    for (final eBatch in expandedExamBatches) {
+      final eLower = eBatch.trim().toLowerCase();
+      for (final sBatch in expandedStudentBatches) {
+        final sLower = sBatch.trim().toLowerCase();
+        if (eLower == sLower) return true;
+
+        final sKey = BatchKey.parse(sBatch);
+        final eKey = BatchKey.parse(eBatch);
+
+        // Check program match (e.g. BCS == BCS, BSCS == BCS, etc.)
+        final sProg = normalizeProgram(sKey.program);
+        final eProg = normalizeProgram(eKey.program);
+        if (sProg != eProg) continue;
+
+        // Check section match
+        final sSec = sKey.section.trim().toUpperCase();
+        final eSec = eKey.section.trim().toUpperCase();
+        final secMatch = sSec.isEmpty || eSec.isEmpty || sSec == eSec;
+
+        // Check semester match
+        final sSem = sKey.semester > 0 ? sKey.semester : sKey.dynamicSemester;
+        final eSem = eKey.semester > 0 ? eKey.semester : eKey.dynamicSemester;
+        final semMatch = sSem == 0 || eSem == 0 || sSem == eSem;
+
+        // Check intake match if both have intakes
+        final sIntake = sKey.intake.trim().toUpperCase();
+        final eIntake = eKey.intake.trim().toUpperCase();
+        final bool intakeMatch;
+        if (sIntake.isNotEmpty && eIntake.isNotEmpty && sIntake != 'NA' && eIntake != 'NA') {
+          intakeMatch = sIntake == eIntake;
+        } else {
+          intakeMatch = true; // One or both omitted intake, so match on program + sem + sec
+        }
+
+        if (secMatch && semMatch && intakeMatch) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
 
@@ -535,30 +640,27 @@ class ClassSession {
       }
     }
 
-    final dateStr = (json['date'] ?? '').toString();
+    final dateStr = (json['date'] ?? '').toString().trim();
     int dayIdx = DateTime.now().weekday;
-    final lowerDate = dateStr.toLowerCase();
-    if (lowerDate.contains('mon')) {
-      dayIdx = 1;
-    } else if (lowerDate.contains('tue')) {
-      dayIdx = 2;
-    } else if (lowerDate.contains('wed')) {
-      dayIdx = 3;
-    } else if (lowerDate.contains('thu')) {
-      dayIdx = 4;
-    } else if (lowerDate.contains('fri')) {
-      dayIdx = 5;
-    } else if (lowerDate.contains('sat')) {
-      dayIdx = 6;
-    } else if (lowerDate.contains('sun')) {
-      dayIdx = 7;
+    final parsedDt = FormatGuard.parseDate(dateStr);
+    if (parsedDt != null) {
+      dayIdx = parsedDt.weekday;
     } else {
-      final match = RegExp(r'(\d{2})-(\d{2})-(\d{4})').firstMatch(dateStr);
-      if (match != null) {
-        final d = int.parse(match.group(1)!);
-        final m = int.parse(match.group(2)!);
-        final y = int.parse(match.group(3)!);
-        dayIdx = DateTime(y, m, d).weekday;
+      final lowerDate = dateStr.toLowerCase();
+      if (lowerDate.contains('mon')) {
+        dayIdx = 1;
+      } else if (lowerDate.contains('tue')) {
+        dayIdx = 2;
+      } else if (lowerDate.contains('wed')) {
+        dayIdx = 3;
+      } else if (lowerDate.contains('thu')) {
+        dayIdx = 4;
+      } else if (lowerDate.contains('fri')) {
+        dayIdx = 5;
+      } else if (lowerDate.contains('sat')) {
+        dayIdx = 6;
+      } else if (lowerDate.contains('sun')) {
+        dayIdx = 7;
       }
     }
 
@@ -692,16 +794,29 @@ class UniversityMemory {
       final parsed = <ClassSession>[];
       for (int i = 0; i < rawExams.length; i++) {
         final item = rawExams[i];
-        if (item is Map<String, dynamic>) {
-          parsed.add(ClassSession.fromExamJson(item, index: i, memory: this));
-        } else if (item is Map) {
-          parsed.add(
-            ClassSession.fromExamJson(
-              Map<String, dynamic>.from(item),
-              index: i,
-              memory: this,
-            ),
-          );
+        final map = item is Map<String, dynamic>
+            ? item
+            : (item is Map ? Map<String, dynamic>.from(item) : null);
+        if (map == null) continue;
+
+        final batchRaw =
+            (map['batch'] ?? map['session'] ?? map['class_name'] ?? 'ALL')
+                .toString();
+        final expanded = FormatGuard.expandBatchSections(batchRaw);
+        if (expanded.length > 1) {
+          for (int b = 0; b < expanded.length; b++) {
+            final cloned = Map<String, dynamic>.from(map);
+            cloned['batch'] = expanded[b];
+            parsed.add(
+              ClassSession.fromExamJson(
+                cloned,
+                index: i * 100 + b,
+                memory: this,
+              ),
+            );
+          }
+        } else {
+          parsed.add(ClassSession.fromExamJson(map, index: i, memory: this));
         }
       }
       result = parsed.isNotEmpty ? parsed : sessions;

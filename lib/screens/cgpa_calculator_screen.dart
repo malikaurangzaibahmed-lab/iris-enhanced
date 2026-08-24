@@ -5,6 +5,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../core/glass.dart';
 import '../core/tokens.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/glowing_input_wrapper.dart';
 import '../services/ui_feedback.dart';
 import '../core/vital_theme.dart';
 import 'students_week_screen.dart'; // For CgpaCalculatorAnimationWidget
@@ -257,32 +258,24 @@ class _CgpaCalculatorScreenState extends State<CgpaCalculatorScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: TextField(
+                              child: IrisTextField(
                                 controller: _priorCgpaController,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 onChanged: (_) => _recalculate(),
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                decoration: InputDecoration(
-                                  labelText: 'Prior CGPA',
-                                  hintText: 'e.g. 3.45',
-                                  isDense: true,
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
+                                isDark: isDark,
+                                label: 'Prior CGPA',
+                                hint: 'e.g. 3.45',
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: TextField(
+                              child: IrisTextField(
                                 controller: _priorCreditsController,
                                 keyboardType: TextInputType.number,
                                 onChanged: (_) => _recalculate(),
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                decoration: InputDecoration(
-                                  labelText: 'Prior Credits',
-                                  hintText: 'e.g. 45',
-                                  isDense: true,
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
+                                isDark: isDark,
+                                label: 'Prior Credits',
+                                hint: 'e.g. 45',
                               ),
                             ),
                           ],
@@ -420,19 +413,17 @@ class CgpaRowCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            TextField(
+            IrisTextField(
               controller: row.nameController,
-              decoration: const InputDecoration(
-                labelText: 'Course Name (optional)',
-                border: OutlineInputBorder(),
-              ),
+              isDark: isDark,
+              label: 'Course Name (optional)',
               onChanged: (_) => onChanged(),
             ),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: IrisTextField(
                     controller: row.creditsController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -440,19 +431,20 @@ class CgpaRowCard extends StatelessWidget {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Credit Hours',
-                      border: OutlineInputBorder(),
-                    ),
+                    isDark: isDark,
+                    label: 'Credit Hours',
                     onChanged: (_) => onChanged(),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: lgw.GlassMenu(
+                    autoAdjustToScreen: true,
+                    menuPadding: const EdgeInsets.all(16),
                     menuWidth: 190,
                     menuHeight: 280.0,
-                    menuBorderRadius: 18.0,
+                    menuBorderRadius: 28.0,
+                    itemBorderRadius: 20.0,
                     settings: IrisGlass.widgetsSettings(
                       context,
                       blur: 16.0,
@@ -517,6 +509,11 @@ class CgpaRowCard extends StatelessWidget {
                       final isSelected = g == row.grade;
                       return lgw.GlassMenuItem(
                         title: '$g (${CgpaCourseRow.gradePoints[g]})',
+                        titleStyle: TextStyle(
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          fontSize: 14,
+                          color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                        ),
                         isSelected: isSelected,
                         icon: Icon(
                           Icons.grade_rounded,

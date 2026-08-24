@@ -67,9 +67,9 @@ class IrisTokens {
   static const double radius36 = 36.0;
   static const double radiusFull = 9999.0;
 
-  static const BorderRadius cardRadius = BorderRadius.all(Radius.circular(20));
-  static const BorderRadius buttonRadius = BorderRadius.all(Radius.circular(14));
-  static const BorderRadius chipRadius = BorderRadius.all(Radius.circular(10));
+  static const BorderRadius cardRadius = BorderRadius.all(Radius.circular(28));
+  static const BorderRadius buttonRadius = BorderRadius.all(Radius.circular(999));
+  static const BorderRadius chipRadius = BorderRadius.all(Radius.circular(20));
 
   static const PageTransitionsTheme pageTransitions = PageTransitionsTheme(
     builders: {

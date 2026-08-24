@@ -1,8 +1,12 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:animations/animations.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../services/ui_feedback.dart';
+import '../core/glass.dart';
+import '../core/theme_signals.dart';
 
 /// Ultra-Premium Liquid Glass OpenContainer Widget.
 /// Uses the canonical Flutter animations ContainerTransform with Liquid Glass styling,
@@ -61,9 +65,58 @@ class GlassOpenContainer extends StatelessWidget {
   }
 }
 
+/// Forward spring physics to match liquid_glass_widgets GlassMorphController.open()
+class LiquidSpringCurve extends Curve {
+  final SpringSimulation _sim;
+  final double duration;
+
+  LiquidSpringCurve({
+    double mass = 1.0,
+    double stiffness = 300.0,
+    double damping = 24.0,
+    this.duration = 0.60,
+    double initialVelocity = 0.0,
+  }) : _sim = SpringSimulation(
+          SpringDescription(mass: mass, stiffness: stiffness, damping: damping),
+          0.0,
+          1.0,
+          initialVelocity,
+        );
+
+  @override
+  double transformInternal(double t) {
+    return _sim.x(t * duration);
+  }
+}
+
+/// Reverse spring physics to match liquid_glass_widgets GlassMorphController.close()
+class ReverseLiquidSpringCurve extends Curve {
+  final SpringSimulation _sim;
+  final double duration;
+
+  ReverseLiquidSpringCurve({
+    double mass = 1.0,
+    double stiffness = 300.0,
+    double damping = 24.0,
+    this.duration = 0.60,
+    double initialVelocity = -2.5,
+  }) : _sim = SpringSimulation(
+          SpringDescription(mass: mass, stiffness: stiffness, damping: damping),
+          1.0,
+          0.0,
+          initialVelocity,
+        );
+
+  @override
+  double transformInternal(double t) {
+    // When reversing, framework passes t from 1.0 down to 0.0.
+    // The elapsed real time is (1.0 - t) * duration.
+    return _sim.x((1.0 - t) * duration);
+  }
+}
+
 /// Ultra-Premium Liquid Glass Container Transform Route.
-/// Mimics iOS 18 / VisionOS elastic container morphing with bouncy physical springs,
-/// continuous specular edge shimmer, true geometric rect interpolation, and zero-jump collapse.
+/// Mimics iOS 26 liquid glass morphing with true metaball shaders and elastic spring physics.
 class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
   final Widget destinationPage;
   final Widget? originWidget;
@@ -80,8 +133,8 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
     this.originRadius = 24.0,
     this.accentColor,
   }) : super(
-          transitionDuration: const Duration(milliseconds: 460),
-          reverseTransitionDuration: const Duration(milliseconds: 360),
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 280),
           opaque: false,
           barrierDismissible: false,
           barrierColor: Colors.transparent,
@@ -89,7 +142,6 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
             final screenSize = MediaQuery.sizeOf(context);
-            final fullScreenRect = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
 
             // Compute exact origin start rect once
             Rect startRect = initialBounds ?? Rect.zero;
@@ -104,122 +156,75 @@ class GlassContainerTransformRoute<T> extends PageRouteBuilder<T> {
               if (startRect == Rect.zero) {
                 startRect = Rect.fromCenter(
                   center: Offset(screenSize.width / 2, screenSize.height / 2),
-                  width: screenSize.width * 0.65,
-                  height: 140,
+                  width: screenSize.width * 0.70,
+                  height: 120,
                 );
               }
             }
 
-            // Bouncy Tactile Spring Curve (iOS 18 Elastic Bloom Physics)
-            final curve = CurvedAnimation(
+            final animCurve = CurvedAnimation(
               parent: animation,
-              curve: const Cubic(0.16, 1.14, 0.24, 1.0),
-              reverseCurve: const Cubic(0.34, 0.0, 0.20, 1.0),
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
             );
 
-            final t = curve.value.clamp(0.0, 1.05);
+            final t = animCurve.value;
+            final currentRect = Rect.lerp(startRect, Offset.zero & screenSize, t)!;
+            final currentRadius = lerpDouble(originRadius, 0.0, t)!.clamp(0.0, 48.0);
+            final pageOpacity = Curves.easeIn.transform(t);
+            final pageScale = lerpDouble(0.92, 1.0, t)!;
+            final scrimOpacity = (t * 0.45).clamp(0.0, 0.45);
 
-            // True Geometric Rect, Corner Radius, and Continuous Specular Glow
-            final currentRect = Rect.lerp(startRect, fullScreenRect, math.min(1.0, t)) ?? fullScreenRect;
-            final currentRadius = lerpDouble(originRadius, 0.0, math.min(1.0, t)) ?? 0.0;
-            final scrimOpacity = (t * 0.52).clamp(0.0, 0.52);
-            final edgeSpecularGlow = (math.sin(math.min(1.0, t) * math.pi) * 0.85).clamp(0.0, 0.85);
-
-            // Smooth physical parallax scale factor
-            final innerContentScale = lerpDouble(0.92, 1.0, math.min(1.0, t)) ?? 1.0;
-
-            // Seamless crossfade thresholds
-            final startOpacity = (1.0 - (t / 0.28)).clamp(0.0, 1.0);
-            final endOpacity = ((t - 0.05) / 0.95).clamp(0.0, 1.0);
-
-            final glow = accentColor ?? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6));
+            final effectiveSettings = IrisGlass.settings(
+              context,
+              blur: 16.0,
+              ambientStrength: 0.8,
+              lightAngle: 0.15 * math.pi,
+              thickness: 18.0,
+              glassColor: IrisGlass.adaptiveGlassColor(context, darkAlpha: 0.85, lightAlpha: 0.9),
+            );
 
             return Stack(
+              clipBehavior: Clip.none,
               children: [
-                // 1. Backdrop Scrim & Blur Isolation
+                // 1. Backdrop Scrim Isolation
                 if (scrimOpacity > 0.005)
                   Positioned.fill(
                     child: Opacity(
-                      opacity: (t * 2.2).clamp(0.0, 1.0),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: 18.0 * math.min(1.0, t),
-                          sigmaY: 18.0 * math.min(1.0, t),
-                        ),
-                        child: Container(
-                          color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
-                        ),
+                      opacity: (t * 2.0).clamp(0.0, 1.0),
+                      child: Container(
+                        color: (isDark ? Colors.black : Colors.black87).withValues(alpha: scrimOpacity),
                       ),
                     ),
                   ),
 
-                // 2. Morphing Specular Glass Container
-                Positioned.fromRect(
-                  rect: currentRect,
-                  child: PhysicalModel(
-                    color: Colors.transparent,
+                // 2. Snappy Geometric Morphing Body
+                Positioned(
+                  left: currentRect.left,
+                  top: currentRect.top,
+                  width: currentRect.width,
+                  height: currentRect.height,
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(currentRadius),
-                    elevation: lerpDouble(12.0, 0.0, math.min(1.0, t)) ?? 0.0,
-                    shadowColor: glow.withValues(alpha: 0.40),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(currentRadius),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Color.lerp(const Color(0xFF0F172A), const Color(0xFF030712), math.min(1.0, t))
-                              : Color.lerp(const Color(0xFFF1F5F9), const Color(0xFFF8FAFC), math.min(1.0, t)),
-                          borderRadius: BorderRadius.circular(currentRadius),
-                          border: Border.all(
-                            color: glow.withValues(alpha: edgeSpecularGlow),
-                            width: lerpDouble(2.2, 0.0, math.min(1.0, t)) ?? 0.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: glow.withValues(alpha: (0.40 * (1.0 - math.min(1.0, t))).clamp(0.0, 0.40)),
-                              blurRadius: lerpDouble(28.0, 0.0, math.min(1.0, t)) ?? 0.0,
-                              spreadRadius: lerpDouble(2.5, 0.0, math.min(1.0, t)) ?? 0.0,
+                    child: SizedBox(
+                      width: currentRect.width,
+                      height: currentRect.height,
+                      child: GlassSurface(
+                        settings: effectiveSettings,
+                        radius: currentRadius,
+                        child: Opacity(
+                          opacity: pageOpacity,
+                          child: Transform.scale(
+                            scale: pageScale,
+                            alignment: Alignment.center,
+                            child: OverflowBox(
+                              minWidth: screenSize.width,
+                              maxWidth: screenSize.width,
+                              minHeight: screenSize.height,
+                              maxHeight: screenSize.height,
+                              child: destinationPage,
                             ),
-                          ],
-                        ),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            // Origin Card Preview (Physically morphs outward)
-                            if (originWidget != null && startOpacity > 0.01)
-                              Opacity(
-                                opacity: startOpacity,
-                                child: Transform.scale(
-                                  scale: lerpDouble(1.0, 1.25, math.min(1.0, t)) ?? 1.0,
-                                  alignment: Alignment.center,
-                                  child: FittedBox(
-                                    fit: BoxFit.cover,
-                                    child: SizedBox(
-                                      width: startRect.width,
-                                      height: startRect.height,
-                                      child: originWidget,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                            // Destination Page (Physically blooms with bouncy elastic parallax)
-                            if (endOpacity > 0.01)
-                              Opacity(
-                                opacity: endOpacity,
-                                child: Transform.scale(
-                                  scale: innerContentScale,
-                                  alignment: Alignment.topCenter,
-                                  child: OverflowBox(
-                                    minWidth: screenSize.width,
-                                    maxWidth: screenSize.width,
-                                    minHeight: screenSize.height,
-                                    maxHeight: screenSize.height,
-                                    alignment: Alignment.topLeft,
-                                    child: child,
-                                  ),
-                                ),
-                              ),
-                          ],
+                          ),
                         ),
                       ),
                     ),

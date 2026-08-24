@@ -3392,7 +3392,8 @@ class _PortalScreenState extends SmartState<PortalScreen>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
 
     _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
@@ -3690,46 +3691,27 @@ class _PortalScreenState extends SmartState<PortalScreen>
       containerBg = IrisTokens.success.withValues(alpha: 0.12);
       border = Border.all(color: IrisTokens.success.withValues(alpha: 0.32), width: 0.85);
     } else {
-      // Gentle pulsing idle dot
-      return AnimatedBuilder(
-        animation: _pulseController,
-        builder: (context, _) {
-          final scale = 0.85 + 0.25 * _pulseController.value;
-          final opacity = 0.82 - 0.4 * _pulseController.value;
-          return Container(
-            margin: const EdgeInsets.only(right: 8),
-            width: 14,
-            height: 14,
-            alignment: Alignment.center,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Opacity(
-                  opacity: opacity,
-                  child: Transform.scale(
-                    scale: scale,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: IrisTokens.success.withValues(alpha: 0.44),
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: IrisTokens.success,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+      // Clean static status dot
+      return Container(
+        margin: const EdgeInsets.only(right: 8),
+        width: 14,
+        height: 14,
+        alignment: Alignment.center,
+        child: Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: IrisTokens.success,
+            boxShadow: [
+              BoxShadow(
+                color: IrisTokens.success.withValues(alpha: 0.35),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -4647,12 +4629,15 @@ class _PortalScreenState extends SmartState<PortalScreen>
                       top: 10,
                       child: Center(
                         child: lgw.GlassMenu(
+                          autoAdjustToScreen: true,
+                          menuPadding: const EdgeInsets.all(16),
                           menuWidth: maxHeaderWidth,
                           menuAlignment: lgw.GlassMenuAlignment.topCenter,
                           menuHeight: widget.sessionScope == 'student'
                               ? (screenSize.width >= 420 ? 370.0 : 470.0)
                               : (screenSize.width >= 420 ? 250.0 : 350.0),
-                          menuBorderRadius: 20.0,
+                          menuBorderRadius: 28.0,
+                          itemBorderRadius: 20.0,
                           settings: lgw.LiquidGlassSettings(
                             blur: 16,
                             ambientStrength: 0.65,

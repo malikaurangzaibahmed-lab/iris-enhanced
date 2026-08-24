@@ -284,18 +284,22 @@ class _AnimatedListItemState extends State<AnimatedListItem> with SingleTickerPr
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
 
+  static final Set<int> _animatedIndices = <int>{};
+
   @override
   void initState() {
     super.initState();
+    final alreadyAnimated = _animatedIndices.contains(widget.index);
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 350));
+        vsync: this, duration: const Duration(milliseconds: 300));
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    _slideAnimation = Tween<Offset>(begin: const Offset(0.0, 0.15), end: Offset.zero)
+    _slideAnimation = Tween<Offset>(begin: const Offset(0.0, 0.12), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
-    if (widget.index < 8) {
-      final delay = widget.index * 25;
+    if (widget.index < 8 && !alreadyAnimated) {
+      _animatedIndices.add(widget.index);
+      final delay = widget.index * 20;
       Future.delayed(Duration(milliseconds: delay), () {
         if (mounted) _controller.forward();
       });

@@ -29,37 +29,88 @@ class ClassNotificationTaskHandler extends TaskHandler {
           String notifBody = '';
           String headline = '';
           String subline = '';
-          
-          if (academicPeriod == 'sports_week') {
-            notifTitle = '🏆 Sports Week active';
-            notifBody = '🏅 Sports Week Mode · Enjoy matches & events!';
+          String subject = '';
+          String room = '';
+
+          if (academicPeriod == 'vacation' || academicPeriod == 'break') {
+            final cachedVac = prefs.getString('cached_vacation_schedule') ?? '';
+            final now = DateTime.now();
+            final defaultTargetSem = now.month >= 8 ? 'Spring ${now.year + 1}' : 'Fall ${now.year}';
+            String targetSem = defaultTargetSem;
+            int daysLeft = -1;
+            if (cachedVac.isNotEmpty) {
+              try {
+                final vacMap = jsonDecode(cachedVac);
+                targetSem = vacMap['target_semester']?.toString() ?? defaultTargetSem;
+                final rStr = vacMap['resumption_date']?.toString();
+                if (rStr != null && rStr.isNotEmpty) {
+                  final dt = DateTime.tryParse(rStr);
+                  if (dt != null) {
+                    final diff = DateTime(dt.year, dt.month, dt.day)
+                        .difference(DateTime(now.year, now.month, now.day))
+                        .inDays;
+                    daysLeft = diff;
+                  }
+                }
+              } catch (_) {}
+            }
+            notifTitle = '🌴 Semester Break Active';
+            if (daysLeft > 1) {
+              notifBody = '$daysLeft Days Until $targetSem Resumes';
+            } else if (daysLeft == 1) {
+              notifBody = '1 Day Until $targetSem Resumes';
+            } else if (daysLeft == 0) {
+              notifBody = 'Resumes Today • Welcome back to $targetSem!';
+            } else if (daysLeft < 0 && daysLeft != -1) {
+              notifBody = 'Classes Resumed • Welcome to $targetSem';
+            } else {
+              notifBody = 'Campus in Recess • Enjoy Your Break';
+            }
+            headline = 'Semester Break';
+            subline = 'Zero Active Classes • Enjoy Your Break';
+            subject = 'Semester Break';
+            room = 'Campus in Recess';
+          } else if (academicPeriod == 'sports_week') {
+            notifTitle = '🏆 Sports Week Active';
+            notifBody = '🏅 Students Gala in Session · Enjoy match fixtures!';
             headline = 'Sports Week';
             subline = 'Enjoy matches & events!';
+            subject = 'Campus Sports Week';
+            room = 'Sports Complex';
           } else if (academicPeriod == 'midterms') {
-            notifTitle = '✍️ Midterms active';
-            notifBody = '📝 Midterm Exams Mode · Good luck!';
+            notifTitle = '✍️ Midterm Exams Active';
+            notifBody = '📝 Check your date sheet & exam halls';
             headline = 'Midterm Exams';
-            subline = 'Good luck!';
+            subline = 'Examination Hall';
+            subject = 'Midterm Exams';
+            room = 'Examination Hall';
           } else if (academicPeriod == 'finals') {
-            notifTitle = '🎓 Finals active';
-            notifBody = '📝 Final Exams Mode · Finish strong!';
+            notifTitle = '🎓 Terminal Exams Active';
+            notifBody = '📝 Final Examination in session';
             headline = 'Final Exams';
-            subline = 'Finish strong!';
+            subline = 'Examination Hall';
+            subject = 'Final Exams';
+            room = 'Examination Hall';
           }
-          
+
           await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
           await HomeWidget.saveWidgetData<String>('flutter.widget_headline', headline);
           await HomeWidget.saveWidgetData<String>('flutter.widget_subline', subline);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_subject', subject);
+          await HomeWidget.saveWidgetData<String>('flutter.current_class_subject', subject);
+          await HomeWidget.saveWidgetData<String>('flutter.widget_room', room);
+          await HomeWidget.saveWidgetData<String>('flutter.current_class_room', room);
           await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', '');
           await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
-          await HomeWidget.saveWidgetData<String>('flutter.time_info', 'Active');
+          await HomeWidget.saveWidgetData<String>('flutter.time_info', academicPeriod == 'vacation' || academicPeriod == 'break' ? 'Recess' : 'Active');
           await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
-          
+          await HomeWidget.saveWidgetData<String>('flutter.active_mode', academicPeriod);
+
           await HomeWidget.updateWidget(
             name: 'ClassTrackerWidget',
             androidName: 'ClassTrackerWidget',
           );
-          
+
           await FlutterForegroundTask.updateService(
             notificationTitle: notifTitle,
             notificationText: notifBody,

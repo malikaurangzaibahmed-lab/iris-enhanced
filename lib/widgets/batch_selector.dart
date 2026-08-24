@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import '../core/vital_theme.dart';
+import 'glowing_input_wrapper.dart';
 import '../core/tokens.dart';
 import '../core/glass.dart';
 import '../core/models.dart';
@@ -490,9 +492,12 @@ class _HorizontalChipSelector extends StatelessWidget {
                 ),
               )
             : lgw.GlassMenu(
+                autoAdjustToScreen: true,
+                menuPadding: const EdgeInsets.all(16),
                 menuWidth: MediaQuery.sizeOf(context).width - 48,
                 menuHeight: math.min(items.length * 52.0 + 16.0, 320.0),
-                menuBorderRadius: 20.0,
+                menuBorderRadius: 28.0,
+                itemBorderRadius: 20.0,
                 settings: IrisGlass.widgetsSettings(
                   context,
                   blur: 16.0,
@@ -558,6 +563,11 @@ class _HorizontalChipSelector extends StatelessWidget {
                   final isSelected = val == selectedValue;
                   return lgw.GlassMenuItem(
                     title: title,
+                    titleStyle: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 14,
+                      color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                    ),
                     isSelected: isSelected,
                     icon: Icon(
                       isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
@@ -635,20 +645,8 @@ class _RollNumberInputFieldState extends State<_RollNumberInputField> {
           ],
         ),
         const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.04)
-                : Colors.black.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.08),
-              width: 1.2,
-            ),
-          ),
+        IrisGlowingInputWrapper(
+          borderRadius: 16.0,
           child: TextField(
             controller: _controller,
             keyboardType: TextInputType.number,

@@ -34,17 +34,19 @@ class _IrisAnimatedMascotState extends State<IrisAnimatedMascot>
   void initState() {
     super.initState();
 
-    // 1. Floating Animation Loop (2.6s smooth sinusoidal float)
+    // 1. Floating Animation Loop (Static resting state)
     _floatController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2600),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
 
-    // 2. Hand Waving & Arm Animation Loop (1.8s continuous wave motion)
+    // 2. Hand Waving & Arm Animation Loop
     _waveController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
 
     // 3. Orbiting Energy Particles (3.2s continuous 360-degree rotation)
     _orbitController = AnimationController(

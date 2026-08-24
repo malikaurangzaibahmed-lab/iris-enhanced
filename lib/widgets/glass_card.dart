@@ -4,6 +4,7 @@ import '../core/animations.dart';
 import '../services/ui_feedback.dart';
 import '../core/theme_signals.dart';
 import '../core/glass.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 class GlassCard extends StatelessWidget {
   final Widget child;
@@ -46,7 +47,7 @@ class GlassCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectivePadding =
         padding ?? const EdgeInsets.all(IrisTokens.space24);
-    final effectiveRadius = borderRadius ?? 24.0;
+    final effectiveRadius = borderRadius ?? 32.0;
     final tintColor =
         accentColor ?? (isDark ? IrisTokens.brandDark : IrisTokens.brand);
 
@@ -72,11 +73,12 @@ class GlassCard extends StatelessWidget {
           glassColor: glassColor,
         );
 
+        final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(effectiveRadius));
+
         final cardBody = Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(effectiveRadius),
-            border: border,
-            boxShadow: enableShadow
+          decoration: ShapeDecoration(
+            shape: shape,
+            shadows: enableShadow
                 ? [
                     if (!isDark)
                       BoxShadow(
@@ -94,8 +96,8 @@ class GlassCard extends StatelessWidget {
                   ]
                 : null,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(effectiveRadius),
+          child: ClipPath(
+            clipper: ShapeBorderClipper(shape: shape),
             child: GlassSurface(
               settings: settings,
               radius: effectiveRadius,
@@ -133,7 +135,7 @@ class GlassCard extends StatelessWidget {
           );
         }
 
-        return RepaintBoundary(child: result);
+        return result;
       },
     );
   }

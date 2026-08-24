@@ -11,18 +11,30 @@ class IrisSfx {
   static String _profile = 'gentle';
 
   static Future<void> init() async {
-    _enabled = false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _enabled = prefs.getBool('ui_sounds_enabled') ?? false;
+      _profile = prefs.getString('ui_sounds_profile') ?? 'gentle';
+    } catch (_) {}
   }
 
   static Future<void> setEnabled(bool value) async {
-    _enabled = false;
+    _enabled = value;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('ui_sounds_enabled', value);
+    } catch (_) {}
   }
 
-  static bool get enabled => false;
+  static bool get enabled => _enabled;
   static String get profile => _profile;
 
   static Future<void> setProfile(String profile) async {
     _profile = profile;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('ui_sounds_profile', profile);
+    } catch (_) {}
   }
 
   static bool _throttle([int minGapMs = 60]) {
@@ -250,6 +262,12 @@ class IrisHaptics {
   }
 
   static void chipSelect() {
+    if (_throttle(24)) return;
+    unawaited(_safePulse(HapticFeedback.selectionClick));
+    IrisSfx.tick();
+  }
+
+  static void switchToggle() {
     if (_throttle(24)) return;
     unawaited(_safePulse(HapticFeedback.selectionClick));
     IrisSfx.tick();

@@ -11,6 +11,7 @@ import '../core/models.dart';
 import '../core/omni_brain.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
+import '../widgets/glowing_input_wrapper.dart';
 import '../widgets/dashboard_dock.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
@@ -266,15 +267,8 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                       ),
                       if (options.length > 5) ...[
                         const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
-                            ),
-                          ),
+                        IrisGlowingInputWrapper(
+                          borderRadius: 14.0,
                           child: TextField(
                             onChanged: (val) => setSheetState(() => filterQuery = val.trim()),
                             style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black),
@@ -799,15 +793,8 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                         ),
                         const SizedBox(height: 12),
                         // Smart Search Bar
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
-                            ),
-                          ),
+                        IrisGlowingInputWrapper(
+                          borderRadius: 14.0,
                           child: Row(
                             children: [
                               Icon(
@@ -866,6 +853,8 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                   children: [
                                     Expanded(
                                       child: lgw.GlassMenu(
+                                        autoAdjustToScreen: true,
+                                        menuPadding: const EdgeInsets.all(16),
                                         menuWidth: math.min(MediaQuery.sizeOf(context).width - 32, 260.0),
                                         menuHeight: math.min(validPrograms.length * 48.0 + 16.0, 320.0),
                                         menuBorderRadius: 18.0,
@@ -889,6 +878,11 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                           final label = dept.isNotEmpty && dept != 'Unknown' ? '$p • $dept' : p;
                                           return lgw.GlassMenuItem(
                                             title: label,
+                                            titleStyle: TextStyle(
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                              fontSize: 14,
+                                              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                            ),
                                             isSelected: isSelected,
                                             icon: Icon(
                                               Icons.school_rounded,
@@ -921,6 +915,8 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: lgw.GlassMenu(
+                                        autoAdjustToScreen: true,
+                                        menuPadding: const EdgeInsets.all(16),
                                         menuWidth: math.min(MediaQuery.sizeOf(context).width - 32, 175.0),
                                         menuHeight: math.min(semesters.length * 48.0 + 16.0, 260.0),
                                         menuBorderRadius: 18.0,
@@ -942,6 +938,11 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                           final isSelected = s == selectedSemester;
                                           return lgw.GlassMenuItem(
                                             title: 'Semester $s',
+                                            titleStyle: TextStyle(
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                              fontSize: 14,
+                                              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                            ),
                                             isSelected: isSelected,
                                             icon: Icon(
                                               Icons.auto_stories_rounded,
@@ -969,6 +970,8 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: lgw.GlassMenu(
+                                        autoAdjustToScreen: true,
+                                        menuPadding: const EdgeInsets.all(16),
                                         menuWidth: math.min(MediaQuery.sizeOf(context).width - 32, 175.0),
                                         menuHeight: math.min(sections.length * 48.0 + 16.0, 260.0),
                                         menuBorderRadius: 18.0,
@@ -990,6 +993,11 @@ class _DepartmentClassesScreenState extends State<DepartmentClassesScreen> {
                                           final isSelected = sec == selectedSection;
                                           return lgw.GlassMenuItem(
                                             title: 'Section $sec',
+                                            titleStyle: TextStyle(
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                              fontSize: 14,
+                                              color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                                            ),
                                             isSelected: isSelected,
                                             icon: Icon(
                                               Icons.group_rounded,

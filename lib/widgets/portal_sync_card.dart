@@ -24,6 +24,7 @@ class PortalSyncCard extends StatefulWidget {
 class _PortalSyncCardState extends State<PortalSyncCard> {
   PortalSession? _session;
   List<PortalTask> _cachedTasks = [];
+  List<PortalTask> _activeTasks = [];
   String _syncStatus = 'success'; // 'success' or 'failed'
 
   @override
@@ -50,6 +51,7 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
 
     // Load independent cached tasks
     final tasks = await PortalSyncService.getCachedTasks();
+    final active = tasks.where((t) => !t.isCompleted).toList();
 
     PortalSession? session;
     if (raw != null) {
@@ -63,6 +65,7 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
       setState(() {
         _session = session;
         _cachedTasks = tasks;
+        _activeTasks = active;
         _syncStatus = status;
       });
     }
@@ -86,7 +89,7 @@ class _PortalSyncCardState extends State<PortalSyncCard> {
 
   @override
   Widget build(BuildContext context) {
-    final tasks = _cachedTasks.where((t) => !t.isCompleted).toList();
+    final tasks = _activeTasks;
     final displayTasks = tasks.take(10).toList();
     final isUnsynced = _cachedTasks.isEmpty && _session == null;
     final isFailed = isUnsynced || _session == null || !_session!.hasValidCookies || _syncStatus == 'failed';

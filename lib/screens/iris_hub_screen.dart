@@ -5,8 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../core/tokens.dart';
 import '../core/models.dart';
+import '../core/glass.dart';
 import '../services/ui_feedback.dart'; // For IrisHaptics/Sfx
 import '../core/app_signals.dart';
 import '../core/theme_signals.dart';
@@ -35,10 +38,7 @@ class IrisHubScreen extends StatefulWidget {
   State<IrisHubScreen> createState() => _IrisHubScreenState();
 }
 
-class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateMixin {
-  late AnimationController _profileAnimController;
-  late AnimationController _pulseController;
-  
+class _IrisHubScreenState extends State<IrisHubScreen> {
   String _userRole = 'student';
   String _appearanceMode = 'system';
   bool _uiSoundsEnabled = true;
@@ -56,16 +56,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _profileAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat();
-    
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-    
     _loadSettings();
   }
 
@@ -101,8 +91,6 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
 
   @override
   void dispose() {
-    _profileAnimController.dispose();
-    _pulseController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -238,6 +226,89 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
               _buildThemeSegmentButton(isDark, 'light', 'LIGHT', Icons.light_mode_rounded),
             ],
           ),
+          const SizedBox(height: 20),
+          Container(
+            height: 1,
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+          ),
+          const SizedBox(height: 16),
+          ValueListenableBuilder<bool>(
+            valueListenable: ThemeSignals.useMinimalTheme,
+            builder: (context, isLowPower, _) {
+              return Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: (isLowPower ? VitalTokens.green : VitalTokens.blue).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.battery_charging_full_rounded,
+                      color: isLowPower ? VitalTokens.green : VitalTokens.blue,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Low Power (Eco-OLED)',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: (isLowPower ? VitalTokens.green : Colors.grey).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                isLowPower ? 'ACTIVE' : 'OFF',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: isLowPower ? VitalTokens.green : Colors.grey,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'True Black OLED pixel power-down, zero shadows & zero blur shaders',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  lgw.GlassSwitch(
+                    value: isLowPower,
+                    onChanged: (val) async {
+                      IrisHaptics.switchToggle();
+                      ThemeSignals.useMinimalTheme.value = val;
+                      setState(() => _useMinimalUI = val);
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('use_minimal_ui', val);
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -365,39 +436,34 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
   }
 
   Widget _buildIntelligencePulse(bool isDark) {
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        return Container(
-          width: 48,
-          height: 48,
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: VitalTokens.blue.withValues(alpha: 0.1),
+        border: Border.all(
+          color: VitalTokens.blue.withValues(alpha: 0.35),
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: Container(
+          width: 12,
+          height: 12,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: VitalTokens.blue.withValues(alpha: 0.1),
-            border: Border.all(
-              color: VitalTokens.blue.withValues(alpha: 0.2 + (_pulseController.value * 0.3)),
-              width: 2,
-            ),
-          ),
-          child: Center(
-            child: Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: VitalTokens.blue,
-                boxShadow: [
-                  BoxShadow(
-                    color: VitalTokens.blue.withValues(alpha: 0.5),
-                    blurRadius: 10 * _pulseController.value,
-                    spreadRadius: 2 * _pulseController.value,
-                  ),
-                ],
+            color: VitalTokens.blue,
+            boxShadow: [
+              BoxShadow(
+                color: VitalTokens.blue.withValues(alpha: 0.5),
+                blurRadius: 8,
+                spreadRadius: 2,
               ),
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -425,26 +491,20 @@ class _IrisHubScreenState extends State<IrisHubScreen> with TickerProviderStateM
             Stack(
               alignment: Alignment.center,
               children: [
-                AnimatedBuilder(
-                  animation: _profileAnimController,
-                  builder: (context, child) {
-                    return Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: SweepGradient(
-                          transform: GradientRotation(_profileAnimController.value * 2 * math.pi),
-                          colors: [
-                            VitalTokens.blue.withValues(alpha: 0.8),
-                            VitalTokens.purple.withValues(alpha: 0.8),
-                            Colors.pinkAccent.withValues(alpha: 0.8),
-                            VitalTokens.blue.withValues(alpha: 0.8),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: SweepGradient(
+                      colors: [
+                        VitalTokens.blue.withValues(alpha: 0.8),
+                        VitalTokens.purple.withValues(alpha: 0.8),
+                        Colors.pinkAccent.withValues(alpha: 0.8),
+                        VitalTokens.blue.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
                 ),
                 Container(
                   width: 132,

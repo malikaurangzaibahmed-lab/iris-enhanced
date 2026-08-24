@@ -7,6 +7,7 @@ import '../core/models.dart';
 import '../core/omni_brain.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/iris_components.dart';
+import '../widgets/glowing_input_wrapper.dart';
 import '../core/vital_theme.dart';
 import '../core/animations.dart';
 import '../services/ui_feedback.dart';
@@ -118,28 +119,17 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     final payload = await _service.fetchLiveFirstWithFallbackPayload();
     if (!mounted) return;
 
-    final helpdeskList = List<FacultyProfile>.from(payload.items);
-    final Set<String> existingNames = helpdeskList.map((e) => e.name.toLowerCase().trim()).toSet();
+    List<FacultyProfile> helpdeskList = List<FacultyProfile>.from(payload.items);
 
-    // Fast O(1) Smart Union: Merge PDF Timetable teachers missing from Helpdesk snapshot
+    // Smart Union: Merge PDF Timetable teachers with Helpdesk snapshot without duplicate fragmentation
     if (widget.brain != null) {
-      for (final teacherName in widget.brain!.allTeachers()) {
-        final cleanName = teacherName.trim();
-        if (cleanName.isEmpty || cleanName == 'Unknown') continue;
-        final lower = cleanName.toLowerCase();
-        if (!existingNames.contains(lower)) {
-          helpdeskList.add(FacultyProfile(
-            id: 'pdf_${cleanName.hashCode}',
-            name: cleanName,
-            gender: 'N/A',
-            department: 'Academic Faculty',
-            location: 'COMSATS Campus',
-            contact: 'Campus Office',
-            email: '',
-            image: '',
-          ));
-          existingNames.add(lower);
-        }
+      try {
+        helpdeskList = HelpdeskFacultyService.mergeWithTimetableTeachers(
+          helpdeskProfiles: helpdeskList,
+          timetableTeachers: widget.brain!.allTeachers(),
+        );
+      } catch (_) {
+        // Safe fallback
       }
     }
 
@@ -158,11 +148,12 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
     _profileSearchIndex.clear();
     _profileBlockIndex.clear();
     for (final item in helpdeskList) {
-      final normalizedName = item.name.replaceAll('.', ' ').toLowerCase();
+      final normalizedName = HelpdeskFacultyService.normalizeFacultyName(item.name);
+      final aliasStr = item.aliases.join(' ').toLowerCase();
       final block = _blockFromLocation(item.location);
       _profileBlockIndex[item.id] = block;
       _profileSearchIndex[item.id] =
-          '${item.name} $normalizedName ${item.department} ${item.location} $block ${item.email} ${item.contact}'
+          '${item.name} $normalizedName $aliasStr ${item.department} ${item.location} $block ${item.email} ${item.contact}'
               .toLowerCase();
     }
 
@@ -700,8 +691,8 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                GlassCard(
-                                  enableOverlay: false,
+                                IrisGlowingInputWrapper(
+                                  borderRadius: 24,
                                   child: TextField(
                                     controller: _searchController,
                                     onChanged: (value) {

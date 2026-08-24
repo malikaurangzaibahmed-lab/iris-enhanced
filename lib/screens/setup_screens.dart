@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/tokens.dart';
 import '../core/glass.dart';
 import '../core/models.dart';
+import '../widgets/glowing_input_wrapper.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
 import '../widgets/glass_card.dart';
@@ -812,45 +813,35 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   }
 
   Widget _buildFacultyDirectoryListWidget(bool isDark) {
-    final matched = _facultyList
-        .where(
-          (f) =>
-              f.name.toLowerCase().contains(
-                _teacherSearchQuery.toLowerCase(),
-              ) ||
-              f.department.toLowerCase().contains(
-                _teacherSearchQuery.toLowerCase(),
-              ) ||
-              f.location.toLowerCase().contains(
-                _teacherSearchQuery.toLowerCase(),
-              ),
-        )
-        .toList();
+    final qLower = _teacherSearchQuery.toLowerCase();
+    final qTokens = HelpdeskFacultyService.extractCoreTokens(_teacherSearchQuery);
+
+    final matched = _facultyList.where((f) {
+      if (qLower.isEmpty) return true;
+      if (f.name.toLowerCase().contains(qLower) ||
+          f.department.toLowerCase().contains(qLower) ||
+          f.location.toLowerCase().contains(qLower)) {
+        return true;
+      }
+      if (HelpdeskFacultyService.isNameMatch(f.name, _teacherSearchQuery, threshold: 0.65)) {
+        return true;
+      }
+      final fTokens = HelpdeskFacultyService.extractCoreTokens('${f.name} ${f.department}');
+      if (qTokens.isNotEmpty && qTokens.every((qt) => fTokens.contains(qt))) {
+        return true;
+      }
+      return false;
+    }).toList();
 
     return Column(
       children: [
         // Clean Search Field
-        GlassCard(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-          child: TextField(
-            controller: _teacherSearchController,
-            onChanged: (val) =>
-                setState(() => _teacherSearchQuery = val.trim()),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            decoration: InputDecoration(
-              hintText: 'Search faculty by name, department...',
-              hintStyle: TextStyle(
-                color: (isDark ? Colors.white : Colors.black).withValues(
-                  alpha: 0.4,
-                ),
-              ),
-              prefixIcon: const Icon(
-                Icons.search_rounded,
-                color: IrisTokens.blue,
-              ),
-              border: InputBorder.none,
-            ),
-          ),
+        IrisTextField(
+          controller: _teacherSearchController,
+          isDark: isDark,
+          hint: 'Search faculty by name, department...',
+          prefixIcon: Icons.search_rounded,
+          onChanged: (val) => setState(() => _teacherSearchQuery = val.trim()),
         ),
         const SizedBox(height: 12),
 
@@ -1361,8 +1352,8 @@ class _StudentNameInputField extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        GlassCard(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        IrisGlowingInputWrapper(
+          borderRadius: 16.0,
           child: TextFormField(
             initialValue: name,
             onChanged: onChanged,
@@ -1455,9 +1446,12 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                 ),
               )
             : lgw.GlassMenu(
+                autoAdjustToScreen: true,
+                menuPadding: const EdgeInsets.all(16),
                 menuWidth: MediaQuery.sizeOf(context).width - 48,
                 menuHeight: math.min(items.length * 52.0 + 16.0, 320.0),
-                menuBorderRadius: 20.0,
+                menuBorderRadius: 28.0,
+                itemBorderRadius: 20.0,
                 settings: IrisGlass.widgetsSettings(
                   context,
                   blur: 16.0,
@@ -1536,6 +1530,11 @@ class _GlassMenuDropdownSelector extends StatelessWidget {
                   final isSelected = val == selectedValue;
                   return lgw.GlassMenuItem(
                     title: itemTitle,
+                    titleStyle: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 14,
+                      color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                    ),
                     isSelected: isSelected,
                     icon: Icon(
                       icon,
@@ -1583,8 +1582,8 @@ class _RollNumberInputField extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        GlassCard(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        IrisGlowingInputWrapper(
+          borderRadius: 16.0,
           child: TextFormField(
             initialValue: rollNo,
             onChanged: onChanged,

@@ -1121,60 +1121,163 @@ class _SemesterScheduleScreenState extends State<_SemesterScheduleScreen> {
                   )
                 else
                   ...payload.semesterSchedule.map(
-                    (milestone) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: GlassCard(
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: IrisTokens.brand.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
+                    (milestone) {
+                      final isDone = milestone.isDone;
+                      final isActive = milestone.dynamicStatus == 'active';
+                      final level = milestone.level;
+
+                      final Color containerBg;
+                      final Color iconColor;
+                      final IconData iconData;
+
+                      if (isDone) {
+                        containerBg = const Color(0xFF10B981).withValues(alpha: 0.15);
+                        iconColor = const Color(0xFF10B981);
+                        iconData = Icons.check_circle_rounded;
+                      } else if (isActive) {
+                        containerBg = const Color(0xFF06B6D4).withValues(alpha: 0.18);
+                        iconColor = const Color(0xFF06B6D4);
+                        iconData = Icons.play_circle_fill_rounded;
+                      } else {
+                        containerBg = IrisTokens.brand.withValues(alpha: 0.12);
+                        iconColor = IrisTokens.brand;
+                        iconData = Icons.event_note_rounded;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: GlassCard(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: containerBg,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: iconColor.withValues(alpha: 0.3),
+                                    width: isActive ? 1.5 : 1.0,
+                                  ),
+                                ),
+                                child: Icon(
+                                  iconData,
+                                  color: iconColor,
+                                  size: 22,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.event_note_rounded,
-                                color: IrisTokens.brand,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (level.isNotEmpty) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        margin: const EdgeInsets.only(bottom: 3),
+                                        decoration: BoxDecoration(
+                                          color: (isDark ? const Color(0xFF06B6D4) : const Color(0xFF0891B2)).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          level,
+                                          style: TextStyle(
+                                            fontSize: 8.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? const Color(0xFF67E8F9) : const Color(0xFF0E7490),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    Text(
+                                      milestone.title,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        decoration: isDone ? TextDecoration.lineThrough : null,
+                                        decorationColor: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                        color: isDone
+                                            ? (isDark ? Colors.white38 : const Color(0xFF94A3B8))
+                                            : (isDark ? Colors.white : Colors.black),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      milestone.date,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDone
+                                            ? (isDark ? Colors.white38 : const Color(0xFF94A3B8))
+                                            : (isActive ? const Color(0xFF06B6D4) : const Color(0xFFF43F5E)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    milestone.title,
+                              const SizedBox(width: 8),
+                              if (isDone)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.check, size: 10, color: Color(0xFF10B981)),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'COMPLETED',
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF10B981),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else if (isActive)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.4)),
+                                  ),
+                                  child: const Text(
+                                    'ACTIVE NOW',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : Colors.black,
+                                      color: Color(0xFF06B6D4),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    milestone.date,
+                                )
+                              else
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: IrisTokens.brand.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'UPCOMING',
                                     style: TextStyle(
-                                      fontSize: 11,
-                                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.55),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: IrisTokens.brand.withValues(alpha: 0.8),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              milestone.status,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: IrisTokens.brand,
-                              ),
-                            ),
-                          ],
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 const SizedBox(height: 18),
                 Text(

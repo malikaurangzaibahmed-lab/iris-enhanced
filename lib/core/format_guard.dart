@@ -163,28 +163,94 @@ class FormatGuard {
     return null;
   }
 
-  /// Expands combined cohort sections e.g. "FA25-BCS-2-A&B" -> ["FA25-BCS-2-A", "FA25-BCS-2-B"]
+  /// Formats any date into a clean canonical display string e.g. "Monday, Dec 8, 2025"
+  static String formatCanonicalDate(String raw) {
+    final dt = parseDate(raw);
+    if (dt == null) return raw.trim();
+    const weekdays = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final w = weekdays[dt.weekday];
+    final m = months[dt.month];
+    return '$w, $m ${dt.day}, ${dt.year}';
+  }
+
+  /// Formats date to standard YYYY-MM-DD for deterministic grouping keys
+  static String toIsoDateKey(String raw) {
+    final dt = parseDate(raw);
+    if (dt == null) return raw.trim().toLowerCase();
+    final y = dt.year.toString().padLeft(4, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
+
+  /// Expands combined cohort sections e.g. "FA25-BCS-2-A&B", "BCS-6A, BCS-6B", "BCS-6A/B", "BSE-4A & 4B"
   static List<String> expandBatchSections(String raw) {
     if (raw.trim().isEmpty) return [];
     final clean = raw.trim().toUpperCase();
 
-    // Check for combined section markers '&', ',', '/'
-    if (clean.contains('&') || clean.contains(',') || clean.contains('/')) {
-      // Check compound batches: "FA25-BME/FA24-BME/FA22-BEE"
-      if (RegExp(r'(?:FA|SP)\d{2}').allMatches(clean).length > 1) {
-        return clean.split(RegExp(r'[/,]')).map((b) => b.trim()).where((b) => b.isNotEmpty).toList();
-      }
-
-      // Check section combo: "FA25-BCS-2-A&B" or "FA24-BSE-A,B"
-      final parts = clean.split('-');
-      if (parts.length >= 3) {
-        final lastPart = parts.last;
-        final sections = lastPart.split(RegExp(r'[&,/]')).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-        if (sections.length > 1) {
-          final prefix = parts.sublist(0, parts.length - 1).join('-');
-          return sections.map((sec) => '$prefix-$sec').toList();
+    // 1. Comma / ampersand separated batches e.g. "BCS-6A, BCS-6B" or "BCS-6A, 6B" or "BCS-6A, B"
+    final chunks = clean.split(RegExp(r'[,&]')).map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
+    if (chunks.length > 1) {
+      final results = <String>[];
+      for (final chunk in chunks) {
+        if (chunk.contains('-')) {
+          results.add(chunk);
+        } else if (results.isNotEmpty && results.last.contains('-')) {
+          final prev = results.last;
+          final prevParts = prev.split('-');
+          if (RegExp(r'^\d+[A-Z]?$').hasMatch(chunk)) {
+            // chunk is e.g. "6B"
+            final prefix = prevParts.sublist(0, prevParts.length - 1).join('-');
+            results.add('$prefix-$chunk');
+          } else if (RegExp(r'^[A-Z]$').hasMatch(chunk)) {
+            // chunk is e.g. "B", prev last was "6A" -> replace section 'A' with 'B'
+            final prevLast = prevParts.last;
+            final m = RegExp(r'^(\d+)?([A-Z]+)$').firstMatch(prevLast);
+            if (m != null && m.group(1) != null) {
+              final prefix = prevParts.sublist(0, prevParts.length - 1).join('-');
+              results.add('$prefix-${m.group(1)!}$chunk');
+            } else {
+              final prefix = prevParts.sublist(0, prevParts.length - 1).join('-');
+              results.add('$prefix-$chunk');
+            }
+          } else {
+            results.add(chunk);
+          }
+        } else {
+          results.add(chunk);
         }
       }
+      return results;
+    }
+
+    // 2. Slash combined sections e.g. "BCS-6A/B", "BCS-6A/6B", "FA21-BCS-6A/B"
+    if (clean.contains('/')) {
+      final parts = clean.split('/');
+      final base = parts.first.trim();
+      final results = <String>[base];
+      if (base.contains('-')) {
+        final baseParts = base.split('-');
+        final prefix = baseParts.sublist(0, baseParts.length - 1).join('-');
+        final baseLast = baseParts.last;
+        for (int i = 1; i < parts.length; i++) {
+          final extra = parts[i].trim();
+          if (extra.isEmpty) continue;
+          if (extra.contains('-')) {
+            results.add(extra);
+          } else if (RegExp(r'^\d+[A-Z]?$').hasMatch(extra)) {
+            results.add('$prefix-$extra');
+          } else if (RegExp(r'^[A-Z]$').hasMatch(extra)) {
+            final m = RegExp(r'^(\d+)?([A-Z]+)$').firstMatch(baseLast);
+            if (m != null && m.group(1) != null) {
+              results.add('$prefix-${m.group(1)!}$extra');
+            } else {
+              results.add('$prefix-$extra');
+            }
+          }
+        }
+      }
+      return results;
     }
 
     return [clean];

@@ -2324,9 +2324,12 @@ Summarize key findings, experimental outcomes, and list project references...
                 border: Border.all(color: (isDark ? Colors.white10 : Colors.black12)),
               ),
               child: lgw.GlassMenu(
+                autoAdjustToScreen: true,
+                menuPadding: const EdgeInsets.all(16),
                 menuWidth: 280,
                 menuHeight: 200.0,
-                menuBorderRadius: 18.0,
+                menuBorderRadius: 28.0,
+                itemBorderRadius: 20.0,
                 settings: IrisGlass.widgetsSettings(
                   context,
                   blur: 16.0,
@@ -2376,6 +2379,11 @@ Summarize key findings, experimental outcomes, and list project references...
 
                   return lgw.GlassMenuItem(
                     title: value,
+                    titleStyle: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 14,
+                      color: isSelected ? IrisTokens.brand : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87),
+                    ),
                     isSelected: isSelected,
                     icon: Icon(
                       iconData,

@@ -365,6 +365,9 @@ class WidgetService {
     String? subject,
     String? room,
     String? startTime,
+    String? activeMode,
+    String? activeRole,
+    String? batch,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -384,6 +387,13 @@ class WidgetService {
       await prefs.setString(_prefWidgetSubject, finalSubject);
       await prefs.setString(_prefWidgetRoom, finalRoom);
       await prefs.setString(_prefWidgetStartTime, finalStartTime);
+
+      if (activeMode != null) await prefs.setString('flutter.active_mode', activeMode);
+      if (activeRole != null) await prefs.setString('flutter.active_role', activeRole);
+      if (batch != null) await prefs.setString('flutter.widget_batch', batch);
+
+      final isDark = prefs.getBool('widget_dark_mode') ?? true;
+      await prefs.setBool(_prefWidgetDarkMode, isDark);
       
       // Save to HomeWidget
       await HomeWidget.saveWidgetData<String>(_prefHeadline, headline);
@@ -396,6 +406,11 @@ class WidgetService {
       await HomeWidget.saveWidgetData<String>(_prefWidgetSubject, finalSubject);
       await HomeWidget.saveWidgetData<String>(_prefWidgetRoom, finalRoom);
       await HomeWidget.saveWidgetData<String>(_prefWidgetStartTime, finalStartTime);
+      await HomeWidget.saveWidgetData<bool>(_prefWidgetDarkMode, isDark);
+
+      if (activeMode != null) await HomeWidget.saveWidgetData<String>('flutter.active_mode', activeMode);
+      if (activeRole != null) await HomeWidget.saveWidgetData<String>('flutter.active_role', activeRole);
+      if (batch != null) await HomeWidget.saveWidgetData<String>('flutter.widget_batch', batch);
       
       // Request widget update
       await HomeWidget.updateWidget(
@@ -404,7 +419,7 @@ class WidgetService {
         androidName: 'ClassTrackerWidget',
       );
       
-      debugPrint('✅ Widget updated with insight: $headline');
+      debugPrint('✅ Widget updated with insight: $headline (Mode: $activeMode, Role: $activeRole)');
     } catch (e) {
       debugPrint('🔥 updateWidgetWithInsight failed: $e');
     }

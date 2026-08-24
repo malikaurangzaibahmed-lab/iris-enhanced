@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/tokens.dart';
 import '../core/animations.dart';
+import '../core/theme_signals.dart';
 
 class NeuralAura extends StatefulWidget {
   final bool background;
@@ -23,7 +24,8 @@ class _NeuralAuraState extends State<NeuralAura>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 7600),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
   }
 
   @override
@@ -43,6 +45,9 @@ class _NeuralAuraState extends State<NeuralAura>
 
   @override
   Widget build(BuildContext context) {
+    if (ThemeSignals.useMinimalTheme.value) {
+      return const SizedBox.shrink();
+    }
     final h = MediaQuery.of(context).size.height;
     final w = MediaQuery.of(context).size.width;
 
@@ -769,7 +774,8 @@ class _AuraBlobState extends State<AuraBlob>
     _controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: durationMs),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
   }
 
   @override

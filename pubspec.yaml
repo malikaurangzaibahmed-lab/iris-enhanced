@@ -97,6 +97,7 @@ flutter:
     - assets/ui_sfx_pack/
     - assets/helpdesk_backup/
     - assets/faculty_images/
+    - assets/headers/
     - shorebird.yaml
 
   # To add assets to your application, add an assets section, like this:
@@ -130,10 +131,10 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
+  shaders:
+    - shaders/liquidglass.frag
+
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/iris_logo.png"
-
-  shaders:
-    - shaders/liquidglass.frag

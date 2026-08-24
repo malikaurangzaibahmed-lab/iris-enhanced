@@ -13,6 +13,7 @@ import '../services/timetable_ota_service.dart';
 import '../services/widget_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/batch_selector.dart';
+import '../widgets/glowing_input_wrapper.dart';
 import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
 import '../widgets/iris_components.dart';
@@ -59,6 +60,11 @@ class _AboutScreenState extends State<AboutScreen> {
   bool _hapticsEnabled = true;
   bool _soundsEnabled = true;
   bool _widgetDarkMode = false;
+
+  final GlobalKey _privacyKey = GlobalKey();
+  final GlobalKey _termsKey = GlobalKey();
+  final GlobalKey _feedbackKey = GlobalKey();
+  final GlobalKey _supportKey = GlobalKey();
 
   @override
   void initState() {
@@ -201,9 +207,11 @@ class _AboutScreenState extends State<AboutScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Update Profile Name'),
-        content: TextField(
+        content: IrisTextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'Enter name'),
+          isDark: Theme.of(context).brightness == Brightness.dark,
+          label: 'Name',
+          hint: 'Enter name',
         ),
         actions: [
           TextButton(
@@ -307,6 +315,7 @@ class _AboutScreenState extends State<AboutScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     pushGlassContainerMorphRoute(
       context,
+      originKey: _privacyKey,
       page: PrivacyPolicyScreen(isDark: isDark),
       accentColor: const Color(0xFF8B5CF6),
     );
@@ -316,6 +325,7 @@ class _AboutScreenState extends State<AboutScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     pushGlassContainerMorphRoute(
       context,
+      originKey: _termsKey,
       page: TermsOfServiceScreen(isDark: isDark),
       accentColor: IrisTokens.brand,
     );
@@ -325,6 +335,7 @@ class _AboutScreenState extends State<AboutScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     pushGlassContainerMorphRoute(
       context,
+      originKey: _feedbackKey,
       page: FeedbackScreen(isDark: isDark),
       accentColor: const Color(0xFF10B981),
     );
@@ -400,9 +411,9 @@ class _AboutScreenState extends State<AboutScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: VitalTokens.blue.withValues(alpha: 0.4),
-                              blurRadius: 24,
-                              offset: const Offset(0, 8),
+                              color: VitalTokens.blue.withValues(alpha: 0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -895,14 +906,7 @@ class _AboutScreenState extends State<AboutScreen> {
         children: [
           _buildLinkRow(
             isDark,
-            title: "Version History",
-            subtitle: "Check changelogs and updates",
-            icon: Icons.history_rounded,
-            onTap: _showChangelog,
-          ),
-          Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
-          _buildLinkRow(
-            isDark,
+            key: _supportKey,
             title: "Contact Support",
             subtitle: "Get help from the developer team",
             icon: Icons.help_outline_rounded,
@@ -911,6 +915,7 @@ class _AboutScreenState extends State<AboutScreen> {
           Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
           _buildLinkRow(
             isDark,
+            key: _privacyKey,
             title: "Privacy Policy",
             subtitle: "Read privacy guidelines",
             icon: Icons.security_rounded,
@@ -919,6 +924,7 @@ class _AboutScreenState extends State<AboutScreen> {
           Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
           _buildLinkRow(
             isDark,
+            key: _feedbackKey,
             title: "Send Feedback",
             subtitle: "Share thoughts or report issues",
             icon: Icons.rate_review_rounded,
@@ -927,6 +933,7 @@ class _AboutScreenState extends State<AboutScreen> {
           Divider(height: 1, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
           _buildLinkRow(
             isDark,
+            key: _termsKey,
             title: "Terms of Service",
             subtitle: "Read application terms",
             icon: Icons.gavel_rounded,
@@ -939,12 +946,14 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Widget _buildLinkRow(
     bool isDark, {
+    Key? key,
     required String title,
     required String subtitle,
     required IconData icon,
     required VoidCallback onTap,
   }) {
     return ListTile(
+      key: key,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       leading: Icon(
         icon,

@@ -26,6 +26,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../widgets/smart_widgets.dart';
 import '../services/analytics_manager.dart';
 import '../services/remote_config_service.dart';
+import '../services/widget_service.dart';
 import '../widgets/glass_container_transform.dart';
 
 class FacultyDashboard extends SmartStatefulWidget {
@@ -74,6 +75,7 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
   bool _isSearching = false;
   bool _searchFieldFocused = false;
   String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   void _onScroll() {
     if (_bottomNavIndex != 0) return;
@@ -99,7 +101,8 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
 
     _remoteConfigListener = () {
       if (mounted) {
@@ -125,6 +128,7 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
     _searchFocusNode.removeListener(_onFocusChange);
     _searchFocusNode.dispose();
     _searchController.dispose();
+    _searchDebounceTimer?.cancel();
     _pulseController.dispose();
     try {
       _ticker.cancel();
@@ -341,13 +345,21 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
         notifBody = '⏱️ $timeLeft (${currentLive.startTime} - ${currentLive.endTime})$classCount\n📍 ${currentLive.room} • ${currentLive.batchKey.batch}';
 
         final displayTime = '${currentLive.startTime} - ${currentLive.endTime}';
-        await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', true);
-        await HomeWidget.saveWidgetData<String>('flutter.widget_headline', currentLive.subject);
-        await HomeWidget.saveWidgetData<String>('flutter.widget_subline', currentLive.room);
-        await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', currentLive.batchKey.batch);
-        await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', progressPercent);
-        await HomeWidget.saveWidgetData<String>('flutter.time_info', displayTime);
-        await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
+        await WidgetService.updateWidgetWithInsight(
+          headline: currentLive.subject,
+          subline: currentLive.room,
+          timeInfo: displayTime,
+          teacherInfo: currentLive.batchKey.batch,
+          isLive: true,
+          isUrgent: false,
+          progressPercentage: progressPercent,
+          subject: currentLive.subject,
+          room: currentLive.room,
+          startTime: currentLive.startTime,
+          activeMode: academicPeriod,
+          activeRole: 'faculty',
+          batch: currentLive.batchKey.batch,
+        );
       } else if (nextClass != null) {
         int daysAhead = 0;
         if (nextClass.dayIndex != dayIndex) {
@@ -412,13 +424,21 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
 
         final isUrgent = daysAhead == 0 && totalMinutesUntil < 15;
         final displayTime = '${nextClass.startTime} - ${nextClass.endTime}';
-        await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
-        await HomeWidget.saveWidgetData<String>('flutter.widget_headline', nextClass.subject);
-        await HomeWidget.saveWidgetData<String>('flutter.widget_subline', nextClass.room);
-        await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', nextClass.batchKey.batch);
-        await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
-        await HomeWidget.saveWidgetData<String>('flutter.time_info', displayTime);
-        await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', isUrgent);
+        await WidgetService.updateWidgetWithInsight(
+          headline: nextClass.subject,
+          subline: nextClass.room,
+          timeInfo: displayTime,
+          teacherInfo: nextClass.batchKey.batch,
+          isLive: false,
+          isUrgent: isUrgent,
+          progressPercentage: 0,
+          subject: nextClass.subject,
+          room: nextClass.room,
+          startTime: nextClass.startTime,
+          activeMode: academicPeriod,
+          activeRole: 'faculty',
+          batch: nextClass.batchKey.batch,
+        );
       } else {
         if (dayIndex == 6 || dayIndex == 7) {
           notifTitle = '🎉 Weekend Mode';
@@ -428,20 +448,19 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
           notifBody = 'No more classes scheduled';
         }
 
-        await HomeWidget.saveWidgetData<bool>('flutter.is_class_live', false);
-        await HomeWidget.saveWidgetData<String>('flutter.widget_headline', 'System Idle');
-        await HomeWidget.saveWidgetData<String>('flutter.widget_subline', 'No active class');
-        await HomeWidget.saveWidgetData<String>('flutter.current_class_teacher', '');
-        await HomeWidget.saveWidgetData<int>('flutter.progress_percentage', 0);
-        await HomeWidget.saveWidgetData<String>('flutter.time_info', 'Ready');
-        await HomeWidget.saveWidgetData<bool>('flutter.is_urgent', false);
+        await WidgetService.updateWidgetWithInsight(
+          headline: 'System Idle',
+          subline: 'No active class',
+          timeInfo: 'Ready',
+          teacherInfo: '',
+          isLive: false,
+          isUrgent: false,
+          progressPercentage: 0,
+          activeMode: academicPeriod,
+          activeRole: 'faculty',
+          batch: '',
+        );
       }
-
-      // Update widget
-      await HomeWidget.updateWidget(
-        name: 'ClassTrackerWidget',
-        androidName: 'ClassTrackerWidget',
-      );
 
       // Save to SharedPreferences for service to pick up if it restarts
       await prefs.setString('notification_title', notifTitle);
@@ -550,14 +569,11 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
   }
 
   FacultyProfile? _matchSelectedFacultyProfile() {
-    if (_selectedTeacher == null) return null;
-    try {
-      return _facultyProfiles.firstWhere(
-        (p) => p.name.toLowerCase().contains(_selectedTeacher!.toLowerCase()),
-      );
-    } catch (_) {
-      return null;
-    }
+    if (_selectedTeacher == null || _selectedTeacher!.trim().isEmpty) return null;
+    return HelpdeskFacultyService.matchFacultyProfile(
+      _selectedTeacher!,
+      _facultyProfiles,
+    );
   }
 
   String _resolveFacultyImageUrl(String path) {
@@ -1056,38 +1072,43 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
   }
 
   Widget _buildBottomNavBar(bool isDark) {
-    final activeColor = _bottomNavIndex == 1 ? IrisTokens.purple : (_bottomNavIndex == 2 ? IrisTokens.success : IrisTokens.brand);
+    final activeColor = isDark ? Colors.white : Colors.black87;
 
     return GlassSearchableBottomBar(
-      tabs: [
+      tabs: const [
         GlassBottomBarTab(
-          icon: const Icon(Icons.home_outlined),
-          activeIcon: const Icon(Icons.home_rounded),
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home_rounded),
           label: 'Home',
-          glowColor: IrisTokens.brand,
+          glowColor: Colors.transparent,
         ),
         GlassBottomBarTab(
-          icon: const Icon(Icons.public_outlined),
-          activeIcon: const Icon(Icons.public_rounded),
+          icon: Icon(Icons.public_outlined),
+          activeIcon: Icon(Icons.public_rounded),
           label: 'Portal',
-          glowColor: IrisTokens.purple,
+          glowColor: Colors.transparent,
         ),
         GlassBottomBarTab(
-          icon: const Icon(Icons.badge_outlined),
-          activeIcon: const Icon(Icons.badge_rounded),
+          icon: Icon(Icons.badge_outlined),
+          activeIcon: Icon(Icons.badge_rounded),
           label: 'Locator',
-          glowColor: IrisTokens.success,
+          glowColor: Colors.transparent,
         ),
         GlassBottomBarTab(
-          icon: const Icon(Icons.info_outline_rounded),
-          activeIcon: const Icon(Icons.info_rounded),
+          icon: Icon(Icons.info_outline_rounded),
+          activeIcon: Icon(Icons.info_rounded),
           label: 'About',
-          glowColor: IrisTokens.error,
+          glowColor: Colors.transparent,
         ),
       ],
       selectedIndex: _bottomNavIndex,
       onTabSelected: _onBottomNavTap,
       isSearchActive: _isMiniMode || _isSearching,
+      showIndicator: true,
+      indicatorColor: Colors.transparent,
+      magnification: 1.15,
+      glowOpacity: 0.0,
+      interactionGlowColor: Colors.transparent,
       barHeight: 64,
       searchBarHeight: 52,
       horizontalPadding: 16,
@@ -1102,11 +1123,7 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
         thickness: ThemeSignals.useMinimalTheme.value ? 10.0 : 22.0,
         ambientStrength: isDark ? 0.65 : 0.72,
         lightAngle: 0.15 * math.pi,
-        glassColor: IrisGlass.adaptiveGlassColor(
-          context,
-          darkAlpha: 0.38,
-          lightAlpha: 0.46,
-        ),
+        glassColor: Colors.transparent,
       ),
       searchConfig: GlassSearchBarConfig(
         controller: _searchController,
@@ -1146,10 +1163,14 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
           }
         },
         onChanged: (val) {
-          setState(() {
-            _searchQuery = val;
+          _searchDebounceTimer?.cancel();
+          _searchDebounceTimer = Timer(const Duration(milliseconds: 140), () {
+            if (!mounted) return;
+            setState(() {
+              _searchQuery = val;
+            });
+            _updateScheduleCache();
           });
-          _updateScheduleCache();
         },
         collapsedLogoBuilder: (context) {
           final icons = [
@@ -1223,19 +1244,23 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
             const SizedBox(height: 20),
             _buildContextActionTile(
               isDark,
-              title: 'Toggle Graphics Quality',
-              subtitle: 'Switch between premium & minimal rendering',
-              icon: Icons.speed_rounded,
+              title: 'Low Power (Eco-OLED)',
+              subtitle: 'True Black OLED power-down & zero-shadow cards',
+              icon: Icons.battery_charging_full_rounded,
               color: IrisTokens.brand,
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(sheetContext);
-                ThemeSignals.useMinimalTheme.value = !ThemeSignals.useMinimalTheme.value;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Graphics set to ${ThemeSignals.useMinimalTheme.value ? 'MINIMAL' : 'PREMIUM'}'),
-                    backgroundColor: IrisTokens.brand,
-                  ),
-                );
+                final nextVal = !ThemeSignals.useMinimalTheme.value;
+                ThemeSignals.useMinimalTheme.value = nextVal;
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('use_minimal_ui', nextVal);
+                if (context.mounted) {
+                  showIrisFrostedSnackBar(
+                    context,
+                    content: Text('Low Power (Eco-OLED): ${nextVal ? "ACTIVE" : "DISABLED"}'),
+                    tint: nextVal ? IrisTokens.success : IrisTokens.brand,
+                  );
+                }
               },
             ),
             const SizedBox(height: 12),
@@ -1249,12 +1274,13 @@ class _FacultyDashboardState extends SmartState<FacultyDashboard>
                 Navigator.pop(sheetContext);
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('helpdesk_faculty_cache_v2');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Local caches cleared!'),
-                    backgroundColor: IrisTokens.success,
-                  ),
-                );
+                if (context.mounted) {
+                  showIrisFrostedSnackBar(
+                    context,
+                    content: const Text('Local caches cleared!'),
+                    tint: IrisTokens.success,
+                  );
+                }
               },
             ),
           ],

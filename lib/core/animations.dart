@@ -164,7 +164,7 @@ class ButterScrollPhysics extends BouncingScrollPhysics {
 
 /// Premium frosted input decoration for tool sub-screens.
 InputDecoration irisFrostedInputDecoration({
-  required String label,
+  String? label,
   required bool isDark,
   IconData? prefixIcon,
   String? hint,

@@ -38,45 +38,50 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
   String _filterBuilding = 'All';
   
   final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  final List<String> _slots = ['1st', '2nd', '3rd', '4th', '5th'];
+  final List<String> _slots = [
+    'Slot 1 (08:30 - 10:00 AM)',
+    'Slot 2 (10:00 - 11:30 AM)',
+    'Slot 3 (11:30 AM - 01:00 PM)',
+    'Slot 4 (01:40 - 03:05 PM)',
+    'Slot 5 (03:05 - 04:30 PM)',
+  ];
 
   // Caching variables for performance optimization
   List<RoomAvailability> _allAvailability = [];
   List<RoomAvailability> _filteredRooms = [];
   RoomRecommendation _recommendation = RoomRecommendation(recommended: null, reason: '', alternatives: const []);
   List<String> _buildings = ['All'];
+  String _filterStatus = 'All'; // 'All', 'Vacant', 'Occupied', 'Labs'
   bool _showExamSlots = false;
 
   List<String> get _currentSlots {
     final period = RemoteConfigService.activeAcademicPeriod.value;
     final isExamPeriod = period == 'midterms' || period == 'finals' || period == 'exams';
     if (isExamPeriod && _showExamSlots) {
-      return ['Exam Slot 1 (09:30 AM)', 'Exam Slot 2 (01:30 PM)'];
+      return ['Exam Slot 1 (09:30 - 11:30 AM)', 'Exam Slot 2 (01:30 - 03:30 PM)'];
     }
     return _slots;
   }
 
-  double _slotToHour(int slotIndex) {
+  ({double start, double end}) _slotToRange(int slotIndex) {
     final period = RemoteConfigService.activeAcademicPeriod.value;
     final isExamPeriod = period == 'midterms' || period == 'finals' || period == 'exams';
     if (isExamPeriod && _showExamSlots) {
       switch (slotIndex) {
-        case 0: return 10.0;  // 09:30 AM - 11:30 AM Exam Paper Slot
-        case 1: return 14.5;  // 01:30 PM - 03:30 PM Exam Paper Slot
-        default: return 10.0;
+        case 0: return (start: 9.5, end: 11.5);  // 09:30 AM - 11:30 AM Exam Paper Slot
+        case 1: return (start: 13.5, end: 15.5); // 01:30 PM - 03:30 PM Exam Paper Slot
+        default: return (start: 9.5, end: 11.5);
       }
     }
     switch (slotIndex) {
-      case 0: return 8.5;     // 8:30 AM (1st)
-      case 1: return 9.916;   // 9:55 AM (2nd)
-      case 2: return 11.333;  // 11:20 AM (3rd)
-      case 3: return 13.666;  // 1:40 PM (4th)
-      case 4: return 15.083;  // 3:05 PM (5th)
-      default: return 8.5;
+      case 0: return (start: 8.5, end: 10.0);     // 08:30 - 10:00 AM (1st)
+      case 1: return (start: 10.0, end: 11.5);    // 10:00 - 11:30 AM (2nd)
+      case 2: return (start: 11.5, end: 13.0);    // 11:30 AM - 01:00 PM (3rd)
+      case 3: return (start: 13.667, end: 15.083); // 01:40 - 03:05 PM (4th)
+      case 4: return (start: 15.083, end: 16.5);   // 03:05 - 04:30 PM (5th)
+      default: return (start: 8.5, end: 10.0);
     }
   }
-
-
 
   @override
   void initState() {
@@ -117,22 +122,24 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
     if (!mounted) return;
     final now = DateTime.now();
     final day = _targetDay ?? now.weekday;
-    final hour = _targetHour ?? (now.hour + (now.minute / 60.0));
     final allSessions = widget.memory.activeSessions();
 
-    _allAvailability = _service.getRoomAvailabilityAt(allSessions, hour, day);
-    
-    if (_targetHour == null) {
+    if (_targetSlot != null) {
+      final range = _slotToRange(_targetSlot!);
+      _allAvailability = _service.getRoomAvailabilityForSlotRange(allSessions, range.start, range.end, day);
+      _recommendation = RoomRecommendation(recommended: null, reason: '', alternatives: const []);
+    } else if (_targetHour != null) {
+      _allAvailability = _service.getRoomAvailabilityAt(allSessions, _targetHour!, day);
+      _recommendation = RoomRecommendation(recommended: null, reason: '', alternatives: const []);
+    } else {
+      final hour = now.hour + (now.minute / 60.0);
+      _allAvailability = _service.getRoomAvailabilityAt(allSessions, hour, day);
       _recommendation = _service.getSmartRecommendation(
         allSessions, 
         widget.memory.activeSessions().where((s) => s.batchKey.batch == 'UNKNOWN').toList(),
         80,
       );
-    } else {
-      _recommendation = RoomRecommendation(recommended: null, reason: '', alternatives: const []);
     }
-
-
 
     final baseBuildings = _allAvailability
         .map((e) => e.building)
@@ -144,10 +151,20 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
     setState(() {
       _buildings = ['All', ...baseBuildings];
       _filteredRooms = _allAvailability.where((a) {
-        final matchesQuery = a.roomId.toLowerCase().contains(_query.toLowerCase()) || 
-                            a.building.toLowerCase().contains(_query.toLowerCase());
+        final q = _query.toLowerCase().trim();
+        final matchesQuery = q.isEmpty ||
+            a.roomId.toLowerCase().contains(q) || 
+            a.building.toLowerCase().contains(q) ||
+            (a.formattedLocation != null && a.formattedLocation!.toLowerCase().contains(q)) ||
+            (a.occupiedBy != null && a.occupiedBy!.toLowerCase().contains(q)) ||
+            (a.occupiedByTeacher != null && a.occupiedByTeacher!.toLowerCase().contains(q));
         final matchesBuilding = _filterBuilding == 'All' || a.building == _filterBuilding;
-        return matchesQuery && matchesBuilding;
+        final isLab = a.roomId.toLowerCase().contains('lab') || a.amenities.any((am) => am.toLowerCase().contains('lab'));
+        final matchesStatus = _filterStatus == 'All' ||
+            (_filterStatus == 'Vacant' && a.isAvailable) ||
+            (_filterStatus == 'Occupied' && !a.isAvailable) ||
+            (_filterStatus == 'Labs' && isLab);
+        return matchesQuery && matchesBuilding && matchesStatus;
       }).toList();
     });
   }
@@ -190,6 +207,22 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
 
                     // 3. Search & Custom Time Selection Deck
                     _buildSearchDeck(isDark),
+                    const SizedBox(height: 24),
+
+                    // 3b. Space Status & Type Filter
+                    _buildSectionHeader('SPACE STATUS & TYPE', isDark),
+                    const SizedBox(height: 12),
+                    _buildHorizontalPillRow(
+                      items: const ['All', 'Vacant', 'Occupied', 'Labs'],
+                      selectedValue: _filterStatus,
+                      onSelected: (val) {
+                        setState(() {
+                          _filterStatus = val;
+                          _updateFilteredAvailability();
+                        });
+                      },
+                      isDark: isDark,
+                    ),
                     const SizedBox(height: 24),
 
                     // 4. Quick building filtering pill deck
@@ -344,7 +377,7 @@ class _RoomFinderScreenState extends State<RoomFinderScreen> {
                                 setState(() {
                                   if (s) {
                                     _targetSlot = index;
-                                    _targetHour = _slotToHour(index);
+                                    _targetHour = _slotToRange(index).start;
                                   } else {
                                     _targetSlot = null;
                                     _targetHour = null;

@@ -55,26 +55,45 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     ?: prefs.getString("flutter.current_class_room", "")?.takeIf { it.isNotEmpty() }
                     ?: ""
 
+                val widgetSubline = prefs.getString("flutter.widget_subline", "") ?: ""
                 val teacher = prefs.getString("flutter.current_class_teacher", "") ?: ""
                 val batch = prefs.getString("flutter.widget_batch", "") ?: ""
                 val progressPercent = prefs.getInt("flutter.progress_percentage", 0).coerceIn(0, 100)
                 val timeInfo = prefs.getString("flutter.time_info", "--") ?: "--"
                 val isLive = prefs.getBoolean("flutter.is_class_live", false)
-                val widgetDarkMode = prefs.getBoolean("flutter.widget_dark_mode", false)
                 val startTime = prefs.getString("flutter.widget_start_time", "")?.takeIf { it.isNotEmpty() }
                     ?: prefs.getString("flutter.current_class_end_time", "") ?: ""
+
+                val activeMode = prefs.getString("flutter.active_mode", "classes") ?: "classes"
+                val widgetDarkMode = prefs.getBoolean("flutter.widget_dark_mode", true)
 
                 val layoutId = if (widgetDarkMode) R.layout.widget_safe_dark else R.layout.widget_safe
                 val views = RemoteViews(context.packageName, layoutId)
 
                 val (widthDp, heightDp) = getWidgetSizeDp(context, appWidgetManager, appWidgetId)
 
-                // Set native background drawable
-                val bgRes = if (widgetDarkMode) R.drawable.widget_bg_dark_v2 else R.drawable.widget_bg_light_v2
+                // Dynamic Luxury Glass Backgrounds matching Active Mode & Light/Dark Theme
+                val bgRes = when {
+                    activeMode == "vacation" || activeMode == "break" ->
+                        if (widgetDarkMode) R.drawable.widget_bg_vacation else R.drawable.widget_bg_vacation_light
+                    activeMode == "midterms" || activeMode == "finals" || activeMode == "exams" ->
+                        if (widgetDarkMode) R.drawable.widget_bg_exams else R.drawable.widget_bg_exams_light
+                    activeMode == "ramadan" ->
+                        if (widgetDarkMode) R.drawable.widget_bg_ramadan else R.drawable.widget_bg_ramadan_light
+                    activeMode == "sports_week" ->
+                        R.drawable.widget_bg_sports
+                    isFaculty ->
+                        if (widgetDarkMode) R.drawable.widget_bg_faculty else R.drawable.widget_bg_faculty_light
+                    isLive ->
+                        if (widgetDarkMode) R.drawable.widget_bg_student_live_dark else R.drawable.widget_bg_student_live_light
+                    widgetDarkMode ->
+                        R.drawable.widget_bg_dark_v2
+                    else ->
+                        R.drawable.widget_bg_light_v2
+                }
                 views.setImageViewResource(R.id.widget_glass_bg, bgRes)
 
                 val isCompact = heightDp < 105
-                val showTeacherCard = heightDp >= 145
 
                 if (isCompact) {
                     views.setViewVisibility(R.id.widget_compact_container, View.VISIBLE)
@@ -84,7 +103,15 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_compact_title, compactTitle)
                     views.setTextViewText(R.id.widget_compact_time, timeInfo)
 
-                    if (isLive) {
+                    if (activeMode == "vacation" || activeMode == "break") {
+                        views.setTextViewText(R.id.widget_compact_badge, "VACATION")
+                    } else if (activeMode == "midterms" || activeMode == "finals" || activeMode == "exams") {
+                        views.setTextViewText(R.id.widget_compact_badge, "EXAM")
+                    } else if (activeMode == "ramadan") {
+                        views.setTextViewText(R.id.widget_compact_badge, "RAMADAN")
+                    } else if (activeMode == "sports_week") {
+                        views.setTextViewText(R.id.widget_compact_badge, "GALA")
+                    } else if (isLive) {
                         views.setTextViewText(R.id.widget_compact_badge, if (isFaculty) "TEACHING" else "LIVE")
                     } else {
                         views.setTextViewText(R.id.widget_compact_badge, if (isFaculty) "LECTURE" else "NEXT")
@@ -93,74 +120,130 @@ class ClassTrackerWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.widget_compact_container, View.GONE)
                     views.setViewVisibility(R.id.widget_full_container, View.VISIBLE)
 
-                    // Text Binds
-                    views.setTextViewText(R.id.widget_headline, subject)
-                    views.setTextViewText(R.id.widget_time_info, timeInfo)
+                    val sublineDetails = when {
+                        teacher.isNotEmpty() && rawRoom.isNotEmpty() -> "$teacher • $rawRoom"
+                        rawRoom.isNotEmpty() -> rawRoom
+                        teacher.isNotEmpty() -> teacher
+                        else -> "Academic Block"
+                    }
 
-                    if (isLive) {
-                        views.setTextViewText(R.id.widget_status_badge, if (isFaculty) "● TEACHING NOW" else "● LIVE CLASS")
-                        views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
-                        views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
-                    } else {
-                        views.setTextViewText(R.id.widget_status_badge, if (isFaculty) "NEXT LECTURE" else "NEXT CLASS")
+                    if (activeMode == "vacation" || activeMode == "break") {
+                        // VACATION & SEMESTER BREAK WIDGET
+                        views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_vacation)
+                        views.setTextViewText(R.id.widget_status_badge, "🏖️ VACATION MODE")
+                        views.setTextViewText(R.id.widget_state_label, "SEMESTER BREAK")
+                        
+                        val heroColor = if (widgetDarkMode) "#FB7185" else "#E11D48"
+                        views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                        views.setTextViewText(R.id.widget_time_info, if (timeInfo.isNotEmpty() && timeInfo != "--") timeInfo.uppercase() else "RECHARGE & UNWIND")
+                        views.setTextViewText(R.id.widget_headline, if (subject.isNotEmpty() && subject != "--") subject else "Campus in Recess")
+                        views.setTextViewText(R.id.widget_subline, if (widgetSubline.isNotEmpty() && widgetSubline != "--") widgetSubline else "Zero Active Classes • Enjoy Your Break")
+                        views.setTextViewText(R.id.widget_action_text, "Upcoming Schedule 📅")
                         views.setViewVisibility(R.id.widget_progress, View.GONE)
-                    }
-
-                    if (rawRoom.isNotEmpty()) {
-                        views.setTextViewText(R.id.widget_details_room, rawRoom)
-                        views.setViewVisibility(R.id.widget_class_details_capsule, View.VISIBLE)
+                    } else if (activeMode == "midterms" || activeMode == "finals" || activeMode == "exams") {
+                        // EXAM MODE WIDGET
+                        val examBadge = if (isLive) "📝 LIVE EXAM" else if (timeInfo.contains("today", ignoreCase = true) || timeInfo.contains("in ", ignoreCase = true)) "📝 EXAM TODAY" else "📝 EXAM SCHEDULE"
+                        views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_exam)
+                        views.setTextViewText(R.id.widget_status_badge, examBadge)
+                        views.setTextViewText(R.id.widget_state_label, "EXAMINATION")
+                        
+                        val heroColor = if (widgetDarkMode) "#FBBF24" else "#D97706"
+                        views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                        views.setTextViewText(R.id.widget_time_info, if (timeInfo.isNotEmpty() && timeInfo != "--") timeInfo.uppercase() else "UPCOMING")
+                        views.setTextViewText(R.id.widget_headline, subject)
+                        views.setTextViewText(R.id.widget_subline, if (rawRoom.isNotEmpty()) "Venue: $rawRoom" else "Examination Hall")
+                        views.setTextViewText(R.id.widget_action_text, "Exam Room Locator 🏛️")
+                        views.setViewVisibility(R.id.widget_progress, View.GONE)
+                    } else if (activeMode == "ramadan") {
+                        // RAMADAN MODE WIDGET
+                        views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_ramadan)
+                        views.setTextViewText(R.id.widget_status_badge, if (isLive) "🌙 RAMADAN • LIVE" else "🌙 RAMADAN TIMINGS")
+                        views.setTextViewText(R.id.widget_state_label, "1-HR SLOTS")
+                        
+                        val heroColor = if (widgetDarkMode) "#34D399" else "#059669"
+                        views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                        views.setTextViewText(R.id.widget_time_info, if (timeInfo.isNotEmpty() && timeInfo != "--") timeInfo.uppercase() else "1-HR COMPRESSED")
+                        views.setTextViewText(R.id.widget_headline, subject)
+                        views.setTextViewText(R.id.widget_subline, sublineDetails)
+                        views.setTextViewText(R.id.widget_action_text, "Ramadan Timetable View ⏱️")
+                        views.setViewVisibility(R.id.widget_progress, if (isLive) View.VISIBLE else View.GONE)
+                        if (isLive) views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
+                    } else if (activeMode == "sports_week") {
+                        // SPORTS WEEK GALA WIDGET
+                        views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_next)
+                        views.setTextViewText(R.id.widget_status_badge, "🏆 STUDENTS GALA")
+                        views.setTextViewText(R.id.widget_state_label, "SPORTS WEEK")
+                        
+                        val heroColor = if (widgetDarkMode) "#F97316" else "#EA580C"
+                        views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                        views.setTextViewText(R.id.widget_time_info, if (timeInfo.isNotEmpty() && timeInfo != "--") timeInfo.uppercase() else "GALA ACTIVE")
+                        views.setTextViewText(R.id.widget_headline, if (subject.isNotEmpty()) subject else "Campus Sports Week")
+                        views.setTextViewText(R.id.widget_subline, if (widgetSubline.isNotEmpty() && widgetSubline != "--") widgetSubline else sublineDetails)
+                        views.setTextViewText(R.id.widget_action_text, "Gala Schedule 🏆")
+                        views.setViewVisibility(R.id.widget_progress, View.GONE)
                     } else {
-                        views.setViewVisibility(R.id.widget_class_details_capsule, View.GONE)
-                    }
+                        // REGULAR CLASSES SCENARIOS
+                        val isStartsSoon = !isLive && timeInfo.contains("in ", ignoreCase = true) && (timeInfo.contains("min", ignoreCase = true) || timeInfo.contains("m left", ignoreCase = true))
+                        val isNextUp = !isLive && (timeInfo.contains("in ", ignoreCase = true) || timeInfo.contains("at ", ignoreCase = true))
+                        val isNoClasses = subject.contains("No Classes", ignoreCase = true) || subject.contains("Free", ignoreCase = true)
 
-                    if (startTime.isNotEmpty()) {
-                        views.setTextViewText(R.id.widget_details_start_time, startTime)
-                    }
-
-                    if (isFaculty) {
-                        val classInfoText = if (batch.isNotEmpty()) "Class: $batch" else "Faculty Schedule"
-                        views.setTextViewText(R.id.widget_teacher_name, classInfoText)
-                        views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
-                    } else if (teacher.isNotEmpty() && showTeacherCard) {
-                        views.setTextViewText(R.id.widget_teacher_name, teacher)
-                        views.setViewVisibility(R.id.widget_teacher_card, View.VISIBLE)
-
-                        val teacherImageUrl = prefs.getString("flutter.teacher_image_url", "") ?: ""
-                        var avatarLoaded = false
-
-                        if (teacherImageUrl.isNotEmpty()) {
-                            try {
-                                if (teacherImageUrl.startsWith("assets/")) {
-                                    val assetPath = teacherImageUrl.substring("assets/".length)
-                                    context.assets.open(assetPath).use { inputStream ->
-                                        val srcBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
-                                        if (srcBitmap != null) {
-                                            views.setImageViewBitmap(R.id.widget_teacher_avatar, getCircularBitmap(srcBitmap))
-                                            avatarLoaded = true
-                                        }
-                                    }
-                                } else if (java.io.File(teacherImageUrl).exists()) {
-                                    val srcBitmap = android.graphics.BitmapFactory.decodeFile(teacherImageUrl)
-                                    if (srcBitmap != null) {
-                                        views.setImageViewBitmap(R.id.widget_teacher_avatar, getCircularBitmap(srcBitmap))
-                                        avatarLoaded = true
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Failed to load teacher avatar bitmap: ${e.message}")
+                        when {
+                            isLive -> {
+                                val liveBadgeBg = if (isFaculty) R.drawable.widget_pill_badge_faculty else R.drawable.widget_pill_badge_live
+                                views.setInt(R.id.widget_status_badge, "setBackgroundResource", liveBadgeBg)
+                                views.setTextViewText(R.id.widget_status_badge, if (isFaculty) "● ACTIVE TEACHING" else "● LIVE LECTURE")
+                                val heroColor = if (isFaculty) (if (widgetDarkMode) "#C084FC" else "#7C3AED") else (if (widgetDarkMode) "#38BDF8" else "#0284C7")
+                                views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                                views.setTextViewText(R.id.widget_time_info, if (timeInfo.isNotEmpty() && timeInfo != "--") timeInfo.uppercase() else "IN SESSION")
+                                views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
+                                views.setProgressBar(R.id.widget_progress, 100, progressPercent, false)
+                                views.setTextViewText(R.id.widget_action_text, if (isFaculty) "Attendance & Roll Call 📋" else "Room Route Map 📍")
+                            }
+                            isStartsSoon -> {
+                                views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_live)
+                                views.setTextViewText(R.id.widget_status_badge, "⏱️ STARTS SOON")
+                                val heroColor = if (widgetDarkMode) "#38BDF8" else "#0284C7"
+                                views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                                views.setTextViewText(R.id.widget_time_info, timeInfo.uppercase())
+                                views.setViewVisibility(R.id.widget_progress, View.GONE)
+                                views.setTextViewText(R.id.widget_action_text, "Room Route Map 📍")
+                            }
+                            isNextUp -> {
+                                views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_next)
+                                views.setTextViewText(R.id.widget_status_badge, if (isFaculty) "NEXT LECTURE" else "📅 NEXT CLASS")
+                                val heroColor = if (widgetDarkMode) "#818CF8" else "#4338CA"
+                                views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                                views.setTextViewText(R.id.widget_time_info, timeInfo.uppercase())
+                                views.setViewVisibility(R.id.widget_progress, View.GONE)
+                                views.setTextViewText(R.id.widget_action_text, "Room Route Map 📍")
+                            }
+                            isNoClasses -> {
+                                views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_next)
+                                views.setTextViewText(R.id.widget_status_badge, "🏖️ NO CLASSES")
+                                val heroColor = if (widgetDarkMode) "#94A3B8" else "#64748B"
+                                views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                                views.setTextViewText(R.id.widget_time_info, "WEEKEND BREAK")
+                                views.setViewVisibility(R.id.widget_progress, View.GONE)
+                                views.setTextViewText(R.id.widget_action_text, "Open Timetable 📅")
+                            }
+                            else -> {
+                                views.setInt(R.id.widget_status_badge, "setBackgroundResource", R.drawable.widget_pill_badge_next)
+                                views.setTextViewText(R.id.widget_status_badge, "✓ ALL DONE TODAY")
+                                val heroColor = if (widgetDarkMode) "#94A3B8" else "#64748B"
+                                views.setTextColor(R.id.widget_time_info, android.graphics.Color.parseColor(heroColor))
+                                views.setTextViewText(R.id.widget_time_info, if (timeInfo.isNotEmpty() && timeInfo != "--") timeInfo.uppercase() else "ALL LECTURES COMPLETE")
+                                views.setViewVisibility(R.id.widget_progress, View.GONE)
+                                views.setTextViewText(R.id.widget_action_text, "Full Timetable 📅")
                             }
                         }
 
-                        if (!avatarLoaded) {
-                            try {
-                                val initialsBitmap = createInitialsAvatar(teacher)
-                                views.setImageViewBitmap(R.id.widget_teacher_avatar, initialsBitmap)
-                            } catch (e: Exception) {
-                                views.setImageViewResource(R.id.widget_teacher_avatar, R.drawable.widget_ic_teacher_avatar)
-                            }
+                        views.setTextViewText(R.id.widget_headline, subject)
+                        if (isFaculty) {
+                            val facultySub = if (batch.isNotEmpty() && rawRoom.isNotEmpty()) "Batch: $batch • $rawRoom" else (if (batch.isNotEmpty()) "Batch: $batch" else sublineDetails)
+                            views.setTextViewText(R.id.widget_subline, facultySub)
+                        } else {
+                            views.setTextViewText(R.id.widget_subline, sublineDetails)
                         }
-                    } else {
-                        views.setViewVisibility(R.id.widget_teacher_card, View.GONE)
                     }
                 }
 

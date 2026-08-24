@@ -3,6 +3,7 @@ import 'format_guard.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../services/remote_config_service.dart';
+import '../services/helpdesk_faculty_service.dart';
 
 // ============ LECTURE DURATION HELPER ============
 /// Helper function to detect 1-hour lecture subjects (e.g. Lab theories, seminars)
@@ -124,6 +125,7 @@ class MakeupSlotSuggestion {
   final double startTime;
   final double endTime;
   final double durationHours;
+  final String? slotName;
   final List<String>? availableRooms;
 
   MakeupSlotSuggestion({
@@ -131,6 +133,7 @@ class MakeupSlotSuggestion {
     required this.startTime,
     required this.endTime,
     required this.durationHours,
+    this.slotName,
     this.availableRooms,
   });
 
@@ -179,7 +182,21 @@ class OmniBrain {
 
   List<ClassSession> scheduleForTeacher(String teacherName, {String? overridePeriod}) {
     final name = teacherName.trim().toLowerCase();
-    return memory.byTeacher(overridePeriod: overridePeriod)[name] ?? [];
+    final index = memory.byTeacher(overridePeriod: overridePeriod);
+    final direct = index[name];
+    if (direct != null && direct.isNotEmpty) return direct;
+
+    // Smart Canonical Fuzzy fallback
+    var bestScore = 0.0;
+    List<ClassSession>? bestList;
+    for (final entry in index.entries) {
+      final score = HelpdeskFacultyService.calculateSimilarity(entry.key, name);
+      if (score >= 0.65 && score > bestScore) {
+        bestScore = score;
+        bestList = entry.value;
+      }
+    }
+    return bestList ?? [];
   }
 
   // Get merged lecture sessions (consecutive slots of same lecture)
@@ -422,13 +439,20 @@ class OmniBrain {
     return memory.allTeachers();
   }
 
-  /// Smart fuzzy-ish search: matches if all search words appear in the name
+  /// Smart fuzzy-ish search: matches exact, normalized, or subset tokens
   bool _matchesTeacher(String teacherName, String search) {
-    final name = teacherName.toLowerCase().replaceAll('.', ' ');
-    final cleanSearch = search.toLowerCase().replaceAll('.', ' ');
-    final words = cleanSearch.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
-    // All words must appear in the name
-    return words.every((w) => name.contains(w));
+    if (teacherName.trim().isEmpty || search.trim().isEmpty) return false;
+    final name = teacherName.toLowerCase().replaceAll('.', ' ').trim();
+    final cleanSearch = search.toLowerCase().replaceAll('.', ' ').trim();
+    if (name == cleanSearch) return true;
+    if (HelpdeskFacultyService.isNameMatch(teacherName, search, threshold: 0.65)) {
+      return true;
+    }
+    final words = cleanSearch.split(RegExp(r'\s+')).where((w) => w.length > 1);
+    if (words.isNotEmpty && words.every((w) => name.contains(w))) {
+      return true;
+    }
+    return false;
   }
 
   /// Locate a teacher with full weekly schedule and smart status
@@ -455,12 +479,24 @@ class OmniBrain {
       matchedSessions.addAll(exactSessions);
       resolvedName = exactSessions.first.teacher;
     } else {
-      // Search only among unique teacher keys (50-100 entries) rather than thousands of sessions
+      var bestScore = 0.0;
+      List<ClassSession>? bestList;
+      String? bestName;
+
       for (final entry in teacherIndex.entries) {
         if (_matchesTeacher(entry.key, search)) {
-          matchedSessions.addAll(entry.value);
-          resolvedName ??= entry.value.first.teacher;
+          final score = HelpdeskFacultyService.calculateSimilarity(entry.key, search);
+          if (score > bestScore || bestList == null) {
+            bestScore = score;
+            bestList = entry.value;
+            bestName = entry.value.isNotEmpty ? entry.value.first.teacher : entry.key;
+          }
         }
+      }
+
+      if (bestList != null && bestList.isNotEmpty) {
+        matchedSessions.addAll(bestList);
+        resolvedName = bestName;
       }
     }
 
@@ -706,6 +742,156 @@ class OmniBrain {
     );
   }
 
+  /// Builds intelligent temporal insight for exam periods (midterms / finals)
+  TemporalInsight buildExamTemporalInsight(String batch, DateTime now, String period) {
+    final rawExams = period == 'midterms'
+        ? RemoteConfigService.midtermExams.value
+        : RemoteConfigService.finalExams.value;
+
+    final matchedExams = rawExams.where((exam) {
+      final examBatchRaw = (exam['batch'] ?? '').toString();
+      return BatchKey.isBatchMatch(batch, examBatchRaw);
+    }).toList();
+
+    final examLabel = period == 'midterms' ? 'Midterm Exam' : 'Final Exam';
+
+    if (matchedExams.isEmpty) {
+      return TemporalInsight(
+        headline: '$examLabel Period',
+        subline: 'Check Date Sheet Noticeboard',
+        timeInfo: 'EXAMS IN SESSION',
+        isLive: false,
+        subject: '$examLabel Schedule',
+        room: 'Examination Center',
+        startTime: '',
+      );
+    }
+
+    // Deduplicate and parse exams
+    final List<Map<String, dynamic>> parsedList = [];
+    for (final e in matchedExams) {
+      final subject = (e['subject'] ?? '').toString().trim();
+      final dateStr = (e['date'] ?? '').toString().trim();
+      final timeStr = (e['time'] ?? '').toString().trim();
+      final room = (e['room'] ?? '').toString().trim();
+      if (subject.isEmpty) continue;
+
+      final parsedDt = FormatGuard.parseDate(dateStr);
+
+      parsedList.add({
+        'subject': subject,
+        'date': dateStr,
+        'time': timeStr,
+        'room': room.isNotEmpty ? room : 'Exam Hall',
+        'dateTime': parsedDt,
+      });
+    }
+
+    if (parsedList.isEmpty) {
+      return TemporalInsight(
+        headline: '$examLabel Period',
+        subline: 'Check Date Sheet Noticeboard',
+        timeInfo: 'EXAMS IN SESSION',
+        isLive: false,
+        subject: '$examLabel Schedule',
+        room: 'Examination Center',
+        startTime: '',
+      );
+    }
+
+    // Sort chronologically by date and time
+    parsedList.sort((a, b) {
+      final dtA = (a['dateTime'] as DateTime?) ?? DateTime(3000);
+      final dtB = (b['dateTime'] as DateTime?) ?? DateTime(3000);
+      if (dtA != dtB) return dtA.compareTo(dtB);
+      final tA = (a['time'] ?? '').toString();
+      final tB = (b['time'] ?? '').toString();
+      return tA.compareTo(tB);
+    });
+
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+
+    // Find the next upcoming or today's exam
+    Map<String, dynamic>? targetExam;
+    for (final exam in parsedList) {
+      final dt = exam['dateTime'] as DateTime?;
+      if (dt != null) {
+        final examDay = DateTime(dt.year, dt.month, dt.day);
+        if (!examDay.isBefore(todayMidnight)) {
+          targetExam = exam;
+          break;
+        }
+      } else {
+        targetExam = exam;
+        break;
+      }
+    }
+
+    // If all exams are in the past
+    if (targetExam == null) {
+      return TemporalInsight(
+        headline: 'All Exams Finished',
+        subline: 'Great job! Enjoy your semester break 🎉',
+        timeInfo: 'COMPLETED',
+        isLive: false,
+        subject: '$examLabel Period Concluded',
+        room: 'Campus in Recess',
+        startTime: '',
+      );
+    }
+
+    final subject = targetExam['subject'] as String;
+    final room = targetExam['room'] as String;
+    final timeStr = targetExam['time'] as String;
+    final dateStr = targetExam['date'] as String;
+    final parsedDt = targetExam['dateTime'] as DateTime?;
+
+    String countdownText = 'UPCOMING';
+    if (parsedDt != null) {
+      final isToday = parsedDt.year == now.year && parsedDt.month == now.month && parsedDt.day == now.day;
+      if (isToday) {
+        countdownText = timeStr.isNotEmpty ? 'TODAY • $timeStr' : 'TODAY';
+      } else {
+        const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final monthStr = monthNames[parsedDt.month];
+        countdownText = timeStr.isNotEmpty ? '$monthStr ${parsedDt.day} • $timeStr' : '$monthStr ${parsedDt.day}';
+      }
+    } else if (dateStr.isNotEmpty && timeStr.isNotEmpty) {
+      countdownText = '$dateStr • $timeStr';
+    } else if (dateStr.isNotEmpty) {
+      countdownText = dateStr;
+    } else if (timeStr.isNotEmpty) {
+      countdownText = 'AT $timeStr';
+    }
+
+    return TemporalInsight(
+      headline: 'Next $examLabel',
+      subline: 'Venue: $room',
+      timeInfo: countdownText,
+      isLive: false,
+      subject: subject,
+      room: room,
+      startTime: timeStr,
+    );
+  }
+
+  /// Builds intelligent temporal insight for Vacation / Semester Break mode
+  TemporalInsight buildVacationTemporalInsight(String batch, DateTime now) {
+    // Default semester resumption target (e.g. 42 days or config target)
+    final targetDate = now.add(const Duration(days: 42));
+    final daysLeft = targetDate.difference(now).inDays.clamp(1, 120);
+
+    return TemporalInsight(
+      headline: 'Vacation Mode',
+      subline: 'Campus in Recess • Lectures Suspended',
+      timeInfo: '$daysLeft DAYS LEFT',
+      isLive: false,
+      subject: 'Semester Break',
+      room: 'Campus in Recess',
+      startTime: '',
+    );
+  }
+
   TemporalInsight buildTeacherTemporalInsight(String teacherName, DateTime now) {
     final current = getCurrentClassForTeacher(teacherName, now);
     final next = getNextClassForTeacher(teacherName, now);
@@ -841,31 +1027,43 @@ class OmniBrain {
     return operatingHours;
   }
 
-  /// Find free slots for a batch across a week
-  /// Returns list of {day, start_time, end_time} when the batch has no classes
-  List<FreeSlot> findFreeSlotsForBatch(String batch) {
-    final schedule = scheduleFor(batch);
-    if (schedule.isEmpty) return [];
+  /// Merges overlapping and consecutive busy intervals into disjoint blocks
+  List<(double, double)> _mergeIntervals(List<(double, double)> intervals) {
+    if (intervals.isEmpty) return const [];
+    final sorted = List<(double, double)>.from(intervals)
+      ..sort((a, b) => a.$1.compareTo(b.$1));
+    final merged = <(double, double)>[sorted.first];
+    for (int i = 1; i < sorted.length; i++) {
+      final cur = sorted[i];
+      final last = merged.last;
+      if (cur.$1 <= last.$2) {
+        merged[merged.length - 1] = (last.$1, math.max(last.$2, cur.$2));
+      } else {
+        merged.add(cur);
+      }
+    }
+    return merged;
+  }
+
+  /// Calculates mathematically exact, conflict-free free intervals for a given session list
+  List<FreeSlot> _computeFreeSlotsForSessions(List<ClassSession> schedule) {
+    if (schedule.isEmpty) return const [];
 
     final freeSlots = <FreeSlot>[];
     final daySlots = <int, List<ClassSession>>{};
     final operatingHours = _getOperatingHours();
 
-    // Group by day
     for (final session in schedule) {
       daySlots.putIfAbsent(session.dayIndex, () => []).add(session);
     }
 
-    // For each weekday (1-7)
     for (int dayIndex = 1; dayIndex <= 7; dayIndex++) {
-      // Skip days when university doesn't operate
       if (!operatingHours.containsKey(dayIndex)) continue;
-      
+
       final (dayStart, dayEnd) = operatingHours[dayIndex]!;
-      final daySessions = daySlots[dayIndex] ?? [];
-      
+      final daySessions = daySlots[dayIndex] ?? const [];
+
       if (daySessions.isEmpty) {
-        // Batch has no classes but university operates - entire day is free
         freeSlots.add(FreeSlot(
           dayIndex: dayIndex,
           startTime: dayStart,
@@ -874,195 +1072,120 @@ class OmniBrain {
         continue;
       }
 
-      // Sort by start time
-      daySessions.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
+      final busyIntervals = daySessions
+          .map((s) => (s.safeStartVal, s.safeEndVal))
+          .toList();
+      final mergedBusy = _mergeIntervals(busyIntervals);
 
-      // Check before first class (only if within operating hours)
-      if (daySessions.first.safeStartVal > dayStart) {
-        freeSlots.add(FreeSlot(
-          dayIndex: dayIndex,
-          startTime: dayStart,
-          endTime: daySessions.first.safeStartVal,
-        ));
-      }
-
-      // Check between consecutive classes
-      for (int i = 0; i < daySessions.length - 1; i++) {
-        final endTime = daySessions[i].safeEndVal;
-        final nextStartTime = daySessions[i + 1].safeStartVal;
-        if (endTime < nextStartTime) {
+      double current = dayStart;
+      for (final busy in mergedBusy) {
+        final bStart = math.max(dayStart, busy.$1);
+        final bEnd = math.min(dayEnd, busy.$2);
+        if (bStart > current) {
           freeSlots.add(FreeSlot(
             dayIndex: dayIndex,
-            startTime: endTime,
-            endTime: nextStartTime,
+            startTime: current,
+            endTime: bStart,
           ));
+        }
+        if (bEnd > current) {
+          current = bEnd;
         }
       }
 
-      // Check after last class (only if within operating hours)
-      if (daySessions.last.safeEndVal < dayEnd) {
+      if (current < dayEnd) {
         freeSlots.add(FreeSlot(
           dayIndex: dayIndex,
-          startTime: daySessions.last.safeEndVal,
+          startTime: current,
           endTime: dayEnd,
         ));
       }
     }
 
     return freeSlots;
+  }
+
+  /// Find free slots for a batch across a week
+  /// Returns list of {day, start_time, end_time} when the batch has no classes
+  List<FreeSlot> findFreeSlotsForBatch(String batch) {
+    final schedule = scheduleFor(batch);
+    return _computeFreeSlotsForSessions(schedule);
   }
 
   /// Find free slots for a teacher across a week
   List<FreeSlot> findFreeSlotsForTeacher(String teacherName) {
     final schedule = scheduleForTeacher(teacherName);
-    if (schedule.isEmpty) return [];
-
-    final freeSlots = <FreeSlot>[];
-    final daySlots = <int, List<ClassSession>>{};
-    final operatingHours = _getOperatingHours();
-
-    // Group by day
-    for (final session in schedule) {
-      daySlots.putIfAbsent(session.dayIndex, () => []).add(session);
-    }
-
-    // For each weekday (1-7)
-    for (int dayIndex = 1; dayIndex <= 7; dayIndex++) {
-      // Skip days when university doesn't operate
-      if (!operatingHours.containsKey(dayIndex)) continue;
-      
-      final (dayStart, dayEnd) = operatingHours[dayIndex]!;
-      final daySessions = daySlots[dayIndex] ?? [];
-      
-      if (daySessions.isEmpty) {
-        // Teacher has no classes but university operates - entire day is free
-        freeSlots.add(FreeSlot(
-          dayIndex: dayIndex,
-          startTime: dayStart,
-          endTime: dayEnd,
-        ));
-        continue;
-      }
-
-      daySessions.sort((a, b) => a.safeStartVal.compareTo(b.safeStartVal));
-
-      if (daySessions.first.safeStartVal > dayStart) {
-        freeSlots.add(FreeSlot(
-          dayIndex: dayIndex,
-          startTime: dayStart,
-          endTime: daySessions.first.safeStartVal,
-        ));
-      }
-
-      for (int i = 0; i < daySessions.length - 1; i++) {
-        final endTime = daySessions[i].safeEndVal;
-        final nextStartTime = daySessions[i + 1].safeStartVal;
-        if (endTime < nextStartTime) {
-          freeSlots.add(FreeSlot(
-            dayIndex: dayIndex,
-            startTime: endTime,
-            endTime: nextStartTime,
-          ));
-        }
-      }
-
-      if (daySessions.last.safeEndVal < dayEnd) {
-        freeSlots.add(FreeSlot(
-          dayIndex: dayIndex,
-          startTime: daySessions.last.safeEndVal,
-          endTime: dayEnd,
-        ));
-      }
-    }
-
-    return freeSlots;
+    return _computeFreeSlotsForSessions(schedule);
   }
 
-  /// Find common free slots between batch and teacher
-  /// Returns list of slots where BOTH are free, with available rooms
-  List<MakeupSlotSuggestion> findMakeupSlots(String batch, String teacherName) {
-    final batchSlots = findFreeSlotsForBatch(batch);
-    final teacherSlots = findFreeSlotsForTeacher(teacherName);
+  static const List<({String name, double startTime, double endTime, double durationHours})> _officialStandardSlots = [
+    // Standard 1.5-hr lecture slots (CS/SE/EE/BBA standard grid)
+    (name: 'Slot 1 (Morning)', startTime: 8.5, endTime: 10.0, durationHours: 1.5),
+    (name: 'Slot 2 (Mid-Morning)', startTime: 10.0, endTime: 11.5, durationHours: 1.5),
+    (name: 'Slot 3 (Noon)', startTime: 11.5, endTime: 13.0, durationHours: 1.5),
+    (name: 'Slot 4 (Afternoon)', startTime: 13.667, endTime: 15.083, durationHours: 1.417),
+    (name: 'Slot 5 (Late Afternoon)', startTime: 15.083, endTime: 16.5, durationHours: 1.417),
+    
+    // Standard 1-Hour lecture slots (Management/Humanities/Single-credit)
+    (name: '1-Hour Slot (08:00 - 09:00 AM)', startTime: 8.0, endTime: 9.0, durationHours: 1.0),
+    (name: '1-Hour Slot (09:00 - 10:00 AM)', startTime: 9.0, endTime: 10.0, durationHours: 1.0),
+    (name: '1-Hour Slot (10:00 - 11:00 AM)', startTime: 10.0, endTime: 11.0, durationHours: 1.0),
+    (name: '1-Hour Slot (11:00 AM - 12:00 PM)', startTime: 11.0, endTime: 12.0, durationHours: 1.0),
+    (name: '1-Hour Slot (01:00 - 02:00 PM)', startTime: 13.0, endTime: 14.0, durationHours: 1.0),
+    (name: '1-Hour Slot (02:00 - 03:00 PM)', startTime: 14.0, endTime: 15.0, durationHours: 1.0),
+    (name: '1-Hour Slot (03:00 - 04:00 PM)', startTime: 15.0, endTime: 16.0, durationHours: 1.0),
+  ];
 
-    if (batchSlots.isEmpty || teacherSlots.isEmpty) return [];
+  static const List<({String name, double startTime, double endTime, double durationHours})> _ramadanAcademicSlots = [
+    (name: 'Ramadan Slot 1', startTime: 8.5, endTime: 9.5, durationHours: 1.0),
+    (name: 'Ramadan Slot 2', startTime: 9.5, endTime: 10.5, durationHours: 1.0),
+    (name: 'Ramadan Slot 3', startTime: 10.5, endTime: 11.5, durationHours: 1.0),
+    (name: 'Ramadan Slot 4', startTime: 11.5, endTime: 12.5, durationHours: 1.0),
+    (name: 'Ramadan Slot 5', startTime: 12.5, endTime: 13.5, durationHours: 1.0),
+  ];
+
+  /// Find authentic, standard university makeup slots where BOTH batch and teacher are free,
+  /// with verified available physical rooms on campus.
+  List<MakeupSlotSuggestion> findMakeupSlots(String batch, String teacherName) {
+    final batchSessions = scheduleFor(batch);
+    final teacherSessions = scheduleForTeacher(teacherName);
+
+    if (batchSessions.isEmpty && teacherSessions.isEmpty) return [];
 
     final suggestions = <MakeupSlotSuggestion>[];
+    final isRamadan = RemoteConfigService.activeAcademicPeriod.value == 'ramadan';
+    final candidateSlots = isRamadan ? _ramadanAcademicSlots : _officialStandardSlots;
 
-    // Find intersections
-    for (final bSlot in batchSlots) {
-      for (final tSlot in teacherSlots) {
-        // Same day
-        if (bSlot.dayIndex == tSlot.dayIndex) {
-          // Check overlap
-          final overlapStart = bSlot.startTime > tSlot.startTime
-              ? bSlot.startTime
-              : tSlot.startTime;
-          final overlapEnd =
-              bSlot.endTime < tSlot.endTime ? bSlot.endTime : tSlot.endTime;
+    for (int dayIndex = 1; dayIndex <= 5; dayIndex++) {
+      final dayBatchSessions = batchSessions.where((s) => s.dayIndex == dayIndex).toList();
+      final dayTeacherSessions = teacherSessions.where((s) => s.dayIndex == dayIndex).toList();
 
-          if (overlapStart < overlapEnd) {
-            final duration = overlapEnd - overlapStart;
-            
-            // Split long free periods into reasonable 1-hour makeup slots
-            // Typical makeup class should be 1-1.5 hours, not 4+ hours
-            if (duration <= 1.5) {
-              // Short period - use as is
-              final availableRooms = findEmptyRoomsForSlot(
-                bSlot.dayIndex,
-                overlapStart,
-                overlapEnd,
-              );
-              
-              suggestions.add(MakeupSlotSuggestion(
-                dayIndex: bSlot.dayIndex,
-                startTime: overlapStart,
-                endTime: overlapEnd,
-                durationHours: duration,
-                availableRooms: availableRooms,
-              ));
-            } else {
-              // Long period - split into 1-hour slots
-              double currentStart = overlapStart;
-              while (currentStart + 1.0 <= overlapEnd) {
-                final slotEnd = currentStart + 1.0;
-                
-                final availableRooms = findEmptyRoomsForSlot(
-                  bSlot.dayIndex,
-                  currentStart,
-                  slotEnd,
-                );
-                
-                suggestions.add(MakeupSlotSuggestion(
-                  dayIndex: bSlot.dayIndex,
-                  startTime: currentStart,
-                  endTime: slotEnd,
-                  durationHours: 1.0,
-                  availableRooms: availableRooms,
-                ));
-                
-                currentStart += 1.0;
-              }
-              
-              // Add remaining time if >= 30 minutes (0.5 hours)
-              final remaining = overlapEnd - currentStart;
-              if (remaining >= 0.5) {
-                final availableRooms = findEmptyRoomsForSlot(
-                  bSlot.dayIndex,
-                  currentStart,
-                  overlapEnd,
-                );
-                
-                suggestions.add(MakeupSlotSuggestion(
-                  dayIndex: bSlot.dayIndex,
-                  startTime: currentStart,
-                  endTime: overlapEnd,
-                  durationHours: remaining,
-                  availableRooms: availableRooms,
-                ));
-              }
-            }
-          }
-        }
+      for (final slot in candidateSlots) {
+        final slotStart = slot.startTime;
+        final slotEnd = slot.endTime;
+
+        // 1. Strict Batch Conflict check (with 2-minute margin of tolerance)
+        final batchHasConflict = dayBatchSessions.any((s) =>
+            s.safeStartVal < (slotEnd - 0.03) && s.safeEndVal > (slotStart + 0.03));
+        if (batchHasConflict) continue;
+
+        // 2. Strict Teacher Conflict check (with 2-minute margin)
+        final teacherHasConflict = dayTeacherSessions.any((s) =>
+            s.safeStartVal < (slotEnd - 0.03) && s.safeEndVal > (slotStart + 0.03));
+        if (teacherHasConflict) continue;
+
+        // 3. Physical Room Availability Check
+        final availableRooms = findEmptyRoomsForSlot(dayIndex, slotStart, slotEnd);
+        if (availableRooms.isEmpty) continue;
+
+        suggestions.add(MakeupSlotSuggestion(
+          dayIndex: dayIndex,
+          startTime: slotStart,
+          endTime: slotEnd,
+          durationHours: slot.durationHours,
+          slotName: slot.name,
+          availableRooms: availableRooms,
+        ));
       }
     }
 

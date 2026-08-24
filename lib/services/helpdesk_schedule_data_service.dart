@@ -63,18 +63,137 @@ class TransportRouteData {
   }
 }
 
+class SemesterMilestoneEvaluator {
+  static const Map<String, int> _monthMap = {
+    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+  };
+
+  /// Parses date range from strings like:
+  /// "Aug 31 – Sep 4, 2026 (Mon–Fri)"
+  /// "Sep 7, 2026 (Mon)"
+  /// "Nov 9–14, 2026 (Mon–Sat)"
+  /// "2026-09-07"
+  /// "2026-08-31 to 2026-09-04"
+  static ({DateTime? start, DateTime? end}) parseDateRange(String dateStr, [DateTime? referenceNow]) {
+    final now = referenceNow ?? DateTime.now();
+    final clean = dateStr.replaceAll('–', '-').replaceAll('—', '-').trim();
+    if (clean.isEmpty) return (start: null, end: null);
+
+    // 1. ISO date range: YYYY-MM-DD to YYYY-MM-DD
+    final isoRange = RegExp(r'(\d{4})-(\d{1,2})-(\d{1,2})\s*(?:to|-)\s*(\d{4})-(\d{1,2})-(\d{1,2})').firstMatch(clean);
+    if (isoRange != null) {
+      final s = DateTime(int.parse(isoRange.group(1)!), int.parse(isoRange.group(2)!), int.parse(isoRange.group(3)!));
+      final e = DateTime(int.parse(isoRange.group(4)!), int.parse(isoRange.group(5)!), int.parse(isoRange.group(6)!), 23, 59, 59);
+      return (start: s, end: e);
+    }
+
+    // 2. Single ISO date: YYYY-MM-DD
+    final isoSingle = RegExp(r'(\d{4})-(\d{1,2})-(\d{1,2})').firstMatch(clean);
+    if (isoSingle != null) {
+      final s = DateTime(int.parse(isoSingle.group(1)!), int.parse(isoSingle.group(2)!), int.parse(isoSingle.group(3)!));
+      final e = DateTime(s.year, s.month, s.day, 23, 59, 59);
+      return (start: s, end: e);
+    }
+
+    // 3. Multi-month range: Aug 31 - Sep 4, 2026
+    final multiMonth = RegExp(r'([A-Za-z]{3,9})\s+(\d{1,2})\s*-\s*([A-Za-z]{3,9})\s+(\d{1,2})(?:[,\s]+(\d{4}))?').firstMatch(clean);
+    if (multiMonth != null) {
+      final m1Name = multiMonth.group(1)!.substring(0, 3).toLowerCase();
+      final d1 = int.parse(multiMonth.group(2)!);
+      final m2Name = multiMonth.group(3)!.substring(0, 3).toLowerCase();
+      final d2 = int.parse(multiMonth.group(4)!);
+      final year = multiMonth.group(5) != null ? int.parse(multiMonth.group(5)!) : now.year;
+      if (_monthMap.containsKey(m1Name) && _monthMap.containsKey(m2Name)) {
+        final m1 = _monthMap[m1Name]!;
+        final m2 = _monthMap[m2Name]!;
+        final y2 = m2 < m1 ? year + 1 : year;
+        final s = DateTime(year, m1, d1);
+        final e = DateTime(y2, m2, d2, 23, 59, 59);
+        return (start: s, end: e);
+      }
+    }
+
+    // 4. Same-month range: Nov 9-14, 2026
+    final sameMonth = RegExp(r'([A-Za-z]{3,9})\s+(\d{1,2})\s*-\s*(\d{1,2})(?:[,\s]+(\d{4}))?').firstMatch(clean);
+    if (sameMonth != null) {
+      final mName = sameMonth.group(1)!.substring(0, 3).toLowerCase();
+      final d1 = int.parse(sameMonth.group(2)!);
+      final d2 = int.parse(sameMonth.group(3)!);
+      final year = sameMonth.group(4) != null ? int.parse(sameMonth.group(4)!) : now.year;
+      if (_monthMap.containsKey(mName)) {
+        final m = _monthMap[mName]!;
+        final s = DateTime(year, m, d1);
+        final e = DateTime(year, m, d2, 23, 59, 59);
+        return (start: s, end: e);
+      }
+    }
+
+    // 5. Single month date: Sep 7, 2026 (Mon)
+    final singleMonth = RegExp(r'([A-Za-z]{3,9})\s+(\d{1,2})(?:[,\s]+(\d{4}))?').firstMatch(clean);
+    if (singleMonth != null) {
+      final mName = singleMonth.group(1)!.substring(0, 3).toLowerCase();
+      final d = int.parse(singleMonth.group(2)!);
+      final year = singleMonth.group(3) != null ? int.parse(singleMonth.group(3)!) : now.year;
+      if (_monthMap.containsKey(mName)) {
+        final m = _monthMap[mName]!;
+        final s = DateTime(year, m, d);
+        final e = DateTime(year, m, d, 23, 59, 59);
+        return (start: s, end: e);
+      }
+    }
+
+    return (start: null, end: null);
+  }
+
+  /// Evaluates whether a milestone is 'completed', 'active', or 'upcoming' based on current date.
+  static String evaluateStatus(String dateStr, {String? explicitStatus, DateTime? referenceNow}) {
+    if (explicitStatus == 'expired' || explicitStatus == 'completed') return 'completed';
+    final now = referenceNow ?? DateTime.now();
+    final range = parseDateRange(dateStr, now);
+    if (range.start == null || range.end == null) {
+      return explicitStatus?.isNotEmpty == true ? explicitStatus! : 'upcoming';
+    }
+
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final endDay = DateTime(range.end!.year, range.end!.month, range.end!.day, 23, 59, 59);
+    final startDay = DateTime(range.start!.year, range.start!.month, range.start!.day);
+
+    if (now.isAfter(endDay)) {
+      return 'completed';
+    } else if (!todayStart.isBefore(startDay) && !todayStart.isAfter(endDay)) {
+      return 'active';
+    } else {
+      return 'upcoming';
+    }
+  }
+
+  static bool isCompleted(String dateStr, {String? explicitStatus, bool? isDoneExplicit, DateTime? referenceNow}) {
+    if (isDoneExplicit == true) return true;
+    return evaluateStatus(dateStr, explicitStatus: explicitStatus, referenceNow: referenceNow) == 'completed';
+  }
+}
+
 class SemesterMilestoneData {
   final String title;
   final String date;
   final String status;
   final String category;
+  final String level;
 
   const SemesterMilestoneData({
     required this.title,
     required this.date,
     required this.status,
     this.category = 'General',
+    this.level = '',
   });
+
+  /// Real-time dynamically calculated status ('completed', 'active', or 'upcoming')
+  String get dynamicStatus => SemesterMilestoneEvaluator.evaluateStatus(date, explicitStatus: status);
+
+  /// True if the milestone date has passed or is explicitly completed
+  bool get isDone => SemesterMilestoneEvaluator.isCompleted(date, explicitStatus: status);
 
   factory SemesterMilestoneData.fromJson(Map<String, dynamic> json) {
     return SemesterMilestoneData(
@@ -82,6 +201,7 @@ class SemesterMilestoneData {
       date: (json['date'] ?? '').toString().trim(),
       status: (json['status'] ?? '').toString().trim(),
       category: (json['category'] ?? 'General').toString().trim(),
+      level: (json['level'] ?? '').toString().trim(),
     );
   }
 
@@ -90,6 +210,7 @@ class SemesterMilestoneData {
     'date': date,
     'status': status,
     'category': category,
+    'level': level,
   };
 }
 

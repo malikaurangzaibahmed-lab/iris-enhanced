@@ -59,6 +59,8 @@ import 'widgets/iris_components.dart';
 import 'widgets/portal_sync_card.dart';
 import 'widgets/smart_pill_overlay.dart';
 import 'widgets/smooth_scroll.dart';
+import 'widgets/vacation_sticky_header.dart';
+import 'widgets/vacation_schedule_view.dart';
 
 import 'widgets/live_class_hub_sheet.dart';
 import 'screens/cgpa_calculator_screen.dart';
@@ -80,6 +82,7 @@ Future<void> main() async {
 
   try {
     await AppConfig().initialize();
+    await RemoteConfigService.preWarmLocalCache();
     ErrorHandler.setupErrorHandling();
     ImageCacheManager.optimizeImageCache();
   } catch (e) {
@@ -131,17 +134,44 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('UI feedback init error: $e');
   }
+
+  String initialThemeMode = 'system';
+  bool initialUseMinimal = false;
+  bool initialUseVital = true;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    initialThemeMode = prefs.getString('theme_mode') ?? 'system';
+    initialUseMinimal = prefs.getBool('use_minimal_ui') ?? false;
+    initialUseVital = prefs.getBool('use_vital_theme') ?? true;
+    ThemeSignals.useMinimalTheme.value = initialUseMinimal;
+    ThemeSignals.useVitalTheme.value = initialUseVital;
+  } catch (e) {
+    debugPrint('Prefs boot prewarm error: $e');
+  }
   
   runApp(ErrorBoundary(
     child: LiquidGlassWidgets.wrap(
-      child: const IrisApp(),
-      adaptiveQuality: true,
+      child: IrisApp(
+        initialThemeMode: initialThemeMode,
+        initialUseMinimal: initialUseMinimal,
+        initialUseVital: initialUseVital,
+      ),
+      adaptiveQuality: false,
     ),
   ));
 }
 
 class IrisApp extends StatefulWidget {
-  const IrisApp();
+  final String initialThemeMode;
+  final bool initialUseMinimal;
+  final bool initialUseVital;
+
+  const IrisApp({
+    this.initialThemeMode = 'system',
+    this.initialUseMinimal = false,
+    this.initialUseVital = true,
+    super.key,
+  });
 
   @override
   State<IrisApp> createState() => _IrisAppBootState();
@@ -400,7 +430,10 @@ class _IrisAppBootState extends State<IrisApp> {
       future: _memoryFuture,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return _IrisApp(memory: snapshot.data!);
+          return _IrisApp(
+            memory: snapshot.data!,
+            initialThemeMode: widget.initialThemeMode,
+          );
         }
         return MaterialApp(
           scaffoldMessengerKey: globalScaffoldMessengerKey,
@@ -481,16 +514,20 @@ class _StartupSplash extends StatelessWidget {
 }
 
 class _IrisApp extends StatefulWidget {
-  const _IrisApp({required this.memory});
+  const _IrisApp({
+    required this.memory,
+    required this.initialThemeMode,
+  });
 
   final UniversityMemory memory;
+  final String initialThemeMode;
 
   @override
   State<_IrisApp> createState() => _IrisAppState();
 }
 
 class _IrisAppState extends State<_IrisApp> {
-  ThemeMode _themeMode = ThemeMode.system;
+  late ThemeMode _themeMode = _themeModeFromString(widget.initialThemeMode);
 
   @override
   void initState() {
@@ -501,15 +538,16 @@ class _IrisAppState extends State<_IrisApp> {
   Future<void> _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     final savedMode = prefs.getString('theme_mode') ?? 'system';
+    final useMinimal = prefs.getBool('use_minimal_ui') ?? false;
+    final useVital = prefs.getBool('use_vital_theme') ?? true;
+    ThemeSignals.useMinimalTheme.value = useMinimal;
+    ThemeSignals.useVitalTheme.value = useVital;
     if (!mounted) {
       return;
     }
     setState(() {
       _themeMode = _themeModeFromString(savedMode);
     });
-    // Load minimal UI preference and apply globally
-    final useMinimal = prefs.getBool('use_minimal_ui') ?? false;
-    ThemeSignals.useMinimalTheme.value = useMinimal;
   }
 
   ThemeMode _themeModeFromString(String mode) {
@@ -546,9 +584,15 @@ class _IrisAppState extends State<_IrisApp> {
     });
   }
 
-  void _toggleTheme() {
+  Future<void> _toggleTheme() async {
+    final nextMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('theme_mode', _themeModeToString(nextMode));
+    if (!mounted) {
+      return;
+    }
     setState(() {
-      _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+      _themeMode = nextMode;
     });
   }
 
@@ -633,11 +677,7 @@ class _AppRootState extends State<_AppRoot> {
       }
     };
     AppSignals.roleNotifier.addListener(_roleListener);
-    _loadTutorialCompleted();
-    _loadUserRole();
-    _loadBatch();
-    _loadUserName();
-    _loadHeadlessUrl();
+    _loadStartupPreferences();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestForegroundNotificationPermission();
@@ -660,42 +700,44 @@ class _AppRootState extends State<_AppRoot> {
     super.dispose();
   }
 
-  Future<void> _loadHeadlessUrl() async {
+  Future<void> _loadStartupPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      const activeSessionKey = 'iris_portal_student_last_active_session';
-      final raw = prefs.getString(activeSessionKey);
-      if (raw != null) {
-        final decoded = jsonDecode(raw);
-        final url = decoded['url'] as String?;
-        if (url != null && url.isNotEmpty && !url.contains('cui-helpdesk')) {
-          setState(() {
-            _headlessUrl = url;
-          });
-          debugPrint('🌐 [IRIS] Loaded Headless Scraper Target URL: $_headlessUrl');
-          return;
-        }
+      final tutorial = prefs.getBool('tutorial_completed') ?? false;
+      final role = prefs.getString('user_role');
+      final batch = prefs.getString('user_batch');
+      
+      String? userName;
+      if (role == 'faculty') {
+        userName = prefs.getString('faculty_user_name') ?? prefs.getString('faculty_teacher');
+      } else {
+        userName = prefs.getString('student_user_name');
       }
+
+      String headlessUrl = 'https://swl-sis.comsats.edu.pk/';
+      try {
+        const activeSessionKey = 'iris_portal_student_last_active_session';
+        final raw = prefs.getString(activeSessionKey);
+        if (raw != null) {
+          final decoded = jsonDecode(raw);
+          final url = decoded['url'] as String?;
+          if (url != null && url.isNotEmpty && !url.contains('cui-helpdesk')) {
+            headlessUrl = url;
+          }
+        }
+      } catch (_) {}
+
+      if (!mounted) return;
+      setState(() {
+        _tutorialCompleted = tutorial;
+        _userRole = role;
+        _selectedBatch = batch;
+        _userName = userName;
+        _headlessUrl = headlessUrl;
+      });
     } catch (e) {
-      debugPrint('⚠️ [IRIS] Error loading headless URL: $e');
+      debugPrint('⚠️ Error loading startup preferences: $e');
     }
-    setState(() {
-      _headlessUrl = 'https://swl-sis.comsats.edu.pk/';
-    });
-  }
-
-  Future<void> _loadUserRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userRole = prefs.getString('user_role');
-    });
-  }
-
-  Future<void> _loadTutorialCompleted() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _tutorialCompleted = prefs.getBool('tutorial_completed') ?? false;
-    });
   }
 
   Future<void> _completeTutorial() async {
@@ -726,25 +768,6 @@ class _AppRootState extends State<_AppRoot> {
       isUrgent: false,
       duration: const Duration(seconds: 5),
     );
-  }
-
-  Future<void> _loadBatch() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _selectedBatch = prefs.getString('user_batch');
-    });
-  }
-
-  Future<void> _loadUserName() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      final role = prefs.getString('user_role');
-      if (role == 'faculty') {
-        _userName = prefs.getString('faculty_user_name') ?? prefs.getString('faculty_teacher');
-      } else {
-        _userName = prefs.getString('student_user_name');
-      }
-    });
   }
 
   Future<void> _requestForegroundNotificationPermission() async {
@@ -1997,6 +2020,8 @@ class _DashboardState extends State<Dashboard>
   List<ClassSession> _cachedSchedule = [];
   DateTime? _lastScheduleUpdate;
   int? _lastMinute;
+  TemporalInsight? _cachedInsight;
+  int? _lastInsightMinute;
   bool _isRefreshing = false;
   List<String> _pendingTimetableChanges = [];
   final Map<String, List<ClassSession>> _makeupReplacementHistory = {};
@@ -2012,6 +2037,7 @@ class _DashboardState extends State<Dashboard>
   bool _searchFieldFocused = false;
   String _homeSearchQuery = '';
   String _toolsSearchQuery = '';
+  Timer? _searchDebounceTimer;
 
   final GlobalKey _studentPortalNavKey = GlobalKey(
     debugLabel: 'student_portal_nav',
@@ -2107,26 +2133,43 @@ class _DashboardState extends State<Dashboard>
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_customMakeupSessionsPrefsKey);
-      if (raw == null || raw.isEmpty) return;
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          final existingIds = widget.memory.sessions.map((s) => s.id).toSet();
+          var changed = false;
 
-      final decoded = jsonDecode(raw);
-      if (decoded is! List) return;
+          for (final entry in decoded) {
+            if (entry is! Map<String, dynamic>) continue;
+            final session = ClassSession.fromJson(entry);
+            if (existingIds.contains(session.id)) continue;
+            widget.memory.sessions.add(session);
+            existingIds.add(session.id);
+            changed = true;
+          }
 
-      final existingIds = widget.memory.sessions.map((s) => s.id).toSet();
-      var changed = false;
-
-      for (final entry in decoded) {
-        if (entry is! Map<String, dynamic>) continue;
-        final session = ClassSession.fromJson(entry);
-        if (existingIds.contains(session.id)) continue;
-        widget.memory.sessions.add(session);
-        existingIds.add(session.id);
-        changed = true;
+          if (changed && mounted) {
+            widget.memory.clearCaches();
+            _updateScheduleCache();
+            setState(() {});
+          }
+        }
       }
 
-      if (changed && mounted) {
-        _updateScheduleCache();
-        setState(() {});
+      final rawHistory = prefs.getString('makeup_replacement_history');
+      if (rawHistory != null && rawHistory.isNotEmpty) {
+        final decodedHistory = jsonDecode(rawHistory);
+        if (decodedHistory is Map<String, dynamic>) {
+          _makeupReplacementHistory.clear();
+          for (final entry in decodedHistory.entries) {
+            if (entry.value is List) {
+              _makeupReplacementHistory[entry.key] = (entry.value as List)
+                  .whereType<Map<String, dynamic>>()
+                  .map((m) => ClassSession.fromJson(m))
+                  .toList();
+            }
+          }
+        }
       }
     } catch (e) {
       debugPrint('⚠️ Failed to load custom makeup sessions: $e');
@@ -2166,6 +2209,11 @@ class _DashboardState extends State<Dashboard>
           .map((s) => s.toJson())
           .toList();
       await prefs.setString(_customMakeupSessionsPrefsKey, jsonEncode(custom));
+
+      final serializedHistory = _makeupReplacementHistory.map(
+        (key, list) => MapEntry(key, list.map((s) => s.toJson()).toList()),
+      );
+      await prefs.setString('makeup_replacement_history', jsonEncode(serializedHistory));
     } catch (e) {
       debugPrint('⚠️ Failed to persist custom makeup sessions: $e');
     }
@@ -2256,6 +2304,7 @@ class _DashboardState extends State<Dashboard>
     }
 
     widget.memory.sessions.add(session);
+    widget.memory.clearCaches();
     await _persistCustomMakeupSessions();
 
     if (!mounted) return;
@@ -2303,6 +2352,7 @@ class _DashboardState extends State<Dashboard>
       restored += 1;
     }
 
+    widget.memory.clearCaches();
     await _persistCustomMakeupSessions();
 
     if (!mounted) return;
@@ -2655,6 +2705,7 @@ class _DashboardState extends State<Dashboard>
   }
 
   void _updateScheduleCache() {
+    widget.memory.clearCaches();
     final now = DateTime.now();
     _cachedSchedule = _buildTimelineSchedule(now);
     _lastScheduleUpdate = now;
@@ -2700,6 +2751,7 @@ class _DashboardState extends State<Dashboard>
     _searchController.dispose();
     _searchFocusNode.removeListener(_onFocusChange);
     _searchFocusNode.dispose();
+    _searchDebounceTimer?.cancel();
     _ticker.cancel();
     // Don't stop foreground service here - it should persist
     super.dispose();
@@ -2759,24 +2811,38 @@ class _DashboardState extends State<Dashboard>
 
     if (!notificationEnabled) return;
 
-    // Check current academic period
+    // Check current academic period for vacation
     final academicPeriod = RemoteConfigService.activeAcademicPeriod.value;
-    if (academicPeriod != 'classes') {
-      String notifTitle = '';
-      String notifBody = '';
-      if (academicPeriod == 'ramadan') {
-        notifTitle = '🌙 Ramadan Timings Active';
-        notifBody = '🕌 Ramadan Schedule · Compressed lecture hours in effect';
-      } else if (academicPeriod == 'sports_week') {
-        notifTitle = '🏆 Sports Week active';
-        notifBody = '🏅 Sports Week Mode · Enjoy matches & events!';
-      } else if (academicPeriod == 'midterms') {
-        notifTitle = '✍️ Midterms active';
-        notifBody = '📝 Midterm Exams Mode · Good luck!';
-      } else if (academicPeriod == 'finals') {
-        notifTitle = '🎓 Finals active';
-        notifBody = '📝 Final Exams Mode · Finish strong!';
+    if (academicPeriod == 'vacation' || academicPeriod == 'break') {
+      const notifTitle = '🏖️ Vacation Mode Active';
+      const notifBody = '🌴 Campus in recess — Enjoy your break!';
+
+      try {
+        await prefs.setString('notification_title', notifTitle);
+        await prefs.setString('notification_body', notifBody);
+
+        if (await FlutterForegroundTask.isRunningService) {
+          await FlutterForegroundTask.updateService(
+            notificationTitle: notifTitle,
+            notificationText: notifBody,
+            notificationButtons: [
+              NotificationButton(id: 'open', text: 'Open IRIS'),
+            ],
+          );
+        }
+      } catch (e) {
+        debugPrint('❌ Vacation notification update failed: $e');
       }
+      return;
+    }
+
+    // Check current academic period for exams
+    if (academicPeriod == 'midterms' || academicPeriod == 'finals') {
+      final examInsight = widget.brain.buildExamTemporalInsight(widget.batch, now, academicPeriod);
+      final examLabel = academicPeriod == 'midterms' ? 'Midterm Exam' : 'Final Exam';
+      final notifTitle = '📝 ${examInsight.subject} • ${examInsight.timeInfo ?? "SCHEDULED"}';
+      final venue = (examInsight.room != null && examInsight.room!.isNotEmpty) ? examInsight.room! : "Academic Block";
+      final notifBody = '🏛️ Venue: $venue · $examLabel';
 
       try {
         await prefs.setString('notification_title', notifTitle);
@@ -2992,39 +3058,58 @@ class _DashboardState extends State<Dashboard>
       
       // Check current academic period
       final academicPeriod = RemoteConfigService.activeAcademicPeriod.value;
-      if (academicPeriod != 'classes') {
-        String headline = '';
-        String subline = '';
-        if (academicPeriod == 'ramadan') {
-          headline = 'Ramadan Mode';
-          subline = 'Compressed schedule active';
-        } else if (academicPeriod == 'sports_week') {
-          headline = 'Sports Week';
-          subline = 'Enjoy matches & events!';
-        } else if (academicPeriod == 'midterms') {
-          headline = 'Midterm Exams';
-          subline = 'Good luck!';
-        } else if (academicPeriod == 'finals') {
-          headline = 'Final Exams';
-          subline = 'Finish strong!';
-        }
+      if (academicPeriod == 'vacation' || academicPeriod == 'break') {
+        final vacationInsight = widget.brain.buildVacationTemporalInsight(widget.batch, now);
 
-        // Generate state hash to determine if widget update is needed
-        final currentHash = 'mode_${academicPeriod}';
+        final currentHash = 'vacation_${academicPeriod}_${vacationInsight.subject}_${vacationInsight.timeInfo}';
         if (_previousWidgetHash == currentHash) {
-          return; // No change
+          return;
         }
         _previousWidgetHash = currentHash;
         _previousProgressPercent = 0;
 
         await WidgetService.updateWidgetWithInsight(
-          headline: headline,
-          subline: subline,
-          timeInfo: 'Active',
+          headline: vacationInsight.headline,
+          subline: vacationInsight.subline,
+          timeInfo: vacationInsight.timeInfo ?? 'RECHARGE & UNWIND',
           teacherInfo: '',
           isLive: false,
           isUrgent: false,
           progressPercentage: 0,
+          subject: vacationInsight.subject,
+          room: vacationInsight.room,
+          startTime: vacationInsight.startTime,
+          activeMode: 'vacation',
+          activeRole: 'student',
+          batch: widget.batch,
+        );
+        return;
+      }
+
+      if (academicPeriod == 'midterms' || academicPeriod == 'finals') {
+        final examInsight = widget.brain.buildExamTemporalInsight(widget.batch, now, academicPeriod);
+
+        final currentHash = 'exam_${academicPeriod}_${examInsight.subject}_${examInsight.timeInfo}';
+        if (_previousWidgetHash == currentHash) {
+          return;
+        }
+        _previousWidgetHash = currentHash;
+        _previousProgressPercent = 0;
+
+        await WidgetService.updateWidgetWithInsight(
+          headline: examInsight.headline,
+          subline: examInsight.subline,
+          timeInfo: examInsight.timeInfo ?? 'ACTIVE',
+          teacherInfo: '',
+          isLive: examInsight.isLive,
+          isUrgent: false,
+          progressPercentage: 0,
+          subject: examInsight.subject,
+          room: examInsight.room,
+          startTime: examInsight.startTime,
+          activeMode: academicPeriod,
+          activeRole: 'student',
+          batch: widget.batch,
         );
         return;
       }
@@ -3046,7 +3131,7 @@ class _DashboardState extends State<Dashboard>
 
       // Generate state hash to determine if widget update is needed
       String _generateWidgetHash() {
-        return '${insight.headline}_${insight.isLive}_${progressPercent}_${insight.isUrgent}';
+        return '${academicPeriod}_${insight.headline}_${insight.subject}_${insight.isLive}_${progressPercent}_${insight.isUrgent}';
       }
 
       final currentHash = _generateWidgetHash();
@@ -3071,6 +3156,10 @@ class _DashboardState extends State<Dashboard>
         progressPercentage: progressPercent,
         subject: insight.subject,
         room: insight.room,
+        startTime: insight.startTime,
+        activeMode: academicPeriod,
+        activeRole: 'student',
+        batch: widget.batch,
       );
     } catch (e) {
       debugPrint('⚠️ Widget update failed: $e');
@@ -4286,16 +4375,20 @@ class _DashboardState extends State<Dashboard>
             const SizedBox(height: 20),
             _buildContextActionTile(
               isDark,
-              title: 'Toggle Graphics Quality',
-              subtitle: 'Switch between premium & minimal rendering',
-              icon: Icons.speed_rounded,
+              title: 'Low Power (Eco-OLED)',
+              subtitle: 'True Black OLED power-down & zero-shadow cards',
+              icon: Icons.battery_charging_full_rounded,
               color: IrisTokens.brand,
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(sheetContext);
-                ThemeSignals.useMinimalTheme.value = !ThemeSignals.useMinimalTheme.value;
+                final nextVal = !ThemeSignals.useMinimalTheme.value;
+                ThemeSignals.useMinimalTheme.value = nextVal;
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('use_minimal_ui', nextVal);
                 showIrisFrostedSnackBar(
                   context,
-                  content: Text('Graphics set to ${ThemeSignals.useMinimalTheme.value ? 'MINIMAL' : 'PREMIUM'}'),
+                  content: Text('Low Power (Eco-OLED): ${nextVal ? "ACTIVE" : "DISABLED"}'),
+                  tint: nextVal ? IrisTokens.success : IrisTokens.brand,
                 );
               },
             ),
@@ -4396,32 +4489,36 @@ class _DashboardState extends State<Dashboard>
 
   Widget _buildStudentBottomNavBar(bool isDark) {
     final activeColor = isDark ? Colors.white : Colors.black87;
-    final glowColor = isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08);
     
     return GlassSearchableBottomBar(
-      tabs: [
+      tabs: const [
         GlassBottomBarTab(
-          icon: const Icon(Icons.home_outlined),
-          activeIcon: const Icon(Icons.home_rounded),
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home_rounded),
           label: 'Home',
-          glowColor: glowColor,
+          glowColor: Colors.transparent,
         ),
         GlassBottomBarTab(
-          icon: const Icon(Icons.construction_outlined),
-          activeIcon: const Icon(Icons.construction_rounded),
+          icon: Icon(Icons.construction_outlined),
+          activeIcon: Icon(Icons.construction_rounded),
           label: 'Tools',
-          glowColor: glowColor,
+          glowColor: Colors.transparent,
         ),
         GlassBottomBarTab(
-          icon: const Icon(Icons.info_outline_rounded),
-          activeIcon: const Icon(Icons.info_rounded),
+          icon: Icon(Icons.info_outline_rounded),
+          activeIcon: Icon(Icons.info_rounded),
           label: 'About',
-          glowColor: glowColor,
+          glowColor: Colors.transparent,
         ),
       ],
       selectedIndex: _bottomNavIndex,
       onTabSelected: _onBottomNavTap,
       isSearchActive: _isMiniMode || _isSearching,
+      showIndicator: true,
+      indicatorColor: Colors.transparent,
+      magnification: 1.15,
+      glowOpacity: 0.0,
+      interactionGlowColor: Colors.transparent,
       barHeight: 64,
       searchBarHeight: 52,
       horizontalPadding: 16,
@@ -4452,7 +4549,11 @@ class _DashboardState extends State<Dashboard>
         ),
         searchIcon: _bottomNavIndex == 0
             ? lgw.GlassMenu(
+                autoAdjustToScreen: true,
+                menuPadding: const EdgeInsets.all(16),
                 menuWidth: 230,
+                menuBorderRadius: 28.0,
+                itemBorderRadius: 20.0,
                 settings: IrisGlass.widgetsSettings(
                   context,
                   blur: 20,
@@ -4473,6 +4574,11 @@ class _DashboardState extends State<Dashboard>
                 items: [
                   lgw.GlassMenuItem(
                     title: 'Student Portal',
+                    titleStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+                    ),
                     icon: const Icon(Icons.school_rounded, color: Color(0xFF3B82F6), size: 18),
                     onTap: () {
                       pushGlassContainerMorphRoute(
@@ -4490,6 +4596,11 @@ class _DashboardState extends State<Dashboard>
                   const lgw.GlassMenuDivider(),
                   lgw.GlassMenuItem(
                     title: 'Academics Hub',
+                    titleStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+                    ),
                     icon: const Icon(Icons.auto_stories_rounded, color: Color(0xFF8B5CF6), size: 18),
                     onTap: () {
                       pushGlassContainerMorphRoute(
@@ -4524,13 +4635,17 @@ class _DashboardState extends State<Dashboard>
           }
         },
         onChanged: (val) {
-          setState(() {
-            if (_bottomNavIndex == 0) {
-              _homeSearchQuery = val;
-              _updateScheduleCache();
-            } else if (_bottomNavIndex == 1) {
-              _toolsSearchQuery = val;
-            }
+          _searchDebounceTimer?.cancel();
+          _searchDebounceTimer = Timer(const Duration(milliseconds: 140), () {
+            if (!mounted) return;
+            setState(() {
+              if (_bottomNavIndex == 0) {
+                _homeSearchQuery = val;
+                _updateScheduleCache();
+              } else if (_bottomNavIndex == 1) {
+                _toolsSearchQuery = val;
+              }
+            });
           });
         },
         collapsedLogoBuilder: (context) {
@@ -5020,16 +5135,152 @@ class _DashboardState extends State<Dashboard>
     List<ClassSession> schedule,
   ) {
     final isStudentsWeek = RemoteConfigService.activeAcademicPeriod.value == 'sports_week';
+    final isVacation = RemoteConfigService.activeAcademicPeriod.value == 'vacation' || 
+                       RemoteConfigService.activeAcademicPeriod.value == 'break';
+
+    if (isVacation) {
+      return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: const Color(0xFFF43F5E),
+          backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollUpdateNotification) {
+                final delta = notification.scrollDelta?.abs() ?? 0.0;
+                final fast = delta > 16.0;
+                if (IrisGlass.isFastScrolling.value != fast) {
+                  IrisGlass.isFastScrolling.value = fast;
+                }
+              } else if (notification is ScrollEndNotification) {
+                if (IrisGlass.isFastScrolling.value) {
+                  IrisGlass.isFastScrolling.value = false;
+                }
+              }
+              return false;
+            },
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const ButterScrollPhysics(),
+              slivers: [
+                if (_pendingTimetableChanges.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: _buildTimetableDiffCard(isDark),
+                    ),
+                  ),
+                ValueListenableBuilder<Map<String, dynamic>?>(
+                  valueListenable: RemoteConfigService.latestApkUpdate,
+                  builder: (context, updateInfo, _) {
+                    if (updateInfo == null) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                        child: _buildSystemUpdateBanner(context, updateInfo),
+                      ),
+                    );
+                  },
+                ),
+                ValueListenableBuilder<Map<String, dynamic>?>(
+                  valueListenable: RemoteConfigService.vacationSchedule,
+                  builder: (context, vacSchedule, _) {
+                    final now = DateTime.now();
+                    final defaultTargetSem = now.month >= 8 ? 'Spring ${now.year + 1}' : 'Fall ${now.year}';
+                    final targetSem =
+                        vacSchedule?['target_semester']?.toString() ??
+                        defaultTargetSem;
+                    int daysLeft = -1;
+                    final resumptionStr =
+                        vacSchedule?['resumption_date']?.toString();
+                    if (resumptionStr != null && resumptionStr.isNotEmpty) {
+                      final parsed = DateTime.tryParse(resumptionStr);
+                      if (parsed != null) {
+                        daysLeft = DateTime(parsed.year, parsed.month, parsed.day)
+                            .difference(DateTime(now.year, now.month, now.day))
+                            .inDays;
+                      }
+                    }
+
+                    return SliverPersistentHeader(
+                      pinned: true,
+                      delegate: VacationStickyHeaderDelegate(
+                        batch: widget.batch,
+                        daysLeft: daysLeft,
+                        targetSemester: targetSem,
+                        onNoticeTap: () => _handleRefresh(),
+                      ),
+                    );
+                  },
+                ),
+                ValueListenableBuilder<Map<String, dynamic>?>(
+                  valueListenable: RemoteConfigService.vacationSchedule,
+                  builder: (context, vacSchedule, _) {
+                    final milestones =
+                        vacSchedule?['milestones'] as List<dynamic>?;
+
+                    return SliverToBoxAdapter(
+                      child: VacationScheduleView(
+                        batch: widget.batch,
+                        brain: widget.brain,
+                        milestones: milestones,
+                        onOpenPortal: () {
+                          pushGlassContainerMorphRoute(
+                            context,
+                            page: const PortalScreen(
+                              url: 'https://swl-sis.comsats.edu.pk/',
+                              title: 'COMSATS Student Portal',
+                              sessionScope: 'student',
+                            ),
+                            accentColor: const Color(0xFF10B981),
+                          );
+                        },
+                        onOpenCgpa: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CgpaCalculatorScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: _handleRefresh,
         color: isStudentsWeek ? const Color(0xFF10B981) : IrisTokens.brand,
         backgroundColor: isDark ? IrisTokens.surfaceDarkElevated : Colors.white,
-        child: CustomScrollView(
-          controller: _scrollController,
-          physics: const ButterScrollPhysics(),
-          cacheExtent: 500,
-          slivers: [
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollUpdateNotification) {
+              final delta = notification.scrollDelta?.abs() ?? 0.0;
+              final fast = delta > 16.0;
+              if (IrisGlass.isFastScrolling.value != fast) {
+                IrisGlass.isFastScrolling.value = fast;
+              }
+            } else if (notification is ScrollEndNotification) {
+              if (IrisGlass.isFastScrolling.value) {
+                IrisGlass.isFastScrolling.value = false;
+              }
+            }
+            return false;
+          },
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const ButterScrollPhysics(),
+            cacheExtent: 180,
+            slivers: [
             if (_pendingTimetableChanges.isNotEmpty)
               SliverToBoxAdapter(
                 child: Padding(
@@ -5067,234 +5318,286 @@ class _DashboardState extends State<Dashboard>
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                child: ClassesAnimationWidget(
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 44),
-                          child: Row(
-                            children: [
-                              lgw.GlassMenu(
-                                menuWidth: 220,
-                                menuBorderRadius: 20.0,
-                                settings: IrisGlass.widgetsSettings(
-                                  context,
-                                  blur: 16.0,
-                                  ambientStrength: 0.7,
-                                  lightAngle: 0.15 * math.pi,
-                                  thickness: 18.0,
-                                ),
-                                triggerBuilder: (context, toggleMenu) {
-                                  return GestureDetector(
-                                    onTap: toggleMenu,
-                                    child: Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: LinearGradient(
-                                          colors: [IrisTokens.brand, IrisTokens.purple],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: IrisTokens.brand.withValues(alpha: 0.2),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4),
+                child: ValueListenableBuilder<String>(
+                  valueListenable: RemoteConfigService.activeAcademicPeriod,
+                  builder: (context, period, _) {
+                    Widget wrapHeader(Widget child) {
+                      switch (period) {
+                        case 'ramadan':
+                          return RamadanAnimationWidget(child: child);
+                        case 'midterms':
+                          return MidtermsAnimationWidget(child: child);
+                        case 'finals':
+                          return FinalsAnimationWidget(child: child);
+                        default:
+                          return ClassesAnimationWidget(child: child);
+                      }
+                    }
+
+                    return wrapHeader(
+                      Stack(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 44),
+                            child: Row(
+                              children: [
+                                lgw.GlassMenu(
+                                  autoAdjustToScreen: true,
+                                  menuPadding: const EdgeInsets.all(16),
+                                  menuWidth: 220,
+                                  menuBorderRadius: 28.0,
+                                  itemBorderRadius: 20.0,
+                                  settings: IrisGlass.widgetsSettings(
+                                    context,
+                                    blur: 16.0,
+                                    ambientStrength: 0.7,
+                                    lightAngle: 0.15 * math.pi,
+                                    thickness: 18.0,
+                                  ),
+                                  triggerBuilder: (context, toggleMenu) {
+                                    return GestureDetector(
+                                      onTap: toggleMenu,
+                                      child: Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: [IrisTokens.brand, IrisTokens.purple],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
                                           ),
-                                        ],
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          _getInitials(widget.userName),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w900,
-                                            fontSize: 20,
-                                            letterSpacing: 1,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: IrisTokens.brand.withValues(alpha: 0.2),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            _getInitials(widget.userName),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 20,
+                                              letterSpacing: 1,
+                                            ),
                                           ),
                                         ),
                                       ),
+                                    );
+                                  },
+                                  items: [
+                                    lgw.GlassMenuItem(
+                                      title: 'Student Mode',
+                                      titleStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: IrisTokens.brand,
+                                      ),
+                                      isSelected: true,
+                                      icon: const Icon(Icons.school_rounded, size: 18),
+                                      onTap: () {},
                                     ),
-                                  );
-                                },
-                                items: [
-                                  lgw.GlassMenuItem(
-                                    title: 'Student Mode',
-                                    isSelected: true,
-                                    icon: const Icon(Icons.school_rounded, size: 18),
-                                    onTap: () {},
-                                  ),
-                                  lgw.GlassMenuItem(
-                                    title: 'Faculty Mode',
-                                    isSelected: false,
-                                    icon: const Icon(Icons.badge_rounded, size: 18),
-                                    onTap: () {
-                                      widget.onRoleChanged?.call('faculty');
-                                    },
-                                  ),
-                                  const lgw.GlassMenuDivider(),
-                                  lgw.GlassMenuItem(
-                                    title: 'Change Active Batch',
-                                    icon: const Icon(Icons.layers_rounded, size: 18),
-                                    onTap: () {
-                                      _triggerBatchSelector();
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      _getSmartGreeting(now.hour),
-                                      style: TextStyle(
-                                        fontSize: 12,
+                                    lgw.GlassMenuItem(
+                                      title: 'Faculty Mode',
+                                      titleStyle: TextStyle(
                                         fontWeight: FontWeight.w600,
-                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
-                                        letterSpacing: 0.2,
+                                        fontSize: 14,
+                                        color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
                                       ),
+                                      isSelected: false,
+                                      icon: const Icon(Icons.badge_rounded, size: 18),
+                                      onTap: () {
+                                        widget.onRoleChanged?.call('faculty');
+                                      },
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      widget.userName ?? 'Student',
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: -0.5,
+                                    const lgw.GlassMenuDivider(),
+                                    lgw.GlassMenuItem(
+                                      title: 'Change Active Batch',
+                                      titleStyle: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                        color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      icon: const Icon(Icons.layers_rounded, size: 18),
+                                      onTap: () {
+                                        _triggerBatchSelector();
+                                      },
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        Flexible(
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                            decoration: BoxDecoration(
-                                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                                              borderRadius: BorderRadius.circular(99),
-                                              border: Border.all(
-                                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                                  ],
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _getSmartGreeting(now.hour),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                                          letterSpacing: 0.2,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        widget.userName ?? 'Student',
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: -0.5,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                                                borderRadius: BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                                                  width: 1,
+                                                ),
                                               ),
-                                            ),
-                                            child: Text(
-                                              '${widget.batch}  •  ${_getSemesterOrdinal(BatchKey.parse(widget.batch).dynamicSemester)} Sem',
-                                              style: TextStyle(
-                                                fontSize: 10.5,
-                                                fontWeight: FontWeight.w800,
-                                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.class_rounded,
+                                                    size: 13,
+                                                    color: IrisTokens.brand,
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Flexible(
+                                                    child: Text(
+                                                      widget.batch,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: isDark ? Colors.white : Colors.black87,
+                                                        letterSpacing: 0.3,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
-                                        ),
-                                        ValueListenableBuilder<String>(
-                                          valueListenable: RemoteConfigService.activeAcademicPeriod,
-                                          builder: (context, period, _) {
-                                            final modeColor = period == 'ramadan' || period == 'sports_week'
-                                                ? const Color(0xFF10B981)
-                                                : (period == 'midterms' ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6));
-                                            final modeLabel = period == 'ramadan'
-                                                ? '🌙 RAMADAN'
-                                                : (period == 'sports_week'
-                                                    ? '🏆 GALA'
-                                                    : (period == 'midterms' ? '✍️ MIDTERMS' : '🎓 FINALS'));
-                                            if (period == 'classes') return const SizedBox.shrink();
-                                            return Padding(
-                                              padding: const EdgeInsets.only(left: 6),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                          const SizedBox(width: 8),
+                                          ValueListenableBuilder<String>(
+                                            valueListenable: RemoteConfigService.activeAcademicPeriod,
+                                            builder: (context, period, _) {
+                                              final modeColor = period == 'ramadan' || period == 'sports_week'
+                                                  ? const Color(0xFF10B981)
+                                                  : period == 'midterms' || period == 'finals'
+                                                      ? const Color(0xFFF59E0B)
+                                                      : IrisTokens.brand;
+                                              final modeLabel = period == 'ramadan'
+                                                  ? '🌙 RAMADAN'
+                                                  : period == 'sports_week'
+                                                      ? '🏆 GALA'
+                                                      : period == 'midterms'
+                                                          ? '✍️ MIDTERMS'
+                                                          : period == 'finals'
+                                                              ? '🎓 FINALS'
+                                                              : '● LIVE';
+                                              return Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: modeColor.withValues(alpha: isDark ? 0.2 : 0.12),
-                                                  borderRadius: BorderRadius.circular(99),
+                                                  color: modeColor.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(10),
                                                   border: Border.all(
-                                                    color: modeColor.withValues(alpha: 0.4),
-                                                    width: 1.0,
+                                                    color: modeColor.withValues(alpha: 0.3),
+                                                    width: 1,
                                                   ),
                                                 ),
                                                 child: Text(
                                                   modeLabel,
                                                   style: TextStyle(
-                                                    fontSize: 9.5,
-                                                    fontWeight: FontWeight.w900,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w800,
                                                     color: modeColor,
                                                     letterSpacing: 0.4,
                                                   ),
                                                 ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      IrisHaptics.actionMedium();
+                                      pushIconLaunchRoute(
+                                        context,
+                                        page: AcademicsHubScreen(brain: widget.brain),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.auto_stories_rounded,
+                                      size: 20,
+                                      color: isDark ? Colors.white : IrisTokens.brand,
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Academics Hub Screen Access
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    IrisHaptics.actionMedium();
-                                    pushIconLaunchRoute(
-                                      context,
-                                      page: AcademicsHubScreen(brain: widget.brain),
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.auto_stories_rounded,
-                                    size: 20,
-                                    color: isDark ? Colors.white : IrisTokens.brand,
+                                    padding: const EdgeInsets.all(10),
+                                    constraints: const BoxConstraints(),
                                   ),
-                                  padding: const EdgeInsets.all(10),
-                                  constraints: const BoxConstraints(),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              // Theme Toggle Button
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  onPressed: widget.onToggleTheme,
-                                  icon: Icon(
-                                    isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                                    size: 20,
-                                    color: isDark ? Colors.white : IrisTokens.brand,
+                                const SizedBox(width: 8),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: (isDark ? Colors.white : IrisTokens.brand).withValues(alpha: 0.10),
+                                    shape: BoxShape.circle,
                                   ),
-                                  padding: const EdgeInsets.all(10),
-                                  constraints: const BoxConstraints(),
+                                  child: IconButton(
+                                    onPressed: widget.onToggleTheme,
+                                    icon: Icon(
+                                      isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                                      size: 20,
+                                      color: isDark ? Colors.white : IrisTokens.brand,
+                                    ),
+                                    padding: const EdgeInsets.all(10),
+                                    constraints: const BoxConstraints(),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
+            ),
               const SliverToBoxAdapter(child: SizedBox(height: 14)),
               SliverToBoxAdapter(
                 child: Padding(
@@ -5727,13 +6030,14 @@ class _DashboardState extends State<Dashboard>
                           );
                         },
                         childCount: filteredSchedule.length,
-                        addAutomaticKeepAlives: true,
+                        addAutomaticKeepAlives: false,
                         addRepaintBoundaries: true,
                       ),
                     ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 126)),
           ],
+        ),
         ),
       ),
     );
@@ -5744,7 +6048,11 @@ class _DashboardState extends State<Dashboard>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
     final dateLabel = _formatDateLabel(now);
-    final insight = widget.brain.buildTemporalInsight(widget.batch, now);
+    if (_cachedInsight == null || _lastInsightMinute != now.minute) {
+      _cachedInsight = widget.brain.buildTemporalInsight(widget.batch, now);
+      _lastInsightMinute = now.minute;
+    }
+    final insight = _cachedInsight!;
 
     // Update cache if day changed or schedule is empty
     if (_lastScheduleUpdate == null ||
@@ -5762,7 +6070,10 @@ class _DashboardState extends State<Dashboard>
     final double pillOpacity;
     final bool isHome = _bottomNavIndex == 0;
 
-    if (isHome) {
+    final period = RemoteConfigService.activeAcademicPeriod.value;
+    final isVacation = period == 'vacation' || period == 'break';
+
+    if (isHome && !isVacation) {
       if (_isMiniMode && !_isSearching) {
         pillBottom = 12.0 + sysBottom;
         pillLeft = 16.0 + 50.0 + 6.0; // 72.0 (Leaves space for collapsed Home button)
@@ -5790,7 +6101,9 @@ class _DashboardState extends State<Dashboard>
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          ObsidianPulse(isDark: isDark),
+          RepaintBoundary(
+            child: ObsidianPulse(isDark: isDark),
+          ),
           Positioned(
             width: 0,
             height: 0,
@@ -5904,8 +6217,11 @@ class _DashboardState extends State<Dashboard>
               duration: const Duration(milliseconds: 220),
               opacity: pillOpacity,
               child: lgw.GlassMenu(
+                autoAdjustToScreen: true,
+                menuPadding: const EdgeInsets.all(16),
                 menuWidth: 210,
-                menuBorderRadius: 20.0,
+                menuBorderRadius: 28.0,
+                itemBorderRadius: 20.0,
                 settings: IrisGlass.widgetsSettings(
                   context,
                   blur: 16.0,
@@ -5922,6 +6238,11 @@ class _DashboardState extends State<Dashboard>
                 items: [
                   lgw.GlassMenuItem(
                     title: 'Open Class Hub',
+                    titleStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+                    ),
                     icon: const Icon(Icons.hub_rounded, size: 18),
                     onTap: () {
                       lgw.GlassModalSheet.show(
@@ -5948,6 +6269,11 @@ class _DashboardState extends State<Dashboard>
                   ),
                   lgw.GlassMenuItem(
                     title: 'Locate Classroom',
+                    titleStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+                    ),
                     icon: const Icon(Icons.meeting_room_rounded, size: 18),
                     onTap: () {
                       pushGlassContainerMorphRoute(
@@ -5959,6 +6285,11 @@ class _DashboardState extends State<Dashboard>
                   ),
                   lgw.GlassMenuItem(
                     title: 'Locate Instructor',
+                    titleStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+                    ),
                     icon: const Icon(Icons.person_search_rounded, size: 18),
                     onTap: () {
                       final currentClass = widget.brain.getCurrentClass(widget.batch, now);
@@ -6213,7 +6544,7 @@ class _DashboardState extends State<Dashboard>
   }
 }
 
-class _PulsingRadarBadge extends StatefulWidget {
+class _PulsingRadarBadge extends StatelessWidget {
   final IconData icon;
   final Color color;
   final bool isDark;
@@ -6225,71 +6556,23 @@ class _PulsingRadarBadge extends StatefulWidget {
   });
 
   @override
-  State<_PulsingRadarBadge> createState() => _PulsingRadarBadgeState();
-}
-
-class _PulsingRadarBadgeState extends State<_PulsingRadarBadge>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 4500),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        final breathOpacity = 0.05 + (0.15 * _pulseController.value);
-        final glowScale = 1.0 + (0.12 * _pulseController.value);
-
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 38 * glowScale,
-              height: 38 * glowScale,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.color.withValues(alpha: breathOpacity),
-                border: Border.all(
-                  color: widget.color.withValues(alpha: 0.15 * _pulseController.value),
-                  width: 1.0,
-                ),
-              ),
-            ),
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.color.withValues(alpha: 0.12),
-                border: Border.all(
-                  color: widget.color.withValues(alpha: 0.25),
-                  width: 1.2,
-                ),
-              ),
-              child: Icon(
-                widget.icon,
-                size: 20,
-                color: widget.isDark ? Colors.white : widget.color,
-              ),
-            ),
-          ],
-        );
-      },
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.12),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+          width: 1.2,
+        ),
+      ),
+      child: Icon(
+        icon,
+        size: 20,
+        color: isDark ? Colors.white : color,
+      ),
     );
   }
 }
@@ -6389,54 +6672,26 @@ class _StudentCapsuleNavButton extends StatelessWidget {
 // EXAM GRID DASHBOARD & CARD CORE
 // ==========================================================================
 
-class _TrackerPulseIndicator extends StatefulWidget {
+class _TrackerPulseIndicator extends StatelessWidget {
   final Color color;
   const _TrackerPulseIndicator({required this.color});
 
   @override
-  State<_TrackerPulseIndicator> createState() => _TrackerPulseIndicatorState();
-}
-
-class _TrackerPulseIndicatorState extends State<_TrackerPulseIndicator>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: widget.color.withValues(alpha: 0.8),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withValues(alpha: 0.5 * _controller.value),
-                blurRadius: 4 + 8 * _controller.value,
-                spreadRadius: 1 + 3 * _controller.value,
-              ),
-            ],
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.9),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 6,
+            spreadRadius: 1,
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

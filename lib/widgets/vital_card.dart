@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 import '../core/vital_theme.dart';
 import '../core/vital_motion.dart';
+import '../core/theme_signals.dart';
 import '../services/ui_feedback.dart';
 
 class VitalCard extends StatelessWidget {
@@ -28,21 +30,38 @@ class VitalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMinimal = ThemeSignals.useMinimalTheme.value;
     final effectiveRadius = borderRadius ?? VitalTokens.radius24;
-    final theme = Theme.of(context);
+    final cardBg = backgroundColor ?? (isDark ? (isMinimal ? const Color(0xFF0F1218) : const Color(0xFF161618)) : Colors.white);
     
     Widget content = Container(
-      padding: padding ?? const EdgeInsets.all(VitalTokens.space20),
       decoration: BoxDecoration(
-        color: backgroundColor ?? theme.cardTheme.color,
+        color: cardBg,
         borderRadius: BorderRadius.circular(effectiveRadius),
         border: border ?? Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+          color: isDark 
+              ? (isMinimal ? const Color(0xFF1E2433) : Colors.white.withValues(alpha: 0.08))
+              : (isMinimal ? const Color(0xFFE2E8F0) : Colors.black.withValues(alpha: 0.05)),
           width: 1.0,
         ),
-        boxShadow: VitalTokens.softShadow(isDark),
+        boxShadow: isMinimal
+            ? const []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+                  blurRadius: 16,
+                  spreadRadius: -4,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
-      child: child,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(effectiveRadius),
+        child: Padding(
+          padding: padding ?? const EdgeInsets.all(VitalTokens.space20),
+          child: child,
+        ),
+      ),
     );
 
     if (onTap != null) {

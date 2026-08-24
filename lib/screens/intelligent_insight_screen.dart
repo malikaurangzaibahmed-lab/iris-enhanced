@@ -114,12 +114,14 @@ class _IntelligentInsightScreenState extends State<IntelligentInsightScreen>
     _mascotFloatController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
 
     _mascotPulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
 
     _mascotTapController = AnimationController(
       vsync: this,

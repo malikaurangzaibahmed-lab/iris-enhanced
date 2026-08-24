@@ -188,6 +188,117 @@ class RoomOccupancyService {
     return availability;
   }
 
+  /// Get availability for a specific time range (e.g. standard university slot)
+  List<RoomAvailability> getRoomAvailabilityForSlotRange(
+    List<ClassSession> allSessions,
+    double startHour,
+    double endHour,
+    int dayIndex,
+  ) {
+    final indexedSessions = _indexSessionsByRoomDay(allSessions, dayIndex);
+    final rawAvailability = <RoomAvailability>[];
+
+    for (final room in _rooms.values) {
+      final cleanRoomId = FormatGuard.sanitizeRoom(room.id);
+      final roomSessions = indexedSessions[cleanRoomId] ?? const <ClassSession>[];
+
+      ClassSession? occupyingSession;
+      for (final s in roomSessions) {
+        if (s.safeStartVal < (endHour - 0.03) && s.actualEndVal > (startHour + 0.03)) {
+          occupyingSession = s;
+          break;
+        }
+      }
+
+      final isAvailable = occupyingSession == null;
+      ClassSession? nextSession;
+      if (isAvailable && roomSessions.isNotEmpty) {
+        for (final s in roomSessions) {
+          if (s.safeStartVal >= (endHour - 0.03)) {
+            if (nextSession == null || s.safeStartVal < nextSession.safeStartVal) {
+              nextSession = s;
+            }
+          }
+        }
+      }
+
+      final slotOccupancy = _calculateSlotOccupancy(roomSessions);
+      final formattedLoc = _getFormattedLocation(room.id);
+
+      if (isAvailable) {
+        rawAvailability.add(RoomAvailability(
+          roomId: room.id,
+          building: room.building,
+          capacity: room.capacity,
+          amenities: room.amenities,
+          isAvailable: true,
+          occupiedUntil: null,
+          nextSessionAt: nextSession?.safeStartVal,
+          nextSessionSubject: nextSession?.subject,
+          minulesFreeUntilNextSession: nextSession != null
+              ? ((nextSession.safeStartVal - startHour) * 60).toInt()
+              : null,
+          studyScore: 0,
+          slotOccupancy: slotOccupancy,
+          formattedLocation: formattedLoc,
+        ));
+      } else {
+        rawAvailability.add(RoomAvailability(
+          roomId: room.id,
+          building: room.building,
+          capacity: room.capacity,
+          amenities: room.amenities,
+          isAvailable: false,
+          occupiedUntil: occupyingSession.actualEndVal,
+          occupiedBy: occupyingSession.subject,
+          occupiedByTeacher: occupyingSession.teacher,
+          minulesFreeUntilNextSession: ((occupyingSession.actualEndVal - startHour) * 60).toInt(),
+          studyScore: 0,
+          slotOccupancy: slotOccupancy,
+          formattedLocation: formattedLoc,
+        ));
+      }
+    }
+
+    final availability = rawAvailability.map((a) {
+      if (!a.isAvailable) return a;
+      final room = _rooms[a.roomId]!;
+      ClassSession? nextSession;
+      final cleanRoomId = FormatGuard.sanitizeRoom(room.id);
+      final roomSessions = indexedSessions[cleanRoomId] ?? const <ClassSession>[];
+      for (final s in roomSessions) {
+        if (s.safeStartVal >= (endHour - 0.03)) {
+          if (nextSession == null || s.safeStartVal < nextSession.safeStartVal) {
+            nextSession = s;
+          }
+        }
+      }
+
+      return RoomAvailability(
+        roomId: a.roomId,
+        building: a.building,
+        capacity: a.capacity,
+        amenities: a.amenities,
+        isAvailable: true,
+        occupiedUntil: null,
+        nextSessionAt: a.nextSessionAt,
+        nextSessionSubject: a.nextSessionSubject,
+        minulesFreeUntilNextSession: a.minulesFreeUntilNextSession,
+        studyScore: _calculateStudyScore(room, nextSession, rawAvailability),
+        slotOccupancy: a.slotOccupancy,
+        formattedLocation: a.formattedLocation,
+      );
+    }).toList();
+
+    availability.sort((a, b) {
+      if (a.isAvailable != b.isAvailable) {
+        return a.isAvailable ? -1 : 1;
+      }
+      return b.studyScore.compareTo(a.studyScore);
+    });
+    return availability;
+  }
+
   /// Get available rooms for a specific time RANGE (not just a point in time)
   /// Check if room is free for entire duration
   List<String> getAvailableRoomsForTimeRange(
