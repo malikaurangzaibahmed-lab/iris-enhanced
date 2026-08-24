@@ -561,6 +561,11 @@ class _AboutScreenState extends State<AboutScreen> {
                     _buildVersionCard(isDark),
 
                     const SizedBox(height: 24),
+                    _buildSectionHeader('DEVELOPER & CREATIVE ARCHITECT'),
+                    const SizedBox(height: 8),
+                    _buildDeveloperCard(isDark),
+
+                    const SizedBox(height: 24),
                     _buildSectionHeader('INFORMATION & LEGAL'),
                     const SizedBox(height: 8),
                     _buildInfoLinksCard(isDark),
@@ -1326,6 +1331,261 @@ class _AboutScreenState extends State<AboutScreen> {
               Icon(Icons.check_circle_rounded, color: accentColor, size: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openUrl(String url) async {
+    IrisHaptics.actionMedium();
+    try {
+      final uri = Uri.parse(url);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        showIrisFrostedSnackBar(
+          context,
+          content: Text('Could not open link: $url'),
+          tint: VitalTokens.error,
+        );
+      }
+    }
+  }
+
+  Widget _buildDeveloperCard(bool isDark) {
+    const accentColor = Color(0xFF6366F1); // Indigo / Violet
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      borderRadius: 26,
+      accentColor: accentColor,
+      backgroundColor: accentColor.withValues(alpha: isDark ? 0.08 : 0.04),
+      border: Border.all(
+        color: accentColor.withValues(alpha: isDark ? 0.25 : 0.18),
+        width: 1.2,
+      ),
+      glow: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Profile & Identity Row
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6366F1), Color(0xFF06B6D4)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.35),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'MA',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Malik Aurangzaib Ahmed',
+                            style: TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.2,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        const Icon(
+                          Icons.verified_rounded,
+                          size: 17,
+                          color: Color(0xFF38BDF8),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Lead Architect & Engineer',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      'COMSATS University Islamabad',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // 2. Mission Statement
+          Text(
+            'Crafted and maintained with obsessive attention to speed, aesthetics, and timetable precision for CUI campus students and faculty.',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.70),
+            ),
+          ),
+          const SizedBox(height: 14),
+          // 3. Tech Stack Tags
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _buildDevChip(isDark, 'Flutter 3.38', Icons.flutter_dash_rounded),
+              _buildDevChip(isDark, 'Genkit AI', Icons.auto_awesome_rounded),
+              _buildDevChip(isDark, 'Shorebird OTA', Icons.bolt_rounded),
+              _buildDevChip(isDark, 'Liquid Glass', Icons.water_drop_rounded),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Divider(
+            height: 1,
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.07),
+          ),
+          const SizedBox(height: 14),
+          // 4. Interactive Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () => _openUrl('https://github.com/malikaurangzaibahmed-lab/iris-enhanced'),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.06 : 0.04),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.code_rounded,
+                          size: 16,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'GitHub',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: InkWell(
+                  onTap: () => _openUrl('mailto:malikaurangzaibahmed@gmail.com?subject=IRIS%20Feedback'),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.20 : 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.35),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.email_outlined,
+                          size: 16,
+                          color: Color(0xFF6366F1),
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Email Dev',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF6366F1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDevChip(bool isDark, String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.05 : 0.03),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.07),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: isDark ? Colors.white60 : Colors.black54),
+          const SizedBox(width: 4.5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
   }
