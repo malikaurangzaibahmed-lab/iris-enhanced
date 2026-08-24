@@ -463,13 +463,9 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
                         Navigator.of(ctx).pop();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => RoomFinderScreen(
-                              brain: widget.period == 'midterms'
-                                  ? (RemoteConfigService.midtermExams.value.isNotEmpty
-                                      ? null
-                                      : null)
-                                  : null,
-                              onToggleTheme: widget.onToggleTheme,
+                            builder: (_) => const RoomFinderScreen(
+                              memory: null,
+                              brain: null,
                             ),
                           ),
                         );
@@ -1315,7 +1311,7 @@ class _ExamGridDashboardState extends State<ExamGridDashboard> {
     final isSelected = _activeFilter == type;
     return GestureDetector(
       onTap: () {
-        IrisHaptics.selection();
+        IrisHaptics.selectionClick();
         setState(() {
           _activeFilter = type;
         });
