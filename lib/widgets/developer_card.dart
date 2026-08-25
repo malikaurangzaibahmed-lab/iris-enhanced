@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme_signals.dart';
 import '../services/ui_feedback.dart';
@@ -23,6 +25,8 @@ class DeveloperCard extends StatefulWidget {
 class _DeveloperCardState extends State<DeveloperCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  int _tapCount = 0;
+  Timer? _tapResetTimer;
 
   @override
   void initState() {
@@ -38,8 +42,49 @@ class _DeveloperCardState extends State<DeveloperCard>
 
   @override
   void dispose() {
+    _tapResetTimer?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _handleDevCardTap() async {
+    widget.onTap?.call();
+    _tapResetTimer?.cancel();
+    _tapCount++;
+    _tapResetTimer = Timer(const Duration(seconds: 3), () {
+      _tapCount = 0;
+    });
+
+    if (_tapCount >= 5) {
+      _tapCount = 0;
+      final nextVal = !ThemeSignals.useMinimalTheme.value;
+      ThemeSignals.useMinimalTheme.value = nextVal;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('use_minimal_ui', nextVal);
+      IrisHaptics.actionHeavy();
+      if (mounted) {
+        showIrisFrostedSnackBar(
+          context,
+          content: Text(
+            '⚡ Eco Mode (High Performance): ${nextVal ? "ENABLED" : "DISABLED"}',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          tint: nextVal ? const Color(0xFF10B981) : const Color(0xFF6366F1),
+        );
+      }
+    } else if (_tapCount >= 3) {
+      IrisHaptics.selectionClick();
+      if (mounted) {
+        showIrisFrostedSnackBar(
+          context,
+          content: Text('Tap ${5 - _tapCount} more times to toggle Eco Mode'),
+          tint: const Color(0xFF6366F1),
+          duration: const Duration(seconds: 1),
+        );
+      }
+    } else {
+      IrisHaptics.selectionClick();
+    }
   }
 
   void _openEmail() async {
@@ -68,7 +113,10 @@ class _DeveloperCardState extends State<DeveloperCard>
           builder: (context, _) {
             final t = useMinimal ? 0.0 : _controller.value;
 
-        return Container(
+        return GestureDetector(
+          onTap: _handleDevCardTap,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
           width: double.infinity,
           constraints: const BoxConstraints(minHeight: 250),
           decoration: BoxDecoration(
@@ -241,10 +289,11 @@ class _DeveloperCardState extends State<DeveloperCard>
               ],
             ),
           ),
-        );
-      },
-    );
-  },
+        ),
+      );
+    },
+  );
+},
 );
 }
 
