@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/ui_feedback.dart';
 
 /// Atmospheric animated Developer Card featuring dynamic moving cosmic gradients,
-/// a starry halftone dot matrix pattern, and radiant spark icon.
+/// a starry halftone dot matrix pattern, and radiant prism sparkle icon inspired by the Gemini interface.
 class DeveloperCard extends StatefulWidget {
   final bool isDark;
   final VoidCallback? onTap;
@@ -28,8 +28,8 @@ class _DeveloperCardState extends State<DeveloperCard>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 7),
-    )..repeat(reverse: true);
+      duration: const Duration(seconds: 8),
+    )..repeat();
   }
 
   @override
@@ -54,11 +54,6 @@ class _DeveloperCardState extends State<DeveloperCard>
       animation: _controller,
       builder: (context, _) {
         final t = _controller.value;
-        final angle = t * 2 * math.pi;
-
-        // Oscillating gradient focal points
-        final focalX = math.sin(angle) * 0.35;
-        final focalY = 0.5 + math.cos(angle) * 0.25;
 
         return Container(
           width: double.infinity,
@@ -68,7 +63,7 @@ class _DeveloperCardState extends State<DeveloperCard>
             boxShadow: [
               BoxShadow(
                 color: (isDark ? const Color(0xFF6366F1) : const Color(0xFF3B82F6))
-                    .withValues(alpha: isDark ? 0.22 : 0.12),
+                    .withValues(alpha: isDark ? 0.25 : 0.12),
                 blurRadius: 28,
                 offset: const Offset(0, 8),
               ),
@@ -83,34 +78,17 @@ class _DeveloperCardState extends State<DeveloperCard>
             borderRadius: BorderRadius.circular(28),
             child: Stack(
               children: [
-                // 1. Moving Atmospheric Cosmic Gradient Background
+                // 1. Fluid Moving Cosmic Gradient Mesh
                 Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF030712) : const Color(0xFFF8FAFC),
-                      gradient: RadialGradient(
-                        center: Alignment(focalX, focalY),
-                        radius: 1.35,
-                        colors: isDark
-                            ? [
-                                const Color(0xFF4338CA).withValues(alpha: 0.85), // Deep Royal Indigo
-                                const Color(0xFF6B21A8).withValues(alpha: 0.65), // Nebula Violet
-                                const Color(0xFF0E7490).withValues(alpha: 0.40), // Radiant Cyan
-                                const Color(0xFF030712),                         // Deep Void
-                              ]
-                            : [
-                                const Color(0xFF818CF8).withValues(alpha: 0.35),
-                                const Color(0xFFC084FC).withValues(alpha: 0.25),
-                                const Color(0xFF38BDF8).withValues(alpha: 0.20),
-                                const Color(0xFFF1F5F9),
-                              ],
-                        stops: const [0.0, 0.40, 0.75, 1.0],
-                      ),
+                  child: CustomPaint(
+                    painter: _MovingCosmicMeshPainter(
+                      isDark: isDark,
+                      progress: t,
                     ),
                   ),
                 ),
 
-                // 2. Starry Halftone Dot Matrix Grid
+                // 2. Starry Halftone White Dot Matrix Grid (Gemini Texture)
                 Positioned.fill(
                   child: CustomPaint(
                     painter: _HalftoneDotsPainter(
@@ -120,9 +98,9 @@ class _DeveloperCardState extends State<DeveloperCard>
                   ),
                 ),
 
-                // 3. Ambient Glow Halo Behind Spark
+                // 3. Subtle Ambient Glow Halo Behind Prism Spark
                 Positioned(
-                  top: 30,
+                  top: 26,
                   left: 0,
                   right: 0,
                   child: Center(
@@ -133,14 +111,9 @@ class _DeveloperCardState extends State<DeveloperCard>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF38BDF8).withValues(alpha: 0.45),
+                            color: _getDynamicSparkGlow(t).withValues(alpha: isDark ? 0.45 : 0.25),
                             blurRadius: 40,
                             spreadRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: const Color(0xFFE879F9).withValues(alpha: 0.35),
-                            blurRadius: 32,
-                            spreadRadius: 4,
                           ),
                         ],
                       ),
@@ -178,8 +151,8 @@ class _DeveloperCardState extends State<DeveloperCard>
                           shadows: isDark
                               ? [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.6),
-                                    blurRadius: 10,
+                                    color: Colors.black.withValues(alpha: 0.7),
+                                    blurRadius: 12,
                                     offset: const Offset(0, 2),
                                   ),
                                 ]
@@ -201,17 +174,17 @@ class _DeveloperCardState extends State<DeveloperCard>
                             ),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? Colors.black.withValues(alpha: 0.55)
-                                  : Colors.white.withValues(alpha: 0.85),
+                                  ? Colors.black.withValues(alpha: 0.60)
+                                  : Colors.white.withValues(alpha: 0.90),
                               borderRadius: BorderRadius.circular(22),
                               border: Border.all(
                                 color: (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: isDark ? 0.20 : 0.10),
+                                    .withValues(alpha: isDark ? 0.22 : 0.12),
                                 width: 1.2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
                                   blurRadius: 12,
                                   offset: const Offset(0, 3),
                                 ),
@@ -259,6 +232,128 @@ class _DeveloperCardState extends State<DeveloperCard>
       },
     );
   }
+
+  Color _getDynamicSparkGlow(double t) {
+    // Cycles between Cyan, Blue, Purple, and Magenta
+    final phase = (t * 4) % 4;
+    if (phase < 1.0) {
+      return Color.lerp(const Color(0xFF06B6D4), const Color(0xFF3B82F6), phase)!;
+    } else if (phase < 2.0) {
+      return Color.lerp(const Color(0xFF3B82F6), const Color(0xFF8B5CF6), phase - 1.0)!;
+    } else if (phase < 3.0) {
+      return Color.lerp(const Color(0xFF8B5CF6), const Color(0xFFD946EF), phase - 2.0)!;
+    } else {
+      return Color.lerp(const Color(0xFFD946EF), const Color(0xFF06B6D4), phase - 3.0)!;
+    }
+  }
+}
+
+/// Paints the animated moving cosmic gradient mesh inspired by Google Gemini
+class _MovingCosmicMeshPainter extends CustomPainter {
+  final bool isDark;
+  final double progress;
+
+  _MovingCosmicMeshPainter({
+    required this.isDark,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Solid Base Background
+    final baseColor = isDark ? const Color(0xFF030712) : const Color(0xFFF8FAFC);
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), Paint()..color = baseColor);
+
+    final angle = progress * 2 * math.pi;
+
+    // Color Palette Transition (Blue -> Purple -> Magenta -> Indigo -> Blue)
+    final color1 = _cycleColor(progress, const [
+      Color(0xFF2563EB), // Royal Blue
+      Color(0xFF7C3AED), // Violet
+      Color(0xFFC026D3), // Fuchsia / Magenta
+      Color(0xFF0284C7), // Sky Blue
+    ]);
+
+    final color2 = _cycleColor(progress + 0.33, const [
+      Color(0xFF9333EA), // Purple
+      Color(0xFFE11D48), // Rose
+      Color(0xFF06B6D4), // Cyan
+      Color(0xFF4F46E5), // Indigo
+    ]);
+
+    final color3 = _cycleColor(progress + 0.66, const [
+      Color(0xFF0E7490), // Cyan-blue
+      Color(0xFF4338CA), // Deep Indigo
+      Color(0xFFA21CAF), // Magenta
+      Color(0xFF1D4ED8), // Blue
+    ]);
+
+    // 2. Primary Moving Orb (Bottom Center / Left)
+    final orb1X = w * (0.35 + math.sin(angle) * 0.25);
+    final orb1Y = h * (0.85 + math.cos(angle) * 0.15);
+    final orb1Radius = w * 0.95;
+
+    final paint1 = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color1.withValues(alpha: isDark ? 0.75 : 0.35),
+          color1.withValues(alpha: isDark ? 0.40 : 0.18),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.50, 1.0],
+      ).createShader(Rect.fromCircle(center: Offset(orb1X, orb1Y), radius: orb1Radius));
+
+    canvas.drawCircle(Offset(orb1X, orb1Y), orb1Radius, paint1);
+
+    // 3. Secondary Moving Orb (Bottom Center / Right)
+    final orb2X = w * (0.65 + math.cos(angle + math.pi / 3) * 0.25);
+    final orb2Y = h * (0.90 + math.sin(angle + math.pi / 3) * 0.15);
+    final orb2Radius = w * 0.85;
+
+    final paint2 = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color2.withValues(alpha: isDark ? 0.70 : 0.30),
+          color2.withValues(alpha: isDark ? 0.35 : 0.15),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.55, 1.0],
+      ).createShader(Rect.fromCircle(center: Offset(orb2X, orb2Y), radius: orb2Radius));
+
+    canvas.drawCircle(Offset(orb2X, orb2Y), orb2Radius, paint2);
+
+    // 4. Center Ambient Atmosphere
+    final orb3X = w * (0.50 + math.sin(angle * 1.5) * 0.15);
+    final orb3Y = h * 0.60;
+    final orb3Radius = w * 0.75;
+
+    final paint3 = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color3.withValues(alpha: isDark ? 0.45 : 0.20),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 1.0],
+      ).createShader(Rect.fromCircle(center: Offset(orb3X, orb3Y), radius: orb3Radius));
+
+    canvas.drawCircle(Offset(orb3X, orb3Y), orb3Radius, paint3);
+  }
+
+  Color _cycleColor(double p, List<Color> colors) {
+    final normalized = p % 1.0;
+    final count = colors.length;
+    final index = (normalized * count).floor();
+    final nextIndex = (index + 1) % count;
+    final t = (normalized * count) - index;
+    return Color.lerp(colors[index], colors[nextIndex], t)!;
+  }
+
+  @override
+  bool shouldRepaint(covariant _MovingCosmicMeshPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.isDark != isDark;
 }
 
 /// Paints the multicolored 4-point prism sparkle star
@@ -338,19 +433,19 @@ class _HalftoneDotsPainter extends CustomPainter {
       final y = r * spacing;
       // Fade dots upwards (most dense at bottom, fading to transparent towards top)
       final verticalFactor = (y / size.height).clamp(0.0, 1.0);
-      if (verticalFactor < 0.32) continue; // Upper area remains clean for text
+      if (verticalFactor < 0.28) continue; // Upper area remains clean for text
 
-      final rowOpacity = math.pow((verticalFactor - 0.32) / 0.68, 2.0).toDouble();
+      final rowOpacity = math.pow((verticalFactor - 0.28) / 0.72, 2.0).toDouble();
 
       for (int c = 0; c < cols; c++) {
         final x = c * spacing;
 
-        // Subtle undulating wave
+        // Subtle undulating shimmer wave
         final wave = math.sin((x / 28.0) + (animationProgress * 2 * math.pi) + (y / 24.0));
-        final dotRadius = (0.75 + (verticalFactor * 1.35) + (wave * 0.25)).clamp(0.4, 2.4);
+        final dotRadius = (0.80 + (verticalFactor * 1.40) + (wave * 0.25)).clamp(0.4, 2.5);
 
-        final dotOpacity = (rowOpacity * (isDark ? 0.38 : 0.22) + (wave * 0.05))
-            .clamp(0.0, isDark ? 0.45 : 0.28);
+        final dotOpacity = (rowOpacity * (isDark ? 0.42 : 0.25) + (wave * 0.06))
+            .clamp(0.0, isDark ? 0.55 : 0.32);
 
         basePaint.color = (isDark ? Colors.white : const Color(0xFF0F172A))
             .withValues(alpha: dotOpacity);
