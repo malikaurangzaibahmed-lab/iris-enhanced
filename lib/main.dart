@@ -27,6 +27,7 @@ import 'core/app_signals.dart';
 import 'core/theme_signals.dart';
 import 'core/vital_theme.dart';
 import 'core/vital_motion.dart';
+import 'core/device_performance.dart';
 import 'widgets/glass_container_transform.dart';
 import 'screens/portal_screen.dart';
 import 'screens/about_screen.dart';
@@ -144,7 +145,13 @@ Future<void> main() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     initialThemeMode = prefs.getString('theme_mode') ?? 'system';
-    initialUseMinimal = prefs.getBool('use_minimal_ui') ?? false;
+    final savedUseMinimal = prefs.getBool('use_minimal_ui');
+    if (savedUseMinimal != null) {
+      initialUseMinimal = savedUseMinimal;
+    } else {
+      // Auto-toggle Eco Mode on low-end hardware (<= 4GB RAM, weak processors, low-RAM OS)
+      initialUseMinimal = await DevicePerformance.isLowEndDevice();
+    }
     initialUseVital = prefs.getBool('use_vital_theme') ?? true;
     ThemeSignals.useMinimalTheme.value = initialUseMinimal;
     ThemeSignals.useVitalTheme.value = initialUseVital;

@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/tokens.dart';
 import '../core/glass.dart';
 import '../core/models.dart';
+import '../core/theme_signals.dart';
+import '../core/device_performance.dart';
 import '../widgets/glowing_input_wrapper.dart';
 import '../services/ui_feedback.dart';
 import '../services/helpdesk_faculty_service.dart';
@@ -63,8 +65,10 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   List<FacultyProfile> _facultyList = [];
   bool _loadingFaculty = false;
 
-  // Notification Toggles (First-Time Setup)
+  // Notification & System Preference Toggles (First-Time Setup)
   bool _notifClassAlerts = true;
+  bool _useEcoMode = false;
+  bool _isLowEndDetected = false;
 
   // Sync state
   double _syncProgress = 0.0;
@@ -73,12 +77,27 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   @override
   void initState() {
     super.initState();
+    _useEcoMode = ThemeSignals.useMinimalTheme.value;
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
     )..repeat();
     _controller.addListener(_updateParticles);
     _fetchLiveFacultyProfiles();
+    _checkDevicePerformance();
+  }
+
+  Future<void> _checkDevicePerformance() async {
+    final isLowEnd = await DevicePerformance.isLowEndDevice();
+    if (mounted) {
+      setState(() {
+        _isLowEndDetected = isLowEnd;
+        if (isLowEnd) {
+          _useEcoMode = true;
+          ThemeSignals.useMinimalTheme.value = true;
+        }
+      });
+    }
   }
 
   @override
@@ -329,11 +348,13 @@ class _OnboardingWizardState extends State<OnboardingWizard>
   void _startBrainSync() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Save Notification Preferences
+    // Save Notification & System Preferences
     await prefs.setBool('notif_class_alerts', _notifClassAlerts);
     await prefs.setBool('notifications_enabled', _notifClassAlerts);
     await prefs.setBool('class_alerts_enabled', _notifClassAlerts);
     await prefs.setBool('class_reminders', _notifClassAlerts);
+    await prefs.setBool('use_minimal_ui', _useEcoMode);
+    ThemeSignals.useMinimalTheme.value = _useEcoMode;
 
     setState(() {
       _syncProgress = 0.0;
@@ -1165,6 +1186,102 @@ class _OnboardingWizardState extends State<OnboardingWizard>
                   onChanged: (val) {
                     IrisHaptics.selectionClick();
                     setState(() => _notifClassAlerts = val);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          GlassCard(
+            padding: const EdgeInsets.all(20),
+            accentColor: const Color(0xFF10B981),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981)
+                        .withValues(alpha: isDark ? 0.20 : 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.bolt_rounded,
+                    color: Color(0xFF10B981),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Eco Mode (Smooth FPS)',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ),
+                          if (_isLowEndDetected) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'AUTO',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        _isLowEndDetected
+                            ? 'Auto-enabled for this device to guarantee 60–120 FPS'
+                            : 'Opaque solid surfaces with zero GPU shader overhead',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                          color: (isDark ? Colors.white : Colors.black).withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                lgw.GlassSwitch(
+                  useOwnLayer: true,
+                  settings: IrisGlass.widgetsSettings(
+                    context,
+                    blur: 16.0,
+                    thickness: 12.0,
+                    ambientStrength: isDark ? 0.65 : 0.72,
+                    lightAngle: 1.5,
+                  ),
+                  value: _useEcoMode,
+                  onChanged: (val) async {
+                    IrisHaptics.selectionClick();
+                    setState(() => _useEcoMode = val);
+                    ThemeSignals.useMinimalTheme.value = val;
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('use_minimal_ui', val);
                   },
                 ),
               ],
