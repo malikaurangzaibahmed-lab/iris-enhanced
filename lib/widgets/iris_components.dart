@@ -2009,7 +2009,17 @@ class _IrisGlassSwitchState extends State<IrisGlassSwitch> with SingleTickerProv
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
+          final isMinimal = ThemeSignals.useMinimalTheme.value;
           final val = _thumbPosAnim.value;
+          
+          final inactiveTrackColor = isMinimal
+              ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))
+              : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06);
+
+          final activeTrackColor = isMinimal
+              ? activeCol
+              : activeCol.withValues(alpha: 0.18);
+
           return Container(
             width: 48,
             height: 28,
@@ -2017,14 +2027,16 @@ class _IrisGlassSwitchState extends State<IrisGlassSwitch> with SingleTickerProv
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(100),
               color: Color.lerp(
-                (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-                activeCol.withValues(alpha: 0.18),
+                inactiveTrackColor,
+                activeTrackColor,
                 val,
               ),
               border: Border.all(
                 color: Color.lerp(
-                  (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
-                  activeCol.withValues(alpha: 0.4),
+                  isMinimal
+                      ? (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))
+                      : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
+                  isMinimal ? activeCol : activeCol.withValues(alpha: 0.4),
                   val,
                 )!,
                 width: 1.0,
@@ -2041,7 +2053,7 @@ class _IrisGlassSwitchState extends State<IrisGlassSwitch> with SingleTickerProv
                       shape: BoxShape.circle,
                       color: Color.lerp(
                         isDark ? Colors.white70 : Colors.black54,
-                        isDark ? Colors.white : activeCol,
+                        (isMinimal ? Colors.white : (isDark ? Colors.white : activeCol)),
                         val,
                       ),
                       boxShadow: [

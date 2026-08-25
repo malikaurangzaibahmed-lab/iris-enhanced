@@ -51,12 +51,13 @@ class GlassSurface extends StatelessWidget {
               return Container(
                 decoration: BoxDecoration(
                   color: isDark
-                      ? IrisTokens.surfaceDarkElevated.withValues(alpha: 0.02)
-                      : Colors.white.withOpacity(0.02),
+                      ? IrisTokens.surfaceDarkElevated
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(radius),
                   border: Border.all(
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: isDark ? 0.04 : 0.04),
+                    color: isDark
+                        ? const Color(0xFF1E2433)
+                        : const Color(0xFFE2E8F0),
                     width: 1.0,
                   ),
                 ),

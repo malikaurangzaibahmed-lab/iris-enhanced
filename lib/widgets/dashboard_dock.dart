@@ -130,7 +130,12 @@ class DashboardDock extends StatefulWidget {
                       duration: const Duration(milliseconds: 304),
                       curve: IrisMotion.standard,
                       decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F1218) : Colors.white,
                         borderRadius: BorderRadius.circular(radius),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF1E2433) : const Color(0xFFE2E8F0),
+                          width: 1.0,
+                        ),
                       ),
                       child: SizedBox(
                         height: navHeight,

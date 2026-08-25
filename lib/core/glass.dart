@@ -47,10 +47,19 @@ class IrisGlass {
     double darkAlpha = 0.0,
     double lightAlpha = 0.0,
   }) {
+    final isMinimal = ThemeSignals.useMinimalTheme.value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (isMinimal) {
+      // In Eco/Minimal mode, provide an opaque, crisp surface according to light/dark mode
+      return isDark
+          ? (dark ?? IrisTokens.surfaceDarkElevated)
+          : (light ?? Colors.white);
+    }
+
     if (darkAlpha == 0.0 && lightAlpha == 0.0 && dark == null && light == null) {
       return Colors.transparent;
     }
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark
         ? (dark ?? IrisTokens.surfaceDarkElevated)
         : (light ?? Colors.white);
@@ -67,11 +76,26 @@ class IrisGlass {
     double minBlur = 8.0,
     double minThickness = 10.0,
   }) {
+    final isMinimal = ThemeSignals.useMinimalTheme.value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Color effectiveColor;
+    if (isMinimal) {
+      // In Eco Mode: Opaque theme-aware surface to guarantee high readability and low GPU consumption
+      if (glassColor != null && glassColor.a >= 0.85) {
+        effectiveColor = glassColor;
+      } else {
+        effectiveColor = isDark ? IrisTokens.surfaceDarkElevated : Colors.white;
+      }
+    } else {
+      effectiveColor = glassColor ?? Colors.transparent;
+    }
+
     return LiquidGlassSettings(
       blur: adaptiveBlur(context, blur, min: minBlur),
       ambientStrength: adaptiveAmbient(context, ambientStrength),
       lightAngle: lightAngle,
-      glassColor: glassColor ?? Colors.transparent,
+      glassColor: effectiveColor,
       thickness: adaptiveThickness(context, thickness, min: minThickness),
     );
   }

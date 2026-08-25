@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../core/theme_signals.dart';
 import '../services/ui_feedback.dart';
 
 /// Atmospheric animated Developer Card featuring dynamic moving cosmic gradients,
@@ -29,7 +30,10 @@ class _DeveloperCardState extends State<DeveloperCard>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
-    )..repeat();
+    );
+    if (!ThemeSignals.useMinimalTheme.value) {
+      _controller.repeat();
+    }
   }
 
   @override
@@ -50,10 +54,19 @@ class _DeveloperCardState extends State<DeveloperCard>
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final t = _controller.value;
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeSignals.useMinimalTheme,
+      builder: (context, useMinimal, _) {
+        if (useMinimal && _controller.isAnimating) {
+          _controller.stop();
+        } else if (!useMinimal && !_controller.isAnimating) {
+          _controller.repeat();
+        }
+
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final t = useMinimal ? 0.0 : _controller.value;
 
         return Container(
           width: double.infinity,
@@ -227,11 +240,12 @@ class _DeveloperCardState extends State<DeveloperCard>
                 ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    },
+  );
+}
 
   Color _getDynamicSparkGlow(double t) {
     // Cycles between Cyan, Blue, Purple, and Magenta

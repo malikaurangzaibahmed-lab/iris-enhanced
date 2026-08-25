@@ -51,34 +51,44 @@ class GlassCard extends StatelessWidget {
     final tintColor =
         accentColor ?? (isDark ? IrisTokens.brandDark : IrisTokens.brand);
 
-    // Ultra-glass transparency with dark tint in dark mode
-    final glassColor = backgroundColor ?? (isDark
-        ? const Color(0xFF020617).withValues(alpha: 0.10)
-        : Colors.white.withValues(alpha: 0.48));
-
-    final tiltAngle = tilt ? 0.006 : 0.0;
-
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeSignals.useMinimalTheme,
       builder: (context, useMinimal, _) {
+        // Ultra-glass transparency in normal mode, opaque solid surface in eco mode
+        final glassColor = backgroundColor ?? (useMinimal
+            ? (isDark ? const Color(0xFF0F1218) : Colors.white)
+            : (isDark
+                ? const Color(0xFF020617).withValues(alpha: 0.10)
+                : Colors.white.withValues(alpha: 0.48)));
+
         final reduceBlur = IrisMotion.reduceBlur || useMinimal || MediaQuery.of(context).disableAnimations;
-        final blurSigma = enableBlur ? (reduceBlur ? 6.0 : 12.0) : 0.0;
+        final blurSigma = enableBlur ? (reduceBlur ? 0.0 : 12.0) : 0.0;
 
         final settings = IrisGlass.settings(
           context,
           blur: blurSigma,
-          ambientStrength: 0.72,
+          ambientStrength: useMinimal ? 0.5 : 0.72,
           lightAngle: 1.5,
-          thickness: 12.0,
+          thickness: useMinimal ? 0.0 : 12.0,
           glassColor: glassColor,
         );
 
-        final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(effectiveRadius));
+        final shape = RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(effectiveRadius),
+          side: border is Border
+              ? (border as Border).top
+              : (useMinimal
+                  ? BorderSide(
+                      color: isDark ? const Color(0xFF1E2433) : const Color(0xFFE2E8F0),
+                      width: 1.0,
+                    )
+                  : BorderSide.none),
+        );
 
         final cardBody = Container(
           decoration: ShapeDecoration(
             shape: shape,
-            shadows: enableShadow
+            shadows: enableShadow && !useMinimal
                 ? [
                     if (!isDark)
                       BoxShadow(
