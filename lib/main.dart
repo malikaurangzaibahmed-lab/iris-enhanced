@@ -4397,19 +4397,6 @@ class _DashboardState extends State<Dashboard>
                 showIrisFrostedSnackBar(context, content: const Text('Caches cleared successfully!'));
               },
             ),
-            const SizedBox(height: 12),
-            _buildContextActionTile(
-              isDark,
-              title: 'Sensory Haptics Diagnostics',
-              subtitle: 'Pulse interaction engine triggers',
-              icon: Icons.analytics_rounded,
-              color: IrisTokens.success,
-              onTap: () {
-                Navigator.pop(sheetContext);
-                IrisHaptics.intelligencePulse();
-                showIrisFrostedSnackBar(context, content: const Text('Sensory engine diagnostics pulse sent.'));
-              },
-            ),
           ],
         ),
       ),

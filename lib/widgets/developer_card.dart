@@ -264,87 +264,47 @@ class _DeveloperCardState extends State<DeveloperCard>
                   ),
 
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            IrisHaptics.actionMedium();
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.remove('helpdesk_faculty_cache_v2');
-                            await prefs.remove('helpdesk_has_doc_draft');
-                            if (ctx.mounted) {
-                              showIrisFrostedSnackBar(
-                                ctx,
-                                content: const Text('Local caches & drafts cleared!'),
-                                tint: const Color(0xFF10B981),
-                              );
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.05 : 0.03),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.restore_rounded, size: 16, color: isDark ? Colors.amber[300] : Colors.amber[800]),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Clear Cache',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                  InkWell(
+                    onTap: () async {
+                      IrisHaptics.actionMedium();
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('helpdesk_faculty_cache_v2');
+                      await prefs.remove('helpdesk_has_doc_draft');
+                      if (ctx.mounted) {
+                        showIrisFrostedSnackBar(
+                          ctx,
+                          content: const Text('Local caches & drafts cleared!'),
+                          tint: const Color(0xFF10B981),
+                        );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.05 : 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {
-                            IrisHaptics.intelligencePulse();
-                            showIrisFrostedSnackBar(context, content: const Text('Sensory engine diagnostics pulse sent.'));
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.05 : 0.03),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.analytics_rounded, size: 16, color: isDark ? Colors.cyan[300] : Colors.cyan[800]),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Diagnostics',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.restore_rounded, size: 16, color: isDark ? Colors.amber[300] : Colors.amber[800]),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Clear Local Caches & Drafts',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
