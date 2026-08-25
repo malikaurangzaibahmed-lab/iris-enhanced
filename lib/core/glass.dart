@@ -1,10 +1,7 @@
-import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'animations.dart';
 import 'tokens.dart';
 import 'theme_signals.dart';
 

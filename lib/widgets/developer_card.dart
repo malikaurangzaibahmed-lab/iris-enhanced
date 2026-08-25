@@ -233,18 +233,18 @@ class _DeveloperCardState extends State<DeveloperCard>
                               ],
                             ),
                           ),
-                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-          );
-        },
-      );
-    },
-  );
+          ),
+        );
+      },
+    );
+  },
+);
 }
 
   Color _getDynamicSparkGlow(double t) {
