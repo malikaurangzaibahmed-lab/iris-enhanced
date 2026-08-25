@@ -233,6 +233,7 @@ class _DeveloperCardState extends State<DeveloperCard>
                               ],
                             ),
                           ),
+                        ),
                       ),
                     ],
                   ),
