@@ -50,6 +50,7 @@ class GlassCard extends StatelessWidget {
     final effectiveRadius = borderRadius ?? 32.0;
     final tintColor =
         accentColor ?? (isDark ? IrisTokens.brandDark : IrisTokens.brand);
+    final tiltAngle = tilt ? 0.006 : 0.0;
 
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeSignals.useMinimalTheme,
